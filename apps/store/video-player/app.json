@@ -1,0 +1,40 @@
+{
+  "id": "video-player",
+  "name": "Video OynatÄ±cÄ±",
+  "icon": "ğŸ¬",
+  "color": "linear-gradient(135deg,#6a11cb,#2575fc)",
+  "type": "internal",
+  "size": {
+    "w": 720,
+    "h": 540
+  },
+  "global": false,
+  "description": "Video oynatÄ±cÄ±",
+  "lang": {
+    "tr": {
+      "name": "Video OynatÄ±cÄ±",
+      "description": "Video oynatÄ±cÄ± â€” MP4/WebM dosyalarÄ±nÄ± oynat, playlist yÃ¶net, yÃ¼kle"
+    },
+    "en": {
+      "name": "Video Player",
+      "description": "Video player â€” Play MP4/WebM files, manage playlists, upload"
+    },
+    "de": {
+      "name": "Videoplayer",
+      "description": "Videoplayer â€” MP4/WebM-Dateien abspielen, Playlists verwalten, hochladen"
+    },
+    "fr": {
+      "name": "Lecteur VidÃ©o",
+      "description": "Lecteur vidÃ©o â€” Lire des fichiers MP4/WebM, gÃ©rer les playlists"
+    },
+    "es": {
+      "name": "Reproductor Video",
+      "description": "Reproductor de video â€” Reproducir archivos MP4/WebM, gestionar listas"
+    },
+    "ru": {
+      "name": "Ğ’Ğ¸Ğ´ĞµĞ¾Ğ¿Ğ»ĞµĞµÑ€",
+      "description": "Ğ’Ğ¸Ğ´ĞµĞ¾Ğ¿Ğ»ĞµĞµÑ€ â€” Ğ’Ğ¾ÑĞ¿Ñ€Ğ¾Ğ¸Ğ·Ğ²ĞµĞ´ĞµĞ½Ğ¸Ğµ MP4/WebM, ÑƒĞ¿Ñ€Ğ°Ğ²Ğ»ĞµĞ½Ğ¸Ğµ Ğ¿Ğ»ĞµĞ¹Ğ»Ğ¸ÑÑ‚Ğ°Ğ¼Ğ¸"
+    }
+  },
+  "category": "media"
+}

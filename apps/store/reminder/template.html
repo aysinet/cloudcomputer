@@ -1,0 +1,95 @@
+<div class="rem-app">
+  <!-- TOOLBAR -->
+  <div class="rem-toolbar">
+    <span class="rem-toolbar-title">⏰ {{L('title')}}</span>
+    <div class="rem-toolbar-filters">
+      <button :class="['rem-filter-btn', filter==='all'&&'active']" @click="filter='all'">
+        {{L('filterAll')}} <span class="rem-badge">{{counts.all}}</span>
+      </button>
+      <button :class="['rem-filter-btn', filter==='active'&&'active']" @click="filter='active'">
+        {{L('filterActive')}} <span class="rem-badge">{{counts.active}}</span>
+      </button>
+      <button :class="['rem-filter-btn', filter==='disabled'&&'active']" @click="filter='disabled'">
+        {{L('filterDisabled')}} <span class="rem-badge">{{counts.disabled}}</span>
+      </button>
+    </div>
+    <button class="rem-add-btn" @click="openNew">＋ {{L('add')}}</button>
+  </div>
+
+  <!-- FORM -->
+  <transition name="rem-slide">
+    <div v-if="showForm" class="rem-form-panel">
+      <div class="rem-form-header">
+        <span>{{editingId ? L('edit') : L('add')}}</span>
+        <button class="rem-form-close" @click="resetForm">✕</button>
+      </div>
+      <div class="rem-form-body">
+        <div class="rem-form-row">
+          <label>{{L('titleLabel')}}</label>
+          <input v-model="form.title" class="rem-input" maxlength="200" :placeholder="L('titleLabel')" />
+        </div>
+        <div class="rem-form-row">
+          <label>{{L('noteLabel')}}</label>
+          <textarea v-model="form.note" class="rem-input rem-textarea" maxlength="500" :placeholder="L('noteLabel')" rows="2"></textarea>
+        </div>
+        <div class="rem-form-row">
+          <label>{{L('dateTimeLabel')}}</label>
+          <el-date-picker v-model="form.datetime" type="datetime" value-format="YYYY-MM-DDTHH:mm" :placeholder="L('dateTimeLabel')" style="width:100%" />
+        </div>
+        <div class="rem-form-row">
+          <label>{{L('repeatLabel')}}</label>
+          <select v-model="form.repeat" class="rem-input">
+            <option v-for="opt in repeatOptions" :key="opt.value" :value="opt.value">{{opt.label}}</option>
+          </select>
+        </div>
+        <div v-if="form.repeat==='custom'" class="rem-form-row">
+          <label>{{L('customMinutes')}}</label>
+          <input v-model.number="form.repeatInterval" type="number" min="1" class="rem-input" style="width:120px" />
+        </div>
+        <div class="rem-form-row rem-form-toggle-row">
+          <label>{{L('soundLabel')}}</label>
+          <button :class="['rem-toggle', form.sound&&'on']" @click="form.sound=!form.sound">
+            {{form.sound ? L('on') : L('off')}}
+          </button>
+        </div>
+        <div v-if="formError" class="rem-form-error">{{formError}}</div>
+        <div class="rem-form-actions">
+          <button class="rem-btn rem-btn-primary" @click="saveReminder">{{L('save')}}</button>
+          <button class="rem-btn rem-btn-secondary" @click="resetForm">{{L('cancel')}}</button>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <!-- LIST -->
+  <div class="rem-list" v-if="filteredReminders.length">
+    <div v-for="rem in filteredReminders" :key="rem.id"
+         :class="['rem-card', !rem.enabled&&'disabled', getRelativeGroup(rem.datetime)==='past'&&rem.enabled&&'overdue']">
+      <div class="rem-card-left">
+        <button :class="['rem-enable-dot', rem.enabled&&'active']" @click="toggleEnabled(rem)"
+                :title="rem.enabled ? L('enabled') : L('disabled')"></button>
+      </div>
+      <div class="rem-card-body" @click="openEdit(rem)">
+        <div class="rem-card-title">{{rem.title}}</div>
+        <div class="rem-card-meta">
+          <span class="rem-card-time">🕐 {{formatDateTime(rem.datetime)}}</span>
+          <span v-if="rem.repeat" class="rem-card-repeat">🔁 {{repeatLabel(rem)}}</span>
+          <span v-if="!rem.sound" class="rem-card-muted">🔇</span>
+        </div>
+        <div v-if="rem.note" class="rem-card-note">{{rem.note}}</div>
+        <div v-if="isSnoozed(rem)" class="rem-card-snooze">💤 {{L('snoozed')}} — {{snoozeTimeLeft(rem)}}</div>
+      </div>
+      <div class="rem-card-actions">
+        <button class="rem-card-act-btn snooze" @click.stop="snoozeReminder(rem.id, 5)" title="Snooze 5m">💤</button>
+        <button class="rem-card-act-btn delete" @click.stop="deleteReminder(rem.id)" :title="L('delete')">🗑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPTY -->
+  <div v-else class="rem-empty">
+    <div class="rem-empty-icon">⏰</div>
+    <div class="rem-empty-text">{{L('noReminders')}}</div>
+    <button class="rem-btn rem-btn-primary" @click="openNew">＋ {{L('add')}}</button>
+  </div>
+</div>

@@ -1,0 +1,34 @@
+<div class="ms-root">
+  <div class="ms-header">
+    <div class="ms-counter">💣 {{remainingMines}}</div>
+    <button class="ms-face" @click="reset">{{gameState==='won'?'😎':gameState==='lost'?'😵':'🙂'}}</button>
+    <div class="ms-counter">⏱ {{timer}}</div>
+  </div>
+  <div class="ms-board" @contextmenu.prevent>
+    <div v-for="(row,y) in board" :key="y" class="ms-row">
+      <button v-for="(cell,x) in row" :key="x"
+        class="ms-cell"
+        :class="{
+          revealed: cell.revealed,
+          flagged: cell.flagged,
+          mine: cell.revealed && cell.mine,
+          ['n'+cell.adjacent]: cell.revealed && !cell.mine && cell.adjacent > 0
+        }"
+        @click="reveal(x,y)"
+        @contextmenu.prevent="flag(x,y)"
+        :disabled="gameState!=='playing' && !cell.revealed">
+        <span v-if="cell.flagged && !cell.revealed">🚩</span>
+        <span v-else-if="cell.revealed && cell.mine">💥</span>
+        <span v-else-if="cell.revealed && cell.adjacent > 0">{{cell.adjacent}}</span>
+      </button>
+    </div>
+  </div>
+  <div class="ms-footer">
+    <span>{{gameState==='won'?'Kazandınız! 🎉':gameState==='lost'?'Kaybettiniz!':''}}</span>
+    <select v-model="difficulty" @change="reset" class="ms-diff">
+      <option value="easy">Kolay (9×9)</option>
+      <option value="medium">Orta (16×16)</option>
+      <option value="hard">Zor (16×30)</option>
+    </select>
+  </div>
+</div>

@@ -1,0 +1,40 @@
+{
+  "id": "eth-wallet",
+  "name": "ETH CÃ¼zdan",
+  "icon": "ğŸ’",
+  "color": "linear-gradient(135deg,#627eea,#3b5998)",
+  "type": "internal",
+  "size": {
+    "w": 420,
+    "h": 600
+  },
+  "global": false,
+  "description": "Ethereum cÃ¼zdan â€” oluÅŸtur, iÃ§e aktar, bakiye, gÃ¶nder, NFT listele",
+  "lang": {
+    "tr": {
+      "name": "ETH CÃ¼zdan",
+      "description": "Ethereum cÃ¼zdan â€” oluÅŸtur, iÃ§e aktar, bakiye, gÃ¶nder, NFT listele"
+    },
+    "en": {
+      "name": "ETH Wallet",
+      "description": "Ethereum wallet â€” create, import, balance, send, list NFTs"
+    },
+    "de": {
+      "name": "ETH Wallet",
+      "description": "Ethereum Wallet â€” erstellen, importieren, Saldo, senden, NFTs auflisten"
+    },
+    "fr": {
+      "name": "Portefeuille ETH",
+      "description": "Portefeuille Ethereum â€” crÃ©er, importer, solde, envoyer, lister les NFTs"
+    },
+    "es": {
+      "name": "Billetera ETH",
+      "description": "Billetera Ethereum â€” crear, importar, saldo, enviar, listar NFTs"
+    },
+    "ru": {
+      "name": "ETH ĞšĞ¾ÑˆĞµĞ»Ñ‘Ğº",
+      "description": "Ethereum ĞºĞ¾ÑˆĞµĞ»Ñ‘Ğº â€” ÑĞ¾Ğ·Ğ´Ğ°Ñ‚ÑŒ, Ğ¸Ğ¼Ğ¿Ğ¾Ñ€Ñ‚Ğ¸Ñ€Ğ¾Ğ²Ğ°Ñ‚ÑŒ, Ğ±Ğ°Ğ»Ğ°Ğ½Ñ, Ğ¾Ñ‚Ğ¿Ñ€Ğ°Ğ²Ğ¸Ñ‚ÑŒ, ÑĞ¿Ğ¸ÑĞ¾Ğº NFT"
+    }
+  },
+  "category": "finance"
+}

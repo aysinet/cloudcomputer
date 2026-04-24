@@ -1,0 +1,102 @@
+<div class="bkr-app">
+  <!-- TABS -->
+  <div class="bkr-tabs">
+    <button :class="['bkr-tab', tab==='backup'&&'active']" @click="tab='backup'">💾 {{L('tabBackup')}}</button>
+    <button :class="['bkr-tab', tab==='restore'&&'active']" @click="tab='restore'">📥 {{L('tabRestore')}}</button>
+  </div>
+
+  <!-- BUSY OVERLAY -->
+  <div v-if="busy" class="bkr-busy-overlay">
+    <div class="bkr-spinner"></div>
+    <div class="bkr-busy-text">{{busyText}}</div>
+  </div>
+
+  <!-- STATUS MESSAGE -->
+  <transition name="bkr-fade">
+    <div v-if="statusMsg" :class="['bkr-status', statusType]" @click="statusMsg=''">
+      <span>{{statusType==='success'?'✓':'✕'}}</span> {{statusMsg}}
+    </div>
+  </transition>
+
+  <!-- BACKUP TAB -->
+  <div v-if="tab==='backup'" class="bkr-content">
+    <div class="bkr-section">
+      <div class="bkr-section-title">{{L('createBackup')}}</div>
+      <div class="bkr-create-row">
+        <div class="bkr-format-group">
+          <label class="bkr-format-label">{{L('format')}}</label>
+          <div class="bkr-format-btns">
+            <button :class="['bkr-fmt-btn', format==='zip'&&'active']" @click="format='zip'">📦 ZIP</button>
+            <button :class="['bkr-fmt-btn', format==='7z'&&'active']" @click="format='7z'">📦 7Z</button>
+          </div>
+        </div>
+        <button class="bkr-action-btn primary" @click="createBackup" :disabled="busy">
+          💾 {{L('createBackup')}}
+        </button>
+      </div>
+    </div>
+
+    <div class="bkr-section">
+      <div class="bkr-section-title">{{L('backups')}} <span class="bkr-count">{{backups.length}}</span></div>
+      <div class="bkr-list" v-if="backups.length">
+        <div v-for="b in backups" :key="b.name" class="bkr-item">
+          <div class="bkr-item-icon">{{b.name.endsWith('.7z') ? '📦' : '🗜️'}}</div>
+          <div class="bkr-item-info">
+            <div class="bkr-item-name">{{b.name}}</div>
+            <div class="bkr-item-meta">
+              <span>{{formatSize(b.size)}}</span>
+              <span>{{formatDate(b.created)}}</span>
+            </div>
+          </div>
+          <div class="bkr-item-actions">
+            <button class="bkr-icon-btn download" @click="downloadBackup(b.name)" :title="L('download')">⬇️</button>
+            <button class="bkr-icon-btn delete" @click="deleteBackup(b.name)" :title="L('delete')">🗑️</button>
+          </div>
+        </div>
+      </div>
+      <div v-else class="bkr-empty">
+        <div class="bkr-empty-icon">💾</div>
+        <div>{{L('noBackups')}}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESTORE TAB -->
+  <div v-if="tab==='restore'" class="bkr-content">
+    <div class="bkr-section">
+      <div class="bkr-section-title">{{L('uploadBackup')}}</div>
+      <button class="bkr-action-btn secondary" @click="triggerUpload" :disabled="busy">
+        📂 {{L('selectFile')}}
+      </button>
+    </div>
+
+    <div class="bkr-section">
+      <div class="bkr-section-title">{{L('orSelectExisting')}}</div>
+      <div class="bkr-list" v-if="backups.length">
+        <div v-for="b in backups" :key="b.name" class="bkr-item bkr-item-restore">
+          <div class="bkr-item-icon">{{b.name.endsWith('.7z') ? '📦' : '🗜️'}}</div>
+          <div class="bkr-item-info">
+            <div class="bkr-item-name">{{b.name}}</div>
+            <div class="bkr-item-meta">
+              <span>{{formatSize(b.size)}}</span>
+              <span>{{formatDate(b.created)}}</span>
+            </div>
+          </div>
+          <div class="bkr-item-actions">
+            <button class="bkr-action-btn restore-btn" @click="restoreFromBackup(b.name)" :disabled="busy">
+              📥 {{L('restoreBtn')}}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div v-else class="bkr-empty">
+        <div class="bkr-empty-icon">📥</div>
+        <div>{{L('noBackups')}}</div>
+      </div>
+    </div>
+
+    <div class="bkr-warning">
+      ⚠️ {{L('closeWarning')}}
+    </div>
+  </div>
+</div>

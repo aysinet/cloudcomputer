@@ -1,0 +1,40 @@
+{
+  "id": "backup-restore",
+  "name": "Yedekleme & Geri YÃ¼kleme",
+  "icon": "ğŸ’¾",
+  "color": "linear-gradient(135deg,#2193b0,#6dd5ed)",
+  "type": "internal",
+  "size": {
+    "w": 560,
+    "h": 520
+  },
+  "global": false,
+  "description": "Sistem yedekleme ve geri yÃ¼kleme â€” tÃ¼m veriler, ayarlar ve dosyalar",
+  "lang": {
+    "tr": {
+      "name": "Yedekleme & Geri YÃ¼kleme",
+      "description": "Sistem yedekleme ve geri yÃ¼kleme â€” tÃ¼m veriler, ayarlar ve dosyalar"
+    },
+    "en": {
+      "name": "Backup & Restore",
+      "description": "System backup and restore â€” all data, settings and files"
+    },
+    "de": {
+      "name": "Sicherung & Wiederherstellung",
+      "description": "Systemsicherung und Wiederherstellung â€” alle Daten, Einstellungen und Dateien"
+    },
+    "fr": {
+      "name": "Sauvegarde & Restauration",
+      "description": "Sauvegarde et restauration du systÃ¨me â€” toutes les donnÃ©es, paramÃ¨tres et fichiers"
+    },
+    "es": {
+      "name": "Copia de Seguridad & Restaurar",
+      "description": "Copia de seguridad y restauraciÃ³n del sistema â€” todos los datos, configuraciones y archivos"
+    },
+    "ru": {
+      "name": "Ğ ĞµĞ·ĞµÑ€Ğ²Ğ½Ğ¾Ğµ ĞºĞ¾Ğ¿Ğ¸Ñ€Ğ¾Ğ²Ğ°Ğ½Ğ¸Ğµ",
+      "description": "Ğ ĞµĞ·ĞµÑ€Ğ²Ğ½Ğ¾Ğµ ĞºĞ¾Ğ¿Ğ¸Ñ€Ğ¾Ğ²Ğ°Ğ½Ğ¸Ğµ Ğ¸ Ğ²Ğ¾ÑÑÑ‚Ğ°Ğ½Ğ¾Ğ²Ğ»ĞµĞ½Ğ¸Ğµ ÑĞ¸ÑÑ‚ĞµĞ¼Ñ‹ â€” Ğ²ÑĞµ Ğ´Ğ°Ğ½Ğ½Ñ‹Ğµ, Ğ½Ğ°ÑÑ‚Ñ€Ğ¾Ğ¹ĞºĞ¸ Ğ¸ Ñ„Ğ°Ğ¹Ğ»Ñ‹"
+    }
+  },
+  "category": "tools"
+}

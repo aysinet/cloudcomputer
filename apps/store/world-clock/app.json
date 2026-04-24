@@ -1,0 +1,40 @@
+{
+  "id": "world-clock",
+  "name": "DÃ¼nya Saati",
+  "icon": "ğŸŒ",
+  "color": "linear-gradient(135deg,#0f0c29,#302b63)",
+  "type": "internal",
+  "size": {
+    "w": 780,
+    "h": 520
+  },
+  "global": false,
+  "description": "DÃ¼nya genelindeki bÃ¼yÃ¼k ÅŸehirlerin saatlerini canlÄ± olarak takip edin",
+  "lang": {
+    "tr": {
+      "name": "DÃ¼nya Saati",
+      "description": "DÃ¼nya genelindeki bÃ¼yÃ¼k ÅŸehirlerin saatlerini canlÄ± olarak takip edin"
+    },
+    "en": {
+      "name": "World Clock",
+      "description": "Track major city times around the world in real time"
+    },
+    "de": {
+      "name": "Weltuhren",
+      "description": "Verfolgen Sie Uhrzeiten groÃŸer StÃ¤dte weltweit in Echtzeit"
+    },
+    "fr": {
+      "name": "Horloge Mondiale",
+      "description": "Suivez les heures des grandes villes du monde en temps rÃ©el"
+    },
+    "es": {
+      "name": "Reloj Mundial",
+      "description": "Siga las horas de las principales ciudades del mundo en tiempo real"
+    },
+    "ru": {
+      "name": "ĞœĞ¸Ñ€Ğ¾Ğ²Ñ‹Ğµ Ñ‡Ğ°ÑÑ‹",
+      "description": "ĞÑ‚ÑĞ»ĞµĞ¶Ğ¸Ğ²Ğ°Ğ½Ğ¸Ğµ Ğ²Ñ€ĞµĞ¼ĞµĞ½Ğ¸ Ğ² ĞºÑ€ÑƒĞ¿Ğ½Ñ‹Ñ… Ğ³Ğ¾Ñ€Ğ¾Ğ´Ğ°Ñ… Ğ¼Ğ¸Ñ€Ğ° Ğ² Ñ€ĞµĞ°Ğ»ÑŒĞ½Ğ¾Ğ¼ Ğ²Ñ€ĞµĞ¼ĞµĞ½Ğ¸"
+    }
+  },
+  "category": "tools"
+}

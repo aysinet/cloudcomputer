@@ -1,0 +1,40 @@
+{
+  "id": "freecell",
+  "name": "Freecell",
+  "icon": "ğŸƒ",
+  "color": "linear-gradient(135deg,#1b5e20,#388e3c)",
+  "type": "internal",
+  "size": {
+    "w": 740,
+    "h": 560
+  },
+  "global": false,
+  "description": "Klasik Freecell kart oyunu.",
+  "lang": {
+    "tr": {
+      "name": "Freecell",
+      "description": "Klasik Freecell kart oyunu. 52 kart, 4 serbest hÃ¼cre, 4 yuva."
+    },
+    "en": {
+      "name": "Freecell",
+      "description": "Classic Freecell card game. 52 cards, 4 free cells, 4 foundations."
+    },
+    "de": {
+      "name": "Freecell",
+      "description": "Klassisches Freecell-Kartenspiel. 52 Karten, 4 freie Zellen, 4 Ablagen."
+    },
+    "fr": {
+      "name": "Freecell",
+      "description": "Jeu de cartes Freecell classique. 52 cartes, 4 cellules libres, 4 piles."
+    },
+    "es": {
+      "name": "Freecell",
+      "description": "Juego de cartas Freecell clÃ¡sico. 52 cartas, 4 celdas libres, 4 pilas."
+    },
+    "ru": {
+      "name": "Ğ¡Ğ²Ğ¾Ğ±Ğ¾Ğ´Ğ½Ğ°Ñ ÑÑ‡ĞµĞ¹ĞºĞ°",
+      "description": "ĞšĞ»Ğ°ÑÑĞ¸Ñ‡ĞµÑĞºĞ°Ñ ĞºĞ°Ñ€Ñ‚Ğ¾Ñ‡Ğ½Ğ°Ñ Ğ¸Ğ³Ñ€Ğ° Freecell. 52 ĞºĞ°Ñ€Ñ‚Ñ‹, 4 ÑĞ²Ğ¾Ğ±Ğ¾Ğ´Ğ½Ñ‹Ğµ ÑÑ‡ĞµĞ¹ĞºĞ¸, 4 Ğ±Ğ°Ğ·Ñ‹."
+    }
+  },
+  "category": "games"
+}

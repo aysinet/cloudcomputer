@@ -1,0 +1,151 @@
+<div class="map-app">
+  <!-- DRAWER -->
+  <el-drawer v-model="drawerOpen" direction="ltr" :size="280" :with-header="false"
+    :modal="false" :append-to-body="false" :show-close="false"
+    modal-class="map-drawer-modal" class="map-drawer"
+    @open="onDrawerChange" @close="onDrawerChange">
+    <div class="map-drawer-inner">
+      <div class="map-sb-tabs">
+        <button :class="['map-sb-tab', sidebarTab==='markers'&&'active']" @click="sidebarTab='markers'">📍 {{L('markers')}}</button>
+        <button :class="['map-sb-tab', sidebarTab==='views'&&'active']" @click="sidebarTab='views'">👁️ {{L('views')}}</button>
+      </div>
+
+      <!-- MARKERS TAB -->
+      <div v-if="sidebarTab==='markers'" class="map-sb-content">
+        <div class="map-sb-toolbar">
+          <button class="map-sb-add-btn" @click="openNewMarker">＋ {{L('addMarker')}}</button>
+        </div>
+        <input v-model="search" class="map-sb-search" :placeholder="L('search')" />
+
+        <!-- Marker Form -->
+        <div v-if="showForm" class="map-marker-form">
+          <div class="map-form-title">{{editingId ? L('editMarker') : L('addMarker')}}</div>
+          <div v-if="placing" class="map-form-placing">🎯 {{L('clickToPlace')}}</div>
+          <div class="map-form-row">
+            <label>{{L('name')}}</label>
+            <input v-model="form.name" class="map-input" maxlength="200" />
+          </div>
+          <div class="map-form-row">
+            <label>{{L('description')}}</label>
+            <textarea v-model="form.description" class="map-input map-textarea" maxlength="500" rows="2"></textarea>
+          </div>
+          <div class="map-form-row map-form-coords">
+            <div>
+              <label>{{L('lat')}}</label>
+              <input v-model.number="form.lat" type="number" step="0.000001" class="map-input" />
+            </div>
+            <div>
+              <label>{{L('lon')}}</label>
+              <input v-model.number="form.lon" type="number" step="0.000001" class="map-input" />
+            </div>
+          </div>
+          <div class="map-form-row">
+            <label>{{L('icon')}}</label>
+            <div class="map-icon-grid">
+              <button v-for="ic in markerIcons" :key="ic"
+                :class="['map-icon-btn', form.icon===ic&&'active']"
+                @click="form.icon=ic">{{ic}}</button>
+            </div>
+          </div>
+          <div class="map-form-row">
+            <label>{{L('color')}}</label>
+            <input v-model="form.color" type="color" class="map-color-input" />
+          </div>
+          <div v-if="formError" class="map-form-error">{{formError}}</div>
+          <div class="map-form-actions">
+            <button class="map-btn primary" @click="saveMarker">{{L('save')}}</button>
+            <button class="map-btn secondary" @click="cancelForm">{{L('cancel')}}</button>
+          </div>
+        </div>
+
+        <!-- Marker List -->
+        <div class="map-marker-list">
+          <div v-for="m in filteredMarkers" :key="m.id" class="map-marker-item" @click="flyToMarker(m)">
+            <span class="map-marker-icon" :style="{color:m.color}">{{m.icon||'📍'}}</span>
+            <div class="map-marker-info">
+              <div class="map-marker-name">{{m.name}}</div>
+              <div class="map-marker-coord">{{m.lat.toFixed(4)}}, {{m.lon.toFixed(4)}}</div>
+            </div>
+            <div class="map-marker-acts">
+              <button class="map-sm-btn" @click.stop="openEditMarker(m)" :title="L('edit')">✏️</button>
+              <button class="map-sm-btn del" @click.stop="deleteMarker(m.id)" :title="L('delete')">🗑️</button>
+            </div>
+          </div>
+          <div v-if="!filteredMarkers.length" class="map-sb-empty">
+            <div style="font-size:32px;opacity:.4">📍</div>
+            <div>{{L('noMarkers')}}</div>
+          </div>
+        </div>
+        <div v-if="markers.length" class="map-sb-footer">{{L('total')}}: {{markers.length}}</div>
+      </div>
+
+      <!-- VIEWS TAB -->
+      <div v-if="sidebarTab==='views'" class="map-sb-content">
+        <div class="map-sb-toolbar">
+          <button class="map-sb-add-btn" @click="openSaveView">＋ {{L('saveView')}}</button>
+        </div>
+
+        <!-- Save View Form -->
+        <div v-if="showViewForm" class="map-marker-form">
+          <div class="map-form-title">{{L('saveView')}}</div>
+          <div class="map-form-row">
+            <label>{{L('viewName')}}</label>
+            <input v-model="viewFormName" class="map-input" maxlength="100" @keyup.enter="saveView" />
+          </div>
+          <div class="map-form-actions">
+            <button class="map-btn primary" @click="saveView">{{L('save')}}</button>
+            <button class="map-btn secondary" @click="showViewForm=false">{{L('cancel')}}</button>
+          </div>
+        </div>
+
+        <!-- View List -->
+        <div class="map-marker-list">
+          <div v-for="v in savedViews" :key="v.id" class="map-marker-item" @click="goToView(v)">
+            <span class="map-marker-icon">👁️</span>
+            <div class="map-marker-info">
+              <div class="map-marker-name">{{v.name}}</div>
+              <div class="map-marker-coord">{{v.center.lat.toFixed(4)}}, {{v.center.lon.toFixed(4)}} · z{{Math.round(v.zoom)}} · {{v.layer}}</div>
+            </div>
+            <div class="map-marker-acts">
+              <button class="map-sm-btn del" @click.stop="deleteView(v.id)" :title="L('delete')">🗑️</button>
+            </div>
+          </div>
+          <div v-if="!savedViews.length" class="map-sb-empty">
+            <div style="font-size:32px;opacity:.4">👁️</div>
+            <div>{{L('noViews')}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </el-drawer>
+
+  <!-- Drawer toggle button -->
+  <button class="map-drawer-toggle" @click="drawerOpen=!drawerOpen">
+    {{drawerOpen ? '◀' : '☰'}}
+  </button>
+
+  <!-- MAP AREA -->
+  <div class="map-main">
+    <!-- Top toolbar -->
+    <div class="map-top-bar">
+      <div class="map-layer-btns">
+        <button :class="['map-layer-btn', activeLayer==='osm'&&'active']" @click="switchLayer('osm')">{{L('osm')}}</button>
+        <button :class="['map-layer-btn', activeLayer==='satellite'&&'active']" @click="switchLayer('satellite')">{{L('satellite')}}</button>
+        <button :class="['map-layer-btn', activeLayer==='topo'&&'active']" @click="switchLayer('topo')">{{L('topo')}}</button>
+      </div>
+      <div class="map-top-actions">
+        <button class="map-top-act-btn" @click="fitAll" :title="L('fitAll')">🌍</button>
+        <button class="map-top-act-btn" @click="goToMyLocation" :title="L('myLocation')">📡</button>
+      </div>
+    </div>
+
+    <!-- Map container -->
+    <div id="map-app-container" class="map-ol-container"></div>
+
+    <!-- Tooltip -->
+    <div id="map-app-tooltip" class="map-tooltip"></div>
+
+    <!-- Placing indicator -->
+    <div v-if="placing" class="map-placing-indicator">🎯 {{L('clickToPlace')}}</div>
+  </div>
+</div>

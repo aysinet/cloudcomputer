@@ -1,0 +1,373 @@
+.ethw-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #1a1d2e 0%, #0f1118 100%);
+  color: #e1e4ea;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  overflow: hidden;
+}
+
+/* Center screens (loading, setup, unlock) */
+.ethw-center, .ethw-setup, .ethw-unlock, .ethw-phrase-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 28px;
+}
+
+.ethw-logo {
+  font-size: 52px;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 0 18px rgba(98,126,234,.5));
+  animation: ethwPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes ethwPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.ethw-setup h2, .ethw-unlock h3, .ethw-phrase-screen h3 {
+  color: #fff;
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.ethw-hint {
+  color: #8b8fa3;
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+
+.ethw-setup-btns {
+  width: 100%;
+  max-width: 280px;
+  margin-top: 20px;
+}
+
+/* Phrase grid */
+.ethw-phrase-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.ethw-phrase-word {
+  background: rgba(98,126,234,.12);
+  border: 1px solid rgba(98,126,234,.25);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ethw-word-num {
+  color: #627eea;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 16px;
+}
+
+/* MAIN SCREEN */
+.ethw-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header */
+.ethw-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(255,255,255,.04);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.ethw-header-left { flex: 0 0 auto; }
+.ethw-header-center { flex: 1; text-align: center; }
+.ethw-header-right { flex: 0 0 auto; }
+
+.ethw-network-badge {
+  font-size: 11px;
+  background: rgba(98,126,234,.18);
+  color: #8ea3f7;
+  padding: 3px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ethw-account-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e1e4ea;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Balance card */
+.ethw-balance-card {
+  text-align: center;
+  padding: 20px 14px 16px;
+  background: linear-gradient(135deg, rgba(98,126,234,.12) 0%, rgba(59,89,152,.08) 100%);
+}
+
+.ethw-addr {
+  font-size: 13px;
+  color: #8ea3f7;
+  cursor: pointer;
+  margin-bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity .2s;
+}
+
+.ethw-addr:hover { opacity: .7; }
+
+.ethw-copy-icon {
+  font-size: 12px;
+  opacity: .6;
+}
+
+.ethw-balance {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.ethw-balance.ethw-loading { opacity: .4; }
+
+.ethw-symbol {
+  font-size: 14px;
+  font-weight: 400;
+  color: #8b8fa3;
+  margin-left: 4px;
+}
+
+.ethw-actions-row {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.ethw-actions-row .el-button.is-circle {
+  width: 40px;
+  height: 40px;
+}
+
+/* Tabs */
+.ethw-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.02);
+}
+
+.ethw-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 16px;
+  cursor: pointer;
+  opacity: .4;
+  transition: all .2s;
+  border-bottom: 2px solid transparent;
+}
+
+.ethw-tab:hover { opacity: .7; }
+
+.ethw-tab.active {
+  opacity: 1;
+  border-bottom-color: #627eea;
+}
+
+/* Content area */
+.ethw-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+}
+
+.ethw-empty {
+  text-align: center;
+  color: #5a5e72;
+  padding: 30px 0;
+  font-size: 13px;
+}
+
+/* Send form */
+.ethw-send-form h4, .ethw-receive h4 {
+  color: #fff;
+  margin: 0 0 14px;
+  font-size: 15px;
+}
+
+/* Receive */
+.ethw-receive {
+  text-align: center;
+}
+
+.ethw-receive-addr {
+  background: rgba(98,126,234,.1);
+  border: 1px solid rgba(98,126,234,.2);
+  border-radius: 10px;
+  padding: 14px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  word-break: break-all;
+  color: #c5cde8;
+  margin-top: 10px;
+  user-select: all;
+}
+
+/* TX History */
+.ethw-tx-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .2s;
+  margin-bottom: 4px;
+}
+
+.ethw-tx-item:hover {
+  background: rgba(255,255,255,.04);
+}
+
+.ethw-tx-dir span {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ethw-in { color: #67c23a; }
+.ethw-out { color: #f56c6c; }
+
+.ethw-tx-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ethw-tx-addr {
+  font-size: 12px;
+  color: #aab0c6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ethw-tx-time {
+  font-size: 11px;
+  color: #5a5e72;
+  margin-top: 2px;
+}
+
+.ethw-tx-val {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* NFT items */
+.ethw-nft-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .2s;
+  margin-bottom: 4px;
+}
+
+.ethw-nft-item:hover {
+  background: rgba(255,255,255,.04);
+}
+
+.ethw-nft-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(98,126,234,.1);
+  border-radius: 8px;
+}
+
+.ethw-nft-info { flex: 1; min-width: 0; }
+
+.ethw-nft-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e1e4ea;
+}
+
+.ethw-nft-id {
+  font-size: 11px;
+  color: #5a5e72;
+}
+
+.ethw-nft-link {
+  font-size: 14px;
+  opacity: .4;
+}
+
+/* Settings */
+.ethw-settings {
+  padding-top: 10px;
+}
+
+/* Scrollbar */
+.ethw-content::-webkit-scrollbar { width: 4px; }
+.ethw-content::-webkit-scrollbar-track { background: transparent; }
+.ethw-content::-webkit-scrollbar-thumb { background: rgba(98,126,234,.25); border-radius: 4px; }
+
+/* Dialog overrides */
+.ethw-root .el-dialog {
+  background: #1a1d2e;
+  border: 1px solid rgba(255,255,255,.1);
+}
+
+.ethw-root .el-dialog__header .el-dialog__title { color: #e1e4ea; }
+.ethw-root .el-dialog__body { color: #c5cde8; }
+
+/* Input dark theme fixes */
+.ethw-root .el-input__inner,
+.ethw-root .el-textarea__inner {
+  background: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.1);
+  color: #e1e4ea;
+}
+
+.ethw-root .el-input__inner::placeholder,
+.ethw-root .el-textarea__inner::placeholder {
+  color: #5a5e72;
+}
+
+/* Dropdown active */
+.ethw-root .el-dropdown-menu__item.is-active {
+  color: #627eea;
+  font-weight: 600;
+}
+
+/* Balance placeholder */
+.ethw-balance-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}

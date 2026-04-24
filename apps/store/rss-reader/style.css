@@ -1,0 +1,74 @@
+.rss-root{width:100%;height:100%;background:#1a1a2e;color:#e0e0e0;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;overflow:hidden}
+.rss-toolbar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.rss-toolbar-title{font-size:14px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rss-toolbar-spacer{flex:1}
+.rss-back{border:none;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;transition:.15s;white-space:nowrap}
+.rss-back:hover{background:rgba(255,255,255,.15);color:#fff}
+.rss-tbtn{border:none;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;transition:.15s;white-space:nowrap}
+.rss-tbtn:hover{background:rgba(255,255,255,.14);color:#fff}
+.rss-tbtn:disabled{opacity:.4;cursor:default}
+.rss-unread-badge{background:rgba(245,108,108,.2);color:#f56c6c;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px}
+.rss-loading{flex:1;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.4);font-size:13px}
+.rss-content{flex:1;overflow-y:auto;padding:10px 14px}
+.rss-content::-webkit-scrollbar{width:5px}
+.rss-content::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+
+/* Add feed */
+.rss-add-row{display:flex;gap:6px;margin-bottom:10px}
+.rss-input{flex:1;height:34px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(255,255,255,.05);color:#fff;padding:0 10px;font-size:12px;outline:none;box-sizing:border-box}
+.rss-input-name{max-width:140px}
+.rss-input::placeholder{color:rgba(255,255,255,.25)}
+.rss-input:focus{border-color:rgba(167,139,250,.5)}
+.rss-add-btn{width:34px;height:34px;border:none;border-radius:8px;background:rgba(102,126,234,.3);color:#fff;font-size:18px;cursor:pointer;transition:.15s;flex-shrink:0}
+.rss-add-btn:hover{background:rgba(102,126,234,.5)}
+.rss-add-btn:disabled{opacity:.3;cursor:default}
+.rss-error{color:#f56c6c;font-size:11px;margin-bottom:8px}
+
+/* Empty */
+.rss-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:40px;color:rgba(255,255,255,.35);text-align:center;font-size:13px}
+.rss-empty-icon{font-size:40px;margin-bottom:4px}
+.rss-empty-hint{font-size:11px;opacity:.6}
+
+/* Feed list */
+.rss-feed-list{display:flex;flex-direction:column;gap:4px}
+.rss-feed-card{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.04);cursor:pointer;transition:.15s}
+.rss-feed-card:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.08)}
+.rss-feed-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.rss-feed-icon{font-size:24px;flex-shrink:0}
+.rss-feed-info{min-width:0}
+.rss-feed-name{font-size:13px;font-weight:600;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rss-feed-url{font-size:10px;color:rgba(255,255,255,.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px}
+.rss-feed-err{font-size:10px;color:#f56c6c;margin-top:2px}
+.rss-feed-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.rss-feed-badge{background:#f56c6c;color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;min-width:16px;text-align:center}
+.rss-feed-count{font-size:10px;color:rgba(255,255,255,.3)}
+.rss-feed-del{width:22px;height:22px;border:none;border-radius:4px;background:transparent;color:rgba(255,255,255,.3);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s;opacity:0}
+.rss-feed-card:hover .rss-feed-del{opacity:1}
+.rss-feed-del:hover{background:rgba(255,80,80,.2);color:#ff6b6b}
+
+/* Item list */
+.rss-item-list{display:flex;flex-direction:column;gap:2px}
+.rss-item{display:flex;gap:10px;padding:10px 10px;border-radius:8px;cursor:pointer;transition:.12s}
+.rss-item:hover{background:rgba(255,255,255,.06)}
+.rss-item-read{opacity:.55}
+.rss-item-dot{width:8px;height:8px;border-radius:50%;margin-top:6px;flex-shrink:0;background:transparent}
+.rss-dot-unread{background:#667eea}
+.rss-item-body{min-width:0;flex:1}
+.rss-item-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.9);margin-bottom:3px;line-height:1.3}
+.rss-item-desc{font-size:11px;color:rgba(255,255,255,.4);line-height:1.4;margin-bottom:3px}
+.rss-item-date{font-size:10px;color:rgba(167,139,250,.6)}
+
+/* Reader */
+.rss-reader{padding:16px 20px}
+.rss-reader-head{margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.06)}
+.rss-reader-title{font-size:18px;font-weight:600;color:#fff;line-height:1.35;margin:0 0 8px}
+.rss-reader-meta{display:flex;align-items:center;gap:12px;font-size:11px;color:rgba(255,255,255,.4)}
+.rss-reader-link{color:#a78bfa;text-decoration:none;cursor:pointer}
+.rss-reader-link:hover{text-decoration:underline;color:#c4b5fd}
+.rss-reader-body{font-size:13px;line-height:1.7;color:rgba(255,255,255,.75)}
+.rss-reader-body img{max-width:100%;height:auto;border-radius:8px;margin:8px 0}
+.rss-reader-body a{color:#a78bfa}
+.rss-reader-body p{margin:0 0 10px}
+.rss-reader-body h1,.rss-reader-body h2,.rss-reader-body h3{color:#fff;margin:12px 0 8px}
+.rss-reader-body pre,.rss-reader-body code{background:rgba(255,255,255,.06);border-radius:4px;padding:2px 6px;font-size:12px}
+.rss-reader-body blockquote{border-left:3px solid rgba(167,139,250,.4);margin:8px 0;padding:4px 12px;color:rgba(255,255,255,.5)}

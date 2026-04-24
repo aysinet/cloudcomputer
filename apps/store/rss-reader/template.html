@@ -1,0 +1,80 @@
+<div class="rss-root">
+  <!-- HEADER -->
+  <div class="rss-toolbar">
+    <button v-if="view!=='feeds'" class="rss-back" @click="goBack">← Geri</button>
+    <span class="rss-toolbar-title" v-if="view==='feeds'">📰 RSS Okuyucu</span>
+    <span class="rss-toolbar-title" v-else-if="view==='items' && selectedFeed">{{selectedFeed.name}}</span>
+    <span class="rss-toolbar-title" v-else-if="view==='reader' && selectedItem">Makale</span>
+    <span class="rss-toolbar-spacer"></span>
+    <span v-if="totalUnread>0 && view==='feeds'" class="rss-unread-badge">{{totalUnread}} okunmamış</span>
+    <button v-if="view==='items'" class="rss-tbtn" @click="markAllRead()" title="Tümünü okundu işaretle">✓ Tümü</button>
+    <button v-if="view==='items'" class="rss-tbtn" @click="refreshFeed(selectedFeed.id)" :disabled="refreshing" title="Yenile">🔄</button>
+    <button v-if="view==='feeds'" class="rss-tbtn" @click="refreshAll()" :disabled="refreshing" title="Tümünü yenile">🔄</button>
+  </div>
+
+  <div v-if="loading" class="rss-loading">Yükleniyor...</div>
+
+  <!-- FEEDS LIST -->
+  <div v-else-if="view==='feeds'" class="rss-content">
+    <div class="rss-add-row">
+      <input class="rss-input" v-model="newUrl" placeholder="RSS URL yapıştırın..." @keyup.enter="addFeed">
+      <input class="rss-input rss-input-name" v-model="newName" placeholder="İsim (opsiyonel)">
+      <button class="rss-add-btn" @click="addFeed" :disabled="adding || !newUrl.trim()">{{adding ? '...' : '＋'}}</button>
+    </div>
+    <div v-if="addError" class="rss-error">{{addError}}</div>
+
+    <div v-if="!feeds.length" class="rss-empty">
+      <div class="rss-empty-icon">📡</div>
+      <div>Henüz RSS beslemesi eklenmemiş</div>
+      <div class="rss-empty-hint">Yukarıdan bir RSS URL'si ekleyin</div>
+    </div>
+
+    <div class="rss-feed-list">
+      <div v-for="feed in feeds" :key="feed.id" class="rss-feed-card" @click="openFeed(feed)">
+        <div class="rss-feed-left">
+          <div class="rss-feed-icon">📰</div>
+          <div class="rss-feed-info">
+            <div class="rss-feed-name">{{feed.name || feed.url}}</div>
+            <div class="rss-feed-url">{{feed.url}}</div>
+            <div v-if="feed.error" class="rss-feed-err">⚠ {{feed.error}}</div>
+          </div>
+        </div>
+        <div class="rss-feed-right">
+          <span v-if="feedUnread(feed)>0" class="rss-feed-badge">{{feedUnread(feed)}}</span>
+          <span class="rss-feed-count">{{(feed.items||[]).length}} makale</span>
+          <button class="rss-feed-del" @click.stop="removeFeed(feed.id)" title="Kaldır">✕</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ITEMS LIST -->
+  <div v-else-if="view==='items'" class="rss-content">
+    <div v-if="!feedItems.length" class="rss-empty">
+      <div class="rss-empty-icon">📭</div>
+      <div>Bu beslemede içerik bulunamadı</div>
+    </div>
+    <div class="rss-item-list">
+      <div v-for="item in feedItems" :key="item.guid" class="rss-item" :class="{'rss-item-read': isRead(item)}" @click="openItem(item)">
+        <div class="rss-item-dot" :class="{'rss-dot-unread': !isRead(item)}"></div>
+        <div class="rss-item-body">
+          <div class="rss-item-title">{{item.title || 'Başlıksız'}}</div>
+          <div class="rss-item-desc">{{truncate(item.description, 120)}}</div>
+          <div class="rss-item-date">{{formatDate(item.pubDate)}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- READER -->
+  <div v-else-if="view==='reader' && selectedItem" class="rss-content rss-reader">
+    <div class="rss-reader-head">
+      <h2 class="rss-reader-title">{{selectedItem.title}}</h2>
+      <div class="rss-reader-meta">
+        <span v-if="selectedItem.pubDate">{{formatDate(selectedItem.pubDate)}}</span>
+        <a v-if="selectedItem.link" class="rss-reader-link" @click.prevent="openExternal(selectedItem.link)" href="#">🔗 Kaynağa Git</a>
+      </div>
+    </div>
+    <div class="rss-reader-body" v-html="selectedItem.content || selectedItem.description || '<em>İçerik yok</em>'"></div>
+  </div>
+</div>

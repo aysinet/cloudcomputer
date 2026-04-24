@@ -1,0 +1,40 @@
+{
+  "id": "coin-tracker",
+  "name": "Coin Tracker",
+  "icon": "ğŸ“ˆ",
+  "color": "linear-gradient(135deg,#f7931a,#ffad42)",
+  "type": "internal",
+  "size": {
+    "w": 480,
+    "h": 520
+  },
+  "global": false,
+  "description": "Binance Ã¼zerinden gerÃ§ek zamanlÄ± kripto para fiyat takibi.",
+  "lang": {
+    "tr": {
+      "name": "Coin Takip",
+      "description": "Binance Ã¼zerinden gerÃ§ek zamanlÄ± kripto para fiyat takibi. Favori ve gizleme desteÄŸi."
+    },
+    "en": {
+      "name": "Coin Tracker",
+      "description": "Real-time cryptocurrency price tracking via Binance. Favorite and hide support."
+    },
+    "de": {
+      "name": "Krypto-Tracker",
+      "description": "Echtzeit-KryptowÃ¤hrungsverfolgung Ã¼ber Binance. Favoriten- und AusblendunterstÃ¼tzung."
+    },
+    "fr": {
+      "name": "Suivi Crypto",
+      "description": "Suivi en temps rÃ©el des prix des cryptomonnaies via Binance."
+    },
+    "es": {
+      "name": "Rastreador Cripto",
+      "description": "Seguimiento de precios de criptomonedas en tiempo real a travÃ©s de Binance."
+    },
+    "ru": {
+      "name": "ĞšÑ€Ğ¸Ğ¿Ñ‚Ğ¾-Ñ‚Ñ€ĞµĞºĞµÑ€",
+      "description": "ĞÑ‚ÑĞ»ĞµĞ¶Ğ¸Ğ²Ğ°Ğ½Ğ¸Ğµ Ñ†ĞµĞ½ ĞºÑ€Ğ¸Ğ¿Ñ‚Ğ¾Ğ²Ğ°Ğ»ÑÑ‚ Ğ² Ñ€ĞµĞ°Ğ»ÑŒĞ½Ğ¾Ğ¼ Ğ²Ñ€ĞµĞ¼ĞµĞ½Ğ¸ Ñ‡ĞµÑ€ĞµĞ· Binance."
+    }
+  },
+  "category": "finance"
+}

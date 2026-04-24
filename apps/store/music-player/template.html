@@ -1,0 +1,92 @@
+<div class="mp-root">
+  <div v-if="loading" class="mp-loading">Yükleniyor...</div>
+  <template v-else>
+    <!-- Now Playing -->
+    <div class="mp-now">
+      <div class="mp-art" :class="{ spinning: playing }">{{currentTrack ? (currentTrack.icon || '🎵') : '🎵'}}</div>
+      <div class="mp-now-info">
+        <div class="mp-title">{{currentTrack ? currentTrack.title : 'Parça seçin'}}</div>
+        <div class="mp-progress-wrap">
+          <span class="mp-time-label">{{formatTime(elapsed)}}</span>
+          <div class="mp-bar" @click="seek($event)">
+            <div class="mp-fill" :style="{width: progress+'%'}"></div>
+          </div>
+          <span class="mp-time-label">{{formatTime(duration)}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="mp-controls">
+      <button class="mp-btn" @click="prev" title="Önceki">⏮</button>
+      <button class="mp-btn mp-play" @click="toggle">{{playing ? '⏸' : '▶'}}</button>
+      <button class="mp-btn" @click="next" title="Sonraki">⏭</button>
+      <div class="mp-vol">
+        <span class="mp-vol-icon">{{volume > 50 ? '🔊' : volume > 0 ? '🔉' : '🔇'}}</span>
+        <div class="mp-vol-bar" @click="setVolume($event)">
+          <div class="mp-vol-fill" :style="{width: volume+'%'}"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Link Input -->
+    <div class="mp-link-bar">
+      <input class="mp-link-input" v-model="linkUrl" placeholder="Ses URL'si yapıştır (mp3, wav, ogg...)" @keyup.enter="addFromUrl" />
+      <button class="mp-link-btn" @click="addFromUrl" :disabled="!linkUrl.trim()">+ Ekle</button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="mp-tabs">
+      <button class="mp-tab" :class="{active: tab==='playlist'}" @click="tab='playlist'">📋 Çalma Listesi ({{tracks.length}})</button>
+      <button class="mp-tab" :class="{active: tab==='files'}" @click="tab='files'; ">📂 Dosyalar</button>
+    </div>
+
+    <!-- Playlist Tab -->
+    <div v-if="tab==='playlist'" class="mp-list">
+      <div v-if="!tracks.length" class="mp-empty">
+        <div style="font-size:32px;margin-bottom:6px">🎶</div>
+        <div>Çalma listesi boş</div>
+        <div style="font-size:11px;opacity:.5;margin-top:4px">Dosyalar sekmesinden parça ekleyin</div>
+      </div>
+      <div v-for="(t,i) in tracks" :key="i" class="mp-track" :class="{active: i===index}" @click="play(i)">
+        <span class="mp-tr-num">{{i+1}}</span>
+        <span class="mp-tr-icon">{{t.icon || '🎵'}}</span>
+        <span class="mp-tr-title">{{t.title}}</span>
+        <div class="mp-tr-actions">
+          <button v-if="i > 0" class="mp-tr-btn" @click.stop="moveTrack(i, i-1)" title="Yukarı">↑</button>
+          <button v-if="i < tracks.length-1" class="mp-tr-btn" @click.stop="moveTrack(i, i+1)" title="Aşağı">↓</button>
+          <button class="mp-tr-btn mp-tr-rm" @click.stop="removeFromPlaylist(i)" title="Çıkar">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Files Tab -->
+    <div v-if="tab==='files'" class="mp-list">
+      <div class="mp-file-header">
+        <span class="mp-file-section">🌐 Ortak Müzikler</span>
+      </div>
+      <div v-if="!availableFiles.public.length" class="mp-file-empty">Ortak müzik dosyası yok</div>
+      <div v-for="f in availableFiles.public" :key="'p_'+f.filename" class="mp-file-row">
+        <span class="mp-file-name">{{f.name}}</span>
+        <span class="mp-file-ext">{{f.ext}}</span>
+        <button v-if="!isInPlaylist(f)" class="mp-tr-btn mp-tr-add" @click="addToPlaylist(f, 'public')">+</button>
+        <span v-else class="mp-file-added">✓</span>
+      </div>
+
+      <div class="mp-file-header" style="margin-top:8px">
+        <span class="mp-file-section">👤 Dosyalarım</span>
+        <button class="mp-upload-btn" @click="triggerUpload" :disabled="uploading">
+          {{uploading ? '⏳ Yükleniyor...' : '📤 Yükle'}}
+        </button>
+      </div>
+      <div v-if="!availableFiles.user.length" class="mp-file-empty">Henüz dosya yüklenmedi</div>
+      <div v-for="f in availableFiles.user" :key="'u_'+f.filename" class="mp-file-row">
+        <span class="mp-file-name">{{f.name}}</span>
+        <span class="mp-file-ext">{{f.ext}}</span>
+        <button v-if="!isInPlaylist(f)" class="mp-tr-btn mp-tr-add" @click="addToPlaylist(f, 'user')">+</button>
+        <span v-else class="mp-file-added">✓</span>
+        <button class="mp-tr-btn mp-tr-rm" @click="deleteFile(f)" title="Sil">🗑</button>
+      </div>
+    </div>
+  </template>
+</div>

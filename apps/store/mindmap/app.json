@@ -1,0 +1,40 @@
+{
+  "id": "mindmap",
+  "name": "Zihin HaritasÄ±",
+  "icon": "ğŸ§ ",
+  "color": "linear-gradient(135deg,#00b894,#6c5ce7)",
+  "type": "internal",
+  "size": {
+    "w": 900,
+    "h": 620
+  },
+  "global": false,
+  "description": "Zihin haritasÄ± oluÅŸturma â€” dosya aÃ§ma/kaydetme, son dosyalar, Ã§oklu tema ve dÃ¼zen desteÄŸi",
+  "lang": {
+    "tr": {
+      "name": "Zihin HaritasÄ±",
+      "description": "Zihin haritasÄ± oluÅŸturma â€” dosya aÃ§ma/kaydetme, Ã§oklu tema ve dÃ¼zen"
+    },
+    "en": {
+      "name": "Mind Map",
+      "description": "Mind map creation â€” file open/save, multiple themes and layouts"
+    },
+    "de": {
+      "name": "Mindmap",
+      "description": "Mindmap-Erstellung â€” Datei Ã¶ffnen/speichern, mehrere Designs und Layouts"
+    },
+    "fr": {
+      "name": "Carte mentale",
+      "description": "CrÃ©ation de cartes mentales â€” ouvrir/enregistrer, thÃ¨mes et mises en page multiples"
+    },
+    "es": {
+      "name": "Mapa mental",
+      "description": "CreaciÃ³n de mapas mentales â€” abrir/guardar archivos, mÃºltiples temas y diseÃ±os"
+    },
+    "ru": {
+      "name": "ĞœĞµĞ½Ñ‚Ğ°Ğ»ÑŒĞ½Ğ°Ñ ĞºĞ°Ñ€Ñ‚Ğ°",
+      "description": "Ğ¡Ğ¾Ğ·Ğ´Ğ°Ğ½Ğ¸Ğµ Ğ¼ĞµĞ½Ñ‚Ğ°Ğ»ÑŒĞ½Ñ‹Ñ… ĞºĞ°Ñ€Ñ‚ â€” Ğ¾Ñ‚ĞºÑ€Ñ‹Ñ‚Ğ¸Ğµ/ÑĞ¾Ñ…Ñ€Ğ°Ğ½ĞµĞ½Ğ¸Ğµ Ñ„Ğ°Ğ¹Ğ»Ğ¾Ğ², Ğ¼Ğ½Ğ¾Ğ¶ĞµÑÑ‚Ğ²Ğ¾ Ñ‚ĞµĞ¼ Ğ¸ Ğ¼Ğ°ĞºĞµÑ‚Ğ¾Ğ²"
+    }
+  },
+  "category": "productivity"
+}

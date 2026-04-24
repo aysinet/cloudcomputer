@@ -1,0 +1,40 @@
+{
+  "id": "reminder",
+  "name": "HatÄ±rlatÄ±cÄ±",
+  "icon": "â°",
+  "color": "linear-gradient(135deg,#f6d365,#fda085)",
+  "type": "internal",
+  "size": {
+    "w": 520,
+    "h": 520
+  },
+  "global": false,
+  "description": "HatÄ±rlatÄ±cÄ± â€” belirli tarih/saatlerde veya tekrarlayan hatÄ±rlatmalar oluÅŸtur",
+  "lang": {
+    "tr": {
+      "name": "HatÄ±rlatÄ±cÄ±",
+      "description": "HatÄ±rlatÄ±cÄ± â€” belirli tarih/saatlerde veya tekrarlayan hatÄ±rlatmalar oluÅŸtur"
+    },
+    "en": {
+      "name": "Reminder",
+      "description": "Reminder â€” create one-time or recurring reminders with alerts"
+    },
+    "de": {
+      "name": "Erinnerung",
+      "description": "Erinnerung â€” Einmalige oder wiederkehrende Erinnerungen erstellen"
+    },
+    "fr": {
+      "name": "Rappel",
+      "description": "Rappel â€” crÃ©er des rappels ponctuels ou rÃ©currents avec alertes"
+    },
+    "es": {
+      "name": "Recordatorio",
+      "description": "Recordatorio â€” crear recordatorios Ãºnicos o recurrentes con alertas"
+    },
+    "ru": {
+      "name": "ĞĞ°Ğ¿Ğ¾Ğ¼Ğ¸Ğ½Ğ°Ğ½Ğ¸Ğµ",
+      "description": "ĞĞ°Ğ¿Ğ¾Ğ¼Ğ¸Ğ½Ğ°Ğ½Ğ¸Ğµ â€” ÑĞ¾Ğ·Ğ´Ğ°Ğ²Ğ°Ğ¹Ñ‚Ğµ Ğ¾Ğ´Ğ½Ğ¾Ñ€Ğ°Ğ·Ğ¾Ğ²Ñ‹Ğµ Ğ¸Ğ»Ğ¸ Ğ¿Ğ¾Ğ²Ñ‚Ğ¾Ñ€ÑÑÑ‰Ğ¸ĞµÑÑ Ğ½Ğ°Ğ¿Ğ¾Ğ¼Ğ¸Ğ½Ğ°Ğ½Ğ¸Ñ"
+    }
+  },
+  "category": "productivity"
+}

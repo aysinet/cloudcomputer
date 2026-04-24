@@ -1,0 +1,248 @@
+<div class="mail-root">
+  <!-- NO ACCOUNT -->
+  <div v-if="accounts.length===0 && view!=='account-form'" class="mail-no-account">
+    <div class="mail-no-icon">📧</div>
+    <h3>{{ L('noAccount') }}</h3>
+    <el-button type="primary" size="large" @click="openAddAccount">{{ L('addAccount') }}</el-button>
+  </div>
+
+  <!-- ACCOUNT FORM -->
+  <div v-else-if="view==='account-form'" class="mail-account-form">
+    <div class="mail-form-header">
+      <el-button text @click="view=accounts.length?'settings':'list'">← {{ L('back') }}</el-button>
+      <h3>{{ accForm.id ? L('editAccount') : L('addAccount') }}</h3>
+    </div>
+    <div class="mail-form-body">
+      <el-form label-position="top" size="default">
+        <el-row :gutter="12">
+          <el-col :span="12">
+            <el-form-item :label="L('email')">
+              <el-input v-model="accForm.email" placeholder="user@example.com" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item :label="L('name')">
+              <el-input v-model="accForm.name" placeholder="John Doe" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item :label="L('password')">
+          <el-input v-model="accForm.password" type="password" show-password
+            :placeholder="accForm.id ? '(unchanged)' : L('password')" />
+        </el-form-item>
+
+        <el-divider>SMTP</el-divider>
+        <el-row :gutter="12">
+          <el-col :span="12">
+            <el-form-item :label="L('smtpHost')">
+              <el-input v-model="accForm.smtpHost" placeholder="smtp.example.com" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="6">
+            <el-form-item :label="L('smtpPort')">
+              <el-input-number v-model="accForm.smtpPort" :min="1" :max="65535" controls-position="right" style="width:100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="6">
+            <el-form-item :label="L('smtpSecure')">
+              <el-switch v-model="accForm.smtpSecure" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-button size="small" @click="testConn('smtp')" :loading="testing.smtp"
+          :type="testing.smtpOk===true?'success':testing.smtpOk===false?'danger':''"
+          style="margin-bottom:14px">
+          🔌 {{ L('testConnection') }} SMTP
+        </el-button>
+
+        <el-divider>POP3</el-divider>
+        <el-row :gutter="12">
+          <el-col :span="12">
+            <el-form-item :label="L('pop3Host')">
+              <el-input v-model="accForm.pop3Host" placeholder="pop.example.com" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="6">
+            <el-form-item :label="L('pop3Port')">
+              <el-input-number v-model="accForm.pop3Port" :min="1" :max="65535" controls-position="right" style="width:100%" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="6">
+            <el-form-item :label="L('pop3Tls')">
+              <el-switch v-model="accForm.pop3Tls" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-button size="small" @click="testConn('pop3')" :loading="testing.pop3"
+          :type="testing.pop3Ok===true?'success':testing.pop3Ok===false?'danger':''"
+          style="margin-bottom:14px">
+          🔌 {{ L('testConnection') }} POP3
+        </el-button>
+
+        <el-alert v-if="accFormError" :title="accFormError" type="error" :closable="false" show-icon style="margin-bottom:14px" />
+
+        <div class="mail-form-actions">
+          <el-button type="primary" @click="saveAccount">{{ L('save') }}</el-button>
+          <el-button @click="view=accounts.length?'settings':'list'">{{ L('cancel') }}</el-button>
+        </div>
+      </el-form>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <template v-else>
+    <div class="mail-layout">
+      <!-- SIDEBAR -->
+      <div class="mail-sidebar">
+        <el-button type="primary" @click="view='compose'; resetCompose()" class="mail-compose-btn">
+          ✏️ {{ L('compose') }}
+        </el-button>
+
+        <!-- Account selector -->
+        <div v-if="accounts.length > 1" class="mail-account-selector">
+          <el-select v-model="activeAccountId" size="small" @change="setActiveAccount(activeAccountId)" style="width:100%">
+            <el-option v-for="a in accounts" :key="a.id" :value="a.id" :label="a.email" />
+          </el-select>
+        </div>
+
+        <div class="mail-folders">
+          <div :class="['mail-folder-item', { active: folder==='inbox' }]" @click="folder='inbox'">
+            <span>📥 {{ L('inbox') }}</span>
+            <el-badge v-if="folder==='inbox' && unreadCount > 0" :value="unreadCount" type="danger" />
+          </div>
+          <div :class="['mail-folder-item', { active: folder==='sent' }]" @click="folder='sent'">
+            <span>📤 {{ L('sent') }}</span>
+          </div>
+          <div :class="['mail-folder-item', { active: folder==='drafts' }]" @click="folder='drafts'">
+            <span>📝 {{ L('drafts') }}</span>
+          </div>
+        </div>
+
+        <div class="mail-sidebar-bottom">
+          <div class="mail-folder-item" @click="view='settings'">
+            <span>⚙️ {{ L('settings') }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="mail-content">
+        <!-- SETTINGS VIEW -->
+        <div v-if="view==='settings'" class="mail-settings">
+          <div class="mail-content-header">
+            <h3>{{ L('accounts') }}</h3>
+            <el-button size="small" type="primary" @click="openAddAccount">{{ L('addAccount') }}</el-button>
+          </div>
+          <div v-for="a in accounts" :key="a.id" class="mail-account-card">
+            <div class="mail-acc-info">
+              <div class="mail-acc-email">{{ a.email }}</div>
+              <div class="mail-acc-detail">SMTP: {{ a.smtpHost }}:{{ a.smtpPort }} · POP3: {{ a.pop3Host }}:{{ a.pop3Port }}</div>
+            </div>
+            <div class="mail-acc-actions">
+              <el-button size="small" text @click="openEditAccount(a)">✏️</el-button>
+              <el-button size="small" text type="danger" @click="deleteAccount(a.id)">🗑️</el-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- COMPOSE VIEW -->
+        <div v-else-if="view==='compose'" class="mail-compose">
+          <div class="mail-content-header">
+            <el-button text @click="view='list'">← {{ L('back') }}</el-button>
+            <h3>{{ L('compose') }}</h3>
+          </div>
+          <div class="mail-compose-form">
+            <el-input v-model="compose.to" :placeholder="L('to')" style="margin-bottom:8px">
+              <template #prepend>{{ L('to') }}</template>
+            </el-input>
+            <div v-if="!compose.showCc" style="margin-bottom:8px">
+              <el-button text size="small" @click="compose.showCc=true">CC / BCC</el-button>
+            </div>
+            <template v-if="compose.showCc">
+              <el-input v-model="compose.cc" :placeholder="L('cc')" style="margin-bottom:8px">
+                <template #prepend>{{ L('cc') }}</template>
+              </el-input>
+              <el-input v-model="compose.bcc" :placeholder="L('bcc')" style="margin-bottom:8px">
+                <template #prepend>{{ L('bcc') }}</template>
+              </el-input>
+            </template>
+            <el-input v-model="compose.subject" :placeholder="L('subject')" style="margin-bottom:8px">
+              <template #prepend>{{ L('subject') }}</template>
+            </el-input>
+            <el-input v-model="compose.text" type="textarea" :rows="12" :placeholder="L('compose') + '...'"
+              style="margin-bottom:12px" />
+            <div class="mail-compose-actions">
+              <el-button type="primary" @click="sendMail" :loading="sendingMail" :disabled="!compose.to">
+                {{ sendingMail ? L('sending') : L('send') }}
+              </el-button>
+              <el-button @click="saveDraft">{{ L('saveDraft') }}</el-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- READ VIEW -->
+        <div v-else-if="view==='read' && selectedMsg" class="mail-read">
+          <div class="mail-content-header">
+            <el-button text @click="view='list'; selectedMsg=null">← {{ L('back') }}</el-button>
+            <div class="mail-read-actions">
+              <el-button size="small" @click="replyTo(selectedMsg)">↩️ {{ L('reply') }}</el-button>
+              <el-button size="small" @click="forwardMsg(selectedMsg)">↪️ {{ L('forward') }}</el-button>
+              <el-button size="small" type="danger" @click="deleteMessage(selectedMsg)">🗑️</el-button>
+            </div>
+          </div>
+          <div class="mail-read-header">
+            <h3 class="mail-read-subject">{{ selectedMsg.subject || L('noSubject') }}</h3>
+            <div class="mail-read-meta">
+              <span class="mail-read-from">{{ selectedMsg.from }}</span>
+              <span class="mail-read-date">{{ formatDate(selectedMsg.date) }}</span>
+            </div>
+            <div v-if="selectedMsg.to" class="mail-read-to">{{ L('to') }}: {{ selectedMsg.to }}</div>
+          </div>
+          <div class="mail-read-body">
+            <div v-if="selectedMsg.html" v-html="selectedMsg.html" class="mail-html-body"></div>
+            <pre v-else class="mail-text-body">{{ selectedMsg.text }}</pre>
+          </div>
+          <div v-if="selectedMsg.attachments && selectedMsg.attachments.length" class="mail-attachments">
+            <div class="mail-att-label">📎 {{ L('attachments') }} ({{ selectedMsg.attachments.length }})</div>
+            <div v-for="(att,i) in selectedMsg.attachments" :key="i" class="mail-att-item">
+              {{ att.filename }} <span class="mail-att-size">({{ (att.size/1024).toFixed(1) }}KB)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIST VIEW -->
+        <div v-else class="mail-list">
+          <div class="mail-content-header">
+            <h3>{{ L(folder) }}</h3>
+            <div class="mail-list-actions">
+              <el-button-group v-if="folder==='inbox'" size="small">
+                <el-button :type="!filterUnread?'primary':''" @click="filterUnread=false">{{ L('all') }}</el-button>
+                <el-button :type="filterUnread?'primary':''" @click="filterUnread=true">{{ L('unread') }}</el-button>
+              </el-button-group>
+              <el-button size="small" @click="fetchMail" :loading="fetchingMail" v-if="folder==='inbox'" type="success">
+                {{ fetchingMail ? L('fetching') : '📥 ' + L('fetchMail') }}
+              </el-button>
+              <el-button size="small" @click="loadMessages" :loading="loading" circle>🔄</el-button>
+            </div>
+          </div>
+
+          <div v-if="loading" class="mail-empty">{{ L('loading') }}</div>
+          <div v-else-if="filteredMessages.length===0" class="mail-empty">{{ L('noMails') }}</div>
+          <div v-else class="mail-message-list">
+            <div v-for="msg in filteredMessages" :key="msg.uid||msg.messageId||msg.id"
+              :class="['mail-msg-row', { unread: !msg.read && folder==='inbox' }]"
+              @click="folder==='drafts' ? openDraft(msg) : openMessage(msg)">
+              <div class="mail-msg-dot" v-if="folder==='inbox' && !msg.read"></div>
+              <div class="mail-msg-from">{{ folder==='sent' ? (msg.to||'') : shortFrom(msg.from||'') }}</div>
+              <div class="mail-msg-subject">{{ msg.subject || L('noSubject') }}</div>
+              <div class="mail-msg-date">{{ formatDate(msg.date) }}</div>
+              <div class="mail-msg-del" @click.stop="folder==='drafts' ? deleteMessage(msg) : null">
+                <span v-if="folder==='drafts'" class="mail-del-icon">🗑️</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+</div>

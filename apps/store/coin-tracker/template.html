@@ -1,0 +1,37 @@
+<div class="ct-root">
+  <div class="ct-header">
+    <h2>📈 Coin Tracker</h2>
+    <div class="ct-tabs">
+      <button :class="{active:tab==='all'}" @click="tab='all'">Tümü ({{filteredCoins.length}})</button>
+      <button :class="{active:tab==='fav'}" @click="tab='fav'">⭐ Favoriler ({{favCoins.length}})</button>
+    </div>
+  </div>
+  <div class="ct-search">
+    <input v-model="search" placeholder="Coin ara... (BTCUSDT)" class="ct-input">
+    <label class="ct-hide-toggle"><input type="checkbox" v-model="showHidden"> Gizlileri göster</label>
+  </div>
+  <div class="ct-status">
+    <span :class="connected?'ct-on':'ct-off'">●</span>
+    <span>{{connected?'Canlı':'Bağlantı kesildi'}}</span>
+    <span class="ct-update" v-if="lastUpdate">Son: {{lastUpdate}}</span>
+  </div>
+  <div class="ct-list">
+    <div class="ct-list-header">
+      <span class="ct-col-sym">Sembol</span>
+      <span class="ct-col-price">Fiyat (USDT)</span>
+      <span class="ct-col-actions">İşlem</span>
+    </div>
+    <div v-if="!displayCoins.length" class="ct-empty">{{search ? 'Sonuç bulunamadı' : 'Veri yükleniyor...'}}</div>
+    <div v-for="coin in displayCoins" :key="coin.symbol" class="ct-item" :class="{fav: isFav(coin.symbol), hidden: isHidden(coin.symbol)}">
+      <span class="ct-col-sym">
+        <span class="ct-sym-name">{{coin.symbol.replace('USDT','')}}</span>
+        <span class="ct-sym-pair">/USDT</span>
+      </span>
+      <span class="ct-col-price" :class="coin.dir">{{formatPrice(coin.price)}}</span>
+      <span class="ct-col-actions">
+        <button class="ct-act" :class="{on:isFav(coin.symbol)}" @click="toggleFav(coin.symbol)" title="Favori">⭐</button>
+        <button class="ct-act" :class="{on:isHidden(coin.symbol)}" @click="toggleHidden(coin.symbol)" title="Gizle">👁</button>
+      </span>
+    </div>
+  </div>
+</div>

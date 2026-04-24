@@ -1,0 +1,62 @@
+<div class="sudoku-app">
+  <div class="sudoku-header">
+    <div class="sudoku-header-left">
+      <select class="sudoku-select" :value="difficulty" @change="setDifficulty($event.target.value)">
+        <option value="easy">{{ labels.easy }}</option>
+        <option value="medium">{{ labels.medium }}</option>
+        <option value="hard">{{ labels.hard }}</option>
+      </select>
+      <button class="sudoku-btn" @click="newGame">🔄 {{ labels.newGame }}</button>
+    </div>
+    <div class="sudoku-header-right">
+      <span class="sudoku-timer">⏱️ {{ timerDisplay }}</span>
+      <span class="sudoku-mistakes">❌ {{ mistakes }} / 3</span>
+    </div>
+  </div>
+
+  <div class="sudoku-board-wrap">
+    <div class="sudoku-board">
+      <div v-for="(row, ri) in board" :key="ri" class="sudoku-row">
+        <div v-for="(cell, ci) in row" :key="ci"
+          class="sudoku-cell"
+          :class="{
+            'sudoku-cell-fixed': cell.fixed,
+            'sudoku-cell-selected': selectedRow === ri && selectedCol === ci,
+            'sudoku-cell-same-num': cell.value && cell.value === selectedValue,
+            'sudoku-cell-same-row': selectedRow === ri,
+            'sudoku-cell-same-col': selectedCol === ci,
+            'sudoku-cell-same-box': sameBox(ri, ci),
+            'sudoku-cell-error': cell.error,
+            'sudoku-cell-right-border': ci === 2 || ci === 5,
+            'sudoku-cell-bottom-border': ri === 2 || ri === 5
+          }"
+          @click="selectCell(ri, ci)">
+          <span v-if="cell.value" class="sudoku-cell-value">{{ cell.value }}</span>
+          <div v-else-if="cell.notes.length" class="sudoku-notes">
+            <span v-for="n in 9" :key="n" class="sudoku-note" :class="{ 'sudoku-note-on': cell.notes.includes(n) }">{{ cell.notes.includes(n) ? n : '' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sudoku-numpad">
+    <button v-for="n in 9" :key="n" class="sudoku-num-btn" :class="{ 'sudoku-num-done': numCounts[n] >= 9 }" @click="enterNumber(n)" :disabled="gameOver">{{ n }}</button>
+  </div>
+
+  <div class="sudoku-actions">
+    <button class="sudoku-action-btn" @click="toggleNoteMode" :class="{ 'sudoku-action-active': noteMode }">✏️ {{ labels.notes }}</button>
+    <button class="sudoku-action-btn" @click="eraseCell">🗑️ {{ labels.erase }}</button>
+    <button class="sudoku-action-btn" @click="undoMove" :disabled="history.length === 0">↩️ {{ labels.undo }}</button>
+    <button class="sudoku-action-btn" @click="getHint" :disabled="hints <= 0 || gameOver">💡 {{ labels.hint }} ({{ hints }})</button>
+  </div>
+
+  <div v-if="gameOver" class="sudoku-overlay">
+    <div class="sudoku-modal">
+      <div class="sudoku-modal-icon">{{ won ? '🎉' : '😞' }}</div>
+      <div class="sudoku-modal-title">{{ won ? labels.congrats : labels.gameOver }}</div>
+      <div class="sudoku-modal-sub" v-if="won">{{ timerDisplay }} · {{ labels.mistakes }}: {{ mistakes }}</div>
+      <button class="sudoku-modal-btn" @click="newGame">{{ labels.playAgain }}</button>
+    </div>
+  </div>
+</div>

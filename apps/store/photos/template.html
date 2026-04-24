@@ -1,0 +1,139 @@
+<div class="ph-root">
+  <!-- Toolbar -->
+  <div class="ph-toolbar">
+    <button class="ph-tb-btn" @click="triggerUpload" :disabled="uploading">{{uploading ? '⏳' : '📤'}} {{L('upload')}}</button>
+    <button class="ph-tb-btn" @click="showUrlBar=!showUrlBar">🔗 URL</button>
+    <div class="ph-sep"></div>
+    <button class="ph-tb-btn" :class="{active:view==='grid'}" @click="view='grid'">▦</button>
+    <button class="ph-tb-btn" :class="{active:view==='list'}" @click="view='list'">☰</button>
+    <div class="ph-sep"></div>
+    <input class="ph-search" v-model="search" :placeholder="L('searchPlaceholder')">
+    <div class="ph-sep"></div>
+    <button class="ph-tb-btn" @click="openCollectionDialog" v-if="selectedIds.length">📁 {{L('addToCollection')}}</button>
+    <button class="ph-tb-btn" v-if="selectedIds.length" @click="deleteSelected" style="color:#f56c6c">🗑 ({{selectedIds.length}})</button>
+    <button class="ph-tb-btn" v-if="isCollectionView" @click="startCollectionSlideshow">▶ {{L('slideshow')}}</button>
+    <button class="ph-tb-btn danger" v-if="isCollectionView" @click="deleteCurrentCollection" style="color:#f56c6c">🗑 {{L('deleteCollection')}}</button>
+  </div>
+
+  <!-- URL bar -->
+  <div v-if="showUrlBar" class="ph-url-bar">
+    <input class="ph-url-input" v-model="urlInput" :placeholder="L('urlPlaceholder')" @keyup.enter="addFromUrl">
+    <button class="ph-tb-btn" @click="addFromUrl" :disabled="!urlInput.trim()">+ {{L('add')}}</button>
+  </div>
+
+  <div class="ph-main">
+    <!-- Sidebar -->
+    <div class="ph-sidebar">
+      <div class="ph-sb-section">{{L('library')}}</div>
+      <div class="ph-sb-item" :class="{active:sideFilter==='all'}" @click="sideFilter='all'">🖼️ {{L('allPhotos')}} <span class="ph-sb-count">{{library.length}}</span></div>
+      <div class="ph-sb-item" :class="{active:sideFilter==='uploaded'}" @click="sideFilter='uploaded'">📤 {{L('uploaded')}}</div>
+      <div class="ph-sb-item" :class="{active:sideFilter==='url'}" @click="sideFilter='url'">🔗 {{L('fromUrl')}}</div>
+
+      <div class="ph-sb-section">{{L('categories')}}</div>
+      <div v-for="cat in categories" class="ph-sb-item" :class="{active:sideFilter==='cat:'+cat}" @click="sideFilter='cat:'+cat">📂 {{cat}} <span class="ph-sb-count">{{countByCategory(cat)}}</span></div>
+      <div class="ph-sb-add" @click="promptNewCategory">+ {{L('newCategory')}}</div>
+
+      <div class="ph-sb-section">{{L('collections')}}</div>
+      <div v-for="col in collections" class="ph-sb-item" :class="{active:sideFilter==='col:'+col.id}" @click="sideFilter='col:'+col.id">
+        📁 {{col.name}} <span class="ph-sb-count">{{col.photoIds.length}}</span>
+      </div>
+      <div class="ph-sb-add" @click="promptNewCollection">+ {{L('newCollection')}}</div>
+    </div>
+
+    <!-- Content area -->
+    <div class="ph-content" v-if="filteredPhotos.length">
+      <div class="ph-grid">
+        <div v-for="p in filteredPhotos" :key="p.id" class="ph-card" @click.exact="openLightbox(p)" @click.ctrl="toggleSelect(p.id)">
+          <img :src="p.url" :style="{transform:'rotate('+(p.rotation||0)+'deg)'}" class="ph-card-rot" loading="lazy">
+          <div class="ph-card-overlay">
+            <div class="ph-card-name">{{p.name}}</div>
+            <div v-if="p.tags && p.tags.length" class="ph-card-tags">{{p.tags.join(', ')}}</div>
+          </div>
+          <div class="ph-card-check" :class="{checked:selectedIds.includes(p.id)}" @click.stop="toggleSelect(p.id)">{{selectedIds.includes(p.id)?'✓':''}}</div>
+        </div>
+      </div>
+    </div>
+    <div v-else class="ph-empty">
+      <div class="ph-empty-icon">🖼️</div>
+      <div>{{L('emptyText')}}</div>
+    </div>
+
+    <!-- Detail panel -->
+    <div v-if="detailPhoto" class="ph-detail">
+      <div class="ph-det-preview"><img :src="detailPhoto.url" :style="{transform:'rotate('+(detailPhoto.rotation||0)+'deg)'}"></div>
+      <div class="ph-det-name">{{detailPhoto.name}}</div>
+      <div class="ph-det-meta">{{formatSize(detailPhoto.size||0)}} · {{detailPhoto.ext||''}}</div>
+
+      <div class="ph-det-label">{{L('rotation')}}</div>
+      <div class="ph-det-row">
+        <button class="ph-det-btn" @click="rotatePhoto(detailPhoto,-90)">↶ -90°</button>
+        <button class="ph-det-btn" @click="rotatePhoto(detailPhoto,90)">↷ +90°</button>
+        <button class="ph-det-btn" @click="rotatePhoto(detailPhoto,0,true)">⟳ {{L('reset')}}</button>
+      </div>
+
+      <div class="ph-det-label">{{L('category')}}</div>
+      <select class="ph-det-select" :value="detailPhoto.category||''" @change="setCategoryDetail($event.target.value)">
+        <option value="">—</option>
+        <option v-for="c in categories" :value="c">{{c}}</option>
+      </select>
+
+      <div class="ph-det-label">{{L('tags')}}</div>
+      <div class="ph-det-tags">
+        <span v-for="(tg,i) in (detailPhoto.tags||[])" class="ph-tag">{{tg}} <span class="ph-tag-rm" @click="removeTag(detailPhoto,i)">✕</span></span>
+      </div>
+      <div class="ph-det-row">
+        <input class="ph-det-input" v-model="newTag" :placeholder="L('addTag')" @keyup.enter="addTag(detailPhoto)">
+        <button class="ph-det-btn" @click="addTag(detailPhoto)">+</button>
+      </div>
+
+      <div class="ph-det-label">{{L('collections')}}</div>
+      <div class="ph-det-tags">
+        <span v-for="col in photoCollections(detailPhoto.id)" class="ph-tag">{{col.name}}</span>
+        <span v-if="!photoCollections(detailPhoto.id).length" style="font-size:11px;opacity:.3">—</span>
+      </div>
+
+      <button class="ph-det-btn danger" @click="deletePhoto(detailPhoto)" style="margin-top:auto">🗑 {{L('delete')}}</button>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div v-if="lightbox.show" class="ph-lightbox" @click.self="closeLightbox">
+    <button class="ph-lb-close" @click="closeLightbox">✕</button>
+    <span class="ph-lb-counter">{{lightbox.index+1}} / {{filteredPhotos.length}}</span>
+    <img :src="lightbox.photo.url" class="ph-lb-img" :style="{transform:'rotate('+(lightbox.photo.rotation||0)+'deg)'}">
+    <button class="ph-lb-nav ph-lb-prev" @click="lbPrev">‹</button>
+    <button class="ph-lb-nav ph-lb-next" @click="lbNext">›</button>
+    <div class="ph-lb-actions">
+      <button class="ph-lb-act" @click="rotatePhoto(lightbox.photo,-90)">↶ {{L('rotateLeft')}}</button>
+      <button class="ph-lb-act" @click="rotatePhoto(lightbox.photo,90)">↷ {{L('rotateRight')}}</button>
+      <button class="ph-lb-act" @click="detailPhoto=lightbox.photo;closeLightbox()">ℹ️ {{L('info')}}</button>
+    </div>
+    <div class="ph-lb-info">{{lightbox.photo.name}}</div>
+  </div>
+
+  <!-- Slideshow -->
+  <div v-if="slideshow.active" class="ph-slide-overlay" @click="slideshowTogglePause">
+    <button class="ph-slide-exit" @click.stop="stopSlideshow">✕</button>
+    <img :src="slideshow.photo.url" class="ph-slide-img" :style="{transform:'rotate('+(slideshow.photo.rotation||0)+'deg)', opacity:slideshow.fade?1:0}">
+    <div class="ph-slide-counter">{{slideshow.index+1}} / {{slideshow.photos.length}}</div>
+    <button class="ph-slide-pause" @click.stop="slideshowTogglePause">{{slideshow.paused ? '▶' : '⏸'}}</button>
+  </div>
+
+  <!-- Collection dialog -->
+  <div v-if="dlg.show" class="ph-dialog" @click.self="dlg.show=false">
+    <div class="ph-dialog-box">
+      <div class="ph-dialog-title">{{dlg.title}}</div>
+      <div v-if="dlg.mode==='new-collection' || dlg.mode==='new-category'" class="ph-dialog-row">
+        <input class="ph-dialog-input" v-model="dlg.input" :placeholder="dlg.placeholder" @keyup.enter="dlgConfirm" autofocus>
+      </div>
+      <div v-if="dlg.mode==='add-to-collection'">
+        <div v-for="col in collections" class="ph-sb-item" @click="addSelectedToCollection(col.id);dlg.show=false" style="border-radius:6px;margin-bottom:2px">📁 {{col.name}}</div>
+        <div class="ph-sb-add" @click="dlg.mode='new-collection';dlg.input=''">+ {{L('newCollection')}}</div>
+      </div>
+      <div class="ph-dialog-btns" v-if="dlg.mode!=='add-to-collection'">
+        <button class="ph-dialog-btn cancel" @click="dlg.show=false">{{L('cancel')}}</button>
+        <button class="ph-dialog-btn primary" @click="dlgConfirm">{{L('add')}}</button>
+      </div>
+    </div>
+  </div>
+</div>

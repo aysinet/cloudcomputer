@@ -1,0 +1,34 @@
+.ct-root{width:100%;height:100%;background:#0d1117;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif;color:#c9d1d9;overflow:hidden}
+.ct-header{background:#161b22;border-bottom:1px solid #30363d;padding:12px 14px 8px;flex-shrink:0}
+.ct-header h2{font-size:16px;font-weight:600;color:#f0f6fc;margin:0 0 8px}
+.ct-tabs{display:flex;gap:4px}
+.ct-tabs button{padding:4px 12px;border:1px solid #30363d;border-radius:6px;background:transparent;color:#8b949e;cursor:pointer;font-size:12px;transition:.15s}
+.ct-tabs button:hover{background:#21262d;color:#c9d1d9}
+.ct-tabs button.active{background:#1f6feb;border-color:#1f6feb;color:#fff}
+.ct-search{display:flex;align-items:center;gap:8px;padding:8px 14px;background:#161b22;border-bottom:1px solid #30363d;flex-shrink:0}
+.ct-input{flex:1;height:28px;border:1px solid #30363d;border-radius:6px;background:#0d1117;color:#c9d1d9;padding:0 10px;font-size:12px;outline:none}
+.ct-input:focus{border-color:#1f6feb}
+.ct-hide-toggle{font-size:11px;color:#8b949e;cursor:pointer;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.ct-hide-toggle input{accent-color:#1f6feb}
+.ct-status{display:flex;align-items:center;gap:6px;padding:4px 14px;font-size:11px;color:#8b949e;border-bottom:1px solid #21262d;flex-shrink:0}
+.ct-on{color:#3fb950}
+.ct-off{color:#f85149}
+.ct-update{margin-left:auto}
+.ct-list{flex:1;overflow-y:auto}
+.ct-list-header{display:flex;padding:6px 14px;font-size:11px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #21262d;position:sticky;top:0;background:#0d1117;z-index:1}
+.ct-col-sym{flex:1;min-width:0}
+.ct-col-price{width:120px;text-align:right}
+.ct-col-actions{width:60px;text-align:center}
+.ct-empty{padding:32px;text-align:center;color:#484f58;font-size:13px}
+.ct-item{display:flex;align-items:center;padding:6px 14px;border-bottom:1px solid #21262d;transition:background .1s}
+.ct-item:hover{background:#161b22}
+.ct-item.fav{background:rgba(31,111,235,.06)}
+.ct-item.hidden{opacity:.4}
+.ct-sym-name{font-weight:600;color:#f0f6fc;font-size:13px}
+.ct-sym-pair{color:#484f58;font-size:11px}
+.ct-col-price{font-family:'Courier New',monospace;font-size:13px;font-weight:500}
+.ct-col-price.up{color:#3fb950}
+.ct-col-price.down{color:#f85149}
+.ct-act{width:24px;height:24px;border:none;background:transparent;cursor:pointer;font-size:13px;border-radius:4px;opacity:.4;transition:.15s;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.ct-act:hover{opacity:.8;background:#21262d}
+.ct-act.on{opacity:1}

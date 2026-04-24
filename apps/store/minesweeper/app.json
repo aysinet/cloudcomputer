@@ -1,0 +1,40 @@
+{
+  "id": "minesweeper",
+  "name": "MayÄ±n TarlasÄ±",
+  "icon": "ğŸ’£",
+  "color": "linear-gradient(135deg,#636e72,#2d3436)",
+  "type": "internal",
+  "size": {
+    "w": 340,
+    "h": 440
+  },
+  "global": false,
+  "description": "Klasik mayÄ±n tarlasÄ± oyunu.",
+  "lang": {
+    "tr": {
+      "name": "MayÄ±n TarlasÄ±",
+      "description": "Klasik mayÄ±n tarlasÄ± oyunu. 9x9 grid, 10 mayÄ±n."
+    },
+    "en": {
+      "name": "Minesweeper",
+      "description": "Classic minesweeper game. 9x9 grid, 10 mines."
+    },
+    "de": {
+      "name": "Minesweeper",
+      "description": "Klassisches Minesweeper-Spiel. 9x9 Gitter, 10 Minen."
+    },
+    "fr": {
+      "name": "DÃ©mineur",
+      "description": "Jeu de dÃ©mineur classique. Grille 9x9, 10 mines."
+    },
+    "es": {
+      "name": "Buscaminas",
+      "description": "Juego clÃ¡sico de buscaminas. CuadrÃ­cula 9x9, 10 minas."
+    },
+    "ru": {
+      "name": "Ğ¡Ğ°Ğ¿Ñ‘Ñ€",
+      "description": "ĞšĞ»Ğ°ÑÑĞ¸Ñ‡ĞµÑĞºĞ°Ñ Ğ¸Ğ³Ñ€Ğ° Ğ¡Ğ°Ğ¿Ñ‘Ñ€. Ğ¡ĞµÑ‚ĞºĞ° 9x9, 10 Ğ¼Ğ¸Ğ½."
+    }
+  },
+  "category": "games"
+}

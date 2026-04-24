@@ -1,0 +1,69 @@
+  <div class="code-root">
+    <!-- Toolbar -->
+    <div class="code-toolbar">
+      <div class="code-toolbar-left">
+        <select class="code-lang-select" :value="language" @change="setLanguage($event.target.value)">
+          <option v-for="lang in languages" :key="lang.id" :value="lang.id">{{ lang.name }}</option>
+        </select>
+        <span class="code-file-name" :title="currentFilePath || fileName">{{ currentFilePath ? ('📄 ' + currentFilePath) : fileName }}</span>
+      </div>
+      <div class="code-toolbar-right">
+        <button class="code-tb-btn" @click="openFile" title="Open File (Ctrl+O)">📂</button>
+        <button class="code-tb-btn" @click="saveFile" title="Save (Ctrl+S)">💾</button>
+        <button class="code-tb-btn" @click="saveFileAs" title="Save As...">📥</button>
+        <span class="code-separator"></span>
+        <button class="code-tb-btn code-run-btn" @click="runCode" :disabled="running" :title="'Run (Ctrl+Enter)'">
+          {{ running ? '⏳' : '▶' }} {{ running ? runningText : runText }}
+        </button>
+        <button class="code-tb-btn" @click="formatCode" title="Format">✨</button>
+        <button class="code-tb-btn" @click="clearOutput" title="Clear Output">🧹</button>
+        <button class="code-tb-btn" @click="toggleMinimap" :class="{ active: showMinimap }">📊</button>
+        <select class="code-theme-select" :value="theme" @change="setTheme($event.target.value)">
+          <option value="vs-dark">Dark</option>
+          <option value="vs">Light</option>
+          <option value="hc-black">High Contrast</option>
+        </select>
+        <select class="code-fontsize-select" :value="fontSize" @change="setFontSize(Number($event.target.value))">
+          <option v-for="s in [12,13,14,15,16,18,20,22,24]" :key="s" :value="s">{{ s }}px</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Main area -->
+    <div class="code-main">
+      <!-- Editor -->
+      <div class="code-editor-wrap" :style="{ flex: outputVisible ? '1 1 60%' : '1 1 100%' }">
+        <div ref="editorContainer" class="code-editor-container"></div>
+      </div>
+
+      <!-- Resize handle -->
+      <div v-if="outputVisible" class="code-resize-handle" @mousedown="startResize"></div>
+
+      <!-- Output panel -->
+      <div v-if="outputVisible" class="code-output-panel" :style="{ flex: '0 0 ' + outputHeight + 'px' }">
+        <div class="code-output-header">
+          <span class="code-output-title">
+            {{ outputTab === 'output' ? '📤 Output' : '❌ Errors' }}
+            <span v-if="exitCode !== null" :class="['code-exit-badge', exitCode === 0 ? 'success' : 'error']">
+              Exit: {{ exitCode }}
+            </span>
+          </span>
+          <div class="code-output-tabs">
+            <button :class="['code-out-tab', { active: outputTab === 'output' }]" @click="outputTab='output'">Output</button>
+            <button :class="['code-out-tab', { active: outputTab === 'errors' }]" @click="outputTab='errors'"
+              :style="errorText ? 'color:#f56c6c' : ''">Errors</button>
+            <button class="code-out-tab close" @click="outputVisible=false">✕</button>
+          </div>
+        </div>
+        <pre class="code-output-content" :class="{ 'has-error': outputTab==='errors' && errorText }">{{ outputTab === 'output' ? outputText : errorText }}</pre>
+      </div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="code-statusbar">
+      <span>{{ language.toUpperCase() }}</span>
+      <span>{{ cursorInfo }}</span>
+      <span>UTF-8</span>
+      <span>{{ lineCount }} lines</span>
+    </div>
+  </div>

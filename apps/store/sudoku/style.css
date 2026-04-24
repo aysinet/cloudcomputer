@@ -1,0 +1,229 @@
+.sudoku-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1a1a2e;
+  color: #eee;
+  font-family: 'Segoe UI', sans-serif;
+  user-select: none;
+}
+
+.sudoku-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #16213e;
+  border-bottom: 1px solid #0f3460;
+  flex-shrink: 0;
+}
+
+.sudoku-header-left, .sudoku-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sudoku-select {
+  background: #0f3460;
+  color: #eee;
+  border: 1px solid #533483;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.sudoku-btn {
+  background: #533483;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.sudoku-btn:hover { background: #6c5ce7; }
+
+.sudoku-timer {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: #a29bfe;
+}
+
+.sudoku-mistakes {
+  font-size: 13px;
+  color: #ff7675;
+}
+
+.sudoku-board-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  min-height: 0;
+}
+
+.sudoku-board {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #a29bfe;
+  border-radius: 4px;
+  background: #16213e;
+}
+
+.sudoku-row {
+  display: flex;
+}
+
+.sudoku-cell {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #2d3561;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.1s;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.sudoku-cell:hover { background: rgba(108, 92, 231, 0.15); }
+
+.sudoku-cell-right-border { border-right: 2px solid #a29bfe; }
+.sudoku-cell-bottom-border { border-bottom: 2px solid #a29bfe; }
+
+.sudoku-cell-fixed { color: #dfe6e9; }
+.sudoku-cell-fixed .sudoku-cell-value { font-weight: 700; }
+
+.sudoku-cell:not(.sudoku-cell-fixed) { color: #74b9ff; }
+
+.sudoku-cell-selected {
+  background: rgba(108, 92, 231, 0.4) !important;
+  box-shadow: inset 0 0 0 2px #6c5ce7;
+}
+
+.sudoku-cell-same-num:not(.sudoku-cell-selected) {
+  background: rgba(108, 92, 231, 0.2);
+}
+
+.sudoku-cell-same-row:not(.sudoku-cell-selected),
+.sudoku-cell-same-col:not(.sudoku-cell-selected),
+.sudoku-cell-same-box:not(.sudoku-cell-selected) {
+  background: rgba(108, 92, 231, 0.07);
+}
+
+.sudoku-cell-error .sudoku-cell-value {
+  color: #ff7675 !important;
+}
+
+.sudoku-cell-value {
+  line-height: 1;
+}
+
+.sudoku-notes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  padding: 1px;
+}
+
+.sudoku-note {
+  font-size: 9px;
+  color: #636e72;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.sudoku-note-on { color: #81ecec; }
+
+.sudoku-numpad {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  flex-shrink: 0;
+}
+
+.sudoku-num-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid #533483;
+  background: #16213e;
+  color: #eee;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.sudoku-num-btn:hover { background: #533483; transform: scale(1.05); }
+.sudoku-num-btn:active { transform: scale(0.95); }
+.sudoku-num-done { opacity: 0.25; pointer-events: none; }
+
+.sudoku-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 14px 14px;
+  flex-shrink: 0;
+}
+
+.sudoku-action-btn {
+  background: #0f3460;
+  border: 1px solid #533483;
+  color: #ddd;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.sudoku-action-btn:hover { background: #533483; }
+.sudoku-action-btn:disabled { opacity: 0.35; cursor: default; }
+.sudoku-action-active { background: #6c5ce7; border-color: #6c5ce7; color: #fff; }
+
+.sudoku-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.sudoku-modal {
+  background: #16213e;
+  border: 1px solid #533483;
+  border-radius: 16px;
+  padding: 32px 48px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.sudoku-modal-icon { font-size: 48px; margin-bottom: 12px; }
+.sudoku-modal-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.sudoku-modal-sub { font-size: 14px; color: #a29bfe; margin-bottom: 16px; }
+
+.sudoku-modal-btn {
+  background: #6c5ce7;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.sudoku-modal-btn:hover { background: #a29bfe; }

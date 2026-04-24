@@ -1,0 +1,63 @@
+  <div class="mm-root">
+    <!-- Toolbar -->
+    <div class="mm-toolbar">
+      <div class="mm-toolbar-left">
+        <button class="mm-tb-btn" @click="newMap" title="Yeni">📄</button>
+        <button class="mm-tb-btn" @click="openMap" title="Aç">📂</button>
+        <button class="mm-tb-btn" @click="saveMap" title="Kaydet (Ctrl+S)">💾</button>
+        <button class="mm-tb-btn" @click="saveMapAs" title="Farklı Kaydet">📥</button>
+        <span class="mm-sep"></span>
+        <button class="mm-tb-btn" @click="doUndo" title="Geri Al">↩️</button>
+        <button class="mm-tb-btn" @click="doRedo" title="Yinele">↪️</button>
+        <span class="mm-sep"></span>
+        <button class="mm-tb-btn" @click="addChild" title="Alt Düğüm Ekle">➕🔽</button>
+        <button class="mm-tb-btn" @click="addSibling" title="Kardeş Düğüm Ekle">➕➡️</button>
+        <button class="mm-tb-btn" @click="removeNode" title="Düğüm Sil">🗑️</button>
+        <span class="mm-sep"></span>
+        <button class="mm-tb-btn" @click="fitCanvas" title="Sığdır">🔲</button>
+        <button class="mm-tb-btn" @click="zoomIn" title="Yakınlaştır">🔍+</button>
+        <button class="mm-tb-btn" @click="zoomOut" title="Uzaklaştır">🔍-</button>
+      </div>
+      <div class="mm-toolbar-right">
+        <select class="mm-select" :value="currentLayout" @change="changeLayout($event.target.value)">
+          <option value="logicalStructure">Mantıksal</option>
+          <option value="mindMap">Zihin Haritası</option>
+          <option value="organizationStructure">Organizasyon</option>
+          <option value="catalogOrganization">Katalog</option>
+          <option value="timeline">Zaman Çizelgesi</option>
+          <option value="fishbone">Balık Kılçığı</option>
+        </select>
+        <select class="mm-select" :value="currentTheme" @change="changeTheme($event.target.value)">
+          <option value="default">Varsayılan</option>
+          <option value="classic">Klasik</option>
+          <option value="dark">Koyu</option>
+          <option value="freshGreen">Yeşil</option>
+          <option value="blueSky">Mavi</option>
+          <option value="brainImpairedPink">Pembe</option>
+          <option value="earthYellow">Toprak</option>
+          <option value="romanticPurple">Mor</option>
+        </select>
+        <!-- Recent files dropdown -->
+        <div class="mm-recent-wrap" v-if="recentFiles.length">
+          <button class="mm-tb-btn" @click="showRecent = !showRecent" title="Son Dosyalar">📋</button>
+          <div class="mm-recent-dropdown" v-if="showRecent">
+            <div class="mm-recent-header">Son Dosyalar</div>
+            <div class="mm-recent-item" v-for="(rf, idx) in recentFiles" :key="idx" @click="openRecent(rf)">
+              <span class="mm-recent-icon">🧠</span>
+              <div class="mm-recent-info">
+                <div class="mm-recent-name">{{ rf.name }}</div>
+                <div class="mm-recent-path">{{ rf.path }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Current file indicator -->
+    <div class="mm-file-bar" v-if="currentFilePath">
+      <span>📄 {{ currentFilePath }}</span>
+      <span v-if="isDirty" style="color:#ff6b6b;margin-left:6px">● değiştirilmiş</span>
+    </div>
+    <!-- Mind map container -->
+    <div class="mm-container" ref="mmContainer"></div>
+  </div>

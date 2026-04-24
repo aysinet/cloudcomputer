@@ -1,0 +1,46 @@
+<div class="wc-root">
+  <div class="wc-header">
+    <span class="wc-title">🌍 Dünya Saati</span>
+    <button class="wc-add-btn" @click="addOpen=!addOpen">{{addOpen ? '✕' : '＋'}}</button>
+  </div>
+
+  <transition name="el-zoom-in-top">
+    <div v-if="addOpen" class="wc-add-panel">
+      <input class="wc-search" v-model="search" placeholder="Şehir ara..." autofocus>
+      <div class="wc-add-list">
+        <div v-for="c in filteredCities" :key="c.name+c.tz" class="wc-add-item" @click="addCity(c)">
+          <span>{{c.flag}} {{c.name}}</span>
+          <span class="wc-add-tz">{{c.tz}}</span>
+        </div>
+        <div v-if="!filteredCities.length" class="wc-add-empty">Sonuç bulunamadı</div>
+      </div>
+    </div>
+  </transition>
+
+  <div class="wc-list" v-if="!addOpen">
+    <div v-for="(city, idx) in cities" :key="city.name+city.tz" class="wc-card">
+      <div class="wc-card-top">
+        <div class="wc-city-info">
+          <span class="wc-flag">{{city.flag}}</span>
+          <span class="wc-city-name">{{city.name}}</span>
+          <span class="wc-phase">{{getDayPhase(city.tz)}}</span>
+        </div>
+        <div class="wc-card-actions">
+          <button class="wc-act" @click="moveCity(idx, idx-1)" :disabled="idx===0" title="Yukarı">▲</button>
+          <button class="wc-act" @click="moveCity(idx, idx+1)" :disabled="idx===cities.length-1" title="Aşağı">▼</button>
+          <button class="wc-act wc-act-del" @click="removeCity(idx)" title="Kaldır">✕</button>
+        </div>
+      </div>
+      <div class="wc-card-bottom">
+        <span class="wc-time">{{getTime(city.tz)}}</span>
+        <div class="wc-meta">
+          <span class="wc-date">{{getDate(city.tz)}}</span>
+          <span class="wc-offset">{{getOffset(city.tz)}}</span>
+        </div>
+      </div>
+    </div>
+    <div v-if="!cities.length" class="wc-empty">
+      Şehir eklenmemiş. <button class="wc-link" @click="addOpen=true">Şehir ekle</button>
+    </div>
+  </div>
+</div>

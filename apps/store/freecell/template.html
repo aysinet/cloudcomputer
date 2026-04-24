@@ -1,0 +1,48 @@
+<div class="fc-root">
+  <div class="fc-top">
+    <div class="fc-cells">
+      <div v-for="(card, i) in freeCells" :key="'fc'+i"
+           class="fc-slot fc-free"
+           :class="{ 'fc-selected': selectedSource && selectedSource.type==='free' && selectedSource.index===i }"
+           @click="clickFreeCell(i)">
+        <div v-if="card" class="fc-card" :class="[cardColor(card), { 'fc-hinted': isHinted(card.id) }]">
+          <span class="fc-rank">{{card.rank}}</span>
+          <span class="fc-suit">{{card.suit}}</span>
+        </div>
+      </div>
+    </div>
+    <div class="fc-info">
+      <div class="fc-moves">Hamle: {{moves}}</div>
+      <div class="fc-btn-row">
+        <button class="fc-new-btn" @click="newGame">Yeni Oyun</button>
+        <button class="fc-new-btn fc-hint-btn" @click="showHint">💡 İpucu</button>
+      </div>
+    </div>
+    <div class="fc-cells">
+      <div v-for="(pile, i) in foundations" :key="'fd'+i"
+           class="fc-slot fc-foundation"
+           @click="clickFoundation(i)">
+        <div v-if="pile.length" class="fc-card" :class="cardColor(pile[pile.length-1])">
+          <span class="fc-rank">{{pile[pile.length-1].rank}}</span>
+          <span class="fc-suit">{{pile[pile.length-1].suit}}</span>
+        </div>
+        <span v-else class="fc-placeholder">{{['♠','♥','♦','♣'][i]}}</span>
+      </div>
+    </div>
+  </div>
+  <div class="fc-tableau">
+    <div v-for="(col, ci) in columns" :key="'col'+ci" class="fc-column" @click.self="clickEmptyColumn(ci)">
+      <div v-for="(card, ri) in col" :key="card.id"
+           class="fc-card fc-stacked" :class="[cardColor(card), { 'fc-selected': isSelected(ci, ri), 'fc-movable': isMovable(ci, ri), 'fc-hinted': isHinted(card.id) }]"
+           :style="{ top: (ri * 28) + 'px', zIndex: ri }"
+           @click.stop="clickCard(ci, ri)">
+        <span v-if="isCovered(ci, ri)" class="fc-peek" :class="cardColor(card)">{{card.rank}}{{card.suit}}</span>
+        <span class="fc-rank">{{card.rank}}</span>
+        <span class="fc-suit">{{card.suit}}</span>
+      </div>
+    </div>
+  </div>
+  <div v-if="won" class="fc-win-overlay" @click="newGame">
+    <div class="fc-win-text">🎉 Tebrikler! Kazandınız!<br><small>{{moves}} hamlede tamamlandı</small></div>
+  </div>
+</div>

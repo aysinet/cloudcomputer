@@ -1,0 +1,81 @@
+.rem-app{display:flex;flex-direction:column;height:100%;background:#111118;color:#fff;font-family:inherit;overflow:hidden}
+
+/* Element Plus date picker dark overrides */
+.rem-app .el-date-editor{--el-fill-color-blank:#1a1a2e;--el-text-color-regular:#fff;--el-border-color:rgba(255,255,255,.1);--el-border-color-hover:rgba(102,126,234,.5);--el-color-primary:#667eea}
+.rem-app .el-date-editor .el-input__wrapper{background:#1a1a2e;box-shadow:0 0 0 1px rgba(255,255,255,.1) inset;border-radius:6px}
+.rem-app .el-date-editor .el-input__wrapper:hover{box-shadow:0 0 0 1px rgba(102,126,234,.5) inset}
+.rem-app .el-date-editor .el-input__inner{color:#fff}
+.rem-app .el-date-editor .el-input__prefix .el-icon{color:rgba(255,255,255,.4)}
+
+/* Toolbar */
+.rem-toolbar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.rem-toolbar-title{font-size:15px;font-weight:700;white-space:nowrap}
+.rem-toolbar-filters{display:flex;gap:4px;margin-left:auto}
+.rem-filter-btn{height:28px;padding:0 10px;border:none;border-radius:6px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.55);font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;transition:.15s}
+.rem-filter-btn:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8)}
+.rem-filter-btn.active{background:rgba(102,126,234,.2);color:#667eea}
+.rem-badge{background:rgba(255,255,255,.08);border-radius:8px;padding:1px 6px;font-size:10px}
+.rem-add-btn{height:30px;padding:0 14px;border:none;border-radius:8px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:.15s}
+.rem-add-btn:hover{filter:brightness(1.15)}
+
+/* Form panel */
+.rem-slide-enter-active,.rem-slide-leave-active{transition:all .25s ease}
+.rem-slide-enter-from,.rem-slide-leave-to{opacity:0;max-height:0;padding-top:0;padding-bottom:0;overflow:hidden}
+.rem-slide-enter-to,.rem-slide-leave-from{opacity:1;max-height:500px}
+.rem-form-panel{border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);flex-shrink:0;overflow:hidden}
+.rem-form-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 4px;font-size:13px;font-weight:600}
+.rem-form-close{background:none;border:none;color:rgba(255,255,255,.4);font-size:16px;cursor:pointer;padding:0 4px}
+.rem-form-close:hover{color:#fff}
+.rem-form-body{padding:4px 14px 12px;display:flex;flex-direction:column;gap:8px}
+.rem-form-row{display:flex;flex-direction:column;gap:3px}
+.rem-form-row label{font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.5px}
+.rem-input{height:32px;padding:0 10px;border:1px solid rgba(255,255,255,.1);border-radius:6px;background:rgba(255,255,255,.05);color:#fff;font-size:13px;outline:none;transition:.15s}
+.rem-input:focus{border-color:rgba(102,126,234,.5);background:rgba(255,255,255,.08)}
+.rem-textarea{height:auto;padding:8px 10px;resize:vertical;min-height:40px;font-family:inherit}
+select.rem-input{appearance:auto;cursor:pointer}
+.rem-form-toggle-row{flex-direction:row;align-items:center;gap:10px}
+.rem-toggle{height:26px;padding:0 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;transition:.15s}
+.rem-toggle.on{background:rgba(102,126,234,.25);color:#667eea;border-color:rgba(102,126,234,.3)}
+.rem-form-error{color:#f56c6c;font-size:11px;margin-top:2px}
+.rem-form-actions{display:flex;gap:8px;margin-top:4px}
+.rem-btn{height:32px;padding:0 20px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
+.rem-btn-primary{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+.rem-btn-primary:hover{filter:brightness(1.15)}
+.rem-btn-secondary{background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)}
+.rem-btn-secondary:hover{background:rgba(255,255,255,.12);color:#fff}
+
+/* List */
+.rem-list{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.rem-list::-webkit-scrollbar{width:5px}
+.rem-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:4px}
+.rem-card{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);transition:.15s;cursor:default}
+.rem-card:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1)}
+.rem-card.disabled{opacity:.45}
+.rem-card.overdue{border-color:rgba(245,108,108,.25);background:rgba(245,108,108,.06)}
+
+/* Enable dot */
+.rem-card-left{padding-top:2px;flex-shrink:0}
+.rem-enable-dot{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.2);background:none;cursor:pointer;padding:0;transition:.15s}
+.rem-enable-dot.active{border-color:#67c23a;background:#67c23a;box-shadow:0 0 6px rgba(103,194,58,.4)}
+.rem-enable-dot:hover{border-color:rgba(255,255,255,.5)}
+
+/* Card body */
+.rem-card-body{flex:1;min-width:0;cursor:pointer}
+.rem-card-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rem-card-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:3px;font-size:11px;color:rgba(255,255,255,.45)}
+.rem-card-time{color:rgba(255,200,50,.7)}
+.rem-card-repeat{color:rgba(102,126,234,.8)}
+.rem-card-muted{opacity:.5}
+.rem-card-note{font-size:11px;color:rgba(255,255,255,.35);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rem-card-snooze{font-size:11px;color:rgba(255,200,50,.6);margin-top:3px}
+
+/* Card actions */
+.rem-card-actions{display:flex;gap:4px;flex-shrink:0;padding-top:2px}
+.rem-card-act-btn{width:28px;height:28px;border:none;border-radius:6px;background:rgba(255,255,255,.05);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.rem-card-act-btn:hover{background:rgba(255,255,255,.12)}
+.rem-card-act-btn.delete:hover{background:rgba(245,108,108,.2)}
+
+/* Empty */
+.rem-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:rgba(255,255,255,.3)}
+.rem-empty-icon{font-size:48px;opacity:.4}
+.rem-empty-text{font-size:14px}

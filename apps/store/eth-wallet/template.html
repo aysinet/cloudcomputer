@@ -1,0 +1,258 @@
+<div class="ethw-root">
+  <!-- LOADING -->
+  <div v-if="screen==='loading'" class="ethw-center">
+    <i class="el-icon-loading" style="font-size:32px"></i>
+  </div>
+
+  <!-- SETUP SCREEN -->
+  <div v-else-if="screen==='setup'" class="ethw-setup">
+    <div class="ethw-logo">💎</div>
+    <h2>{{ L('title') }}</h2>
+    <div class="ethw-setup-btns">
+      <el-button type="primary" size="large" @click="startCreate" style="width:100%">
+        <span style="margin-right:6px">➕</span> {{ L('create') }}
+      </el-button>
+      <el-button size="large" @click="startImport" style="width:100%;margin-left:0;margin-top:10px">
+        <span style="margin-right:6px">📥</span> {{ L('import') }}
+      </el-button>
+    </div>
+  </div>
+
+  <!-- UNLOCK SCREEN -->
+  <div v-else-if="screen==='unlock'" class="ethw-unlock">
+    <div class="ethw-logo">🔒</div>
+    <h3>{{ L('walletPassword') }}</h3>
+    <p class="ethw-hint">{{ L('enterPassword') }}</p>
+    <el-input v-model="walletPassword" type="password" show-password
+      :placeholder="L('password')" @keyup.enter="unlockWallet"
+      style="margin-bottom:12px" size="large" />
+    <el-alert v-if="pwError" :title="pwError" type="error" :closable="false" show-icon
+      style="margin-bottom:12px" />
+    <el-button type="primary" size="large" @click="unlockWallet" style="width:100%">
+      {{ L('unlock') }}
+    </el-button>
+  </div>
+
+  <!-- CREATE PASSWORD -->
+  <div v-else-if="screen==='create-password' || (screen==='import' && wallets.length===0)" class="ethw-unlock">
+    <div class="ethw-logo">🔑</div>
+    <h3>{{ L('setPassword') }}</h3>
+    <el-input v-model="walletPassword" type="password" show-password
+      :placeholder="L('password')" style="margin-bottom:10px" size="large" />
+    <el-input v-model="confirmPw" type="password" show-password
+      :placeholder="L('confirmPassword')" @keyup.enter="confirmPassword"
+      style="margin-bottom:10px" size="large" />
+    <el-alert v-if="pwError" :title="pwError" type="error" :closable="false" show-icon
+      style="margin-bottom:10px" />
+
+    <!-- Import fields -->
+    <template v-if="screen==='import'">
+      <div style="margin-bottom:10px">
+        <el-switch v-model="importPkMode" :active-text="L('privateKey')" :inactive-text="L('mnemonic')"
+          style="margin-bottom:10px" />
+      </div>
+      <el-input v-if="!importPkMode" v-model="importPhrase" type="textarea" :rows="3"
+        :placeholder="L('mnemonicPlaceholder')" style="margin-bottom:10px" />
+      <el-input v-else v-model="importPk" type="password" show-password
+        :placeholder="L('enterPrivateKey')" style="margin-bottom:10px" />
+      <el-alert v-if="importError" :title="importError" type="error" :closable="false" show-icon
+        style="margin-bottom:10px" />
+    </template>
+
+    <el-button type="primary" size="large" @click="confirmPassword" style="width:100%">
+      {{ screen==='import' ? L('import') : L('create') }}
+    </el-button>
+    <el-button text @click="screen='setup'" style="width:100%;margin-top:6px;margin-left:0">
+      {{ L('back') }}
+    </el-button>
+  </div>
+
+  <!-- SHOW PHRASE -->
+  <div v-else-if="screen==='show-phrase'" class="ethw-phrase-screen">
+    <h3>{{ L('mnemonic') }}</h3>
+    <el-alert type="warning" :title="L('mnemonicWarning')" :closable="false" show-icon
+      style="margin-bottom:14px" />
+    <div class="ethw-phrase-grid">
+      <div v-for="(w,i) in newMnemonic.split(' ')" :key="i" class="ethw-phrase-word">
+        <span class="ethw-word-num">{{ i+1 }}</span>
+        <span>{{ w }}</span>
+      </div>
+    </div>
+    <el-button text @click="copyMnemonic" style="margin-bottom:10px">
+      📋 {{ L('copy') }}
+    </el-button>
+    <el-button type="primary" size="large" @click="phraseConfirmed" style="width:100%">
+      ✅ {{ L('iSaved') }}
+    </el-button>
+  </div>
+
+  <!-- MAIN WALLET -->
+  <div v-else-if="screen==='main'" class="ethw-main">
+    <!-- Header -->
+    <div class="ethw-header">
+      <div class="ethw-header-left">
+        <el-dropdown trigger="click" @command="selectNetwork">
+          <span class="ethw-network-badge">🌐 {{ net.name.split(' ')[0] }}</span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item v-for="(n,k) in NETWORKS" :key="k" :command="k"
+                :class="{ 'is-active': k===activeNetwork }">
+                {{ n.name }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+      <div class="ethw-header-center">
+        <el-dropdown trigger="click" @command="selectAccount">
+          <span class="ethw-account-name">
+            {{ activeWallet ? activeWallet.name : '' }} ▾
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item v-for="(w,i) in wallets" :key="i" :command="i"
+                :class="{ 'is-active': i===activeIndex }">
+                {{ w.name }} · {{ w.address.slice(0,6) }}...{{ w.address.slice(-4) }}
+              </el-dropdown-item>
+              <el-dropdown-item divided :command="'add'">
+                ➕ {{ L('addAccount') }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+      <div class="ethw-header-right">
+        <el-button text @click="lockWallet" size="small" title="Lock">🔒</el-button>
+      </div>
+    </div>
+
+    <!-- Balance Card -->
+    <div class="ethw-balance-card">
+      <div class="ethw-addr" @click="copyAddress" :title="activeAddr">
+        {{ shortAddr }} <span class="ethw-copy-icon">📋</span>
+      </div>
+      <div class="ethw-balance" :class="{ 'ethw-loading': balanceLoading }">
+        {{ balanceLoading ? '...' : parseFloat(balance).toFixed(6) }}
+        <span class="ethw-symbol">{{ net.symbol }}</span>
+      </div>
+      <div class="ethw-actions-row">
+        <el-button circle @click="tab='send'" :type="tab==='send'?'primary':''">
+          <span style="font-size:16px">↑</span>
+        </el-button>
+        <el-button circle @click="tab='receive'" :type="tab==='receive'?'primary':''">
+          <span style="font-size:16px">↓</span>
+        </el-button>
+        <el-button circle @click="refreshBalance" :loading="balanceLoading">
+          <span style="font-size:16px">🔄</span>
+        </el-button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="ethw-tabs">
+      <div :class="['ethw-tab', { active: tab==='balance' || tab==='send' || tab==='receive' }]"
+        @click="tab='balance'">💰</div>
+      <div :class="['ethw-tab', { active: tab==='history' }]" @click="tab='history'">📜</div>
+      <div :class="['ethw-tab', { active: tab==='nfts' }]" @click="tab='nfts'">🖼️</div>
+      <div :class="['ethw-tab', { active: tab==='settings' }]" @click="tab='settings'">⚙️</div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="ethw-content">
+      <!-- SEND -->
+      <div v-if="tab==='send'" class="ethw-send-form">
+        <h4>{{ L('send') }} {{ net.symbol }}</h4>
+        <el-input v-model="sendForm.to" :placeholder="L('toAddress')" style="margin-bottom:10px" />
+        <el-input v-model="sendForm.amount" :placeholder="L('amount') + ' (ETH)'" type="number"
+          style="margin-bottom:10px" />
+        <el-alert v-if="sendError" :title="sendError" type="error" :closable="true" show-icon
+          style="margin-bottom:10px" @close="sendError=''" />
+        <el-alert v-if="sendSuccess" :title="sendSuccess" type="success" :closable="true" show-icon
+          style="margin-bottom:10px" @close="sendSuccess=''" />
+        <el-button type="primary" :loading="sendForm.sending" @click="sendETH" style="width:100%"
+          :disabled="!sendForm.to||!sendForm.amount">
+          {{ sendForm.sending ? L('sending') : L('sendETH') }}
+        </el-button>
+      </div>
+
+      <!-- RECEIVE -->
+      <div v-else-if="tab==='receive'" class="ethw-receive">
+        <h4>{{ L('receive') }} {{ net.symbol }}</h4>
+        <div class="ethw-receive-addr">{{ activeAddr }}</div>
+        <el-button @click="copyAddress" style="margin-top:10px">📋 {{ L('copy') }}</el-button>
+      </div>
+
+      <!-- HISTORY -->
+      <div v-else-if="tab==='history'" class="ethw-history">
+        <div v-if="txs.length===0" class="ethw-empty">{{ L('noTx') }}</div>
+        <div v-for="tx in txs" :key="tx.hash" class="ethw-tx-item" @click="viewOnExplorer(tx.hash)">
+          <div class="ethw-tx-dir">
+            <span :class="tx.isIn ? 'ethw-in' : 'ethw-out'">{{ tx.isIn ? '↓' : '↑' }}</span>
+          </div>
+          <div class="ethw-tx-info">
+            <div class="ethw-tx-addr">{{ tx.isIn ? tx.from : tx.to }}</div>
+            <div class="ethw-tx-time">{{ tx.time }}</div>
+          </div>
+          <div class="ethw-tx-val" :class="tx.isIn ? 'ethw-in' : 'ethw-out'">
+            {{ tx.isIn ? '+' : '-' }}{{ parseFloat(tx.value).toFixed(4) }}
+          </div>
+        </div>
+      </div>
+
+      <!-- NFTs -->
+      <div v-else-if="tab==='nfts'" class="ethw-nfts">
+        <div v-if="nftLoading" class="ethw-empty">{{ L('loadingNFTs') }}</div>
+        <div v-else-if="nfts.length===0" class="ethw-empty">{{ L('noNFTs') }}</div>
+        <div v-for="nft in nfts" :key="nft.contract+nft.tokenId" class="ethw-nft-item"
+          @click="viewNFTOnExplorer(nft.contract, nft.tokenId)">
+          <div class="ethw-nft-icon">🖼️</div>
+          <div class="ethw-nft-info">
+            <div class="ethw-nft-name">{{ nft.name }} {{ nft.symbol ? '('+nft.symbol+')' : '' }}</div>
+            <div class="ethw-nft-id">#{{ nft.tokenId }}</div>
+          </div>
+          <div class="ethw-nft-link">🔗</div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div v-else-if="tab==='settings'" class="ethw-settings">
+        <el-button @click="requestShowPhrase" style="width:100%;margin-bottom:10px">
+          🔑 {{ L('viewPhrase') }}
+        </el-button>
+        <el-button type="danger" @click="deleteWallet" style="width:100%">
+          🗑️ {{ L('deleteWallet') }}
+        </el-button>
+      </div>
+
+      <!-- BALANCE (default) -->
+      <div v-else class="ethw-balance-placeholder">
+        <div class="ethw-empty" style="padding:20px 0;opacity:.5">
+          {{ L('title') }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Show Phrase Dialog -->
+    <el-dialog v-model="showPhraseConfirm" :title="L('viewPhrase')" width="360px" append-to-body>
+      <template v-if="!phraseVisible">
+        <p>{{ L('enterPassword') }}</p>
+        <el-input v-model="phrasePassword" type="password" show-password
+          :placeholder="L('password')" @keyup.enter="confirmShowPhrase" style="margin-bottom:10px" />
+        <el-alert v-if="pwError" :title="pwError" type="error" :closable="false" show-icon
+          style="margin-bottom:10px" />
+        <el-button type="primary" @click="confirmShowPhrase" style="width:100%">{{ L('unlock') }}</el-button>
+      </template>
+      <template v-else>
+        <el-alert type="warning" :title="L('mnemonicWarning')" :closable="false" show-icon
+          style="margin-bottom:14px" />
+        <div class="ethw-phrase-grid">
+          <div v-for="(w,i) in phraseWords.split(' ')" :key="i" class="ethw-phrase-word">
+            <span class="ethw-word-num">{{ i+1 }}</span>
+            <span>{{ w }}</span>
+          </div>
+        </div>
+        <el-button @click="closeShowPhrase" style="width:100%;margin-top:10px">{{ L('back') }}</el-button>
+      </template>
+    </el-dialog>
+  </div>
+</div>

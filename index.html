@@ -1,0 +1,3230 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vue Desktop OS</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/winbox@0.2.82/dist/css/winbox.min.css">
+<script src="https://unpkg.com/winbox@0.2.82/dist/js/winbox.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+<script src="https://unpkg.com/element-plus/dist/index.full.min.js"></script>
+<script src="https://unpkg.com/vue-demi@0.14.10/lib/index.iife.js"></script>
+<script src="https://unpkg.com/pinia@2.3.1/dist/pinia.iife.prod.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/ol@10.5.0/ol.css">
+<script src="https://unpkg.com/ol@10.5.0/dist/ol.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/simple-mind-map@0.12.1/dist/simpleMindMap.esm.min.css">
+<script src="https://unpkg.com/simple-mind-map@0.12.1/dist/simpleMindMap.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif}
+#app{width:100vw;height:100vh;display:flex;flex-direction:column;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%)}
+.desktop{flex:1;position:relative;overflow:hidden}
+.wallpaper-grid{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
+.desktop-icons{display:flex;flex-direction:column;flex-wrap:wrap;gap:16px;padding:20px;max-height:calc(100vh - 56px);align-content:flex-start}
+.desktop-icon{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:8px;border-radius:8px;transition:.15s;width:80px;user-select:none}
+.desktop-icon:hover{background:rgba(255,255,255,.12)}
+.desktop-icon:active{background:rgba(255,255,255,.2);transform:scale(.95)}
+.icon-img{width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:26px;border-radius:12px}
+.icon-label{color:#fff;font-size:11px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.8);line-height:1.3;max-width:72px;height:2.6em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;word-break:break-word}
+.taskbar{height:48px;background:rgba(15,15,30,.92);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 8px;gap:6px;z-index:9000;flex-shrink:0}
+.start-btn{height:36px;padding:0 14px;border-radius:6px;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:.15s;white-space:nowrap}
+.start-btn:hover{background:rgba(255,255,255,.18)}
+.start-btn svg{width:16px;height:16px;opacity:.9}
+.taskbar-sep{width:1px;height:28px;background:rgba(255,255,255,.12);margin:0 2px}
+.taskbar-tasks{flex:1;display:flex;gap:4px;overflow:hidden}
+.task-btn{height:36px;padding:0 12px;border-radius:6px;border:none;cursor:pointer;display:flex;align-items:center;gap:7px;font-size:12px;transition:.15s;white-space:nowrap;max-width:160px}
+.task-btn.active{background:rgba(255,255,255,.18);color:#fff}
+.task-btn.inactive{background:rgba(255,255,255,.06);color:rgba(255,255,255,.7)}
+.task-btn:hover{background:rgba(255,255,255,.22);color:#fff}
+.task-btn .t-icon{font-size:15px}
+.task-btn .t-title{overflow:hidden;text-overflow:ellipsis}
+.taskbar-right{display:flex;align-items:center;gap:8px;padding-left:8px}
+.clock{color:#fff;font-size:12px;text-align:center;line-height:1.4;cursor:default}
+.system-tray{display:flex;gap:4px}
+.tray-btn{width:32px;height:32px;border-radius:6px;border:none;background:transparent;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:.15s}
+.tray-btn:hover{background:rgba(255,255,255,.12);color:#fff}
+.vol-wrap{position:relative}
+.vol-popover{position:absolute;bottom:42px;left:50%;transform:translateX(-50%);width:220px;background:rgba(20,20,40,.95);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.vol-pop-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:13px;color:#fff}
+.vol-pop-val{font-weight:600;font-size:14px}
+.vol-pop-bar{height:6px;background:rgba(255,255,255,.12);border-radius:3px;cursor:pointer;position:relative}
+.vol-pop-fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:3px;transition:width .1s}
+.vol-pop-actions{margin-top:10px;display:flex;justify-content:center}
+.vol-pop-btn{border:none;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);padding:4px 14px;border-radius:6px;font-size:11px;cursor:pointer;transition:.15s}
+.vol-pop-btn:hover{background:rgba(255,255,255,.16);color:#fff}
+.vol-media{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}
+.vol-media-title{font-size:11px;color:rgba(255,255,255,.6);text-align:center;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vol-media-btns{display:flex;align-items:center;justify-content:center;gap:4px}
+.vol-media-btn{width:30px;height:30px;border:none;border-radius:6px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.vol-media-btn:hover{background:rgba(255,255,255,.15);color:#fff}
+.vol-media-play{width:36px;height:36px;font-size:16px;background:rgba(102,126,234,.3);color:#fff}
+.vol-media-play:hover{background:rgba(102,126,234,.5)}
+.start-menu{position:fixed;bottom:52px;left:8px;width:320px;background:rgba(15,15,30,.97);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.12);border-radius:12px;z-index:9999;padding:16px;box-shadow:0 -4px 40px rgba(0,0,0,.6)}
+.sm-header{color:rgba(255,255,255,.5);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;padding:0 4px}
+.sm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.sm-item{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;border-radius:8px;cursor:pointer;transition:.15s;border:none;background:transparent}
+.sm-item:hover{background:rgba(255,255,255,.1)}
+.sm-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.sm-label{color:rgba(255,255,255,.85);font-size:11px;text-align:center}
+.sm-footer{border-top:1px solid rgba(255,255,255,.08);padding-top:12px;display:flex;justify-content:space-between;align-items:center}
+.sm-user{display:flex;align-items:center;gap:10px;color:#fff;font-size:13px}
+.sm-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#fff}
+.sm-power{width:32px;height:32px;border-radius:6px;border:none;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);cursor:pointer;font-size:16px;transition:.15s}
+.sm-power:hover{background:rgba(255,80,80,.3);color:#ff5555}
+.sm-settings-btn:hover{background:rgba(100,130,255,.3) !important;color:#88aaff !important}
+.sm-cats{max-height:360px;overflow-y:auto;margin-bottom:12px}
+.sm-cat{margin-bottom:2px}
+.sm-cat-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:none;background:rgba(255,255,255,.04);color:rgba(255,255,255,.8);font-size:12px;font-weight:600;cursor:pointer;border-radius:6px;transition:.15s}
+.sm-cat-btn:hover{background:rgba(255,255,255,.1)}
+.sm-cat-btn.open{background:rgba(255,255,255,.08)}
+.sm-cat-arrow{font-size:10px;transition:transform .2s}
+.sm-cat-arrow.rotated{transform:rotate(90deg)}
+.sm-cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:6px 4px}
+.sm-collapse-enter-active,.sm-collapse-leave-active{transition:all .2s ease;overflow:hidden}
+.sm-collapse-enter-from,.sm-collapse-leave-to{max-height:0;opacity:0;padding:0}
+.sm-collapse-enter-to,.sm-collapse-leave-from{max-height:400px;opacity:1}
+.winbox .wb-full{display:none!important}
+.winbox .wb-body{background:#fff;overflow:hidden;top:28px!important}
+.winbox{min-height:28px!important}
+.winbox .wb-header{height:28px!important}
+.winbox .wb-title{font-size:12px!important;line-height:28px!important}
+.winbox .wb-icon{top:0!important;left:6px!important;width:16px!important;height:28px!important}
+.winbox .wb-control{top:0!important}
+.winbox .wb-control .wb-close,.winbox .wb-control .wb-min,.winbox .wb-control .wb-max,.winbox .wb-control .wb-full{width:28px!important;height:28px!important;background-size:12px!important}
+
+/* ── CalcApp ── */
+.calc-root{width:100%;height:100%;background:#1e1e2e;display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',sans-serif}
+.calc-inner{width:100%;max-width:280px;padding:12px}
+.calc-disp{background:#16162a;border-radius:10px;padding:12px 16px;margin-bottom:10px}
+.calc-expr{color:rgba(255,255,255,.4);font-size:12px;min-height:18px;text-align:right}
+.calc-val{color:#fff;font-size:28px;font-weight:300;text-align:right;word-break:break-all}
+.calc-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.calc-btn{height:52px;border:none;border-radius:10px;font-size:16px;cursor:pointer;transition:.12s;font-weight:500}
+.calc-btn:active{transform:scale(.93)}
+.calc-btn.op{background:#6c63ff;color:#fff}
+.calc-btn.fn{background:#2a2a3e;color:rgba(255,255,255,.7)}
+.calc-btn.num{background:#252535;color:#fff}
+.calc-btn.eq{background:#6c63ff;color:#fff;grid-column:span 1}
+.calc-btn.zero{grid-column:span 2}
+
+/* ── NotepadApp ── */
+.notepad-root{width:100%;height:100%;background:#f9f9f9;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif}
+.notepad-toolbar{background:#fff;border-bottom:1px solid #e0e0e0;padding:6px 10px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.notepad-toolbar select,.notepad-toolbar input[type=number]{height:28px;border:1px solid #ddd;border-radius:4px;padding:0 6px;font-size:12px;outline:none}
+.notepad-toolbar input[type=number]{width:52px}
+.notepad-tb-btn{height:28px;padding:0 8px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:13px}
+.notepad-tb-btn:hover{background:#f0f0f0}
+.notepad-sep{width:1px;height:22px;background:#e0e0e0;margin:0 2px}
+.notepad-root textarea{flex:1;border:none;padding:14px;font-size:14px;line-height:1.7;outline:none;resize:none;background:#f9f9f9}
+.notepad-status{background:#e8e8e8;padding:3px 10px;font-size:11px;color:#666;border-top:1px solid #ddd}
+
+/* ── TodoApp ── */
+.todo-root{width:100%;height:100%;background:#f0f4ff;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif}
+.todo-header{background:linear-gradient(135deg,#667eea,#764ba2);padding:16px;color:#fff;flex-shrink:0}
+.todo-header h2{font-size:18px;font-weight:600}
+.todo-header .sub{font-size:12px;opacity:.8;margin-top:2px}
+.todo-add-row{display:flex;gap:8px;padding:12px;background:#fff;border-bottom:1px solid #e8e8f0;flex-shrink:0}
+.todo-add-row input{flex:1;height:36px;border:1px solid #dde;border-radius:8px;padding:0 12px;font-size:13px;outline:none}
+.todo-add-row input:focus{border-color:#667eea}
+.todo-add-row button{height:36px;padding:0 16px;background:#667eea;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px}
+.todo-add-row button:hover{background:#764ba2}
+.todo-list{flex:1;overflow-y:auto;padding:10px}
+.todo-item{display:flex;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:10px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.todo-item.done span{text-decoration:line-through;color:#aaa}
+.todo-item input[type=checkbox]{width:18px;height:18px;accent-color:#667eea;cursor:pointer;flex-shrink:0}
+.todo-item span{flex:1;font-size:14px;color:#333}
+.todo-item .del{width:28px;height:28px;border:none;background:transparent;cursor:pointer;color:#ccc;font-size:16px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.todo-item .del:hover{background:#ffe0e0;color:#f55}
+.todo-empty{text-align:center;color:#aaa;font-size:13px;padding:32px;margin-top:20px}
+
+/* ── FilemanApp ── */
+.fm-root{width:100%;height:100%;background:#fff;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif}
+.fm-toolbar{background:#f8f8f8;border-bottom:1px solid #e0e0e0;padding:6px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.fm-path{flex:1;height:28px;border:1px solid #ddd;border-radius:4px;padding:0 10px;font-size:12px;background:#fff;color:#333;outline:none}
+.fm-tb-btn{height:28px;padding:0 10px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:12px}
+.fm-tb-btn:hover{background:#f0f0f0}
+.fm-sidebar{width:140px;background:#f5f5f7;border-right:1px solid #e0e0e0;padding:10px 0;flex-shrink:0}
+.fm-side-item{padding:7px 14px;cursor:pointer;font-size:13px;color:#444;display:flex;align-items:center;gap:8px;border-radius:0}
+.fm-side-item:hover{background:#e8e8ee}
+.fm-side-item.active{background:#e0e0f0;color:#5050cc;font-weight:500}
+.fm-main{display:flex;flex:1;overflow:hidden}
+.fm-files{flex:1;padding:12px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;align-content:start}
+.fm-file{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;transition:.12s}
+.fm-file:hover{background:#f0f0f8}
+.fm-file.sel{background:#dde8ff}
+.fm-file .ico{font-size:30px;line-height:1}
+.fm-file .name{font-size:11px;color:#333;text-align:center;word-break:break-word}
+.fm-status{background:#f8f8f8;border-top:1px solid #e0e0e0;padding:4px 12px;font-size:11px;color:#888;flex-shrink:0}
+
+/* ── WeatherApp ── */
+.weather-root{width:100%;height:100%;background:linear-gradient(160deg,#1a1a4e,#2d4a8a,#4a7fce);color:#fff;font-family:'Segoe UI',sans-serif;overflow-y:auto}
+.weather-city{padding:20px 20px 8px;font-size:22px;font-weight:600}
+.weather-sub{padding:0 20px 4px;font-size:13px;opacity:.7}
+.weather-main-temp{padding:16px 20px;display:flex;align-items:center;gap:16px}
+.weather-big-icon{font-size:64px;line-height:1}
+.weather-temp-val{font-size:56px;font-weight:200}
+.weather-desc{font-size:15px;opacity:.8;margin-top:4px}
+.weather-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.1);margin:0 16px;border-radius:12px;overflow:hidden}
+.weather-stat{background:rgba(255,255,255,.08);padding:12px;text-align:center}
+.weather-stat .lbl{font-size:11px;opacity:.6;margin-bottom:4px}
+.weather-stat .val{font-size:16px;font-weight:500}
+.weather-forecast{padding:16px}
+.weather-fc-title{font-size:12px;opacity:.6;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
+.weather-fc-list{display:flex;flex-direction:column;gap:6px}
+.weather-fc-item{display:flex;align-items:center;padding:8px 12px;background:rgba(255,255,255,.08);border-radius:10px}
+.weather-fc-day{width:80px;font-size:13px;opacity:.8}
+.weather-fc-icon{font-size:20px;flex:1;text-align:center}
+.weather-fc-temp{font-size:13px;opacity:.7;width:70px;text-align:right}
+
+/* ── SettingsApp ── */
+.settings-root{width:100%;height:100%;display:flex;background:#f6f6fb;font-family:'Segoe UI',sans-serif}
+.settings-sidebar{width:170px;background:#fff;border-right:1px solid #e0e0ee;padding:16px 0;flex-shrink:0}
+.settings-s-section{font-size:11px;font-weight:600;color:#aaa;letter-spacing:.06em;padding:10px 16px 4px;text-transform:uppercase}
+.settings-s-item{padding:8px 16px;cursor:pointer;font-size:13px;color:#444;display:flex;align-items:center;gap:8px;transition:.12s}
+.settings-s-item:hover{background:#f0f0f8}
+.settings-s-item.active{background:#eeeeff;color:#5050cc;font-weight:500}
+.settings-content{flex:1;padding:20px;overflow-y:auto}
+.settings-content h3{font-size:16px;font-weight:600;color:#222;margin-bottom:16px}
+.settings-row{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #eee}
+.settings-row .lbl{flex:1;font-size:14px;color:#333}
+.settings-row .sub{font-size:12px;color:#999;margin-top:2px}
+.settings-row .ctrl{flex-shrink:0}
+.settings-root input[type=range]{width:120px;accent-color:#667eea}
+.settings-toggle{position:relative;width:44px;height:24px;display:inline-block}
+.settings-toggle input{opacity:0;width:0;height:0}
+.settings-slider{position:absolute;inset:0;background:#ccc;border-radius:24px;cursor:pointer;transition:.3s}
+.settings-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+.settings-toggle input:checked+.settings-slider{background:#667eea}
+.settings-toggle input:checked+.settings-slider:before{transform:translateX(20px)}
+.settings-root select{height:30px;border:1px solid #ddd;border-radius:6px;padding:0 8px;font-size:13px;outline:none;background:#fff}
+.lang-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px 0}
+.lang-card{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;border:2px solid #eee;cursor:pointer;transition:.15s;position:relative}
+.lang-card:hover{border-color:#c5cae9;background:#f8f9ff}
+.lang-card.selected{border-color:#667eea;background:#ecf0ff}
+.lang-flag{font-size:22px}
+.lang-label{font-size:13px;font-weight:500;color:#303133}
+.lang-check{position:absolute;right:8px;color:#667eea;font-weight:700;font-size:14px}
+
+/* ── TerminalApp ── */
+.term-root{width:100%;height:100%;background:#1a1a2e;display:flex;flex-direction:column;font-family:'Courier New',monospace}
+.term-bar{background:#16162a;padding:6px 12px;font-size:12px;color:rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;display:flex;align-items:center;gap:8px}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-output{flex:1;padding:12px;overflow-y:auto;font-size:13px;line-height:1.7}
+.term-line{margin-bottom:1px}
+.term-prompt{color:#50fa7b}
+.term-cmd{color:#f8f8f2}
+.term-res{color:#aaa}
+.term-err{color:#ff5555}
+.term-input-row{display:flex;align-items:center;padding:8px 12px;background:#16162a;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0;gap:6px}
+.term-ps{color:#50fa7b;font-size:13px;flex-shrink:0}
+.term-input-row input{flex:1;background:transparent;border:none;outline:none;color:#f8f8f2;font-family:'Courier New',monospace;font-size:13px;caret-color:#50fa7b}
+
+/* ── ClockApp ── */
+.clock-root{width:100%;height:100%;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Segoe UI',sans-serif;color:#fff}
+.clock-root canvas{margin-bottom:20px}
+.clock-digital{font-size:36px;font-weight:200;letter-spacing:.1em;text-shadow:0 0 20px rgba(150,120,255,.5)}
+.clock-date-str{font-size:14px;opacity:.6;margin-top:8px;letter-spacing:.04em}
+.clock-tz-label{font-size:12px;opacity:.4;margin-top:4px;letter-spacing:.02em}
+
+/* ── Fullscreen Toggle ── */
+/* ── Desktop Switcher ── */
+.desktop-switcher{display:flex;gap:2px;margin-left:8px}
+.desktop-switcher .ds-btn{width:18px;height:18px;border:1px solid rgba(255,255,255,.15);border-radius:3px;background:rgba(255,255,255,.06);cursor:pointer;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1px;padding:3px;transition:.15s;position:relative}
+.desktop-switcher .ds-btn:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.25)}
+.desktop-switcher .ds-btn.active{background:rgba(100,130,255,.4);border-color:rgba(100,130,255,.6)}
+.desktop-switcher .ds-btn .ds-sq{background:rgba(255,255,255,.35);border-radius:1px}
+.desktop-switcher .ds-btn.active .ds-sq{background:rgba(255,255,255,.7)}
+.desktop-switcher .ds-btn .ds-dot{position:absolute;bottom:0px;left:50%;transform:translateX(-50%);width:4px;height:1.5px;border-radius:1px;background:rgba(255,255,255,.6)}
+
+/* ── Notification Bell ── */
+.notif-bell{position:relative;width:32px;height:32px;border-radius:6px;border:none;background:transparent;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:.15s}
+.notif-bell:hover{background:rgba(255,255,255,.12);color:#fff}
+.notif-badge{position:absolute;top:2px;right:2px;min-width:14px;height:14px;border-radius:7px;background:#f56c6c;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1}
+
+/* ── NotificationsApp ── */
+.notif-root{width:100%;height:100%;background:#f5f7fa;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif}
+.notif-header{background:linear-gradient(135deg,#ff6b6b,#ee5a24);padding:16px;color:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.notif-header h2{font-size:18px;font-weight:600}
+.notif-header .notif-clear{border:none;background:rgba(255,255,255,.2);color:#fff;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px}
+.notif-header .notif-clear:hover{background:rgba(255,255,255,.35)}
+.notif-list{flex:1;overflow-y:auto;padding:10px}
+.notif-item{display:flex;gap:10px;background:#fff;border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06);transition:.15s}
+.notif-item.unread{border-left:3px solid #409eff}
+.notif-item .ni-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.notif-item .ni-body{flex:1;min-width:0}
+.notif-item .ni-title{font-size:13px;font-weight:600;color:#303133;margin-bottom:2px}
+.notif-item .ni-text{font-size:12px;color:#606266;line-height:1.4}
+.notif-item .ni-time{font-size:10px;color:#c0c4cc;margin-top:4px}
+.notif-item .ni-action{border:none;background:#ecf5ff;color:#409eff;padding:3px 10px;border-radius:5px;font-size:11px;cursor:pointer;margin-top:5px;transition:.15s}
+.notif-item .ni-action:hover{background:#409eff;color:#fff}
+.notif-item .ni-del{border:none;background:transparent;cursor:pointer;color:#c0c4cc;font-size:14px;border-radius:4px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;align-self:flex-start}
+.notif-item .ni-del:hover{background:#fee;color:#f56c6c}
+.notif-empty{text-align:center;color:#aaa;font-size:13px;padding:40px;margin-top:20px}
+.notif-add-row{display:flex;gap:8px;padding:10px 12px;background:#fff;border-top:1px solid #e8e8f0;flex-shrink:0}
+.notif-add-row input{flex:1;height:32px;border:1px solid #dde;border-radius:6px;padding:0 10px;font-size:12px;outline:none}
+.notif-add-row input:focus{border-color:#409eff}
+.notif-add-row button{height:32px;padding:0 14px;background:#409eff;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px}
+.notif-add-row button:hover{background:#66b1ff}
+
+/* ── AppStoreApp ── */
+.store-root{width:100%;height:100%;background:#f5f7fa;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif;overflow:hidden}
+.store-header{background:linear-gradient(135deg,#6c5ce7,#a29bfe);padding:16px;color:#fff;flex-shrink:0}
+.store-header h2{font-size:18px;font-weight:600}
+.store-header .sub{font-size:12px;opacity:.8;margin-top:2px}
+.store-list{flex:1;overflow-y:auto;padding:10px}
+.store-item{display:flex;align-items:center;gap:12px;background:#fff;border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.store-item .si-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.store-item .si-body{flex:1;min-width:0}
+.store-item .si-name{font-size:14px;font-weight:600;color:#303133}
+.store-item .si-desc{font-size:11px;color:#909399;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.store-item .si-type{font-size:10px;padding:2px 6px;border-radius:4px;flex-shrink:0}
+.store-item .si-type.internal{background:#ecf5ff;color:#409eff}
+.store-item .si-type.external{background:#fdf6ec;color:#e6a23c}
+.store-item .si-btn{height:30px;padding:0 14px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;transition:.15s;flex-shrink:0}
+.store-item .si-btn.install{background:#67c23a;color:#fff}
+.store-item .si-btn.install:hover{background:#529b2e}
+.store-item .si-btn.uninstall{background:#f56c6c;color:#fff}
+.store-item .si-btn.uninstall:hover{background:#c45656}
+.store-item .si-btn.global{background:#ddd;color:#999;cursor:default}
+.store-loading{text-align:center;color:#aaa;font-size:13px;padding:40px}
+.store-list .el-collapse{border:none}
+.store-list .el-collapse-item__header{background:#f5f7fa;border-bottom:1px solid #ebeef5;padding:0 10px;font-size:14px}
+.store-list .el-collapse-item__wrap{background:#f5f7fa}
+.store-list .el-collapse-item__content{padding:0 6px 6px}
+
+/* ── Browser App ── */
+.browser-root{height:100%;display:flex;flex-direction:column;background:#1a1d2e;color:#e1e4ea;font-family:'Segoe UI',sans-serif;overflow:hidden}
+.browser-toolbar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#252840;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.browser-nav-btns{display:flex;gap:2px}
+.browser-nav-btn{width:30px;height:30px;border:none;border-radius:6px;background:transparent;color:#aab0c6;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.browser-nav-btn:hover{background:rgba(255,255,255,.08);color:#fff}
+.browser-nav-btn:disabled{opacity:.3;cursor:default}
+.browser-nav-btn:disabled:hover{background:transparent}
+.browser-url-bar{flex:1;display:flex;align-items:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:0 12px;height:32px;transition:border-color .2s}
+.browser-url-bar:focus-within{border-color:rgba(74,144,217,.5);background:rgba(255,255,255,.08)}
+.browser-url-icon{font-size:12px;margin-right:6px;flex-shrink:0}
+.browser-url-input{flex:1;background:none;border:none;outline:none;color:#e1e4ea;font-size:13px;font-family:inherit}
+.browser-url-input::placeholder{color:#5a5e72}
+.browser-bookmarks-bar{display:flex;align-items:center;padding:4px 10px;background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.04);flex-shrink:0;overflow-x:auto}
+.browser-bm-list{display:flex;gap:6px;align-items:center}
+.browser-bm-chip{font-size:11px;padding:3px 10px;background:rgba(255,255,255,.06);border-radius:12px;cursor:pointer;white-space:nowrap;color:#aab0c6;display:flex;align-items:center;gap:4px;transition:.15s;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.browser-bm-chip:hover{background:rgba(255,255,255,.1);color:#fff}
+.browser-bm-del{font-size:13px;opacity:.4;cursor:pointer;line-height:1}
+.browser-bm-del:hover{opacity:1;color:#f56c6c}
+.browser-bm-add{font-size:11px;padding:3px 10px;background:rgba(74,144,217,.15);border:none;border-radius:12px;color:#6aabf7;cursor:pointer}
+.browser-bm-add:hover{background:rgba(74,144,217,.25)}
+.browser-loading-bar{height:2px;background:rgba(255,255,255,.04);flex-shrink:0;overflow:hidden}
+.browser-loading-progress{height:100%;width:30%;background:linear-gradient(90deg,#4a90d9,#00b894);border-radius:2px;animation:browserLoad 1.2s ease-in-out infinite}
+@keyframes browserLoad{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+.browser-tabs{display:flex;background:#1e2035;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;overflow-x:auto}
+.browser-tab{display:flex;align-items:center;gap:6px;padding:6px 14px;font-size:12px;color:#8b8fa3;cursor:pointer;border-right:1px solid rgba(255,255,255,.04);max-width:180px;min-width:80px;transition:.15s}
+.browser-tab:hover{background:rgba(255,255,255,.04)}
+.browser-tab.active{background:#1a1d2e;color:#e1e4ea;border-bottom:2px solid #4a90d9}
+.browser-tab-title{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.browser-tab-close{font-size:14px;opacity:.4;line-height:1;width:16px;text-align:center}
+.browser-tab-close:hover{opacity:1;color:#f56c6c}
+.browser-tab-add{border:none;background:transparent;color:#5a5e72;font-size:16px;padding:0 10px;cursor:pointer}
+.browser-tab-add:hover{color:#aab0c6}
+.browser-content{flex:1;overflow:hidden;position:relative;background:#fff}
+.browser-iframe{width:100%;height:100%;border:none}
+.browser-home{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:linear-gradient(180deg,#1a1d2e,#0f1118);color:#e1e4ea}
+.browser-home-logo{font-size:64px;margin-bottom:12px;filter:drop-shadow(0 0 20px rgba(74,144,217,.4))}
+.browser-home h2{font-weight:300;color:#8b8fa3;margin:0 0 30px}
+.browser-quick-links{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.browser-quick-link{display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;cursor:pointer;transition:.2s;min-width:150px;color:#c5cde8;font-size:13px}
+.browser-quick-link:hover{background:rgba(255,255,255,.08);border-color:rgba(74,144,217,.3);transform:translateY(-1px)}
+.bql-icon{font-size:20px}
+.browser-error{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#1a1d2e;color:#e1e4ea;text-align:center;padding:40px}
+.browser-error-icon{font-size:48px;margin-bottom:12px}
+.browser-error h3{margin:0 0 8px;font-weight:500}
+.browser-error-url{color:#5a5e72;font-size:12px;word-break:break-all;margin:0 0 16px}
+.browser-retry-btn{padding:8px 24px;border:none;border-radius:8px;background:#4a90d9;color:#fff;cursor:pointer;font-size:13px}
+.browser-retry-btn:hover{background:#3a7bc8}
+.browser-status-bar{padding:2px 10px;font-size:10px;color:#5a5e72;background:#1e2035;border-top:1px solid rgba(255,255,255,.04);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── Code App ── */
+/* ── File Dialog ── */
+.fd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',sans-serif}
+.fd-dialog{background:#1e1e2e;border:1px solid rgba(255,255,255,.1);border-radius:12px;width:620px;max-width:95vw;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.6);overflow:hidden}
+.fd-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06)}
+.fd-header h3{margin:0;font-size:15px;color:#e1e4ea;font-weight:600}
+.fd-close{background:none;border:none;color:#808080;font-size:18px;cursor:pointer;padding:4px 8px;border-radius:4px}
+.fd-close:hover{color:#f56c6c;background:rgba(255,255,255,.06)}
+.fd-toolbar{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,.04)}
+.fd-breadcrumb{display:flex;align-items:center;gap:2px;flex:1;overflow:hidden}
+.fd-bc-item{font-size:12px;color:#6aabf7;cursor:pointer;padding:2px 6px;border-radius:4px;white-space:nowrap}
+.fd-bc-item:hover{background:rgba(255,255,255,.06)}
+.fd-bc-sep{color:#5a5e72;font-size:11px}
+.fd-bc-item.current{color:#e1e4ea;font-weight:600;cursor:default}
+.fd-new-folder{background:none;border:1px solid rgba(255,255,255,.1);color:#aab0c6;font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer;white-space:nowrap}
+.fd-new-folder:hover{background:rgba(255,255,255,.06);color:#fff}
+.fd-body{flex:1;overflow-y:auto;padding:8px;min-height:250px}
+.fd-empty{text-align:center;color:#5a5e72;padding:40px 0;font-size:13px}
+.fd-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;transition:background .12s;color:#c5cde8}
+.fd-item:hover{background:rgba(255,255,255,.05)}
+.fd-item.selected{background:rgba(74,144,217,.2);color:#fff}
+.fd-item-icon{font-size:20px;width:28px;text-align:center;flex-shrink:0}
+.fd-item-name{flex:1;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fd-item-size{font-size:11px;color:#5a5e72;min-width:60px;text-align:right}
+.fd-item-date{font-size:11px;color:#5a5e72;min-width:100px;text-align:right}
+.fd-footer{display:flex;align-items:center;gap:10px;padding:12px 16px;border-top:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)}
+.fd-filename-input{flex:1}
+.fd-filter-select{width:160px}
+.fd-footer-actions{display:flex;gap:8px;margin-left:auto}
+.fd-body::-webkit-scrollbar{width:5px}
+.fd-body::-webkit-scrollbar-track{background:transparent}
+.fd-body::-webkit-scrollbar-thumb{background:rgba(74,144,217,.2);border-radius:4px}
+
+/* ── Icon Context Menu ── */
+.icon-ctx{position:fixed;z-index:9998;background:rgba(30,30,50,.95);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:4px 0;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.icon-ctx-header{padding:6px 14px;font-size:11px;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.08)}
+.icon-ctx-item{padding:7px 14px;font-size:13px;color:rgba(255,255,255,.85);cursor:pointer;display:flex;align-items:center;gap:8px;transition:.12s}
+.icon-ctx-item:hover{background:rgba(255,255,255,.12)}
+.icon-ctx-item.disabled{opacity:.35;pointer-events:none}
+.icon-ctx-sep{height:1px;background:rgba(255,255,255,.08);margin:4px 0}
+.icon-ctx-sub{padding:4px 0}
+.icon-ctx-sub .icon-ctx-item{padding-left:28px;font-size:12px}
+
+.fs-toggle{position:fixed;top:0;right:0;width:16px;height:16px;background:rgba(255,255,255,.06);backdrop-filter:blur(8px);border:none;cursor:pointer;z-index:8999;clip-path:polygon(100% 0,0 0,100% 100%);display:flex;align-items:flex-start;justify-content:flex-end;padding:2px 2px 0 0;transition:width .3s ease,height .3s ease,background .3s ease,padding .3s ease}
+.fs-toggle:hover{width:48px;height:48px;background:rgba(255,255,255,.25);padding:6px 6px 0 0}
+.fs-toggle svg{width:14px;height:14px;color:#fff;pointer-events:none;opacity:0;transition:opacity .3s ease}
+.fs-toggle:hover svg{opacity:1}
+
+/* ── CalendarApp ── */
+.cal-root{width:100%;height:100%;background:#f5f7fa;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif;overflow:hidden}
+.cal-toolbar{background:#fff;border-bottom:1px solid #e4e7ed;padding:8px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.cal-toolbar .cal-title{font-size:16px;font-weight:600;color:#303133;min-width:140px;text-align:center}
+.cal-body{flex:1;overflow-y:auto;padding:8px}
+.cal-body .el-calendar{--el-calendar-border:1px solid #e4e7ed;border:none}
+.cal-body .el-calendar__header{display:none}
+.cal-body .el-calendar-table thead th{font-size:12px;font-weight:600;color:#909399;padding:6px 0}
+.cal-body .el-calendar-table .el-calendar-day{height:64px;padding:4px;font-size:12px;position:relative;cursor:pointer;transition:background .15s}
+.cal-body .el-calendar-table .el-calendar-day:hover{background:#ecf5ff}
+.cal-day-num{font-weight:600;font-size:13px;color:#303133;margin-bottom:2px}
+.cal-day-num.today{background:#409eff;color:#fff;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+.cal-events{display:flex;flex-direction:column;gap:1px}
+.cal-event-dot{font-size:10px;color:#fff;background:#409eff;border-radius:3px;padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.5}
+.cal-event-dot.green{background:#67c23a}
+.cal-event-dot.orange{background:#e6a23c}
+.cal-event-dot.red{background:#f56c6c}
+.cal-event-dot.purple{background:#6f5ef7}
+.cal-dialog-events{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.cal-ev-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f5f7fa;border-radius:6px}
+
+/* ── Reminder Alert Overlay ── */
+.reminder-alert-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);animation:remFadeIn .3s}
+@keyframes remFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes remPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.reminder-alert-box{background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,200,50,.25);border-radius:16px;padding:28px 32px;min-width:340px;max-width:440px;text-align:center;box-shadow:0 16px 64px rgba(0,0,0,.6),0 0 40px rgba(255,200,50,.1);animation:remPulse 2s ease-in-out infinite}
+.reminder-alert-icon{font-size:48px;margin-bottom:8px}
+.reminder-alert-title{font-size:18px;font-weight:700;color:#fff;margin-bottom:6px}
+.reminder-alert-note{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:4px;word-break:break-word}
+.reminder-alert-time{font-size:11px;color:rgba(255,200,50,.7);margin-bottom:16px}
+.reminder-alert-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.reminder-alert-btn{height:34px;padding:0 18px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:5px}
+.reminder-alert-btn.dismiss{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
+.reminder-alert-btn.dismiss:hover{background:rgba(255,255,255,.2);color:#fff}
+.reminder-alert-btn.snooze{background:rgba(255,200,50,.15);color:#ffc832}
+.reminder-alert-btn.snooze:hover{background:rgba(255,200,50,.3);color:#ffd760}
+.reminder-alert-btn.open{background:rgba(102,126,234,.2);color:#667eea}
+.reminder-alert-btn.open:hover{background:rgba(102,126,234,.35)}
+.cal-ev-item .ev-color{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cal-ev-item .ev-text{flex:1;font-size:13px;color:#303133}
+.cal-ev-item .ev-del{border:none;background:transparent;cursor:pointer;color:#c0c4cc;font-size:14px;border-radius:4px;width:24px;height:24px;display:flex;align-items:center;justify-content:center}
+.cal-ev-item .ev-del:hover{background:#fee;color:#f56c6c}
+</style>
+</head>
+<body>
+<div id="app" @click="closeMenu();hideIconCtx()">
+  <div class="desktop" :style="desktopStyle" @contextmenu.self.prevent="hideIconCtx()">
+    <div class="wallpaper-grid"></div>
+    <div class="desktop-icons">
+      <div v-for="app in desktopApps" :key="app.id" class="desktop-icon" @click="openApp(app)" @contextmenu.prevent="showIconCtx($event, app)">
+        <div class="icon-img" :style="{background:app.color}">{{app.icon}}</div>
+        <span class="icon-label" :title="appName(app)">{{appName(app)}}</span>
+      </div>
+    </div>
+    <!-- Icon Context Menu -->
+    <div v-if="iconCtx.show" class="icon-ctx" :style="{left:iconCtx.x+'px',top:iconCtx.y+'px'}" @click.stop>
+      <div class="icon-ctx-header">{{iconCtx.app?.icon}} {{iconCtx.app ? appName(iconCtx.app) : ''}}</div>
+      <div class="icon-ctx-item" @click="openApp(iconCtx.app);hideIconCtx()">▶ {{t('ctxOpen')}}</div>
+      <div class="icon-ctx-sep"></div>
+      <div class="icon-ctx-header">{{t('ctxMove')}}</div>
+      <div class="icon-ctx-sub">
+        <div v-for="d in 4" :key="'m'+d" class="icon-ctx-item" :class="{disabled:d===currentDesktop}" @click="moveIcon(iconCtx.app.id, d)">{{t('ctxDesktop')}} {{d}}</div>
+      </div>
+      <div class="icon-ctx-sep"></div>
+      <div class="icon-ctx-header">{{t('ctxCopy')}}</div>
+      <div class="icon-ctx-sub">
+        <div v-for="d in 4" :key="'c'+d" class="icon-ctx-item" :class="{disabled:isIconOnDesktop(iconCtx.app.id, d)}" @click="copyIcon(iconCtx.app.id, d)">{{t('ctxDesktop')}} {{d}}</div>
+      </div>
+    </div>
+    <button class="fs-toggle" @click="toggleFullscreen" :title="isFullscreen?t('fullscreenExit'):t('fullscreen')">
+      <svg v-if="!isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+    </button>
+  </div>
+  <div class="taskbar">
+    <button class="start-btn" @click.stop="toggleMenu">
+      <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6.5" height="6.5" rx="1"/><rect x="8.5" y="1" width="6.5" height="6.5" rx="1"/><rect x="1" y="8.5" width="6.5" height="6.5" rx="1"/><rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1"/></svg>
+      {{t('start')}}
+    </button>
+    <div class="taskbar-sep"></div>
+    <div class="taskbar-tasks">
+      <button v-for="w in visibleWindows" :key="w.id" class="task-btn" :class="w.focused?'active':'inactive'" @click="focusWindow(w)">
+        <span class="t-icon">{{w.icon}}</span>
+        <span class="t-title">{{appName(w)}}</span>
+      </button>
+    </div>
+    <div class="taskbar-right">
+      <div class="system-tray">
+        <div class="vol-wrap">
+          <button class="tray-btn" @click.stop="volOpen=!volOpen">{{volStore.icon}}</button>
+          <transition name="el-zoom-in-top">
+            <div v-if="volOpen" class="vol-popover" @click.stop>
+              <div class="vol-pop-header">
+                <span>{{volStore.icon}}</span>
+                <span class="vol-pop-val">{{volStore.muted ? t('mute') : volStore.level+'%'}}</span>
+              </div>
+              <div class="vol-pop-bar" @click="setSystemVol($event)">
+                <div class="vol-pop-fill" :style="{width: (volStore.muted ? 0 : volStore.level)+'%'}"></div>
+              </div>
+              <div v-if="volStore.mediaHasSource" class="vol-media">
+                <div class="vol-media-title" v-if="volStore.mediaTitle">🎵 {{volStore.mediaTitle}}</div>
+                <div class="vol-media-btns">
+                  <button class="vol-media-btn" @click="volStore.mediaSeekBack(10)" title="-10s">⏪</button>
+                  <button class="vol-media-btn" @click="volStore.mediaPrev()" :title="t('mediaPrev')">⏮</button>
+                  <button class="vol-media-btn vol-media-play" @click="volStore.mediaToggle()">{{volStore.playIcon}}</button>
+                  <button class="vol-media-btn" @click="volStore.mediaNext()" :title="t('mediaNext')">⏭</button>
+                  <button class="vol-media-btn" @click="volStore.mediaSeekFwd(10)" title="+10s">⏩</button>
+                </div>
+              </div>
+              <div class="vol-pop-actions">
+                <button class="vol-pop-btn" @click="volStore.toggleMute()">{{volStore.muted ? t('volUnmute') : t('volMute')}}</button>
+              </div>
+            </div>
+          </transition>
+        </div>
+        <button class="tray-btn">📶</button>
+      </div>
+      <div class="taskbar-sep"></div>
+      <button class="notif-bell" @click="openApp(apps.find(a=>a.id==='notifications'))" :title="t('notifications')">
+        🔔
+        <span v-if="notifCount>0" class="notif-badge">{{notifCount>9?'9+':notifCount}}</span>
+      </button>
+      <div class="clock">
+        <div style="font-weight:600">{{time}}</div>
+        <div style="opacity:.6">{{date}}</div>
+      </div>
+      <div class="taskbar-sep"></div>
+      <div class="desktop-switcher">
+        <button v-for="d in 4" :key="d" class="ds-btn" :class="{active:currentDesktop===d}" @click="switchDesktop(d)" :title="t('ctxDesktop')+' '+d">
+          <span class="ds-sq"></span><span class="ds-sq"></span><span class="ds-sq"></span><span class="ds-sq"></span>
+          <span v-if="desktopHasWindows(d)" class="ds-dot"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <transition name="menu">
+    <div v-if="menuOpen" class="start-menu" @click.stop>
+      <div class="sm-header">{{t('apps')}}</div>
+      <div class="sm-cats">
+        <div v-for="cat in menuCategories" :key="cat.id" class="sm-cat">
+          <button class="sm-cat-btn" :class="{open: openCats[cat.id]}" @click="openCats[cat.id]=!openCats[cat.id]">
+            <span>{{cat.icon}} {{cat.name}}</span>
+            <span class="sm-cat-arrow" :class="{rotated: openCats[cat.id]}">▸</span>
+          </button>
+          <transition name="sm-collapse">
+            <div v-if="openCats[cat.id]" class="sm-cat-grid">
+              <button v-for="app in cat.apps" :key="app.id" class="sm-item" @click="openApp(app);closeMenu()">
+                <div class="sm-icon" :style="{background:app.color}">{{app.icon}}</div>
+                <span class="sm-label">{{appName(app)}}</span>
+              </button>
+            </div>
+          </transition>
+        </div>
+      </div>
+      <div class="sm-footer">
+        <div class="sm-user">
+          <div class="sm-avatar">K</div>
+          <span>{{t('user')}}</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="sm-power sm-settings-btn" @click="openApp(apps.find(a=>a.id==='settings'));closeMenu()" title="Ayarlar">⚙️</button>
+          <button class="sm-power">⏻</button>
+        </div>
+      </div>
+    </div>
+  </transition>
+  <!-- Reminder Alert Overlay -->
+  <div v-if="reminderAlert.show" class="reminder-alert-overlay" @click.self="dismissReminder">
+    <div class="reminder-alert-box">
+      <div class="reminder-alert-icon">⏰</div>
+      <div class="reminder-alert-title">{{reminderAlert.title}}</div>
+      <div v-if="reminderAlert.note" class="reminder-alert-note">{{reminderAlert.note}}</div>
+      <div class="reminder-alert-time">{{reminderAlert.timeStr}}</div>
+      <div class="reminder-alert-btns">
+        <button class="reminder-alert-btn dismiss" @click="dismissReminder">✓ {{t('reminderDismiss')}}</button>
+        <button class="reminder-alert-btn snooze" @click="snoozeReminder(5)">💤 5 min</button>
+        <button class="reminder-alert-btn snooze" @click="snoozeReminder(15)">💤 15 min</button>
+        <button class="reminder-alert-btn open" @click="openReminderApp">📋 {{t('openApp')}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- TEMPLATES                                    -->
+<!-- ════════════════════════════════════════════ -->
+
+<script type="text/template" id="CalcApp">
+  <div class="calc-root">
+    <div class="calc-inner">
+      <div class="calc-disp">
+        <div class="calc-expr">{{expr}}</div>
+        <div class="calc-val">{{display}}</div>
+      </div>
+      <div class="calc-btns">
+        <button class="calc-btn fn" @click="clear">AC</button>
+        <button class="calc-btn fn" @click="sign">±</button>
+        <button class="calc-btn fn" @click="pct">%</button>
+        <button class="calc-btn op" @click="op('/')">÷</button>
+        <button v-for="n in [7,8,9]" class="calc-btn num" @click="num(n)">{{n}}</button>
+        <button class="calc-btn op" @click="op('*')">×</button>
+        <button v-for="n in [4,5,6]" class="calc-btn num" @click="num(n)">{{n}}</button>
+        <button class="calc-btn op" @click="op('-')">−</button>
+        <button v-for="n in [1,2,3]" class="calc-btn num" @click="num(n)">{{n}}</button>
+        <button class="calc-btn op" @click="op('+')">+</button>
+        <button class="calc-btn num zero" @click="num(0)">0</button>
+        <button class="calc-btn num" @click="dot">.</button>
+        <button class="calc-btn eq" @click="eq">=</button>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="NotepadApp">
+  <div class="notepad-root">
+    <div class="notepad-toolbar">
+      <select v-model="font">
+        <option value="'Segoe UI',sans-serif">Segoe UI</option>
+        <option value="'Courier New',monospace">Courier New</option>
+        <option value="Georgia,serif">Georgia</option>
+      </select>
+      <input type="number" v-model="size" min="10" max="32">
+      <div class="notepad-sep"></div>
+      <button class="notepad-tb-btn" @click="bold=!bold" :style="{fontWeight:'bold',background:bold?'#ddd':'#fff'}">B</button>
+      <button class="notepad-tb-btn" @click="italic=!italic" :style="{fontStyle:'italic',background:italic?'#ddd':'#fff'}">I</button>
+      <div class="notepad-sep"></div>
+      <button class="notepad-tb-btn" @click="text=''">{{t('notepadClear')}}</button>
+      <button class="notepad-tb-btn" @click="copy">{{t('notepadCopy')}}</button>
+    </div>
+    <textarea v-model="text" :placeholder="t('notepadPlaceholder')" :style="{fontFamily:font,fontSize:size+'px',fontWeight:bold?'bold':'normal',fontStyle:italic?'italic':'normal'}"></textarea>
+    <div class="notepad-status">{{text.length}} {{t('notepadChars')}} · {{wordCount}} {{t('notepadWords')}}</div>
+  </div>
+</script>
+
+<script type="text/template" id="TodoApp">
+  <div class="todo-root">
+    <div class="todo-header">
+      <h2>{{t('todoTitle')}}</h2>
+      <div class="sub">{{done}}/{{todos.length}} {{t('todoCompleted')}}</div>
+    </div>
+    <div class="todo-add-row">
+      <input v-model="input" @keyup.enter="add" :placeholder="t('todoPlaceholder')">
+      <button @click="add">{{t('todoAdd')}}</button>
+    </div>
+    <div class="todo-list">
+      <div v-if="!todos.length" class="todo-empty">{{t('todoEmpty')}}</div>
+      <div v-for="(td,i) in todos" :key="i" class="todo-item" :class="{done:td.done}">
+        <input type="checkbox" v-model="td.done">
+        <span>{{td.text}}</span>
+        <button class="del" @click="todos.splice(i,1)">✕</button>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="FilemanApp">
+  <div class="fm-root">
+    <div class="fm-toolbar">
+      <button class="fm-tb-btn">←</button>
+      <button class="fm-tb-btn">→</button>
+      <button class="fm-tb-btn">↑</button>
+      <input class="fm-path" :value="currentPath" readonly>
+      <button class="fm-tb-btn">🔍</button>
+    </div>
+    <div class="fm-main">
+      <div class="fm-sidebar">
+        <div v-for="loc in locations" class="fm-side-item" :class="{active:loc.id===currentLoc}" @click="navigate(loc)">{{loc.icon}} {{loc.name}}</div>
+      </div>
+      <div class="fm-files">
+        <div v-for="f in files" class="fm-file" :class="{sel:selected===f.name}" @click="selected=f.name" @dblclick="open(f)">
+          <span class="ico">{{f.icon}}</span>
+          <span class="name">{{f.name}}</span>
+        </div>
+      </div>
+    </div>
+    <div class="fm-status">{{files.length}} {{t('fmItems')}}{{selected?' · '+selected+' '+t('fmSelected'):''}}</div>
+  </div>
+</script>
+
+<script type="text/template" id="WeatherApp">
+  <div class="weather-root">
+    <div v-if="loading" style="flex:1;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.6)">{{t('loading')}}</div>
+    <template v-else>
+      <div class="weather-city">{{city}}</div>
+      <div class="weather-sub">{{country}} · {{t('weatherNow')}}</div>
+      <div class="weather-main-temp">
+        <div class="weather-big-icon">{{current.icon}}</div>
+        <div>
+          <div class="weather-temp-val">{{current.temp}}°</div>
+          <div class="weather-desc">{{current.desc}}</div>
+        </div>
+      </div>
+      <div class="weather-stats">
+        <div class="weather-stat"><div class="lbl">{{t('weatherHumidity')}}</div><div class="val">%{{current.humidity}}</div></div>
+        <div class="weather-stat"><div class="lbl">{{t('weatherWind')}}</div><div class="val">{{current.wind}} km/h</div></div>
+        <div class="weather-stat"><div class="lbl">{{t('weatherFeelsLike')}}</div><div class="val">{{current.feelsLike}}°</div></div>
+      </div>
+      <div class="weather-forecast">
+        <div class="weather-fc-title">{{t('weatherHourly')}}</div>
+        <div class="weather-fc-list">
+          <div v-for="h in hourly" class="weather-fc-item">
+            <div class="weather-fc-day">{{h.hour}}</div>
+            <div class="weather-fc-icon">{{h.icon}}</div>
+            <div class="weather-fc-temp">{{h.temp}}° · %{{h.humidity}}</div>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+</script>
+
+<script type="text/template" id="SettingsApp">
+  <div class="settings-root">
+    <div class="settings-sidebar">
+      <div class="settings-s-section">{{t('settings')}}</div>
+      <div v-for="tab in tabs" class="settings-s-item" :class="{active:active===tab.id}" @click="active=tab.id">{{tab.icon}} {{tab.name}}</div>
+    </div>
+    <div class="settings-content">
+      <h3>{{tabs.find(t=>t.id===active)?.name}}</h3>
+      <template v-if="active==='language'">
+        <div class="settings-row">
+          <div><div class="lbl">{{t('language')}}</div><div class="sub">{{t('languageDesc')}}</div></div>
+        </div>
+        <div class="lang-grid">
+          <div v-for="lang in langOptions" :key="lang.code" class="lang-card" :class="{selected: selectedLocale===lang.code}" @click="changeLocale(lang.code)">
+            <span class="lang-flag">{{lang.flag}}</span>
+            <span class="lang-label">{{lang.label}}</span>
+            <span v-if="selectedLocale===lang.code" class="lang-check">✓</span>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="active==='location'">
+        <div class="settings-row">
+          <div><div class="lbl">{{t('country')}}</div><div class="sub">{{t('countryDesc')}}</div></div>
+          <div class="ctrl">
+            <el-select v-model="locCountry" filterable clearable :placeholder="t('selectPlaceholder')" style="width:220px" @change="onCountryChange">
+              <el-option v-for="c in countries" :key="c.iso2" :label="c.name" :value="c.iso2" />
+            </el-select>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div><div class="lbl">{{t('city')}}</div><div class="sub">{{cities.length}} {{t('cityListing')}}</div></div>
+          <div class="ctrl">
+            <el-select v-model="locCity" filterable clearable :placeholder="t('selectPlaceholder')" style="width:220px" @change="onCityChange">
+              <el-option v-for="c in cities" :key="c.city_ascii" :label="c.city + ' (' + (c.admin_name||'') + ')'" :value="c.city_ascii" />
+            </el-select>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div><div class="lbl">{{t('timezone')}}</div></div>
+          <div class="ctrl">
+            <el-select v-model="locTimezone" filterable clearable :placeholder="t('timezoneAuto')" style="width:220px" @change="saveLocation">
+              <el-option :label="t('timezoneAuto')" value="" />
+              <el-option v-for="tz in timezones" :key="tz" :label="tz" :value="tz" />
+            </el-select>
+          </div>
+        </div>
+        <div class="settings-row" v-if="locCity">
+          <div><div class="lbl">{{t('location')}}</div><div class="sub">Lat: {{locLat}}, Lng: {{locLng}}</div></div>
+          <div class="ctrl"><span style="font-size:12px;color:#67c23a">✓ {{t('locationSaved')}}</span></div>
+        </div>
+      </template>
+      <template v-else-if="active==='wallpaper'">
+        <div class="settings-row">
+          <div><div class="lbl">{{t('wpMode') || 'Uygulama Modu'}}</div><div class="sub">{{t('wpModeDesc') || 'Tüm masaüstlerine aynı veya ayrı duvar kağıdı'}}</div></div>
+          <div class="ctrl">
+            <select :value="wpMode" @change="setWpMode($event.target.value)" style="background:#3c3c3c;color:#d4d4d4;border:1px solid #555;border-radius:4px;padding:4px 8px;font-size:12px">
+              <option value="all">{{t('wpAll') || 'Tümüne Aynı'}}</option>
+              <option value="per">{{t('wpPer') || 'Ayrı Ayrı'}}</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-row" v-if="wpMode==='per'">
+          <div><div class="lbl">{{t('wpDesktopSelect') || 'Masaüstü Seç'}}</div></div>
+          <div class="ctrl" style="display:flex;gap:6px">
+            <button v-for="d in 4" :key="d" @click="wpDesktop=d"
+              :style="{padding:'6px 14px',borderRadius:'6px',border:wpDesktop===d?'2px solid #6c5ce7':'1px solid #555',background:wpDesktop===d?'rgba(108,92,231,.3)':'#3c3c3c',color:'#eee',cursor:'pointer',fontSize:'12px',fontWeight:wpDesktop===d?'700':'400'}">
+              Desktop {{d}}
+            </button>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div><div class="lbl">{{t('wpUpload') || 'Resim Yükle'}}</div><div class="sub">JPG, PNG, WebP, GIF</div></div>
+          <div class="ctrl">
+            <input type="file" ref="wpFileInput" accept="image/*" style="display:none" @change="uploadWallpaper" />
+            <button @click="$refs.wpFileInput.click()" style="background:#533483;color:#fff;border:none;border-radius:6px;padding:6px 16px;cursor:pointer;font-size:12px">📤 {{t('wpUploadBtn') || 'Yükle'}}</button>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <div class="lbl" style="margin-bottom:8px">{{t('wpGallery') || 'Duvar Kağıtları'}}</div>
+          <div class="sub" style="margin-bottom:8px" v-if="wpUploading">{{t('wpUploading') || 'Yükleniyor...'}}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <div @click="setWallpaper('')"
+              style="width:120px;height:75px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:#aaa;border:2px solid;transition:.15s"
+              :style="{borderColor:currentWpUrl===''?'#6c5ce7':'#444',background:'linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)'}">
+              {{t('wpDefault') || 'Varsayılan'}}
+            </div>
+            <div v-for="wp in wpList" :key="wp.name" style="position:relative;width:120px;height:75px" @click="setWallpaper(wp.url)">
+              <img :src="wp.url + '&t=' + wp.name" style="width:120px;height:75px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid;transition:.15s"
+                :style="{borderColor:currentWpUrl===wp.url?'#6c5ce7':'#444'}" />
+              <button @click.stop="deleteWallpaper(wp.name)" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#e74c3c;color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1" title="Sil">×</button>
+            </div>
+          </div>
+        </div>
+        <div v-if="currentWpUrl" style="margin-top:16px">
+          <div class="lbl" style="margin-bottom:8px">{{t('wpPreview') || 'Önizleme'}}</div>
+          <img :src="currentWpUrl" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #555" />
+        </div>
+      </template>
+      <template v-else>
+        <template v-for="row in currentRows">
+          <div class="settings-row">
+            <div><div class="lbl">{{row.label}}</div><div v-if="row.sub" class="sub">{{row.sub}}</div></div>
+            <div class="ctrl">
+              <template v-if="row.type==='toggle'"><label class="settings-toggle"><input type="checkbox" v-model="row.val"><span class="settings-slider"></span></label></template>
+              <template v-else-if="row.type==='range'"><input type="range" :min="row.min" :max="row.max" v-model="row.val"> <span style="font-size:12px;margin-left:6px">{{row.val}}</span></template>
+              <template v-else-if="row.type==='select'"><select v-model="row.val"><option v-for="o in row.options">{{o}}</option></select></template>
+            </div>
+          </div>
+        </template>
+      </template>
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="TerminalApp">
+  <div class="term-root">
+    <div class="term-bar">
+      <div class="term-dot" style="background:#ff5f56"></div>
+      <div class="term-dot" style="background:#ffbd2e"></div>
+      <div class="term-dot" style="background:#27c93f"></div>
+      <span style="margin-left:8px">{{t('termBarTitle')}}</span>
+    </div>
+    <div class="term-output" ref="outRef">
+      <div class="term-line"><span class="term-res">{{t('termWelcome')}}</span></div>
+      <div v-for="(l,i) in lines" :key="i" class="term-line">
+        <span v-if="l.type==='cmd'" class="term-prompt">user@vuedesktop:~$ </span>
+        <span :class="'term-'+l.type">{{l.text}}</span>
+      </div>
+    </div>
+    <div class="term-input-row">
+      <span class="term-ps">user@vuedesktop:~$</span>
+      <input v-model="inp" @keyup.enter="run" :placeholder="t('termPlaceholder')" autofocus>
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="ClockApp">
+  <div class="clock-root">
+    <canvas ref="canvasRef" width="200" height="200"></canvas>
+    <div class="clock-digital">{{digitalTime}}</div>
+    <div class="clock-date-str">{{dateStr}}</div>
+    <div v-if="tzLabel" class="clock-tz-label">{{tzLabel}}</div>
+  </div>
+</script>
+
+<script type="text/template" id="CalendarApp">
+  <div class="cal-root">
+    <div class="cal-toolbar">
+      <el-button size="small" @click="prevMonth">&lt;</el-button>
+      <span class="cal-title">{{monthLabel}}</span>
+      <el-button size="small" @click="nextMonth">&gt;</el-button>
+      <el-button size="small" @click="goToday" type="primary" plain>{{t('calToday')}}</el-button>
+      <span style="flex:1"></span>
+      <el-button size="small" type="primary" @click="openAdd">{{t('calAddEvent')}}</el-button>
+    </div>
+    <div class="cal-body">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr>
+            <th v-for="d in dayNames" style="padding:6px 0;font-size:12px;font-weight:600;color:#909399;text-align:center;border-bottom:1px solid #e4e7ed">{{d}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="week in calendarGrid">
+            <td v-for="cell in week" @click="selectDate(cell.date)" style="border:1px solid #e4e7ed;vertical-align:top;width:14.28%;height:68px;padding:4px;cursor:pointer;transition:background .15s" :style="{background:cell.isToday?'#ecf5ff':cell.isCurrentMonth?'#fff':'#fafafa'}" @mouseenter="$event.target.style.background='#e8f0fe'" @mouseleave="$event.target.style.background=cell.isToday?'#ecf5ff':cell.isCurrentMonth?'#fff':'#fafafa'">
+              <div style="margin-bottom:2px">
+                <span :class="{'cal-day-num':true, today:cell.isToday}" :style="{color:cell.isCurrentMonth?'#303133':'#c0c4cc'}">{{cell.day}}</span>
+              </div>
+              <div class="cal-events">
+                <div v-for="ev in getEvents(cell.date).slice(0,2)" class="cal-event-dot" :class="ev.color">{{ev.title}}</div>
+                <div v-if="getEvents(cell.date).length>2" style="font-size:9px;color:#909399">+{{getEvents(cell.date).length-2}} {{t('calMore')}}</div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <el-dialog v-model="showDialog" :title="dialogDate" width="360px" :close-on-click-modal="true">
+      <div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <el-input v-model="newTitle" :placeholder="t('calEventPlaceholder')" size="small" @keyup.enter="addEvent" style="flex:1"></el-input>
+          <el-select v-model="newColor" size="small" style="width:90px">
+            <el-option :label="t('calBlue')" value=""></el-option>
+            <el-option :label="t('calGreen')" value="green"></el-option>
+            <el-option :label="t('calOrange')" value="orange"></el-option>
+            <el-option :label="t('calRed')" value="red"></el-option>
+            <el-option :label="t('calPurple')" value="purple"></el-option>
+          </el-select>
+          <el-button size="small" type="primary" @click="addEvent">{{t('calAdd')}}</el-button>
+        </div>
+        <div class="cal-dialog-events">
+          <div v-if="!selectedEvents.length" style="text-align:center;color:#aaa;padding:16px;font-size:13px">{{t('calNoEvents')}}</div>
+          <div v-for="(ev,i) in selectedEvents" class="cal-ev-item">
+            <div class="ev-color" :style="{background:colorMap[ev.color||'']}"></div>
+            <span class="ev-text">{{ev.title}}</span>
+            <button class="ev-del" @click="removeEvent(i)">✕</button>
+          </div>
+        </div>
+      </div>
+    </el-dialog>
+  </div>
+</script>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- APPLICATION LOGIC                            -->
+<!-- ════════════════════════════════════════════ -->
+
+<script type="text/template" id="NotificationsApp">
+  <div class="notif-root">
+    <div class="notif-header">
+      <h2>🔔 {{t('notifTitle')}}</h2>
+      <button class="notif-clear" @click="markAllRead" v-if="unreadCount>0">{{t('markAllRead')}}</button>
+    </div>
+    <div class="notif-list">
+      <div v-if="!notifications.length" class="notif-empty">{{t('noNotifications')}}</div>
+      <div v-for="(n,i) in notifications" :key="i" class="notif-item" :class="{unread:!n.read}" @click="n.read=true;save()">
+        <div class="ni-icon" :style="{background:n.bg}">{{n.icon}}</div>
+        <div class="ni-body">
+          <div class="ni-title">{{n.title}}</div>
+          <div class="ni-text">{{n.text}}</div>
+          <div class="ni-time">{{n.time}}</div>
+          <button v-if="n.action && n.action.app" class="ni-action" @click.stop="openAction(n)">📂 {{t('openApp')}}</button>
+        </div>
+        <button class="ni-del" @click.stop="remove(i)">✕</button>
+      </div>
+    </div>
+    <div class="notif-add-row">
+      <input v-model="newText" @keyup.enter="addNotif" :placeholder="t('testNotifPlaceholder')">
+      <button @click="addNotif">{{t('send')}}</button>
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="AppStoreApp">
+  <div class="store-root">
+    <div class="store-header">
+      <h2>🛒 {{t('storeTitle')}}</h2>
+      <div class="sub">{{storeApps.length}} {{t('appsAvailable')}}</div>
+    </div>
+    <div class="store-list">
+      <div v-if="loading" class="store-loading">{{t('loading')}}</div>
+      <el-collapse v-else v-model="activeCategory" accordion>
+        <el-collapse-item v-for="cat in storeCategories" :key="cat.id" :name="cat.id">
+          <template #title>
+            <span style="font-size:14px;font-weight:600">{{cat.icon}} {{cat.name}}</span>
+            <span style="font-size:11px;color:#909399;margin-left:8px">({{cat.apps.length}})</span>
+          </template>
+          <div v-for="app in cat.apps" :key="app.id" class="store-item">
+            <div class="si-icon" :style="{background:app.color}">{{app.icon}}</div>
+            <div class="si-body">
+              <div class="si-name">{{appName(app)}}</div>
+              <div class="si-desc">{{appDesc(app)}}</div>
+            </div>
+            <span class="si-type" :class="app.type">{{app.type==='internal'?t('internal'):t('external')}}</span>
+            <button v-if="app.global" class="si-btn global">Global</button>
+            <button v-else-if="app.installed" class="si-btn uninstall" @click="uninstall(app)">{{t('uninstall')}}</button>
+            <button v-else class="si-btn install" @click="install(app)">{{t('install')}}</button>
+          </div>
+        </el-collapse-item>
+      </el-collapse>
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="BrowserApp">
+  <div class="browser-root">
+    <div class="browser-toolbar">
+      <div class="browser-nav-btns">
+        <button class="browser-nav-btn" @click="goBack" :disabled="historyIndex<=0" title="Back">◀</button>
+        <button class="browser-nav-btn" @click="goForward" :disabled="historyIndex>=history.length-1" title="Forward">▶</button>
+        <button class="browser-nav-btn" @click="reload" title="Reload">🔄</button>
+      </div>
+      <div class="browser-url-bar">
+        <span class="browser-url-icon">{{ isSecure ? '🔒' : '🌐' }}</span>
+        <input class="browser-url-input" v-model="urlInput" @keydown.enter="navigate"
+          placeholder="URL veya arama yazın..." spellcheck="false" />
+      </div>
+      <button class="browser-nav-btn" @click="goHome" title="Home">🏠</button>
+      <button class="browser-nav-btn" @click="toggleBookmarks" title="Bookmarks">{{ showBookmarks ? '⭐' : '☆' }}</button>
+    </div>
+
+    <div v-if="showBookmarks" class="browser-bookmarks-bar">
+      <div class="browser-bm-list">
+        <div v-for="(bm,i) in bookmarks" :key="i" class="browser-bm-chip" @click="loadUrl(bm.url)">
+          {{ bm.title || bm.url }}
+          <span class="browser-bm-del" @click.stop="removeBookmark(i)">×</span>
+        </div>
+        <button class="browser-bm-add" @click="addBookmark" v-if="currentUrl">+ Ekle</button>
+      </div>
+    </div>
+
+    <div v-if="loading" class="browser-loading-bar">
+      <div class="browser-loading-progress"></div>
+    </div>
+
+    <div class="browser-tabs" v-if="tabs.length > 1">
+      <div v-for="(tab, i) in tabs" :key="tab.id"
+        :class="['browser-tab', { active: activeTab === i }]"
+        @click="switchTab(i)">
+        <span class="browser-tab-title">{{ tab.title || 'New Tab' }}</span>
+        <span class="browser-tab-close" @click.stop="closeTab(i)">×</span>
+      </div>
+      <button class="browser-tab-add" @click="newTab">+</button>
+    </div>
+
+    <div class="browser-content">
+      <div v-if="error" class="browser-error">
+        <div class="browser-error-icon">⚠️</div>
+        <h3>{{ error }}</h3>
+        <p class="browser-error-url">{{ currentUrl }}</p>
+        <button class="browser-retry-btn" @click="reload">Tekrar Dene</button>
+      </div>
+      <div v-else-if="!currentUrl && !loading" class="browser-home">
+        <div class="browser-home-logo">🌐</div>
+        <h2>Web Browser</h2>
+        <div class="browser-quick-links">
+          <div class="browser-quick-link" @click="loadUrl('https://www.google.com')">
+            <span class="bql-icon">🔍</span><span>Google</span>
+          </div>
+          <div class="browser-quick-link" @click="loadUrl('https://www.wikipedia.org')">
+            <span class="bql-icon">📖</span><span>Wikipedia</span>
+          </div>
+          <div class="browser-quick-link" @click="loadUrl('https://news.ycombinator.com')">
+            <span class="bql-icon">📰</span><span>Hacker News</span>
+          </div>
+          <div class="browser-quick-link" @click="loadUrl('https://github.com')">
+            <span class="bql-icon">💻</span><span>GitHub</span>
+          </div>
+        </div>
+      </div>
+      <iframe v-else-if="iframeSrc" ref="iframeRef" :src="iframeSrc" class="browser-iframe"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+        @load="onIframeLoad"></iframe>
+    </div>
+
+    <div class="browser-status-bar">
+      <span>{{ statusText }}</span>
+    </div>
+  </div>
+</script>
+
+<script>
+const { createApp, ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } = Vue;
+const { createPinia, defineStore } = Pinia;
+
+const pinia = createPinia();
+
+const useSettingsStore = defineStore('settings', {
+  state: () => ({
+    country: '',
+    countryCode: '',
+    city: '',
+    latitude: 0,
+    longitude: 0,
+    timezone: '',
+    locale: localStorage.getItem('sys_locale') || 'tr',
+    wallpaperAll: '',
+    wallpapers: { 1: '', 2: '', 3: '', 4: '' },
+    wallpaperMode: 'all'
+  }),
+  actions: {
+    async load() {
+      try {
+        const res = await fetch('/api/settings');
+        if (!res.ok) return;
+        const s = await res.json();
+        this.country = s.country || '';
+        this.countryCode = s.countryCode || '';
+        this.city = s.city || '';
+        this.latitude = s.latitude || 0;
+        this.longitude = s.longitude || 0;
+        this.timezone = s.timezone || '';
+        if (s.locale) { this.locale = s.locale; localStorage.setItem('sys_locale', s.locale); }
+        if (s.wallpaperAll) this.wallpaperAll = s.wallpaperAll;
+        if (s.wallpapers) this.wallpapers = { ...this.wallpapers, ...s.wallpapers };
+        if (s.wallpaperMode) this.wallpaperMode = s.wallpaperMode;
+      } catch {}
+    },
+    async save(data) {
+      Object.assign(this, data);
+      if (data.locale) localStorage.setItem('sys_locale', data.locale);
+      try {
+        await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+      } catch {}
+    }
+  }
+});
+
+// ── Global File Dialog Utility ──
+window.FileDialog = (function() {
+  function getToken() { try { return localStorage.getItem('auth_token') || ''; } catch { return ''; } }
+  function authHeaders() { return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' }; }
+
+  const FILE_ICONS = {
+    '.js': '📜', '.ts': '📘', '.py': '🐍', '.go': '🔵', '.php': '🐘', '.c': '©️', '.cpp': '🔷', '.cs': '🟪',
+    '.java': '☕', '.rs': '🦀', '.rb': '💎', '.pl': '🐪', '.sh': '🐚', '.ps1': '⚡',
+    '.html': '🌐', '.css': '🎨', '.json': '📋', '.xml': '📄', '.md': '📝', '.txt': '📄',
+    '.sql': '🗃️', '.yaml': '⚙️', '.yml': '⚙️', '.toml': '⚙️', '.ini': '⚙️',
+    '.png': '🖼️', '.jpg': '🖼️', '.jpeg': '🖼️', '.gif': '🖼️', '.svg': '🖼️', '.webp': '🖼️',
+    '.mp3': '🎵', '.wav': '🎵', '.mp4': '🎬', '.zip': '📦', '.7z': '📦', '.tar': '📦',
+    '.pdf': '📕', '.doc': '📘', '.docx': '📘', '.xls': '📊', '.xlsx': '📊', '.csv': '📊'
+  };
+
+  function fileIcon(name, isDir) {
+    if (isDir) return '📁';
+    const ext = (name.match(/\.[^.]+$/) || [''])[0].toLowerCase();
+    return FILE_ICONS[ext] || '📄';
+  }
+
+  function formatSize(bytes) {
+    if (!bytes) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  function formatDate(d) {
+    if (!d) return '';
+    try { return new Date(d).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+    catch { return d; }
+  }
+
+  async function loadDir(dirPath) {
+    try {
+      const r = await fetch('/api/fs/list?path=' + encodeURIComponent(dirPath || ''), { headers: authHeaders() });
+      if (r.ok) return await r.json();
+    } catch {}
+    return [];
+  }
+
+  async function readFile(filePath) {
+    try {
+      const r = await fetch('/api/fs/read?path=' + encodeURIComponent(filePath), { headers: authHeaders() });
+      if (r.ok) return await r.json();
+    } catch {}
+    return null;
+  }
+
+  async function writeFile(filePath, content) {
+    try {
+      const r = await fetch('/api/fs/write', {
+        method: 'POST', headers: authHeaders(),
+        body: JSON.stringify({ filePath, content })
+      });
+      if (r.ok) return await r.json();
+    } catch {}
+    return null;
+  }
+
+  async function mkdir(dirPath) {
+    try {
+      const r = await fetch('/api/fs/mkdir', {
+        method: 'POST', headers: authHeaders(),
+        body: JSON.stringify({ dirPath })
+      });
+      if (r.ok) return await r.json();
+    } catch {}
+    return null;
+  }
+
+  /**
+   * Open file dialog
+   * @param {Object} opts
+   * @param {string} opts.title - dialog title
+   * @param {string} opts.mode - 'open' or 'save'
+   * @param {string} opts.defaultName - default filename (save mode)
+   * @param {Array} opts.filters - [{label:'JavaScript',extensions:['.js','.ts']}, ...]
+   * @param {string} opts.initialPath - initial directory path
+   * @returns {Promise<{path,name,content}|null>} - selected file info, or null if cancelled
+   */
+  function show(opts = {}) {
+    return new Promise((resolve) => {
+      const mode = opts.mode || 'open';
+      const title = opts.title || (mode === 'save' ? '💾 Save File' : '📂 Open File');
+      const filters = opts.filters || [{ label: 'All Files', extensions: ['*'] }];
+      const defaultName = opts.defaultName || '';
+      const initialPath = opts.initialPath || '';
+
+      const overlay = document.createElement('div');
+      overlay.className = 'fd-overlay';
+      let currentDir = initialPath;
+      let items = [];
+      let selectedItem = null;
+      let filenameInput = defaultName;
+      let activeFilter = 0;
+      let creatingFolder = false;
+      let newFolderName = '';
+
+      function pathParts() {
+        if (!currentDir) return [{ name: '🏠 Home', path: '' }];
+        const parts = [{ name: '🏠 Home', path: '' }];
+        const segs = currentDir.split('/').filter(Boolean);
+        let acc = '';
+        segs.forEach(s => { acc += (acc ? '/' : '') + s; parts.push({ name: s, path: acc }); });
+        return parts;
+      }
+
+      function filterItems(list) {
+        const f = filters[activeFilter];
+        if (!f || f.extensions.includes('*')) return list;
+        return list.filter(it => it.isDir || f.extensions.some(e => it.name.toLowerCase().endsWith(e.toLowerCase())));
+      }
+
+      async function refresh() {
+        items = await loadDir(currentDir);
+        render();
+      }
+
+      function navigateTo(dir) {
+        currentDir = dir;
+        selectedItem = null;
+        filenameInput = mode === 'save' ? filenameInput : '';
+        refresh();
+      }
+
+      function selectItem(item) {
+        if (item.isDir) {
+          navigateTo(item.path);
+          return;
+        }
+        selectedItem = item;
+        filenameInput = item.name;
+        render();
+      }
+
+      async function confirm() {
+        if (mode === 'open') {
+          if (!selectedItem) return;
+          const data = await readFile(selectedItem.path);
+          cleanup();
+          resolve(data ? { path: selectedItem.path, name: selectedItem.name, content: data.content } : null);
+        } else {
+          if (!filenameInput.trim()) return;
+          const fp = currentDir ? currentDir + '/' + filenameInput.trim() : filenameInput.trim();
+          cleanup();
+          resolve({ path: fp, name: filenameInput.trim() });
+        }
+      }
+
+      function cancel() { cleanup(); resolve(null); }
+
+      function cleanup() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+
+      async function createFolder() {
+        if (!newFolderName.trim()) return;
+        const fp = currentDir ? currentDir + '/' + newFolName() : newFolName();
+        await mkdir(fp);
+        creatingFolder = false;
+        newFolderName = '';
+        refresh();
+      }
+      function newFolName() { return newFolderName.trim().replace(/[<>:"|?*\\\/]/g, '_'); }
+
+      function render() {
+        const filtered = filterItems(items);
+        const parts = pathParts();
+        overlay.innerHTML = `
+          <div class="fd-dialog">
+            <div class="fd-header">
+              <h3>${title}</h3>
+              <button class="fd-close" data-action="cancel">✕</button>
+            </div>
+            <div class="fd-toolbar">
+              <div class="fd-breadcrumb">
+                ${parts.map((p, i) => `
+                  <span class="fd-bc-item ${i === parts.length - 1 ? 'current' : ''}" data-nav="${p.path}">${p.name}</span>
+                  ${i < parts.length - 1 ? '<span class="fd-bc-sep">›</span>' : ''}
+                `).join('')}
+              </div>
+              <button class="fd-new-folder" data-action="newfolder">📁+ New</button>
+            </div>
+            ${creatingFolder ? `
+              <div style="display:flex;gap:6px;padding:6px 16px;align-items:center">
+                <input class="fd-nf-input" value="${newFolderName}" placeholder="Folder name" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:5px 10px;color:#e1e4ea;font-size:13px;outline:none" />
+                <button class="fd-new-folder" data-action="confirmfolder">✓</button>
+                <button class="fd-new-folder" data-action="cancelfolder">✕</button>
+              </div>
+            ` : ''}
+            <div class="fd-body">
+              ${filtered.length === 0 ? '<div class="fd-empty">Empty folder</div>' : ''}
+              ${filtered.map((f, i) => `
+                <div class="fd-item ${selectedItem && selectedItem.path === f.path ? 'selected' : ''}" data-idx="${i}" data-isdir="${f.isDir}">
+                  <span class="fd-item-icon">${fileIcon(f.name, f.isDir)}</span>
+                  <span class="fd-item-name">${f.name}</span>
+                  <span class="fd-item-size">${f.isDir ? '' : formatSize(f.size)}</span>
+                  <span class="fd-item-date">${formatDate(f.modified)}</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="fd-footer">
+              <input class="fd-filename-input" value="${filenameInput}" placeholder="${mode === 'save' ? 'Filename...' : 'Select a file...'}" ${mode === 'open' ? 'readonly' : ''} style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:7px 12px;color:#e1e4ea;font-size:13px;outline:none" />
+              <select class="fd-filter-select" style="background:#2a2a3e;color:#c5cde8;border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:6px 8px;font-size:12px;outline:none;max-width:160px">
+                ${filters.map((f, i) => `<option value="${i}" ${i === activeFilter ? 'selected' : ''}>${f.label}</option>`).join('')}
+              </select>
+              <div class="fd-footer-actions">
+                <button style="padding:7px 18px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:transparent;color:#c5cde8;cursor:pointer;font-size:13px" data-action="cancel">Cancel</button>
+                <button style="padding:7px 18px;border-radius:6px;border:none;background:#0e639c;color:#fff;cursor:pointer;font-size:13px;font-weight:500" data-action="confirm">${mode === 'save' ? 'Save' : 'Open'}</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Event bindings
+        overlay.querySelector('[data-action="cancel"]')?.addEventListener('click', cancel);
+        overlay.querySelectorAll('[data-action="cancel"]').forEach(b => b.addEventListener('click', cancel));
+        overlay.querySelector('[data-action="confirm"]')?.addEventListener('click', confirm);
+        overlay.querySelector('[data-action="newfolder"]')?.addEventListener('click', () => { creatingFolder = true; render(); });
+        overlay.querySelector('[data-action="confirmfolder"]')?.addEventListener('click', () => {
+          const inp = overlay.querySelector('.fd-nf-input');
+          if (inp) newFolderName = inp.value;
+          createFolder();
+        });
+        overlay.querySelector('[data-action="cancelfolder"]')?.addEventListener('click', () => { creatingFolder = false; render(); });
+
+        // Directory item clicks
+        const filteredItems = filterItems(items);
+        overlay.querySelectorAll('.fd-item').forEach(el => {
+          el.addEventListener('dblclick', () => {
+            const idx = parseInt(el.dataset.idx);
+            const item = filteredItems[idx];
+            if (item) selectItem(item);
+          });
+          el.addEventListener('click', () => {
+            const idx = parseInt(el.dataset.idx);
+            const item = filteredItems[idx];
+            if (!item) return;
+            if (item.isDir) { /* single click on dir: don't enter, just highlight */ }
+            else { selectedItem = item; filenameInput = item.name; render(); }
+          });
+          // Double-click on dir to enter
+        });
+        // Fix: single click on folder should also enter
+        overlay.querySelectorAll('.fd-item[data-isdir="true"]').forEach(el => {
+          el.addEventListener('click', () => {
+            const idx = parseInt(el.dataset.idx);
+            const item = filteredItems[idx];
+            if (item) navigateTo(item.path);
+          });
+        });
+
+        // Breadcrumb nav
+        overlay.querySelectorAll('.fd-bc-item:not(.current)').forEach(el => {
+          el.addEventListener('click', () => navigateTo(el.dataset.nav));
+        });
+
+        // Filename input change
+        const fnInput = overlay.querySelector('.fd-filename-input');
+        if (fnInput && mode === 'save') {
+          fnInput.addEventListener('input', (e) => { filenameInput = e.target.value; });
+          fnInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') confirm(); });
+        }
+
+        // Filter select
+        const filterSel = overlay.querySelector('.fd-filter-select');
+        if (filterSel) {
+          filterSel.addEventListener('change', (e) => { activeFilter = parseInt(e.target.value); render(); });
+        }
+
+        // Enter folder input
+        const nfInput = overlay.querySelector('.fd-nf-input');
+        if (nfInput) { nfInput.focus(); nfInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { newFolderName = nfInput.value; createFolder(); } }); }
+      }
+
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) cancel(); });
+      refresh();
+    });
+  }
+
+  return {
+    open(opts = {}) { return show({ ...opts, mode: 'open' }); },
+    save(opts = {}) { return show({ ...opts, mode: 'save' }); },
+    readFile,
+    writeFile,
+    loadDir,
+    mkdir,
+    fileIcon,
+    formatSize
+  };
+})();
+
+// ── i18n translations ──
+const I18N = {
+  tr: {
+    apps: 'Uygulamalar', user: 'Kullanıcı', loading: 'Yükleniyor...', search: 'Ara...',
+    calc: 'Hesap Makinesi', notepad: 'Not Defteri', fileman: 'Dosya Yöneticisi',
+    todo: 'Görev Listesi', weather: 'Hava Durumu', settings: 'Ayarlar',
+    terminal: 'Terminal', clock: 'Saat', calendar: 'Takvim',
+    notifications: 'Bildirimler', appstore: 'Uygulama Mağazası', browser: 'Tarayıcı',
+    mute: 'Sessiz', unmute: 'Sesi Aç',
+    // Settings
+    settingsDisplay: 'Ekran', settingsLocation: 'Konum', settingsSound: 'Ses',
+    settingsNetwork: 'Ağ', settingsAbout: 'Hakkında', settingsLanguage: 'Dil',
+    brightness: 'Parlaklık', brightnessDesc: 'Ekran parlaklığını ayarla',
+    darkMode: 'Karanlık Mod', darkModeDesc: 'Koyu tema kullan',
+    resolution: 'Çözünürlük', mainVolume: 'Ana Ses', systemSound: 'Sistem Sesi',
+    notifSound: 'Bildirim Sesi', wifi: 'Wi-Fi', wifiDesc: 'Kablosuz ağ bağlantısı',
+    bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'Özel ağ tüneli',
+    version: 'Sürüm', checkUpdates: 'Güncellemeleri Kontrol Et',
+    country: 'Ülke', countryDesc: 'Hava durumu ve saat dilimi için',
+    city: 'Şehir', cityListing: 'şehir listeleniyor', timezone: 'Saat Dilimi',
+    timezoneAuto: 'Otomatik', location: 'Konum', locationSaved: 'Kaydedildi',
+    selectPlaceholder: 'Seçiniz...', language: 'Dil', languageDesc: 'Arayüz dili',
+    // Notifications
+    notifTitle: 'Bildirimler', noNotifications: 'Bildirim yok 🎉',
+    markAllRead: 'Tümünü Okundu İşaretle', testNotifPlaceholder: 'Test bildirimi ekle...',
+    send: 'Gönder', openApp: 'Uygulamayı Aç',
+    // App Store
+    storeTitle: 'Uygulama Mağazası', appsAvailable: 'uygulama mevcut',
+    internal: 'Dahili', external: 'Harici', install: 'Kur', uninstall: 'Kaldır',
+    // Volume
+    volMute: '🔇 Sessiz', volUnmute: '🔈 Sesi Aç'
+  },
+  en: {
+    apps: 'Applications', user: 'User', loading: 'Loading...', search: 'Search...',
+    calc: 'Calculator', notepad: 'Notepad', fileman: 'File Manager',
+    todo: 'To-Do List', weather: 'Weather', settings: 'Settings',
+    terminal: 'Terminal', clock: 'Clock', calendar: 'Calendar',
+    notifications: 'Notifications', appstore: 'App Store', browser: 'Browser',
+    mute: 'Mute', unmute: 'Unmute',
+    settingsDisplay: 'Display', settingsLocation: 'Location', settingsSound: 'Sound',
+    settingsNetwork: 'Network', settingsAbout: 'About', settingsLanguage: 'Language',
+    brightness: 'Brightness', brightnessDesc: 'Adjust screen brightness',
+    darkMode: 'Dark Mode', darkModeDesc: 'Use dark theme',
+    resolution: 'Resolution', mainVolume: 'Master Volume', systemSound: 'System Sound',
+    notifSound: 'Notification Sound', wifi: 'Wi-Fi', wifiDesc: 'Wireless network connection',
+    bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'Private network tunnel',
+    version: 'Version', checkUpdates: 'Check for Updates',
+    country: 'Country', countryDesc: 'For weather and timezone',
+    city: 'City', cityListing: 'cities listed', timezone: 'Timezone',
+    timezoneAuto: 'Auto', location: 'Location', locationSaved: 'Saved',
+    selectPlaceholder: 'Select...', language: 'Language', languageDesc: 'Interface language',
+    notifTitle: 'Notifications', noNotifications: 'No notifications 🎉',
+    markAllRead: 'Mark All as Read', testNotifPlaceholder: 'Add test notification...',
+    send: 'Send', openApp: 'Open App',
+    storeTitle: 'App Store', appsAvailable: 'apps available',
+    internal: 'Internal', external: 'External', install: 'Install', uninstall: 'Uninstall',
+    volMute: '🔇 Mute', volUnmute: '🔈 Unmute'
+  },
+  de: {
+    apps: 'Anwendungen', user: 'Benutzer', loading: 'Laden...', search: 'Suchen...',
+    calc: 'Rechner', notepad: 'Notizblock', fileman: 'Dateimanager',
+    todo: 'Aufgabenliste', weather: 'Wetter', settings: 'Einstellungen',
+    terminal: 'Terminal', clock: 'Uhr', calendar: 'Kalender',
+    notifications: 'Benachrichtigungen', appstore: 'App Store', browser: 'Browser',
+    mute: 'Stumm', unmute: 'Ton an',
+    settingsDisplay: 'Anzeige', settingsLocation: 'Standort', settingsSound: 'Ton',
+    settingsNetwork: 'Netzwerk', settingsAbout: 'Über', settingsLanguage: 'Sprache',
+    brightness: 'Helligkeit', brightnessDesc: 'Bildschirmhelligkeit anpassen',
+    darkMode: 'Dunkelmodus', darkModeDesc: 'Dunkles Design verwenden',
+    resolution: 'Auflösung', mainVolume: 'Hauptlautstärke', systemSound: 'Systemton',
+    notifSound: 'Benachrichtigungston', wifi: 'WLAN', wifiDesc: 'Drahtlose Netzwerkverbindung',
+    bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'Privater Netzwerktunnel',
+    version: 'Version', checkUpdates: 'Nach Updates suchen',
+    country: 'Land', countryDesc: 'Für Wetter und Zeitzone',
+    city: 'Stadt', cityListing: 'Städte aufgelistet', timezone: 'Zeitzone',
+    timezoneAuto: 'Automatisch', location: 'Standort', locationSaved: 'Gespeichert',
+    selectPlaceholder: 'Auswählen...', language: 'Sprache', languageDesc: 'Oberflächensprache',
+    notifTitle: 'Benachrichtigungen', noNotifications: 'Keine Benachrichtigungen 🎉',
+    markAllRead: 'Alle als gelesen markieren', testNotifPlaceholder: 'Testbenachrichtigung hinzufügen...',
+    send: 'Senden', openApp: 'App öffnen',
+    storeTitle: 'App Store', appsAvailable: 'Apps verfügbar',
+    internal: 'Intern', external: 'Extern', install: 'Installieren', uninstall: 'Deinstallieren',
+    volMute: '🔇 Stumm', volUnmute: '🔈 Ton an'
+  },
+  fr: {
+    apps: 'Applications', user: 'Utilisateur', loading: 'Chargement...', search: 'Rechercher...',
+    calc: 'Calculatrice', notepad: 'Bloc-notes', fileman: 'Gestionnaire de fichiers',
+    todo: 'Liste de tâches', weather: 'Météo', settings: 'Paramètres',
+    terminal: 'Terminal', clock: 'Horloge', calendar: 'Calendrier',
+    notifications: 'Notifications', appstore: 'Boutique d\'apps', browser: 'Navigateur',
+    mute: 'Muet', unmute: 'Son activé',
+    settingsDisplay: 'Affichage', settingsLocation: 'Localisation', settingsSound: 'Son',
+    settingsNetwork: 'Réseau', settingsAbout: 'À propos', settingsLanguage: 'Langue',
+    brightness: 'Luminosité', brightnessDesc: 'Régler la luminosité de l\'écran',
+    darkMode: 'Mode sombre', darkModeDesc: 'Utiliser le thème sombre',
+    resolution: 'Résolution', mainVolume: 'Volume principal', systemSound: 'Son système',
+    notifSound: 'Son de notification', wifi: 'Wi-Fi', wifiDesc: 'Connexion réseau sans fil',
+    bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'Tunnel réseau privé',
+    version: 'Version', checkUpdates: 'Vérifier les mises à jour',
+    country: 'Pays', countryDesc: 'Pour la météo et le fuseau horaire',
+    city: 'Ville', cityListing: 'villes listées', timezone: 'Fuseau horaire',
+    timezoneAuto: 'Automatique', location: 'Localisation', locationSaved: 'Enregistré',
+    selectPlaceholder: 'Sélectionner...', language: 'Langue', languageDesc: 'Langue de l\'interface',
+    notifTitle: 'Notifications', noNotifications: 'Aucune notification 🎉',
+    markAllRead: 'Tout marquer comme lu', testNotifPlaceholder: 'Ajouter une notification test...',
+    send: 'Envoyer', openApp: 'Ouvrir l\'app',
+    storeTitle: 'Boutique d\'apps', appsAvailable: 'apps disponibles',
+    internal: 'Interne', external: 'Externe', install: 'Installer', uninstall: 'Désinstaller',
+    volMute: '🔇 Muet', volUnmute: '🔈 Son activé'
+  },
+  es: {
+    apps: 'Aplicaciones', user: 'Usuario', loading: 'Cargando...', search: 'Buscar...',
+    calc: 'Calculadora', notepad: 'Bloc de notas', fileman: 'Gestor de archivos',
+    todo: 'Lista de tareas', weather: 'Tiempo', settings: 'Ajustes',
+    terminal: 'Terminal', clock: 'Reloj', calendar: 'Calendario',
+    notifications: 'Notificaciones', appstore: 'Tienda de apps', browser: 'Navegador',
+    mute: 'Silenciar', unmute: 'Activar sonido',
+    settingsDisplay: 'Pantalla', settingsLocation: 'Ubicación', settingsSound: 'Sonido',
+    settingsNetwork: 'Red', settingsAbout: 'Acerca de', settingsLanguage: 'Idioma',
+    brightness: 'Brillo', brightnessDesc: 'Ajustar brillo de pantalla',
+    darkMode: 'Modo oscuro', darkModeDesc: 'Usar tema oscuro',
+    resolution: 'Resolución', mainVolume: 'Volumen principal', systemSound: 'Sonido del sistema',
+    notifSound: 'Sonido de notificación', wifi: 'Wi-Fi', wifiDesc: 'Conexión de red inalámbrica',
+    bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'Túnel de red privada',
+    version: 'Versión', checkUpdates: 'Buscar actualizaciones',
+    country: 'País', countryDesc: 'Para el tiempo y zona horaria',
+    city: 'Ciudad', cityListing: 'ciudades listadas', timezone: 'Zona horaria',
+    timezoneAuto: 'Automático', location: 'Ubicación', locationSaved: 'Guardado',
+    selectPlaceholder: 'Seleccionar...', language: 'Idioma', languageDesc: 'Idioma de la interfaz',
+    notifTitle: 'Notificaciones', noNotifications: 'Sin notificaciones 🎉',
+    markAllRead: 'Marcar todo como leído', testNotifPlaceholder: 'Añadir notificación de prueba...',
+    send: 'Enviar', openApp: 'Abrir app',
+    storeTitle: 'Tienda de apps', appsAvailable: 'apps disponibles',
+    internal: 'Interna', external: 'Externa', install: 'Instalar', uninstall: 'Desinstalar',
+    volMute: '🔇 Silenciar', volUnmute: '🔈 Activar sonido'
+  },
+  ru: {
+    apps: 'Приложения', user: 'Пользователь', loading: 'Загрузка...', search: 'Поиск...',
+    calc: 'Калькулятор', notepad: 'Блокнот', fileman: 'Файловый менеджер',
+    todo: 'Список задач', weather: 'Погода', settings: 'Настройки',
+    terminal: 'Терминал', clock: 'Часы', calendar: 'Календарь',
+    notifications: 'Уведомления', appstore: 'Магазин приложений', browser: 'Браузер',
+    mute: 'Отключить звук', unmute: 'Включить звук',
+    settingsDisplay: 'Экран', settingsLocation: 'Местоположение', settingsSound: 'Звук',
+    settingsNetwork: 'Сеть', settingsAbout: 'О системе', settingsLanguage: 'Язык',
+    brightness: 'Яркость', brightnessDesc: 'Настроить яркость экрана',
+    darkMode: 'Тёмный режим', darkModeDesc: 'Использовать тёмную тему',
+    resolution: 'Разрешение', mainVolume: 'Общая громкость', systemSound: 'Системный звук',
+    notifSound: 'Звук уведомлений', wifi: 'Wi-Fi', wifiDesc: 'Беспроводное подключение',
+    bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'Частный сетевой туннель',
+    version: 'Версия', checkUpdates: 'Проверить обновления',
+    country: 'Страна', countryDesc: 'Для погоды и часового пояса',
+    city: 'Город', cityListing: 'городов', timezone: 'Часовой пояс',
+    timezoneAuto: 'Автоматически', location: 'Местоположение', locationSaved: 'Сохранено',
+    selectPlaceholder: 'Выберите...', language: 'Язык', languageDesc: 'Язык интерфейса',
+    notifTitle: 'Уведомления', noNotifications: 'Нет уведомлений 🎉',
+    markAllRead: 'Отметить все как прочитанные', testNotifPlaceholder: 'Добавить тестовое уведомление...',
+    send: 'Отправить', openApp: 'Открыть',
+    storeTitle: 'Магазин приложений', appsAvailable: 'приложений доступно',
+    internal: 'Встроенное', external: 'Внешнее', install: 'Установить', uninstall: 'Удалить',
+    volMute: '🔇 Без звука', volUnmute: '🔈 Включить звук'
+  }
+};
+
+// ── Reminder i18n keys ──
+Object.assign(I18N.tr, { reminderDismiss:'Kapat' });
+Object.assign(I18N.en, { reminderDismiss:'Dismiss' });
+Object.assign(I18N.de, { reminderDismiss:'Schließen' });
+Object.assign(I18N.fr, { reminderDismiss:'Fermer' });
+Object.assign(I18N.es, { reminderDismiss:'Cerrar' });
+Object.assign(I18N.ru, { reminderDismiss:'Закрыть' });
+
+const LANG_OPTIONS = [
+  { code: 'tr', label: 'Türkçe', flag: '🇹🇷' },
+  { code: 'en', label: 'English', flag: '🇬🇧' },
+  { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'es', label: 'Español', flag: '🇪🇸' },
+  { code: 'ru', label: 'Русский', flag: '🇷🇺' }
+];
+
+const LOCALE_MAP = { tr:'tr-TR', en:'en-US', de:'de-DE', fr:'fr-FR', es:'es-ES', ru:'ru-RU' };
+function getIntlLocale() { return LOCALE_MAP[useSettingsStore().locale] || 'tr-TR'; }
+
+// ── Extended I18N keys ──
+Object.assign(I18N.tr, {
+  ctxOpen:'Aç', ctxMove:'Taşı', ctxCopy:'Kopyala', ctxDesktop:'Masaüstü',
+  start:'Başlat', fullscreen:'Tam Ekran', fullscreenExit:'Tam Ekrandan Çık',
+  notepadClear:'Temizle', notepadCopy:'Kopyala', notepadPlaceholder:'Yazmaya başlayın...', notepadChars:'karakter', notepadWords:'kelime',
+  todoTitle:'Görev Listesi', todoCompleted:'tamamlandı', todoPlaceholder:'Yeni görev ekle...', todoAdd:'Ekle', todoEmpty:'Henüz görev yok 🎉',
+  todoDefault1:'Vue Desktop denemesi', todoDefault2:'Yeni uygulamalar ekle',
+  fmDesktop:'Masaüstü', fmDocuments:'Belgeler', fmDownloads:'İndirmeler', fmPictures:'Resimler', fmMusic:'Müzik', fmTrash:'Çöp Kutusu',
+  fmItems:'öğe', fmSelected:'seçili', fmOpening:'açılıyor...', fmPathPrefix:'C:\\Kullanıcılar\\Kullanıcı\\',
+  weatherNow:'Şu an', weatherHumidity:'Nem', weatherWind:'Rüzgar', weatherFeelsLike:'Hissedilen', weatherHourly:'Saatlik Tahmin', weatherUnknown:'Bilinmiyor',
+  calToday:'Bugün', calAddEvent:'+ Etkinlik', calEventPlaceholder:'Etkinlik adı...', calAdd:'Ekle', calNoEvents:'Bu tarihte etkinlik yok', calMore:'daha',
+  calBlue:'Mavi', calGreen:'Yeşil', calOrange:'Turuncu', calRed:'Kırmızı', calPurple:'Mor',
+  termBarTitle:'bash - kullanıcı@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Komutlar: help, ls, date, clear, echo [metin]',
+  termHelpText:'Komutlar: help, ls, date, clear, echo [metin], whoami, pwd', termNotFound:'Komut bulunamadı', termHelpHint:'"help" yazın.',
+  termPlaceholder:'komut girin...', termUser:'kullanıcı', termPwd:'/home/kullanıcı',
+  notifCalTitle:'Takvim', notifCalText:'Yarın saat 10:00\'da toplantı var.', notifTaskTitle:'Görevler', notifTaskText:'3 görev tamamlanmayı bekliyor.',
+  notifSysTitle:'Sistem', notifSysText:'Güncelleme mevcut: v1.1', notifTermTitle:'Terminal', notifTermText:'Arka plan işlemi tamamlandı.',
+  notifTime2h:'2 saat önce', notifTime4h:'4 saat önce', notifYesterday:'Dün', notifNow:'Şimdi', notifLabel:'Bildirim',
+  mediaPrev:'Önceki', mediaNext:'Sonraki'
+});
+Object.assign(I18N.en, {
+  ctxOpen:'Open', ctxMove:'Move', ctxCopy:'Copy', ctxDesktop:'Desktop',
+  start:'Start', fullscreen:'Fullscreen', fullscreenExit:'Exit Fullscreen',
+  notepadClear:'Clear', notepadCopy:'Copy', notepadPlaceholder:'Start typing...', notepadChars:'characters', notepadWords:'words',
+  todoTitle:'To-Do List', todoCompleted:'completed', todoPlaceholder:'Add new task...', todoAdd:'Add', todoEmpty:'No tasks yet 🎉',
+  todoDefault1:'Try Vue Desktop', todoDefault2:'Add new apps',
+  fmDesktop:'Desktop', fmDocuments:'Documents', fmDownloads:'Downloads', fmPictures:'Pictures', fmMusic:'Music', fmTrash:'Trash',
+  fmItems:'items', fmSelected:'selected', fmOpening:'opening...', fmPathPrefix:'C:\\Users\\User\\',
+  weatherNow:'Now', weatherHumidity:'Humidity', weatherWind:'Wind', weatherFeelsLike:'Feels Like', weatherHourly:'Hourly Forecast', weatherUnknown:'Unknown',
+  calToday:'Today', calAddEvent:'+ Event', calEventPlaceholder:'Event name...', calAdd:'Add', calNoEvents:'No events on this date', calMore:'more',
+  calBlue:'Blue', calGreen:'Green', calOrange:'Orange', calRed:'Red', calPurple:'Purple',
+  termBarTitle:'bash - user@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Commands: help, ls, date, clear, echo [text]',
+  termHelpText:'Commands: help, ls, date, clear, echo [text], whoami, pwd', termNotFound:'Command not found', termHelpHint:'Type "help".',
+  termPlaceholder:'enter command...', termUser:'user', termPwd:'/home/user',
+  notifCalTitle:'Calendar', notifCalText:'Meeting tomorrow at 10:00 AM.', notifTaskTitle:'Tasks', notifTaskText:'3 tasks waiting to be completed.',
+  notifSysTitle:'System', notifSysText:'Update available: v1.1', notifTermTitle:'Terminal', notifTermText:'Background process completed.',
+  notifTime2h:'2 hours ago', notifTime4h:'4 hours ago', notifYesterday:'Yesterday', notifNow:'Now', notifLabel:'Notification',
+  mediaPrev:'Previous', mediaNext:'Next'
+});
+Object.assign(I18N.de, {
+  ctxOpen:'Öffnen', ctxMove:'Verschieben', ctxCopy:'Kopieren', ctxDesktop:'Desktop',
+  start:'Start', fullscreen:'Vollbild', fullscreenExit:'Vollbild beenden',
+  notepadClear:'Löschen', notepadCopy:'Kopieren', notepadPlaceholder:'Schreiben Sie...', notepadChars:'Zeichen', notepadWords:'Wörter',
+  todoTitle:'Aufgabenliste', todoCompleted:'erledigt', todoPlaceholder:'Neue Aufgabe...', todoAdd:'Hinzufügen', todoEmpty:'Noch keine Aufgaben 🎉',
+  todoDefault1:'Vue Desktop ausprobieren', todoDefault2:'Neue Apps hinzufügen',
+  fmDesktop:'Desktop', fmDocuments:'Dokumente', fmDownloads:'Downloads', fmPictures:'Bilder', fmMusic:'Musik', fmTrash:'Papierkorb',
+  fmItems:'Elemente', fmSelected:'ausgewählt', fmOpening:'wird geöffnet...', fmPathPrefix:'C:\\Benutzer\\Benutzer\\',
+  weatherNow:'Jetzt', weatherHumidity:'Feuchtigkeit', weatherWind:'Wind', weatherFeelsLike:'Gefühlt', weatherHourly:'Stündliche Vorhersage', weatherUnknown:'Unbekannt',
+  calToday:'Heute', calAddEvent:'+ Ereignis', calEventPlaceholder:'Ereignisname...', calAdd:'Hinzufügen', calNoEvents:'Keine Ereignisse', calMore:'mehr',
+  calBlue:'Blau', calGreen:'Grün', calOrange:'Orange', calRed:'Rot', calPurple:'Lila',
+  termBarTitle:'bash - benutzer@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Befehle: help, ls, date, clear, echo [text]',
+  termHelpText:'Befehle: help, ls, date, clear, echo [text], whoami, pwd', termNotFound:'Befehl nicht gefunden', termHelpHint:'"help" eingeben.',
+  termPlaceholder:'Befehl eingeben...', termUser:'benutzer', termPwd:'/home/benutzer',
+  notifCalTitle:'Kalender', notifCalText:'Morgen um 10:00 Uhr Besprechung.', notifTaskTitle:'Aufgaben', notifTaskText:'3 Aufgaben warten auf Erledigung.',
+  notifSysTitle:'System', notifSysText:'Update verfügbar: v1.1', notifTermTitle:'Terminal', notifTermText:'Hintergrundprozess abgeschlossen.',
+  notifTime2h:'Vor 2 Stunden', notifTime4h:'Vor 4 Stunden', notifYesterday:'Gestern', notifNow:'Jetzt', notifLabel:'Benachrichtigung',
+  mediaPrev:'Zurück', mediaNext:'Weiter'
+});
+Object.assign(I18N.fr, {
+  ctxOpen:'Ouvrir', ctxMove:'Déplacer', ctxCopy:'Copier', ctxDesktop:'Bureau',
+  start:'Démarrer', fullscreen:'Plein écran', fullscreenExit:'Quitter le plein écran',
+  notepadClear:'Effacer', notepadCopy:'Copier', notepadPlaceholder:'Commencez à écrire...', notepadChars:'caractères', notepadWords:'mots',
+  todoTitle:'Liste de tâches', todoCompleted:'terminées', todoPlaceholder:'Ajouter une tâche...', todoAdd:'Ajouter', todoEmpty:'Aucune tâche 🎉',
+  todoDefault1:'Essayer Vue Desktop', todoDefault2:'Ajouter de nouvelles apps',
+  fmDesktop:'Bureau', fmDocuments:'Documents', fmDownloads:'Téléchargements', fmPictures:'Images', fmMusic:'Musique', fmTrash:'Corbeille',
+  fmItems:'éléments', fmSelected:'sélectionné', fmOpening:'ouverture...', fmPathPrefix:'C:\\Utilisateurs\\Utilisateur\\',
+  weatherNow:'Maintenant', weatherHumidity:'Humidité', weatherWind:'Vent', weatherFeelsLike:'Ressenti', weatherHourly:'Prévisions horaires', weatherUnknown:'Inconnu',
+  calToday:'Aujourd\'hui', calAddEvent:'+ Événement', calEventPlaceholder:'Nom de l\'événement...', calAdd:'Ajouter', calNoEvents:'Aucun événement', calMore:'de plus',
+  calBlue:'Bleu', calGreen:'Vert', calOrange:'Orange', calRed:'Rouge', calPurple:'Violet',
+  termBarTitle:'bash - utilisateur@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Commandes: help, ls, date, clear, echo [texte]',
+  termHelpText:'Commandes: help, ls, date, clear, echo [texte], whoami, pwd', termNotFound:'Commande introuvable', termHelpHint:'Tapez "help".',
+  termPlaceholder:'entrer commande...', termUser:'utilisateur', termPwd:'/home/utilisateur',
+  notifCalTitle:'Calendrier', notifCalText:'Réunion demain à 10h00.', notifTaskTitle:'Tâches', notifTaskText:'3 tâches en attente.',
+  notifSysTitle:'Système', notifSysText:'Mise à jour disponible: v1.1', notifTermTitle:'Terminal', notifTermText:'Processus terminé.',
+  notifTime2h:'Il y a 2 heures', notifTime4h:'Il y a 4 heures', notifYesterday:'Hier', notifNow:'Maintenant', notifLabel:'Notification',
+  mediaPrev:'Précédent', mediaNext:'Suivant'
+});
+Object.assign(I18N.es, {
+  ctxOpen:'Abrir', ctxMove:'Mover', ctxCopy:'Copiar', ctxDesktop:'Escritorio',
+  start:'Inicio', fullscreen:'Pantalla completa', fullscreenExit:'Salir de pantalla completa',
+  notepadClear:'Limpiar', notepadCopy:'Copiar', notepadPlaceholder:'Empiece a escribir...', notepadChars:'caracteres', notepadWords:'palabras',
+  todoTitle:'Lista de tareas', todoCompleted:'completadas', todoPlaceholder:'Añadir tarea...', todoAdd:'Añadir', todoEmpty:'Sin tareas aún 🎉',
+  todoDefault1:'Probar Vue Desktop', todoDefault2:'Añadir nuevas apps',
+  fmDesktop:'Escritorio', fmDocuments:'Documentos', fmDownloads:'Descargas', fmPictures:'Imágenes', fmMusic:'Música', fmTrash:'Papelera',
+  fmItems:'elementos', fmSelected:'seleccionado', fmOpening:'abriendo...', fmPathPrefix:'C:\\Usuarios\\Usuario\\',
+  weatherNow:'Ahora', weatherHumidity:'Humedad', weatherWind:'Viento', weatherFeelsLike:'Sensación', weatherHourly:'Pronóstico por hora', weatherUnknown:'Desconocido',
+  calToday:'Hoy', calAddEvent:'+ Evento', calEventPlaceholder:'Nombre del evento...', calAdd:'Añadir', calNoEvents:'Sin eventos en esta fecha', calMore:'más',
+  calBlue:'Azul', calGreen:'Verde', calOrange:'Naranja', calRed:'Rojo', calPurple:'Morado',
+  termBarTitle:'bash - usuario@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Comandos: help, ls, date, clear, echo [texto]',
+  termHelpText:'Comandos: help, ls, date, clear, echo [texto], whoami, pwd', termNotFound:'Comando no encontrado', termHelpHint:'Escriba "help".',
+  termPlaceholder:'ingrese comando...', termUser:'usuario', termPwd:'/home/usuario',
+  notifCalTitle:'Calendario', notifCalText:'Reunión mañana a las 10:00.', notifTaskTitle:'Tareas', notifTaskText:'3 tareas pendientes.',
+  notifSysTitle:'Sistema', notifSysText:'Actualización disponible: v1.1', notifTermTitle:'Terminal', notifTermText:'Proceso completado.',
+  notifTime2h:'Hace 2 horas', notifTime4h:'Hace 4 horas', notifYesterday:'Ayer', notifNow:'Ahora', notifLabel:'Notificación',
+  mediaPrev:'Anterior', mediaNext:'Siguiente'
+});
+Object.assign(I18N.ru, {
+  ctxOpen:'Открыть', ctxMove:'Переместить', ctxCopy:'Копировать', ctxDesktop:'Рабочий стол',
+  start:'Пуск', fullscreen:'Полный экран', fullscreenExit:'Выйти из полного экрана',
+  notepadClear:'Очистить', notepadCopy:'Копировать', notepadPlaceholder:'Начните вводить...', notepadChars:'символов', notepadWords:'слов',
+  todoTitle:'Список задач', todoCompleted:'выполнено', todoPlaceholder:'Добавить задачу...', todoAdd:'Добавить', todoEmpty:'Задач пока нет 🎉',
+  todoDefault1:'Попробовать Vue Desktop', todoDefault2:'Добавить приложения',
+  fmDesktop:'Рабочий стол', fmDocuments:'Документы', fmDownloads:'Загрузки', fmPictures:'Изображения', fmMusic:'Музыка', fmTrash:'Корзина',
+  fmItems:'элементов', fmSelected:'выбрано', fmOpening:'открывается...', fmPathPrefix:'C:\\Пользователи\\Пользователь\\',
+  weatherNow:'Сейчас', weatherHumidity:'Влажность', weatherWind:'Ветер', weatherFeelsLike:'Ощущается', weatherHourly:'Почасовой прогноз', weatherUnknown:'Неизвестно',
+  calToday:'Сегодня', calAddEvent:'+ Событие', calEventPlaceholder:'Название события...', calAdd:'Добавить', calNoEvents:'Нет событий на дату', calMore:'ещё',
+  calBlue:'Синий', calGreen:'Зелёный', calOrange:'Оранжевый', calRed:'Красный', calPurple:'Фиолетовый',
+  termBarTitle:'bash - пользователь@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Команды: help, ls, date, clear, echo [текст]',
+  termHelpText:'Команды: help, ls, date, clear, echo [текст], whoami, pwd', termNotFound:'Команда не найдена', termHelpHint:'Введите "help".',
+  termPlaceholder:'введите команду...', termUser:'пользователь', termPwd:'/home/пользователь',
+  notifCalTitle:'Календарь', notifCalText:'Встреча завтра в 10:00.', notifTaskTitle:'Задачи', notifTaskText:'3 задачи ожидают выполнения.',
+  notifSysTitle:'Система', notifSysText:'Доступно обновление: v1.1', notifTermTitle:'Терминал', notifTermText:'Фоновый процесс завершён.',
+  notifTime2h:'2 часа назад', notifTime4h:'4 часа назад', notifYesterday:'Вчера', notifNow:'Сейчас', notifLabel:'Уведомление',
+  mediaPrev:'Назад', mediaNext:'Далее'
+});
+
+// ── WMO Weather Descriptions (per locale) ──
+const WMO_DESC_I18N = {
+  tr:{0:'Açık',1:'Az bulutlu',2:'Parçalı bulutlu',3:'Bulutlu',45:'Sisli',48:'Kırağılı sis',51:'Hafif çisenti',53:'Çisenti',55:'Yoğun çisenti',61:'Hafif yağmur',63:'Yağmurlu',65:'Şiddetli yağmur',71:'Hafif kar',73:'Kar yağışı',75:'Yoğun kar',77:'Kar taneleri',80:'Hafif sağanak',81:'Sağanak',82:'Şiddetli sağanak',85:'Hafif kar sağanağı',86:'Kar sağanağı',95:'Gök gürültülü fırtına',96:'Dolu ile fırtına',99:'Şiddetli dolu'},
+  en:{0:'Clear',1:'Partly cloudy',2:'Mostly cloudy',3:'Overcast',45:'Foggy',48:'Rime fog',51:'Light drizzle',53:'Drizzle',55:'Dense drizzle',61:'Slight rain',63:'Rainy',65:'Heavy rain',71:'Light snow',73:'Snowfall',75:'Heavy snow',77:'Snow grains',80:'Light showers',81:'Showers',82:'Heavy showers',85:'Light snow showers',86:'Snow showers',95:'Thunderstorm',96:'Thunderstorm with hail',99:'Severe hail'},
+  de:{0:'Klar',1:'Leicht bewölkt',2:'Teilweise bewölkt',3:'Bewölkt',45:'Neblig',48:'Reifnebel',51:'Leichter Nieselregen',53:'Nieselregen',55:'Starker Nieselregen',61:'Leichter Regen',63:'Regen',65:'Starker Regen',71:'Leichter Schnee',73:'Schneefall',75:'Starker Schnee',77:'Schneekörner',80:'Leichte Schauer',81:'Schauer',82:'Starke Schauer',85:'Leichte Schneeschauer',86:'Schneeschauer',95:'Gewitter',96:'Gewitter mit Hagel',99:'Schwerer Hagel'},
+  fr:{0:'Dégagé',1:'Peu nuageux',2:'Partiellement nuageux',3:'Couvert',45:'Brouillard',48:'Brouillard givrant',51:'Bruine légère',53:'Bruine',55:'Forte bruine',61:'Pluie légère',63:'Pluvieux',65:'Forte pluie',71:'Neige légère',73:'Chute de neige',75:'Forte neige',77:'Grains de neige',80:'Averses légères',81:'Averses',82:'Fortes averses',85:'Averses de neige',86:'Averses de neige',95:'Orage',96:'Orage avec grêle',99:'Grêle violente'},
+  es:{0:'Despejado',1:'Poco nublado',2:'Parcialmente nublado',3:'Nublado',45:'Niebla',48:'Niebla helada',51:'Llovizna ligera',53:'Llovizna',55:'Llovizna densa',61:'Lluvia ligera',63:'Lluvioso',65:'Lluvia fuerte',71:'Nieve ligera',73:'Nevada',75:'Nieve fuerte',77:'Granos de nieve',80:'Chubascos ligeros',81:'Chubascos',82:'Chubascos fuertes',85:'Chubascos de nieve',86:'Chubascos de nieve',95:'Tormenta',96:'Tormenta con granizo',99:'Granizo severo'},
+  ru:{0:'Ясно',1:'Малооблачно',2:'Переменная облачность',3:'Облачно',45:'Туман',48:'Изморозь',51:'Лёгкая морось',53:'Морось',55:'Сильная морось',61:'Небольшой дождь',63:'Дождь',65:'Сильный дождь',71:'Лёгкий снег',73:'Снегопад',75:'Сильный снег',77:'Снежные зёрна',80:'Лёгкие ливни',81:'Ливень',82:'Сильный ливень',85:'Лёгкий снежный ливень',86:'Снежный ливень',95:'Гроза',96:'Гроза с градом',99:'Сильный град'}
+};
+
+// ── Element Plus Locales (minimal) ──
+const EP_LOCALES = {
+  tr:{name:'tr',el:{datepicker:{now:'Şimdi',today:'Bugün',cancel:'İptal',clear:'Temizle',confirm:'Onayla',dateTablePrompt:'Günü seçmek için ok tuşlarını ve Enter tuşunu kullanın',monthTablePrompt:'Ayı seçmek için ok tuşlarını ve Enter tuşunu kullanın',yearTablePrompt:'Yılı seçmek için ok tuşlarını ve Enter tuşunu kullanın',selectedDate:'Seçilen tarih',selectDate:'Tarih seç',selectTime:'Saat seç',startDate:'Başlangıç Tarihi',startTime:'Başlangıç Saati',endDate:'Bitiş Tarihi',endTime:'Bitiş Saati',prevYear:'Önceki Yıl',nextYear:'Sonraki Yıl',prevMonth:'Önceki Ay',nextMonth:'Sonraki Ay',year:'',month1:'Ocak',month2:'Şubat',month3:'Mart',month4:'Nisan',month5:'Mayıs',month6:'Haziran',month7:'Temmuz',month8:'Ağustos',month9:'Eylül',month10:'Ekim',month11:'Kasım',month12:'Aralık',weeks:{sun:'Paz',mon:'Pzt',tue:'Sal',wed:'Çar',thu:'Per',fri:'Cum',sat:'Cmt'},weeksFull:{sun:'Pazar',mon:'Pazartesi',tue:'Salı',wed:'Çarşamba',thu:'Perşembe',fri:'Cuma',sat:'Cumartesi'},months:{jan:'Oca',feb:'Şub',mar:'Mar',apr:'Nis',may:'May',jun:'Haz',jul:'Tem',aug:'Ağu',sep:'Eyl',oct:'Eki',nov:'Kas',dec:'Ara'}},select:{noMatch:'Eşleşen veri yok',noData:'Veri yok',placeholder:'Seçiniz'},dialog:{close:'Kapat'},messagebox:{title:'Mesaj',confirm:'Tamam',cancel:'İptal'},table:{emptyText:'Veri yok'}}},
+  en:{name:'en',el:{datepicker:{now:'Now',today:'Today',cancel:'Cancel',clear:'Clear',confirm:'OK',dateTablePrompt:'Use the arrow keys and enter to select the day of the month',monthTablePrompt:'Use the arrow keys and enter to select the month',yearTablePrompt:'Use the arrow keys and enter to select the year',selectedDate:'Selected date',selectDate:'Select date',selectTime:'Select time',startDate:'Start Date',startTime:'Start Time',endDate:'End Date',endTime:'End Time',prevYear:'Previous Year',nextYear:'Next Year',prevMonth:'Previous Month',nextMonth:'Next Month',year:'',month1:'January',month2:'February',month3:'March',month4:'April',month5:'May',month6:'June',month7:'July',month8:'August',month9:'September',month10:'October',month11:'November',month12:'December',weeks:{sun:'Sun',mon:'Mon',tue:'Tue',wed:'Wed',thu:'Thu',fri:'Fri',sat:'Sat'},weeksFull:{sun:'Sunday',mon:'Monday',tue:'Tuesday',wed:'Wednesday',thu:'Thursday',fri:'Friday',sat:'Saturday'},months:{jan:'Jan',feb:'Feb',mar:'Mar',apr:'Apr',may:'May',jun:'Jun',jul:'Jul',aug:'Aug',sep:'Sep',oct:'Oct',nov:'Nov',dec:'Dec'}},select:{noMatch:'No matching data',noData:'No data',placeholder:'Select'},dialog:{close:'Close'},messagebox:{title:'Message',confirm:'OK',cancel:'Cancel'},table:{emptyText:'No Data'}}},
+  de:{name:'de',el:{datepicker:{now:'Jetzt',today:'Heute',cancel:'Abbrechen',clear:'Leeren',confirm:'OK',dateTablePrompt:'Use the arrow keys and enter to select the day of the month',monthTablePrompt:'Use the arrow keys and enter to select the month',yearTablePrompt:'Use the arrow keys and enter to select the year',selectedDate:'Selected date',selectDate:'Datum wählen',selectTime:'Uhrzeit wählen',startDate:'Startdatum',startTime:'Startzeit',endDate:'Enddatum',endTime:'Endzeit',prevYear:'Letztes Jahr',nextYear:'Nächstes Jahr',prevMonth:'Letzter Monat',nextMonth:'Nächster Monat',year:'',month1:'Januar',month2:'Februar',month3:'März',month4:'April',month5:'Mai',month6:'Juni',month7:'Juli',month8:'August',month9:'September',month10:'Oktober',month11:'November',month12:'Dezember',weeks:{sun:'So',mon:'Mo',tue:'Di',wed:'Mi',thu:'Do',fri:'Fr',sat:'Sa'},weeksFull:{sun:'Sonntag',mon:'Montag',tue:'Dienstag',wed:'Mittwoch',thu:'Donnerstag',fri:'Freitag',sat:'Samstag'},months:{jan:'Jan',feb:'Feb',mar:'Mär',apr:'Apr',may:'Mai',jun:'Jun',jul:'Jul',aug:'Aug',sep:'Sep',oct:'Okt',nov:'Nov',dec:'Dez'}},select:{noMatch:'Keine Übereinstimmung',noData:'Keine Daten',placeholder:'Auswählen'},dialog:{close:'Schließen'},messagebox:{title:'Nachricht',confirm:'OK',cancel:'Abbrechen'},table:{emptyText:'Keine Daten'}}},
+  fr:{name:'fr',el:{datepicker:{now:'Maintenant',today:'Aujourd\'hui',cancel:'Annuler',clear:'Effacer',confirm:'Confirmer',dateTablePrompt:'Utilisez les flèches et Entrée pour sélectionner le jour',monthTablePrompt:'Utilisez les flèches et Entrée pour sélectionner le mois',yearTablePrompt:'Utilisez les flèches et Entrée pour sélectionner l\'année',selectedDate:'Date sélectionnée',selectDate:'Choisir date',selectTime:'Choisir horaire',startDate:'Date début',startTime:'Horaire début',endDate:'Date fin',endTime:'Horaire fin',prevYear:'Année précédente',nextYear:'Année suivante',prevMonth:'Mois précédent',nextMonth:'Mois suivant',year:'',month1:'Janvier',month2:'Février',month3:'Mars',month4:'Avril',month5:'Mai',month6:'Juin',month7:'Juillet',month8:'Août',month9:'Septembre',month10:'Octobre',month11:'Novembre',month12:'Décembre',weeks:{sun:'Dim',mon:'Lun',tue:'Mar',wed:'Mer',thu:'Jeu',fri:'Ven',sat:'Sam'},weeksFull:{sun:'Dimanche',mon:'Lundi',tue:'Mardi',wed:'Mercredi',thu:'Jeudi',fri:'Vendredi',sat:'Samedi'},months:{jan:'Jan',feb:'Fév',mar:'Mar',apr:'Avr',may:'Mai',jun:'Jun',jul:'Jul',aug:'Aoû',sep:'Sep',oct:'Oct',nov:'Nov',dec:'Déc'}},select:{noMatch:'Aucune correspondance',noData:'Aucune donnée',placeholder:'Sélectionner'},dialog:{close:'Fermer'},messagebox:{title:'Message',confirm:'OK',cancel:'Annuler'},table:{emptyText:'Aucune donnée'}}},
+  es:{name:'es',el:{datepicker:{now:'Ahora',today:'Hoy',cancel:'Cancelar',clear:'Despejar',confirm:'Confirmar',dateTablePrompt:'Use the arrow keys and enter to select the day of the month',monthTablePrompt:'Use the arrow keys and enter to select the month',yearTablePrompt:'Use the arrow keys and enter to select the year',selectedDate:'Selected date',selectDate:'Seleccionar fecha',selectTime:'Seleccionar hora',startDate:'Fecha Inicial',startTime:'Hora Inicial',endDate:'Fecha Final',endTime:'Hora Final',prevYear:'Año Anterior',nextYear:'Próximo Año',prevMonth:'Mes Anterior',nextMonth:'Próximo Mes',year:'',month1:'Enero',month2:'Febrero',month3:'Marzo',month4:'Abril',month5:'Mayo',month6:'Junio',month7:'Julio',month8:'Agosto',month9:'Septiembre',month10:'Octubre',month11:'Noviembre',month12:'Diciembre',weeks:{sun:'Dom',mon:'Lun',tue:'Mar',wed:'Mié',thu:'Jue',fri:'Vie',sat:'Sáb'},weeksFull:{sun:'Domingo',mon:'Lunes',tue:'Martes',wed:'Miércoles',thu:'Jueves',fri:'Viernes',sat:'Sábado'},months:{jan:'Ene',feb:'Feb',mar:'Mar',apr:'Abr',may:'May',jun:'Jun',jul:'Jul',aug:'Ago',sep:'Sep',oct:'Oct',nov:'Nov',dec:'Dic'}},select:{noMatch:'Sin coincidencias',noData:'Sin datos',placeholder:'Seleccionar'},dialog:{close:'Cerrar'},messagebox:{title:'Mensaje',confirm:'Aceptar',cancel:'Cancelar'},table:{emptyText:'Sin datos'}}},
+  ru:{name:'ru',el:{datepicker:{now:'Сейчас',today:'Сегодня',cancel:'Отмена',clear:'Очистить',confirm:'Ок',dateTablePrompt:'Use the arrow keys and enter to select the day of the month',monthTablePrompt:'Use the arrow keys and enter to select the month',yearTablePrompt:'Use the arrow keys and enter to select the year',selectedDate:'Selected date',selectDate:'Выбрать дату',selectTime:'Выбрать время',startDate:'Дата начала',startTime:'Время начала',endDate:'Дата окончания',endTime:'Время окончания',prevYear:'Предыдущий год',nextYear:'Следующий год',prevMonth:'Предыдущий месяц',nextMonth:'Следующий месяц',year:'',month1:'Январь',month2:'Февраль',month3:'Март',month4:'Апрель',month5:'Май',month6:'Июнь',month7:'Июль',month8:'Август',month9:'Сентябрь',month10:'Октябрь',month11:'Ноябрь',month12:'Декабрь',weeks:{sun:'Вс',mon:'Пн',tue:'Вт',wed:'Ср',thu:'Чт',fri:'Пт',sat:'Сб'},weeksFull:{sun:'Воскресенье',mon:'Понедельник',tue:'Вторник',wed:'Среда',thu:'Четверг',fri:'Пятница',sat:'Суббота'},months:{jan:'Янв',feb:'Фев',mar:'Мар',apr:'Апр',may:'Май',jun:'Июн',jul:'Июл',aug:'Авг',sep:'Сен',oct:'Окт',nov:'Ноя',dec:'Дек'}},select:{noMatch:'Нет совпадений',noData:'Нет данных',placeholder:'Выбрать'},dialog:{close:'Закрыть'},messagebox:{title:'Сообщение',confirm:'OK',cancel:'Отмена'},table:{emptyText:'Нет данных'}}}
+};
+
+function t(key) {
+  const store = useSettingsStore();
+  return (I18N[store.locale] || I18N.tr)[key] || (I18N.tr)[key] || key;
+}
+
+function tApp(app) {
+  const store = useSettingsStore();
+  const lang = store.locale || 'tr';
+  if (app.lang && app.lang[lang]) return app.lang[lang];
+  if (app.lang && app.lang.tr) return app.lang.tr;
+  return { name: app.name, description: app.description || '' };
+}
+
+const useVolumeStore = defineStore('volume', {
+  state: () => ({
+    level: parseInt(localStorage.getItem('system_volume') ?? '80', 10),
+    muted: false,
+    mediaPlaying: false,
+    mediaTitle: '',
+    mediaHasSource: false
+  }),
+  getters: {
+    icon: (state) => state.muted || state.level === 0 ? '🔇' : state.level > 50 ? '🔊' : '🔉',
+    effectiveLevel: (state) => state.muted ? 0 : state.level,
+    playIcon: (state) => state.mediaPlaying ? '⏸' : '▶'
+  },
+  actions: {
+    setLevel(val) {
+      this.level = Math.max(0, Math.min(100, Math.round(val)));
+      this.muted = false;
+      localStorage.setItem('system_volume', this.level);
+    },
+    toggleMute() {
+      this.muted = !this.muted;
+    },
+    registerMedia(handlers) {
+      this._mediaHandlers = handlers;
+      this.mediaHasSource = true;
+    },
+    unregisterMedia(handlers) {
+      if (this._mediaHandlers === handlers) {
+        this._mediaHandlers = null;
+        this.mediaHasSource = false;
+        this.mediaPlaying = false;
+        this.mediaTitle = '';
+      }
+    },
+    updateMediaState(playing, title) {
+      this.mediaPlaying = playing;
+      this.mediaTitle = title || '';
+    },
+    mediaToggle() { this._mediaHandlers?.toggle?.(); },
+    mediaNext() { this._mediaHandlers?.next?.(); },
+    mediaPrev() { this._mediaHandlers?.prev?.(); },
+    mediaSeekFwd(sec) { this._mediaHandlers?.seekFwd?.(sec || 10); },
+    mediaSeekBack(sec) { this._mediaHandlers?.seekBack?.(sec || 10); }
+  }
+});
+window.__volumeStore = { useVolumeStore };
+
+const APPS = [
+  {id:'calc',name:'Hesap Makinesi',icon:'🧮',color:'linear-gradient(135deg,#667eea,#764ba2)',category:'productivity'},
+  {id:'notepad',name:'Not Defteri',icon:'📝',color:'linear-gradient(135deg,#f093fb,#f5576c)',category:'productivity'},
+  {id:'fileman',name:'Dosya Yöneticisi',icon:'📁',color:'linear-gradient(135deg,#4facfe,#00f2fe)',category:'system'},
+  {id:'todo',name:'Görev Listesi',icon:'✅',color:'linear-gradient(135deg,#43e97b,#38f9d7)',category:'productivity'},
+  {id:'weather',name:'Hava Durumu',icon:'🌤️',color:'linear-gradient(135deg,#fa709a,#fee140)',category:'utilities'},
+  {id:'settings',name:'Ayarlar',icon:'⚙️',color:'linear-gradient(135deg,#a18cd1,#fbc2eb)',category:'system'},
+  {id:'terminal',name:'Terminal',icon:'💻',color:'linear-gradient(135deg,#0f2027,#2c5364)',category:'system'},
+  {id:'clock',name:'Saat',icon:'🕐',color:'linear-gradient(135deg,#ff9a9e,#fad0c4)',category:'utilities'},
+  {id:'calendar',name:'Takvim',icon:'📅',color:'linear-gradient(135deg,#409eff,#66b1ff)',category:'productivity'},
+  {id:'notifications',name:'Bildirimler',icon:'🔔',color:'linear-gradient(135deg,#ff6b6b,#ee5a24)',category:'system'},
+  {id:'appstore',name:'Uygulama Mağazası',icon:'🛒',color:'linear-gradient(135deg,#6c5ce7,#a29bfe)',category:'internet'},
+  {id:'browser',name:'Tarayıcı',icon:'🌐',color:'linear-gradient(135deg,#4a90d9,#00b894)',category:'internet'},
+];
+
+const SIZES = {
+  calc:{w:300,h:460},notepad:{w:520,h:420},fileman:{w:580,h:420},
+  todo:{w:360,h:440},weather:{w:340,h:480},settings:{w:480,h:400},
+  terminal:{w:560,h:380},clock:{w:280,h:280},
+  calendar:{w:560,h:480},
+  notifications:{w:380,h:440},
+  appstore:{w:440,h:460},
+  browser:{w:900,h:620}
+};
+
+/* ── CalcApp ── */
+const CalcApp = {
+  template: '#CalcApp',
+  props: [],
+  emits: [],
+  setup(props, { emit }) {
+    const display = ref('0'), expr = ref(''), prev = ref(null), pendingOp = ref(null), reset = ref(false);
+    function num(n) { if (reset.value) { display.value = String(n); reset.value = false } else { display.value = display.value === '0' ? String(n) : display.value + n } }
+    function dot() { if (!display.value.includes('.')) { display.value += '.'; reset.value = false } }
+    function clear() { display.value = '0'; expr.value = ''; prev.value = null; pendingOp.value = null }
+    function sign() { display.value = String(-parseFloat(display.value)) }
+    function pct() { display.value = String(parseFloat(display.value) / 100) }
+    function op(o) { prev.value = parseFloat(display.value); pendingOp.value = o; expr.value = display.value + ' ' + o; reset.value = true }
+    function eq() {
+      if (!pendingOp.value) return;
+      const a = prev.value, b = parseFloat(display.value);
+      const ops = { '+': (x, y) => x + y, '-': (x, y) => x - y, '*': (x, y) => x * y, '/': (x, y) => x / y };
+      expr.value = prev.value + ' ' + pendingOp.value + ' ' + b + ' =';
+      const r = ops[pendingOp.value](a, b);
+      display.value = String(parseFloat(r.toFixed(10)));
+      pendingOp.value = null; reset.value = true;
+    }
+    return { display, expr, num, dot, clear, sign, pct, op, eq };
+  }
+};
+
+/* ── NotepadApp ── */
+const NotepadApp = {
+  template: '#NotepadApp',
+  props: [],
+  emits: [],
+  setup(props, { emit }) {
+    const text = ref(''), font = ref("'Segoe UI',sans-serif"), size = ref(14), bold = ref(false), italic = ref(false);
+    const wordCount = computed(() => text.value.trim() ? text.value.trim().split(/\s+/).length : 0);
+    function copy() { navigator.clipboard.writeText(text.value) }
+    return { text, font, size, bold, italic, wordCount, copy, t };
+  }
+};
+
+/* ── TodoApp ── */
+const TodoApp = {
+  template: '#TodoApp',
+  props: [],
+  emits: [],
+  setup(props, { emit }) {
+    const todos = ref([{ text: t('todoDefault1'), done: true }, { text: t('todoDefault2'), done: false }]);
+    const input = ref('');
+    const done = computed(() => todos.value.filter(td => td.done).length);
+    function add() { if (input.value.trim()) { todos.value.unshift({ text: input.value.trim(), done: false }); input.value = '' } }
+    return { todos, input, done, add, t };
+  }
+};
+
+/* ── FilemanApp ── */
+const FilemanApp = {
+  template: '#FilemanApp',
+  props: [],
+  emits: [],
+  setup(props, { emit }) {
+    const LOC_KEYS = [
+      { id:'desktop', icon:'🖥️', key:'fmDesktop' }, { id:'documents', icon:'📄', key:'fmDocuments' },
+      { id:'downloads', icon:'⬇️', key:'fmDownloads' }, { id:'pictures', icon:'🖼️', key:'fmPictures' },
+      { id:'music', icon:'🎵', key:'fmMusic' }, { id:'trash', icon:'🗑️', key:'fmTrash' }
+    ];
+    const currentLoc = ref('desktop'), selected = ref(null);
+    const locations = computed(() => LOC_KEYS.map(l => ({ id: l.id, name: t(l.key), icon: l.icon })));
+    const allFiles = {
+      desktop: [{ name: 'Projects', icon: '📁' }, { name: 'Notes.txt', icon: '📄' }, { name: 'Budget.xlsx', icon: '📊' }, { name: 'Photo.jpg', icon: '🖼️' }],
+      documents: [{ name: 'CV.docx', icon: '📄' }, { name: 'Contract.pdf', icon: '📋' }, { name: 'Report', icon: '📁' }, { name: 'Slides.pptx', icon: '📊' }],
+      downloads: [{ name: 'setup.exe', icon: '⚙️' }, { name: 'archive.zip', icon: '🗜️' }, { name: 'video.mp4', icon: '🎬' }],
+      pictures: [{ name: 'Vacation', icon: '📁' }, { name: 'img001.jpg', icon: '🖼️' }, { name: 'avatar.png', icon: '🖼️' }],
+      music: [{ name: 'playlist', icon: '📁' }, { name: 'song1.mp3', icon: '🎵' }, { name: 'song2.mp3', icon: '🎵' }],
+      trash: []
+    };
+    const files = computed(() => allFiles[currentLoc.value] || []);
+    const currentLocName = computed(() => { const l = LOC_KEYS.find(x => x.id === currentLoc.value); return l ? t(l.key) : currentLoc.value; });
+    const currentPath = computed(() => t('fmPathPrefix') + currentLocName.value);
+    function navigate(loc) { currentLoc.value = loc.id; selected.value = null }
+    function open(f) { alert(f.name + ' ' + t('fmOpening')) }
+    return { currentLoc, locations, files, selected, currentPath, navigate, open, t };
+  }
+};
+
+/* ── WeatherApp ── */
+const WeatherApp = {
+  template: '#WeatherApp',
+  setup() {
+    const settingsStore = useSettingsStore();
+    const loading = ref(true);
+    const city = ref('');
+    const country = ref('');
+    const current = ref({ icon: '', temp: 0, desc: '', humidity: 0, wind: 0, feelsLike: 0 });
+    const hourly = ref([]);
+
+    const WMO_ICONS = {
+      0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
+      45:'🌫️', 48:'🌫️',
+      51:'🌦️', 53:'🌦️', 55:'🌧️',
+      61:'🌧️', 63:'🌧️', 65:'🌧️',
+      71:'🌨️', 73:'🌨️', 75:'❄️',
+      77:'❄️', 80:'🌦️', 81:'🌧️', 82:'⛈️',
+      85:'🌨️', 86:'❄️', 95:'⛈️', 96:'⛈️', 99:'⛈️'
+    };
+    const WMO_DESC = {
+      0:'Açık', 1:'Az bulutlu', 2:'Parçalı bulutlu', 3:'Bulutlu',
+      45:'Sisli', 48:'Kırağılı sis',
+      51:'Hafif çisenti', 53:'Çisenti', 55:'Yoğun çisenti',
+      61:'Hafif yağmur', 63:'Yağmurlu', 65:'Şiddetli yağmur',
+      71:'Hafif kar', 73:'Kar yağışı', 75:'Yoğun kar',
+      77:'Kar taneleri', 80:'Hafif sağanak', 81:'Sağanak', 82:'Şiddetli sağanak',
+      85:'Hafif kar sağanağı', 86:'Kar sağanağı', 95:'Gök gürültülü fırtına', 96:'Dolu ile fırtına', 99:'Şiddetli dolu'
+    };
+
+    function getIcon(code) { return WMO_ICONS[code] || '🌡️'; }
+    function getDesc(code) {
+      const loc = useSettingsStore().locale;
+      const descs = WMO_DESC_I18N[loc] || WMO_DESC_I18N.tr;
+      return descs[code] || t('weatherUnknown');
+    }
+
+    async function fetchWeather() {
+      loading.value = true;
+      try {
+        const res = await fetch('/api/weather');
+        if (!res.ok) return;
+        const data = await res.json();
+        city.value = data.city;
+        country.value = data.country;
+
+        const c = data.current;
+        const wcode = c.weather_code || 0;
+        const t = c.temperature_2m;
+        const w = c.wind_speed_10m;
+        const fl = t <= 10 && w > 4.8
+          ? Math.round(13.12 + 0.6215*t - 11.37*Math.pow(w,0.16) + 0.3965*t*Math.pow(w,0.16))
+          : Math.round(t);
+
+        current.value = {
+          icon: getIcon(wcode),
+          temp: Math.round(t),
+          desc: getDesc(wcode),
+          humidity: c.relative_humidity_2m || 0,
+          wind: Math.round(w),
+          feelsLike: fl
+        };
+
+        const times = data.hourly.time;
+        const temps = data.hourly.temperature_2m;
+        const hums = data.hourly.relative_humidity_2m;
+        const winds = data.hourly.wind_speed_10m;
+        const codes = data.hourly.weather_code;
+        const items = [];
+        for (let i = 0; i < times.length && items.length < 24; i++) {
+          const h = new Date(times[i]).getHours();
+          const d = new Date(times[i]);
+          if (d < new Date(Date.now() - 3600000)) continue;
+          items.push({
+            hour: String(h).padStart(2,'0') + ':00',
+            icon: codes ? getIcon(codes[i]) : '🌡️',
+            temp: Math.round(temps[i]),
+            humidity: hums[i]
+          });
+        }
+        hourly.value = items;
+      } catch (e) { console.error('Weather fetch error', e); }
+      loading.value = false;
+    }
+
+    watch(() => settingsStore.city, (newCity, oldCity) => {
+      if (newCity && newCity !== oldCity) fetchWeather();
+    });
+
+    onMounted(() => fetchWeather());
+
+    return { loading, city, country, current, hourly, t };
+  }
+};
+
+/* ── SettingsApp ── */
+const SettingsApp = {
+  template: '#SettingsApp',
+  setup() {
+    const settingsStore = useSettingsStore();
+    const active = ref('display');
+    const tabs = computed(() => [
+      { id: 'display', icon: '🖥️', name: t('settingsDisplay') },
+      { id: 'wallpaper', icon: '🖼️', name: t('settingsWallpaper') || 'Duvar Kağıdı' },
+      { id: 'location', icon: '📍', name: t('settingsLocation') },
+      { id: 'language', icon: '🌐', name: t('settingsLanguage') },
+      { id: 'sound', icon: '🔊', name: t('settingsSound') },
+      { id: 'network', icon: '📶', name: t('settingsNetwork') },
+      { id: 'about', icon: 'ℹ️', name: t('settingsAbout') }
+    ]);
+    const allRows = computed(() => ({
+      display: [
+        { label: t('brightness'), sub: t('brightnessDesc'), type: 'range', min: 10, max: 100, val: ref(75) },
+        { label: t('darkMode'), sub: t('darkModeDesc'), type: 'toggle', val: ref(false) },
+        { label: t('resolution'), type: 'select', options: ['1920×1080', '1366×768', '2560×1440'], val: ref('1920×1080') }
+      ],
+      sound: [
+        { label: t('mainVolume'), type: 'range', min: 0, max: 100, val: ref(60) },
+        { label: t('systemSound'), type: 'toggle', val: ref(true) },
+        { label: t('notifSound'), type: 'toggle', val: ref(true) }
+      ],
+      network: [
+        { label: t('wifi'), sub: t('wifiDesc'), type: 'toggle', val: ref(true) },
+        { label: t('bluetooth'), type: 'toggle', val: ref(false) },
+        { label: t('vpn'), sub: t('vpnDesc'), type: 'toggle', val: ref(false) }
+      ],
+      about: [
+        { label: t('version'), type: 'select', options: ['Vue Desktop 1.0'], val: ref('Vue Desktop 1.0') },
+        { label: t('checkUpdates'), type: 'toggle', val: ref(true) }
+      ]
+    }));
+    const currentRows = computed(() => allRows.value[active.value] || []);
+
+    // ── Language ──
+    const selectedLocale = ref(settingsStore.locale || 'tr');
+
+    function changeLocale(code) {
+      selectedLocale.value = code;
+      settingsStore.save({ locale: code });
+    }
+
+    // ── Location settings ──
+    const countries = ref([]);
+    const cities = ref([]);
+    const timezones = ref([]);
+    const locCountry = ref('');
+    const locCity = ref('');
+    const locTimezone = ref('');
+    const locLat = ref('');
+    const locLng = ref('');
+
+    async function loadCountries() {
+      try {
+        const res = await fetch('/api/geo/countries');
+        if (res.ok) countries.value = await res.json();
+      } catch {}
+    }
+
+    async function onCountryChange() {
+      locCity.value = '';
+      cities.value = [];
+      timezones.value = [];
+      if (!locCountry.value) return;
+      try {
+        const [cRes, tzRes] = await Promise.all([
+          fetch('/api/geo/cities?iso2=' + locCountry.value),
+          fetch('/api/geo/timezones?iso2=' + locCountry.value)
+        ]);
+        if (cRes.ok) cities.value = await cRes.json();
+        if (tzRes.ok) timezones.value = await tzRes.json();
+        if (timezones.value.length === 1) locTimezone.value = timezones.value[0];
+      } catch {}
+    }
+
+    function onCityChange() {
+      const city = cities.value.find(c => c.city_ascii === locCity.value);
+      if (city) {
+        locLat.value = city.lat;
+        locLng.value = city.lng;
+        saveLocation();
+      }
+    }
+
+    async function saveLocation() {
+      const countryObj = countries.value.find(c => c.iso2 === locCountry.value);
+      await settingsStore.save({
+        country: countryObj ? countryObj.name : '',
+        countryCode: locCountry.value,
+        city: locCity.value,
+        latitude: parseFloat(locLat.value) || 0,
+        longitude: parseFloat(locLng.value) || 0,
+        timezone: locTimezone.value || ''
+      });
+    }
+
+    async function loadSettings() {
+      if (!settingsStore.countryCode) await settingsStore.load();
+      if (settingsStore.countryCode) {
+        locCountry.value = settingsStore.countryCode;
+        await onCountryChange();
+        if (settingsStore.city) locCity.value = settingsStore.city;
+        if (settingsStore.timezone) locTimezone.value = settingsStore.timezone;
+        if (settingsStore.latitude) locLat.value = settingsStore.latitude;
+        if (settingsStore.longitude) locLng.value = settingsStore.longitude;
+      }
+    }
+
+    onMounted(() => {
+      loadCountries();
+      loadSettings();
+      loadWpList();
+    });
+
+    // ── Wallpaper ──
+    const wpMode = ref(settingsStore.wallpaperMode || 'all');
+    const wpDesktop = ref(1);
+    const wpList = ref([]);
+    const wpUploading = ref(false);
+
+    const currentWpUrl = computed(() => {
+      if (wpMode.value === 'all') return settingsStore.wallpaperAll || '';
+      return settingsStore.wallpapers[wpDesktop.value] || '';
+    });
+
+    async function loadWpList() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/wallpaper', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) wpList.value = await res.json();
+      } catch {}
+    }
+
+    function setWpMode(mode) {
+      wpMode.value = mode;
+      settingsStore.save({ wallpaperMode: mode });
+      applyWallpaper();
+    }
+
+    function setWallpaper(url) {
+      if (wpMode.value === 'all') {
+        settingsStore.wallpaperAll = url;
+        settingsStore.save({ wallpaperAll: url });
+      } else {
+        settingsStore.wallpapers[wpDesktop.value] = url;
+        settingsStore.save({ wallpapers: { ...settingsStore.wallpapers } });
+      }
+      applyWallpaper();
+    }
+
+    async function uploadWallpaper(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      wpUploading.value = true;
+      try {
+        const reader = new FileReader();
+        reader.onload = async function(ev) {
+          const b64 = ev.target.result.split(',')[1];
+          const token = localStorage.getItem('token');
+          const res = await fetch('/api/wallpaper/upload', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: file.name, data: b64 })
+          });
+          if (res.ok) {
+            await loadWpList();
+            const result = await res.json();
+            setWallpaper(result.url);
+          }
+          wpUploading.value = false;
+        };
+        reader.readAsDataURL(file);
+      } catch { wpUploading.value = false; }
+      e.target.value = '';
+    }
+
+    async function deleteWallpaper(name) {
+      try {
+        const token = localStorage.getItem('token');
+        await fetch('/api/wallpaper/' + encodeURIComponent(name), {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        // Clear from settings if in use
+        const url = '/api/wallpaper/' + encodeURIComponent(name);
+        if (settingsStore.wallpaperAll === url) { settingsStore.wallpaperAll = ''; settingsStore.save({ wallpaperAll: '' }); }
+        for (let d = 1; d <= 4; d++) {
+          if (settingsStore.wallpapers[d] === url) { settingsStore.wallpapers[d] = ''; }
+        }
+        settingsStore.save({ wallpapers: { ...settingsStore.wallpapers } });
+        await loadWpList();
+        applyWallpaper();
+      } catch {}
+    }
+
+    function applyWallpaper() {
+      if (window._applyWallpaper) window._applyWallpaper();
+    }
+
+    return { active, tabs, currentRows, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper };
+  }
+};
+
+/* ── TerminalApp ── */
+const TerminalApp = {
+  template: '#TerminalApp',
+  props: [],
+  emits: [],
+  setup(props, { emit }) {
+    const lines = ref([]);
+    const inp = ref('');
+    const outRef = ref(null);
+    const fs = { 'Documents': ['cv.txt', 'notes.md'], 'Downloads': ['setup.zip'], 'Desktop': ['readme.txt'] };
+    function run() {
+      const c = inp.value.trim(); if (!c) return;
+      lines.value.push({ type: 'cmd', text: c });
+      const parts = c.split(' '); const cmd = parts[0];
+      if (cmd === 'help') lines.value.push({ type: 'res', text: t('termHelpText') });
+      else if (cmd === 'ls') lines.value.push({ type: 'res', text: Object.keys(fs).join('  ') });
+      else if (cmd === 'date') lines.value.push({ type: 'res', text: new Date().toLocaleString(getIntlLocale()) });
+      else if (cmd === 'echo') lines.value.push({ type: 'res', text: parts.slice(1).join(' ') });
+      else if (cmd === 'whoami') lines.value.push({ type: 'res', text: t('termUser') });
+      else if (cmd === 'pwd') lines.value.push({ type: 'res', text: t('termPwd') });
+      else if (cmd === 'clear') { lines.value = []; }
+      else lines.value.push({ type: 'err', text: t('termNotFound') + ': ' + cmd + '. ' + t('termHelpHint') });
+      inp.value = '';
+      nextTick(() => { if (outRef.value) outRef.value.scrollTop = 9999 });
+    }
+    return { lines, inp, outRef, run, t };
+  }
+};
+
+/* ── ClockApp ── */
+const ClockApp = {
+  template: '#ClockApp',
+  setup() {
+    const settingsStore = useSettingsStore();
+    const canvasRef = ref(null);
+    const digitalTime = ref('00:00:00');
+    const dateStr = ref('');
+    const tzLabel = ref(settingsStore.timezone || '');
+
+    function getNow() {
+      if (settingsStore.timezone) {
+        const str = new Date().toLocaleString('en-US', { timeZone: settingsStore.timezone });
+        return new Date(str);
+      }
+      return new Date();
+    }
+
+    function draw() {
+      const canvas = canvasRef.value;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d'), cx = 100, cy = 100, r = 90;
+      const now = getNow();
+      ctx.clearRect(0, 0, 200, 200);
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 2; ctx.stroke();
+      for (let i = 0; i < 12; i++) {
+        const a = i * Math.PI / 6, x = cx + Math.cos(a - Math.PI / 2) * 78, y = cy + Math.sin(a - Math.PI / 2) * 78;
+        ctx.beginPath(); ctx.arc(x, y, 3, 0, 2 * Math.PI); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fill();
+      }
+      const hr = now.getHours() % 12, mn = now.getMinutes(), sc = now.getSeconds();
+      function hand(a, len, w, color) {
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+        ctx.strokeStyle = color; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.stroke();
+      }
+      hand((hr / 12 + mn / 720) * 2 * Math.PI - Math.PI / 2, 58, 4, 'rgba(255,255,255,.9)');
+      hand((mn / 60 + sc / 3600) * 2 * Math.PI - Math.PI / 2, 75, 3, 'rgba(255,255,255,.85)');
+      hand(sc / 60 * 2 * Math.PI - Math.PI / 2, 82, 1.5, '#a78bfa');
+      ctx.beginPath(); ctx.arc(cx, cy, 5, 0, 2 * Math.PI); ctx.fillStyle = '#a78bfa'; ctx.fill();
+
+      digitalTime.value = [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
+      dateStr.value = now.toLocaleDateString(getIntlLocale(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    watch(() => settingsStore.timezone, (tz) => {
+      tzLabel.value = tz || '';
+    });
+
+    let timer = null;
+    onMounted(() => {
+      draw();
+      timer = setInterval(draw, 1000);
+    });
+    onUnmounted(() => clearInterval(timer));
+
+    return { canvasRef, digitalTime, dateStr, tzLabel };
+  }
+};
+
+/* ── CalendarApp ── */
+const CalendarApp = {
+  template: '#CalendarApp',
+  setup() {
+    const STORAGE_KEY = 'calendarEvents';
+    const year = ref(new Date().getFullYear());
+    const month = ref(new Date().getMonth());
+    const showDialog = ref(false);
+    const selectedDate = ref('');
+    const newTitle = ref('');
+    const newColor = ref('');
+    const events = ref(JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'));
+    const colorMap = { '': '#409eff', green: '#67c23a', orange: '#e6a23c', red: '#f56c6c', purple: '#6f5ef7' };
+    const dayNames = computed(() => {
+      const loc = getIntlLocale();
+      return Array.from({length:7}, (_,i) => new Intl.DateTimeFormat(loc, {weekday:'short'}).format(new Date(2024,0,1+i)));
+    });
+    const monthNames = computed(() => {
+      const loc = getIntlLocale();
+      return Array.from({length:12}, (_,i) => new Intl.DateTimeFormat(loc, {month:'long'}).format(new Date(2024,i,1)));
+    });
+
+    function saveEvents() { localStorage.setItem(STORAGE_KEY, JSON.stringify(events.value)); }
+
+    const monthLabel = computed(() => monthNames.value[month.value] + ' ' + year.value);
+
+    const calendarGrid = computed(() => {
+      const firstDay = new Date(year.value, month.value, 1);
+      let startDay = firstDay.getDay() - 1;
+      if (startDay < 0) startDay = 6;
+      const daysInMonth = new Date(year.value, month.value + 1, 0).getDate();
+      const daysInPrev = new Date(year.value, month.value, 0).getDate();
+      const today = new Date();
+      const todayStr = [today.getFullYear(), String(today.getMonth()+1).padStart(2,'0'), String(today.getDate()).padStart(2,'0')].join('-');
+      const cells = [];
+      for (let i = startDay - 1; i >= 0; i--) {
+        const d = daysInPrev - i;
+        const m = month.value === 0 ? 12 : month.value;
+        const y = month.value === 0 ? year.value - 1 : year.value;
+        const dateStr = [y, String(m).padStart(2,'0'), String(d).padStart(2,'0')].join('-');
+        cells.push({ day: d, date: dateStr, isCurrentMonth: false, isToday: dateStr === todayStr });
+      }
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = [year.value, String(month.value+1).padStart(2,'0'), String(d).padStart(2,'0')].join('-');
+        cells.push({ day: d, date: dateStr, isCurrentMonth: true, isToday: dateStr === todayStr });
+      }
+      const remaining = 42 - cells.length;
+      for (let d = 1; d <= remaining; d++) {
+        const m = month.value === 11 ? 1 : month.value + 2;
+        const y = month.value === 11 ? year.value + 1 : year.value;
+        const dateStr = [y, String(m).padStart(2,'0'), String(d).padStart(2,'0')].join('-');
+        cells.push({ day: d, date: dateStr, isCurrentMonth: false, isToday: dateStr === todayStr });
+      }
+      const weeks = [];
+      for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+      return weeks;
+    });
+
+    function getEvents(dateStr) { return events.value[dateStr] || []; }
+
+    const dialogDate = computed(() => {
+      if (!selectedDate.value) return '';
+      const [y, m, d] = selectedDate.value.split('-');
+      return parseInt(d) + ' ' + monthNames.value[parseInt(m)-1] + ' ' + y;
+    });
+
+    const selectedEvents = computed(() => events.value[selectedDate.value] || []);
+
+    function selectDate(dateStr) {
+      selectedDate.value = dateStr;
+      showDialog.value = true;
+    }
+
+    function openAdd() {
+      const now = new Date();
+      selectedDate.value = [now.getFullYear(), String(now.getMonth()+1).padStart(2,'0'), String(now.getDate()).padStart(2,'0')].join('-');
+      showDialog.value = true;
+    }
+
+    function addEvent() {
+      if (!newTitle.value.trim()) return;
+      if (!events.value[selectedDate.value]) events.value[selectedDate.value] = [];
+      events.value[selectedDate.value].push({ title: newTitle.value.trim(), color: newColor.value });
+      newTitle.value = '';
+      newColor.value = '';
+      saveEvents();
+    }
+
+    function removeEvent(index) {
+      events.value[selectedDate.value].splice(index, 1);
+      if (events.value[selectedDate.value].length === 0) delete events.value[selectedDate.value];
+      saveEvents();
+    }
+
+    function prevMonth() { if (month.value === 0) { month.value = 11; year.value--; } else { month.value--; } }
+    function nextMonth() { if (month.value === 11) { month.value = 0; year.value++; } else { month.value++; } }
+    function goToday() { const n = new Date(); year.value = n.getFullYear(); month.value = n.getMonth(); }
+
+    return { year, month, showDialog, selectedDate, newTitle, newColor, events, colorMap, dayNames, monthLabel, calendarGrid, getEvents, dialogDate, selectedEvents, selectDate, openAdd, addEvent, removeEvent, prevMonth, nextMonth, goToday, t };
+  }
+};
+
+/* ── NotificationsApp ── */
+const NOTIF_STORAGE_KEY = 'desktopNotifications';
+function loadNotifications() {
+  const d = JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY) || 'null');
+  if (d) return d;
+  return [
+    {icon:'📅',bg:'#ecf5ff',title:t('notifCalTitle'),text:t('notifCalText'),time:t('notifTime2h'),read:false},
+    {icon:'✅',bg:'#f0f9eb',title:t('notifTaskTitle'),text:t('notifTaskText'),time:t('notifTime4h'),read:false},
+    {icon:'⚙️',bg:'#fdf6ec',title:t('notifSysTitle'),text:t('notifSysText'),time:t('notifYesterday'),read:true},
+    {icon:'💻',bg:'#f4ecfb',title:t('notifTermTitle'),text:t('notifTermText'),time:t('notifYesterday'),read:true}
+  ];
+}
+
+const NotificationsApp = {
+  template: '#NotificationsApp',
+  setup() {
+    const notifications = ref(loadNotifications());
+    const newText = ref('');
+    const unreadCount = computed(() => notifications.value.filter(n => !n.read).length);
+    function save() { localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(notifications.value)); }
+    function markAllRead() { notifications.value.forEach(n => n.read = true); save(); }
+    function remove(i) { notifications.value.splice(i, 1); save(); }
+    function addNotif() {
+      if (!newText.value.trim()) return;
+      notifications.value.unshift({ icon:'📌', bg:'#ecf5ff', title:t('notifLabel'), text: newText.value.trim(), time:t('notifNow'), read:false });
+      newText.value = '';
+      save();
+    }
+    function openAction(n) {
+      n.read = true;
+      save();
+      if (n.action && n.action.app) {
+        window.dispatchEvent(new CustomEvent('open-app-action', { detail: n.action }));
+      }
+    }
+    return { notifications, newText, unreadCount, markAllRead, remove, addNotif, save, openAction, t };
+  }
+};
+
+/* ── BrowserApp ── */
+const BrowserApp = {
+  template: '#BrowserApp',
+  setup() {
+    const urlInput = ref('');
+    const currentUrl = ref('');
+    const iframeSrc = ref('');
+    const loading = ref(false);
+    const error = ref('');
+    const statusText = ref('');
+    const history = ref([]);
+    const historyIndex = ref(-1);
+    const bookmarks = ref([]);
+    const showBookmarks = ref(false);
+    const iframeRef = ref(null);
+
+    // Tabs
+    const tabs = ref([{ id: 1, url: '', title: 'New Tab', iframeSrc: '' }]);
+    const activeTab = ref(0);
+    let tabIdCounter = 2;
+
+    const isSecure = computed(() => currentUrl.value.startsWith('https://'));
+
+    function getToken() { try { return localStorage.getItem('auth_token') || ''; } catch { return ''; } }
+
+    function normalizeUrl(input) {
+      let url = input.trim();
+      if (!url) return '';
+      if (/^https?:\/\//i.test(url)) return url;
+      if (/^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/.test(url)) return 'https://' + url;
+      // Treat as search query
+      return 'https://www.google.com/search?q=' + encodeURIComponent(url);
+    }
+
+    function proxyUrl(url) {
+      return '/api/browser/proxy?url=' + encodeURIComponent(url);
+    }
+
+    function navigate() {
+      const url = normalizeUrl(urlInput.value);
+      if (url) loadUrl(url);
+    }
+
+    function loadUrl(url) {
+      error.value = '';
+      loading.value = true;
+      currentUrl.value = url;
+      urlInput.value = url;
+      statusText.value = url;
+
+      iframeSrc.value = proxyUrl(url);
+
+      // Update history
+      if (historyIndex.value < history.value.length - 1) {
+        history.value = history.value.slice(0, historyIndex.value + 1);
+      }
+      history.value.push(url);
+      historyIndex.value = history.value.length - 1;
+
+      // Update tab
+      tabs.value[activeTab.value].url = url;
+      tabs.value[activeTab.value].iframeSrc = iframeSrc.value;
+    }
+
+    function onIframeLoad() {
+      loading.value = false;
+      statusText.value = currentUrl.value;
+      // Try to get title from response
+      try {
+        const iframe = iframeRef.value;
+        if (iframe && iframe.contentDocument) {
+          const title = iframe.contentDocument.title;
+          if (title) tabs.value[activeTab.value].title = title;
+        }
+      } catch { /* cross-origin, ignore */ }
+    }
+
+    function goBack() {
+      if (historyIndex.value > 0) {
+        historyIndex.value--;
+        const url = history.value[historyIndex.value];
+        currentUrl.value = url;
+        urlInput.value = url;
+        iframeSrc.value = proxyUrl(url);
+        tabs.value[activeTab.value].url = url;
+      }
+    }
+
+    function goForward() {
+      if (historyIndex.value < history.value.length - 1) {
+        historyIndex.value++;
+        const url = history.value[historyIndex.value];
+        currentUrl.value = url;
+        urlInput.value = url;
+        iframeSrc.value = proxyUrl(url);
+        tabs.value[activeTab.value].url = url;
+      }
+    }
+
+    function reload() {
+      if (currentUrl.value) {
+        loading.value = true;
+        error.value = '';
+        // Force reload by appending timestamp
+        iframeSrc.value = proxyUrl(currentUrl.value) + '&_t=' + Date.now();
+      }
+    }
+
+    function goHome() {
+      currentUrl.value = '';
+      urlInput.value = '';
+      iframeSrc.value = '';
+      error.value = '';
+      statusText.value = '';
+      tabs.value[activeTab.value].url = '';
+      tabs.value[activeTab.value].title = 'New Tab';
+    }
+
+    // Tabs
+    function newTab() {
+      tabs.value.push({ id: tabIdCounter++, url: '', title: 'New Tab', iframeSrc: '' });
+      activeTab.value = tabs.value.length - 1;
+      currentUrl.value = '';
+      urlInput.value = '';
+      iframeSrc.value = '';
+      error.value = '';
+    }
+
+    function switchTab(i) {
+      activeTab.value = i;
+      const tab = tabs.value[i];
+      currentUrl.value = tab.url;
+      urlInput.value = tab.url;
+      iframeSrc.value = tab.iframeSrc || '';
+    }
+
+    function closeTab(i) {
+      if (tabs.value.length <= 1) { goHome(); return; }
+      tabs.value.splice(i, 1);
+      if (activeTab.value >= tabs.value.length) activeTab.value = tabs.value.length - 1;
+      switchTab(activeTab.value);
+    }
+
+    // Bookmarks
+    function toggleBookmarks() { showBookmarks.value = !showBookmarks.value; }
+    function addBookmark() {
+      if (!currentUrl.value) return;
+      if (bookmarks.value.find(b => b.url === currentUrl.value)) return;
+      const title = tabs.value[activeTab.value]?.title || currentUrl.value;
+      bookmarks.value.push({ url: currentUrl.value, title });
+      saveBookmarks();
+    }
+    function removeBookmark(i) { bookmarks.value.splice(i, 1); saveBookmarks(); }
+    function saveBookmarks() { localStorage.setItem('browser_bookmarks', JSON.stringify(bookmarks.value)); }
+    function loadBookmarks() {
+      try { bookmarks.value = JSON.parse(localStorage.getItem('browser_bookmarks') || '[]'); } catch { bookmarks.value = []; }
+    }
+
+    onMounted(() => { loadBookmarks(); });
+
+    return {
+      urlInput, currentUrl, iframeSrc, loading, error, statusText,
+      history, historyIndex, bookmarks, showBookmarks, iframeRef, isSecure,
+      tabs, activeTab,
+      navigate, loadUrl, onIframeLoad, goBack, goForward, reload, goHome,
+      newTab, switchTab, closeTab,
+      toggleBookmarks, addBookmark, removeBookmark
+    };
+  }
+};
+
+/* ── AppStoreApp ── */
+const AppStoreApp = {
+  template: '#AppStoreApp',
+  setup() {
+    const storeApps = ref([]);
+    const loading = ref(true);
+
+    async function getAuthHeaders() {
+      const cookies = document.cookie.split(';').reduce((acc, c) => { const [k, ...v] = c.trim().split('='); acc[k] = v.join('='); return acc; }, {});
+      return { 'Content-Type': 'application/json' };
+    }
+
+    async function loadStore() {
+      loading.value = true;
+      try {
+        const res = await fetch('/api/store', { headers: await getAuthHeaders() });
+        if (res.ok) storeApps.value = await res.json();
+      } catch (e) { console.error('Store load error', e); }
+      loading.value = false;
+    }
+
+    async function install(app) {
+      try {
+        const res = await fetch('/api/apps/install', {
+          method: 'POST',
+          headers: await getAuthHeaders(),
+          body: JSON.stringify({ appId: app.id })
+        });
+        if (res.ok) {
+          app.installed = true;
+          window.dispatchEvent(new CustomEvent('app-installed', { detail: app }));
+        }
+      } catch (e) { console.error('Install error', e); }
+    }
+
+    async function uninstall(app) {
+      try {
+        const res = await fetch('/api/apps/uninstall', {
+          method: 'POST',
+          headers: await getAuthHeaders(),
+          body: JSON.stringify({ appId: app.id })
+        });
+        if (res.ok) {
+          app.installed = false;
+          window.dispatchEvent(new CustomEvent('app-uninstalled', { detail: { id: app.id } }));
+        }
+      } catch (e) { console.error('Uninstall error', e); }
+    }
+
+    onMounted(() => loadStore());
+
+    const STORE_CAT_META = {
+      productivity: { icon: '📋', order: 1 },
+      tools: { icon: '🛠️', order: 2 },
+      media: { icon: '🎬', order: 3 },
+      games: { icon: '🎮', order: 4 },
+      internet: { icon: '🌐', order: 5 },
+      finance: { icon: '💰', order: 6 },
+      other: { icon: '📦', order: 7 }
+    };
+    const STORE_CAT_NAMES = {
+      productivity: { tr: 'Verimlilik', en: 'Productivity', de: 'Produktivität', fr: 'Productivité', es: 'Productividad', ru: 'Продуктивность' },
+      tools: { tr: 'Araçlar', en: 'Tools', de: 'Werkzeuge', fr: 'Outils', es: 'Herramientas', ru: 'Инструменты' },
+      media: { tr: 'Medya', en: 'Media', de: 'Medien', fr: 'Médias', es: 'Medios', ru: 'Медиа' },
+      games: { tr: 'Oyunlar', en: 'Games', de: 'Spiele', fr: 'Jeux', es: 'Juegos', ru: 'Игры' },
+      internet: { tr: 'İnternet', en: 'Internet', de: 'Internet', fr: 'Internet', es: 'Internet', ru: 'Интернет' },
+      finance: { tr: 'Finans', en: 'Finance', de: 'Finanzen', fr: 'Finance', es: 'Finanzas', ru: 'Финансы' },
+      other: { tr: 'Diğer', en: 'Other', de: 'Sonstige', fr: 'Autres', es: 'Otros', ru: 'Другое' }
+    };
+
+    const activeCategory = ref('');
+
+    const storeCategories = computed(() => {
+      const cats = {};
+      storeApps.value.forEach(app => {
+        const c = app.category || 'other';
+        if (!cats[c]) cats[c] = [];
+        cats[c].push(app);
+      });
+      const loc = useSettingsStore().locale;
+      return Object.keys(cats)
+        .sort((a, b) => (STORE_CAT_META[a]?.order || 99) - (STORE_CAT_META[b]?.order || 99))
+        .map(c => ({
+          id: c,
+          icon: STORE_CAT_META[c]?.icon || '📦',
+          name: (STORE_CAT_NAMES[c] || {})[loc] || (STORE_CAT_NAMES[c] || {}).tr || c,
+          apps: cats[c]
+        }));
+    });
+
+    function sAppName(app) { const loc = useSettingsStore().locale; const l = (app.lang||{})[loc] || (app.lang||{}).tr; return l && l.name ? l.name : app.name; }
+    function sAppDesc(app) { const loc = useSettingsStore().locale; const l = (app.lang||{})[loc] || (app.lang||{}).tr; return l && l.description ? l.description : (app.description||''); }
+    return { storeApps, storeCategories, activeCategory, loading, install, uninstall, t, appName: sAppName, appDesc: sAppDesc };
+  }
+};
+
+/* ── Component Map ── */
+const componentMap = {
+  calc: CalcApp,
+  notepad: NotepadApp,
+  fileman: FilemanApp,
+  todo: TodoApp,
+  weather: WeatherApp,
+  settings: SettingsApp,
+  terminal: TerminalApp,
+  clock: ClockApp,
+  calendar: CalendarApp,
+  notifications: NotificationsApp,
+  appstore: AppStoreApp,
+  browser: BrowserApp
+};
+
+/* ── Main App ── */
+createApp({
+  setup() {
+    const settingsStore = useSettingsStore();
+    const apps = ref(APPS);
+
+    const CATEGORY_META = {
+      system: { icon: '🖥️', order: 1 },
+      productivity: { icon: '📋', order: 2 },
+      internet: { icon: '🌐', order: 3 },
+      utilities: { icon: '🔧', order: 4 },
+      media: { icon: '🎬', order: 5 },
+      games: { icon: '🎮', order: 6 },
+      tools: { icon: '🛠️', order: 7 },
+      finance: { icon: '💰', order: 8 },
+      other: { icon: '📦', order: 9 }
+    };
+
+    const CATEGORY_NAMES = {
+      system: { tr: 'Sistem', en: 'System', de: 'System', fr: 'Système', es: 'Sistema', ru: 'Система' },
+      productivity: { tr: 'Verimlilik', en: 'Productivity', de: 'Produktivität', fr: 'Productivité', es: 'Productividad', ru: 'Продуктивность' },
+      internet: { tr: 'İnternet', en: 'Internet', de: 'Internet', fr: 'Internet', es: 'Internet', ru: 'Интернет' },
+      utilities: { tr: 'Araçlar', en: 'Utilities', de: 'Dienstprogramme', fr: 'Utilitaires', es: 'Utilidades', ru: 'Утилиты' },
+      media: { tr: 'Medya', en: 'Media', de: 'Medien', fr: 'Médias', es: 'Medios', ru: 'Медиа' },
+      games: { tr: 'Oyunlar', en: 'Games', de: 'Spiele', fr: 'Jeux', es: 'Juegos', ru: 'Игры' },
+      tools: { tr: 'Araçlar', en: 'Tools', de: 'Werkzeuge', fr: 'Outils', es: 'Herramientas', ru: 'Инструменты' },
+      finance: { tr: 'Finans', en: 'Finance', de: 'Finanzen', fr: 'Finance', es: 'Finanzas', ru: 'Финансы' },
+      other: { tr: 'Diğer', en: 'Other', de: 'Sonstige', fr: 'Autres', es: 'Otros', ru: 'Другое' }
+    };
+
+    function getCatName(catId) {
+      const names = CATEGORY_NAMES[catId];
+      return names ? (names[settingsStore.locale] || names.tr) : catId;
+    }
+
+    const openCats = reactive({ system: true, productivity: true, internet: true, utilities: false, media: false, games: false, tools: false, finance: false, other: false });
+
+    const menuCategories = computed(() => {
+      const cats = {};
+      apps.value.forEach(app => {
+        const c = app.category || 'other';
+        if (!cats[c]) cats[c] = [];
+        cats[c].push(app);
+      });
+      return Object.keys(cats)
+        .sort((a, b) => (CATEGORY_META[a]?.order || 99) - (CATEGORY_META[b]?.order || 99))
+        .map(c => ({ id: c, icon: CATEGORY_META[c]?.icon || '📦', name: getCatName(c), apps: cats[c] }));
+    });
+    function appName(app) {
+      // Built-in apps: use i18n key matching app.id
+      const key = app.id;
+      const translated = (I18N[settingsStore.locale] || I18N.tr)[key];
+      if (translated) return translated;
+      // Dynamic/store apps: use lang object from manifest
+      if (app.lang) {
+        const l = app.lang[settingsStore.locale] || app.lang.tr;
+        if (l && l.name) return l.name;
+      }
+      return app.name;
+    }
+    function appDesc(app) {
+      if (app.lang) {
+        const l = app.lang[settingsStore.locale] || app.lang.tr;
+        if (l && l.description) return l.description;
+      }
+      return app.description || '';
+    }
+    const openWindows = ref([]);
+    const currentDesktop = ref(1);
+    const iconDesktopMap = ref(JSON.parse(localStorage.getItem('iconDesktopMap') || '{}'));
+    const iconCtx = ref({ show: false, x: 0, y: 0, app: null });
+    const menuOpen = ref(false);
+    const volOpen = ref(false);
+    const volStore = useVolumeStore();
+    const time = ref('');
+    const date = ref('');
+    let wbMap = {};
+    let subApps = {};
+    let clockTimer = null;
+    let skipFocusEvent = false;
+
+    function saveIconMap() { localStorage.setItem('iconDesktopMap', JSON.stringify(iconDesktopMap.value)); }
+
+    function getIconDesktops(appId) {
+      return iconDesktopMap.value[appId] || [1];
+    }
+
+    function isIconOnDesktop(appId, d) {
+      return getIconDesktops(appId).includes(d);
+    }
+
+    const desktopApps = computed(() => apps.value.filter(a => isIconOnDesktop(a.id, currentDesktop.value)));
+
+    function showIconCtx(e, app) {
+      const x = Math.min(e.clientX, window.innerWidth - 200);
+      const y = Math.min(e.clientY, window.innerHeight - 280);
+      iconCtx.value = { show: true, x, y, app };
+    }
+    function hideIconCtx() { iconCtx.value.show = false; }
+
+    function moveIcon(appId, targetDesktop) {
+      if (targetDesktop === currentDesktop.value) { hideIconCtx(); return; }
+      const desktops = getIconDesktops(appId).filter(d => d !== currentDesktop.value);
+      if (!desktops.includes(targetDesktop)) desktops.push(targetDesktop);
+      iconDesktopMap.value[appId] = desktops;
+      saveIconMap();
+      hideIconCtx();
+    }
+
+    function copyIcon(appId, targetDesktop) {
+      const desktops = getIconDesktops(appId);
+      if (desktops.includes(targetDesktop)) { hideIconCtx(); return; }
+      desktops.push(targetDesktop);
+      iconDesktopMap.value[appId] = desktops;
+      saveIconMap();
+      hideIconCtx();
+    }
+
+    const notifCount = ref(0);
+    function updateNotifCount() {
+      const d = JSON.parse(localStorage.getItem('desktopNotifications') || 'null');
+      notifCount.value = d ? d.filter(n => !n.read).length : 2;
+    }
+
+    function updateClock() {
+      const store = useSettingsStore();
+      const loc = LOCALE_MAP[store.locale] || 'tr-TR';
+      const opts = store.timezone ? { timeZone: store.timezone } : {};
+      const now = new Date();
+      time.value = now.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit', ...opts });
+      date.value = now.toLocaleDateString(loc, { day: '2-digit', month: '2-digit', year: 'numeric', ...opts });
+    }
+
+    function openApp(app) {
+      const existing = openWindows.value.find(w => w.id === app.id);
+      if (existing) { focusWindow(existing); return; }
+
+      const sz = SIZES[app.id] || { w: 480, h: 380 };
+      const saved = JSON.parse(localStorage.getItem('wb_' + app.id) || 'null');
+      const vw = window.innerWidth, vh = window.innerHeight - 56;
+      const wbW = saved ? saved.w : sz.w;
+      const wbH = saved ? saved.h : sz.h;
+      const x = saved ? saved.x : Math.max(20, Math.floor(Math.random() * (vw - sz.w - 40)));
+      const y = saved ? saved.y : Math.max(20, Math.floor(Math.random() * (vh - sz.h - 40)));
+
+      const win = { id: app.id, name: appName(app), icon: app.icon, focused: true, minimized: false, desktop: currentDesktop.value };
+      openWindows.value.forEach(w => w.focused = false);
+      openWindows.value.push(win);
+
+      const wb = new WinBox({
+        title: app.icon + ' ' + appName(app),
+        width: wbW,
+        height: wbH,
+        x, y,
+        class: ['no-full'],
+        onclose() {
+          localStorage.setItem('wb_' + app.id, JSON.stringify({ x: wb.x, y: wb.y, w: wb.width, h: wb.height }));
+          if (subApps[app.id]) {
+            subApps[app.id].unmount();
+            delete subApps[app.id];
+          }
+          openWindows.value = openWindows.value.filter(w => w.id !== app.id);
+          delete wbMap[app.id];
+          return false;
+        },
+        onfocus() {
+          if (skipFocusEvent) return;
+          openWindows.value.forEach(w => w.focused = w.id === app.id);
+        },
+        onblur() {
+          if (skipFocusEvent) return;
+          const w = openWindows.value.find(w => w.id === app.id);
+          if (w) w.focused = false;
+        }
+      });
+      wbMap[app.id] = wb;
+
+      // Mount content into WinBox body
+      if (app.type === 'external') {
+        const iframe = document.createElement('iframe');
+        iframe.src = '/proxy/' + app.id + '/';
+        iframe.style.cssText = 'width:100%;height:100%;border:none';
+        wb.body.appendChild(iframe);
+      } else {
+        const comp = componentMap[app.id];
+        if (comp) {
+          const mountEl = document.createElement('div');
+          mountEl.style.width = '100%';
+          mountEl.style.height = '100%';
+          wb.body.appendChild(mountEl);
+          const subApp = Vue.createApp(comp);
+          subApp.use(pinia);
+          subApp.use(ElementPlus, EP_LOCALES[useSettingsStore().locale] || EP_LOCALES.en);
+          subApp.mount(mountEl);
+          subApps[app.id] = subApp;
+        }
+      }
+    }
+
+    // ── Dynamic app install/uninstall ──
+    async function loadDynamicApp(manifest) {
+      if (manifest.type === 'external') {
+        SIZES[manifest.id] = manifest.size || { w: 800, h: 600 };
+        apps.value.push({
+          id: manifest.id, name: manifest.name, icon: manifest.icon,
+          color: manifest.color, type: 'external', lang: manifest.lang
+        });
+        return;
+      }
+      // Internal: fetch template + component + optional style
+      try {
+        const [tplRes, compRes, styleRes] = await Promise.all([
+          fetch('/api/apps/' + manifest.id + '/template'),
+          fetch('/api/apps/' + manifest.id + '/component'),
+          fetch('/api/apps/' + manifest.id + '/style').catch(() => null)
+        ]);
+        if (!tplRes.ok || !compRes.ok) return;
+        const templateHtml = await tplRes.text();
+        const componentCode = await compRes.text();
+        // Inject CSS if available
+        if (styleRes && styleRes.ok) {
+          const css = await styleRes.text();
+          const styleEl = document.createElement('style');
+          styleEl.dataset.appId = manifest.id;
+          styleEl.textContent = css;
+          document.head.appendChild(styleEl);
+        }
+        const compDef = new Function('Vue', 'return ' + componentCode)(Vue);
+        compDef.template = templateHtml;
+        componentMap[manifest.id] = compDef;
+        SIZES[manifest.id] = manifest.size || { w: 480, h: 380 };
+        apps.value.push({
+          id: manifest.id, name: manifest.name, icon: manifest.icon,
+          color: manifest.color, type: 'internal', lang: manifest.lang
+        });
+      } catch (e) { console.error('Failed to load dynamic app:', manifest.id, e); }
+    }
+
+    function removeDynamicApp(appId) {
+      // Close window if open
+      const win = openWindows.value.find(w => w.id === appId);
+      if (win) {
+        const wb = wbMap[appId];
+        if (wb) wb.close();
+      }
+      // Remove injected CSS
+      const styleEl = document.querySelector('style[data-app-id="' + appId + '"]');
+      if (styleEl) styleEl.remove();
+      delete componentMap[appId];
+      delete SIZES[appId];
+      apps.value = apps.value.filter(a => a.id !== appId);
+    }
+
+    async function loadInstalledApps() {
+      try {
+        const res = await fetch('/api/apps');
+        if (!res.ok) return;
+        const installedApps = await res.json();
+        for (const manifest of installedApps) {
+          if (apps.value.find(a => a.id === manifest.id)) continue; // skip built-in
+          await loadDynamicApp(manifest);
+        }
+      } catch (e) { console.error('Failed to load installed apps', e); }
+    }
+
+    function onAppInstalled(e) { loadDynamicApp(e.detail); }
+    function onAppUninstalled(e) { removeDynamicApp(e.detail.id); }
+
+    const visibleWindows = computed(() => openWindows.value.filter(w => w.desktop === currentDesktop.value));
+
+    function desktopHasWindows(d) { return openWindows.value.some(w => w.desktop === d); }
+
+    function focusWindow(win) {
+      const wb = wbMap[win.id];
+      if (!wb) return;
+      if (win.desktop !== currentDesktop.value) {
+        switchDesktop(win.desktop);
+        return;
+      }
+      const wbEl = wb.body.parentElement;
+      skipFocusEvent = true;
+      if (win.minimized) {
+        wbEl.style.display = '';
+        openWindows.value.forEach(w => w.focused = false);
+        win.minimized = false;
+        win.focused = true;
+        wb.focus();
+      } else {
+        wbEl.style.display = 'none';
+        win.minimized = true;
+        win.focused = false;
+      }
+      setTimeout(() => { skipFocusEvent = false; }, 50);
+    }
+
+    function switchDesktop(d) {
+      if (d === currentDesktop.value) return;
+      skipFocusEvent = true;
+      openWindows.value.forEach(w => {
+        const wb = wbMap[w.id];
+        if (!wb) return;
+        const wbEl = wb.body.parentElement;
+        if (w.desktop === currentDesktop.value) {
+          wbEl.style.display = 'none';
+          w.focused = false;
+        }
+      });
+      currentDesktop.value = d;
+      updateWallpaper();
+      openWindows.value.forEach(w => {
+        const wb = wbMap[w.id];
+        if (!wb) return;
+        const wbEl = wb.body.parentElement;
+        if (w.desktop === d && !w.minimized) {
+          wbEl.style.display = '';
+        }
+      });
+      setTimeout(() => { skipFocusEvent = false; }, 50);
+    }
+
+    function getWallpaperUrl() {
+      const ss = useSettingsStore();
+      if (ss.wallpaperMode === 'per') {
+        return ss.wallpapers[currentDesktop.value] || '';
+      }
+      return ss.wallpaperAll || '';
+    }
+
+    const desktopStyle = computed(() => {
+      const url = getWallpaperUrl();
+      if (!url) return {};
+      const token = localStorage.getItem('token');
+      return {
+        backgroundImage: 'url(' + url + (url.includes('?') ? '&' : '?') + 'token=' + token + ')',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      };
+    });
+
+    function updateWallpaper() {
+      // Force computed re-evaluation by touching currentDesktop (already done)
+      // Apply via DOM for immediate effect
+      const el = document.querySelector('.desktop');
+      if (!el) return;
+      const url = getWallpaperUrl();
+      if (!url) {
+        el.style.backgroundImage = '';
+        el.style.backgroundSize = '';
+        el.style.backgroundPosition = '';
+        return;
+      }
+      const token = localStorage.getItem('token');
+      el.style.backgroundImage = 'url(' + url + (url.includes('?') ? '&' : '?') + 'token=' + token + ')';
+      el.style.backgroundSize = 'cover';
+      el.style.backgroundPosition = 'center';
+    }
+
+    window._applyWallpaper = updateWallpaper;
+
+    function toggleMenu() { menuOpen.value = !menuOpen.value; }
+    function closeMenu() { menuOpen.value = false; volOpen.value = false; }
+
+    function closeAllWindows() {
+      const ids = openWindows.value.map(w => w.id);
+      ids.forEach(id => {
+        const wb = wbMap[id];
+        if (wb) { try { wb.close(true); } catch {} }
+        if (subApps[id]) { try { subApps[id].unmount(); } catch {} delete subApps[id]; }
+        delete wbMap[id];
+      });
+      openWindows.value = [];
+    }
+
+    function setSystemVol(e) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      volStore.setLevel(pct * 100);
+    }
+
+    const isFullscreen = ref(false);
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    function onFsChange() { isFullscreen.value = !!document.fullscreenElement; }
+
+    // ── WebSocket for real-time notifications ──
+    let wsConn = null;
+    let reminderAudioCtx = null;
+    function connectWS() {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      wsConn = new WebSocket(proto + '//' + location.host + '/ws');
+      wsConn.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.type === 'notification' && msg.data) {
+            const stored = JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY) || '[]');
+            stored.unshift(msg.data);
+            if (stored.length > 200) stored.length = 200;
+            localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(stored));
+            updateNotifCount();
+          }
+          if (msg.type === 'reminder-alert' && msg.data) {
+            showReminderAlert(msg.data);
+          }
+        } catch {}
+      };
+      wsConn.onclose = () => { setTimeout(connectWS, 5000); };
+      wsConn.onerror = () => { wsConn.close(); };
+    }
+
+    // ── Reminder alert system ──
+    const reminderAlert = ref({ show: false, id: '', title: '', note: '', timeStr: '' });
+    let reminderAlertQueue = [];
+    let reminderSoundTimer = null;
+
+    function playReminderSound() {
+      try {
+        if (!reminderAudioCtx) reminderAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const ctx = reminderAudioCtx;
+        // Play a pleasant two-tone chime
+        [0, 300, 600].forEach((delay) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(delay === 300 ? 880 : 660, ctx.currentTime + delay / 1000);
+          gain.gain.setValueAtTime(0.15, ctx.currentTime + delay / 1000);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay / 1000 + 0.5);
+          osc.start(ctx.currentTime + delay / 1000);
+          osc.stop(ctx.currentTime + delay / 1000 + 0.5);
+        });
+      } catch {}
+    }
+
+    function showReminderAlert(data) {
+      const loc = LOCALE_MAP[useSettingsStore().locale] || 'tr-TR';
+      const timeStr = new Date(data.datetime).toLocaleString(loc);
+      if (reminderAlert.value.show) {
+        // Queue if another alert is already showing
+        reminderAlertQueue.push({ ...data, timeStr });
+        return;
+      }
+      reminderAlert.value = { show: true, id: data.id, title: data.title, note: data.note || '', timeStr };
+      if (data.sound !== false) {
+        playReminderSound();
+        // Repeat sound every 8 seconds if not dismissed
+        reminderSoundTimer = setInterval(playReminderSound, 8000);
+      }
+    }
+
+    function dismissReminder() {
+      if (reminderSoundTimer) { clearInterval(reminderSoundTimer); reminderSoundTimer = null; }
+      const rid = reminderAlert.value.id;
+      reminderAlert.value = { show: false, id: '', title: '', note: '', timeStr: '' };
+      // Dismiss on server
+      if (rid) fetch('/api/reminders/' + rid + '/dismiss', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).catch(() => {});
+      // Show next queued alert
+      if (reminderAlertQueue.length) {
+        const next = reminderAlertQueue.shift();
+        setTimeout(() => showReminderAlert(next), 400);
+      }
+    }
+
+    function snoozeReminder(minutes) {
+      if (reminderSoundTimer) { clearInterval(reminderSoundTimer); reminderSoundTimer = null; }
+      const rid = reminderAlert.value.id;
+      reminderAlert.value = { show: false, id: '', title: '', note: '', timeStr: '' };
+      if (rid) fetch('/api/reminders/' + rid + '/snooze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ minutes }) }).catch(() => {});
+      if (reminderAlertQueue.length) {
+        const next = reminderAlertQueue.shift();
+        setTimeout(() => showReminderAlert(next), 400);
+      }
+    }
+
+    function openReminderApp() {
+      dismissReminder();
+      const target = apps.value.find(a => a.id === 'reminder');
+      if (target) openApp(target);
+    }
+
+    // ── open-app-action handler for notification actions ──
+    function onOpenAppAction(e) {
+      const action = e.detail || {};
+      const appId = action.app;
+      if (!appId) return;
+      const target = apps.value.find(a => a.id === appId);
+      if (!target) return;
+      // Set navigation data for the app to pick up
+      if (appId === 'rss-reader') {
+        window.__rssNavigate = action.data || {};
+      }
+      openApp(target);
+      // Also dispatch specific navigate event if app is already open
+      if (appId === 'rss-reader') {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('rss-navigate', { detail: action.data || {} }));
+        }, 300);
+      }
+    }
+
+    onMounted(() => {
+      updateClock();
+      updateNotifCount();
+      clockTimer = setInterval(() => { updateClock(); updateNotifCount(); }, 1000);
+      document.addEventListener('fullscreenchange', onFsChange);
+      window.addEventListener('app-installed', onAppInstalled);
+      window.addEventListener('app-uninstalled', onAppUninstalled);
+      window.addEventListener('open-app-action', onOpenAppAction);
+      loadInstalledApps();
+      connectWS();
+    });
+    onUnmounted(() => {
+      clearInterval(clockTimer);
+      document.removeEventListener('fullscreenchange', onFsChange);
+      window.removeEventListener('app-installed', onAppInstalled);
+      window.removeEventListener('app-uninstalled', onAppUninstalled);
+      window.removeEventListener('open-app-action', onOpenAppAction);
+      if (wsConn) wsConn.close();
+    });
+
+    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats };
+  }
+}).use(pinia).use(ElementPlus, EP_LOCALES[localStorage.getItem('sys_locale') || 'tr'] || EP_LOCALES.en).mount('#app');
+
+// Load settings store at boot
+const _bootStore = useSettingsStore();
+_bootStore.load().then(() => {
+  if (window._applyWallpaper) window._applyWallpaper();
+});
+</script>
+</body>
+</html>

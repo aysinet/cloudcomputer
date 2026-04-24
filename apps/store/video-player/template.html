@@ -1,0 +1,98 @@
+<div class="vp-root">
+  <div v-if="loadingInit" class="vp-loading">Yükleniyor...</div>
+  <template v-else>
+    <!-- Video Area -->
+    <div class="vp-player" :class="{ 'vp-no-video': !currentTrack }" @dblclick="toggleFullscreen">
+      <video ref="videoEl" class="vp-video" @click="toggle" @loadedmetadata="onMeta" @timeupdate="onTime" @ended="next" @error="onError"></video>
+      <div v-if="!currentTrack" class="vp-placeholder">
+        <div style="font-size:48px">🎬</div>
+        <div>Video seçin veya dosya yükleyin</div>
+      </div>
+      <!-- Overlay Controls -->
+      <div class="vp-overlay" :class="{ show: showControls || !playing }">
+        <div class="vp-ov-top">
+          <span class="vp-ov-title">{{currentTrack ? currentTrack.title : ''}}</span>
+        </div>
+        <div class="vp-ov-center" @click.stop="toggle">
+          <div class="vp-big-play">{{playing ? '⏸' : '▶'}}</div>
+        </div>
+        <div class="vp-ov-bottom">
+          <div class="vp-seek-bar" @click.stop="seek($event)">
+            <div class="vp-seek-fill" :style="{width: progress+'%'}"></div>
+          </div>
+          <div class="vp-bottom-row">
+            <button class="vp-cb" @click.stop="prev">⏮</button>
+            <button class="vp-cb" @click.stop="toggle">{{playing ? '⏸' : '▶'}}</button>
+            <button class="vp-cb" @click.stop="next">⏭</button>
+            <span class="vp-time-text">{{formatTime(elapsed)}} / {{formatTime(duration)}}</span>
+            <span style="flex:1"></span>
+            <span class="vp-vol-icon" @click.stop="toggleMute">{{muted ? '🔇' : volume > 50 ? '🔊' : '🔉'}}</span>
+            <div class="vp-vol-bar" @click.stop="setVolume($event)">
+              <div class="vp-vol-fill" :style="{width: (muted ? 0 : volume)+'%'}"></div>
+            </div>
+            <button class="vp-cb" @click.stop="toggleFullscreen" title="Tam Ekran">⛶</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Link Input -->
+    <div class="vp-link-bar">
+      <input class="vp-link-input" v-model="linkUrl" placeholder="Video URL'si yapıştır (mp4, webm...)" @keyup.enter="addFromUrl" />
+      <button class="vp-link-btn" @click="addFromUrl" :disabled="!linkUrl.trim()">+ Ekle</button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="vp-tabs">
+      <button class="vp-tab" :class="{active: tab==='playlist'}" @click="tab='playlist'">📋 Liste ({{tracks.length}})</button>
+      <button class="vp-tab" :class="{active: tab==='files'}" @click="tab='files'">📂 Dosyalar</button>
+    </div>
+
+    <!-- Playlist Tab -->
+    <div v-if="tab==='playlist'" class="vp-list">
+      <div v-if="!tracks.length" class="vp-empty">
+        <div>Liste boş — Dosyalar sekmesinden video ekleyin</div>
+      </div>
+      <div v-for="(t,i) in tracks" :key="i" class="vp-track" :class="{active: i===index}" @click="play(i)">
+        <span class="vp-tr-num">{{i+1}}</span>
+        <span class="vp-tr-icon">{{t.icon || '🎬'}}</span>
+        <span class="vp-tr-title">{{t.title}}</span>
+        <div class="vp-tr-actions">
+          <button v-if="i > 0" class="vp-tr-btn" @click.stop="moveTrack(i, i-1)">↑</button>
+          <button v-if="i < tracks.length-1" class="vp-tr-btn" @click.stop="moveTrack(i, i+1)">↓</button>
+          <button class="vp-tr-btn vp-tr-rm" @click.stop="removeFromPlaylist(i)">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Files Tab -->
+    <div v-if="tab==='files'" class="vp-list">
+      <div class="vp-file-header">
+        <span class="vp-file-section">🌐 Ortak Videolar</span>
+      </div>
+      <div v-if="!availableFiles.public.length" class="vp-file-empty">Ortak video dosyası yok</div>
+      <div v-for="f in availableFiles.public" :key="'p_'+f.filename" class="vp-file-row">
+        <span class="vp-file-name">{{f.name}}</span>
+        <span class="vp-file-ext">{{f.ext}}</span>
+        <span class="vp-file-size">{{formatSize(f.size)}}</span>
+        <button v-if="!isInPlaylist(f)" class="vp-tr-btn vp-tr-add" @click="addToPlaylist(f, 'public')">+</button>
+        <span v-else class="vp-file-added">✓</span>
+      </div>
+      <div class="vp-file-header" style="margin-top:6px">
+        <span class="vp-file-section">👤 Videolarım</span>
+        <button class="vp-upload-btn" @click="triggerUpload" :disabled="uploading">
+          {{uploading ? '⏳ Yükleniyor...' : '📤 Yükle'}}
+        </button>
+      </div>
+      <div v-if="!availableFiles.user.length" class="vp-file-empty">Henüz video yüklenmedi</div>
+      <div v-for="f in availableFiles.user" :key="'u_'+f.filename" class="vp-file-row">
+        <span class="vp-file-name">{{f.name}}</span>
+        <span class="vp-file-ext">{{f.ext}}</span>
+        <span class="vp-file-size">{{formatSize(f.size)}}</span>
+        <button v-if="!isInPlaylist(f)" class="vp-tr-btn vp-tr-add" @click="addToPlaylist(f, 'user')">+</button>
+        <span v-else class="vp-file-added">✓</span>
+        <button class="vp-tr-btn vp-tr-rm" @click="deleteFile(f)">🗑</button>
+      </div>
+    </div>
+  </template>
+</div>

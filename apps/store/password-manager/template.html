@@ -1,0 +1,154 @@
+<div class="pm-root">
+  <!-- Lock Screen -->
+  <div v-if="!unlocked" class="pm-lock">
+    <div class="pm-lock-icon">🔐</div>
+    <div class="pm-lock-title">Şifre Kasası</div>
+    <div class="pm-lock-sub">{{vaultExists ? 'Ana şifrenizi girin' : 'Yeni bir ana şifre belirleyin'}}</div>
+    <el-input v-model="masterPass" type="password" show-password :placeholder="vaultExists ? 'Ana şifre...' : 'Yeni ana şifre belirle...'" class="pm-lock-input" @keyup.enter="unlock" />
+    <el-input v-if="!vaultExists" v-model="masterPassConfirm" type="password" show-password placeholder="Şifreyi tekrar girin..." class="pm-lock-input" @keyup.enter="unlock" style="margin-top:8px" />
+    <el-button type="primary" @click="unlock" :loading="loading" style="margin-top:12px;width:260px">
+      {{vaultExists ? 'Kilidi Aç' : 'Kasayı Oluştur'}}
+    </el-button>
+    <div v-if="lockError" class="pm-lock-err">{{lockError}}</div>
+  </div>
+
+  <!-- Main UI -->
+  <template v-else>
+    <div class="pm-header">
+      <div class="pm-header-left">
+        <el-select v-model="activeGroup" filterable size="small" style="width:160px" placeholder="Tüm Gruplar">
+          <el-option label="Tümü" value="" />
+          <el-option v-for="g in groups" :key="g" :label="g" :value="g" />
+        </el-select>
+        <el-input v-model="search" size="small" placeholder="Ara..." clearable prefix-icon="Search" style="width:180px" />
+      </div>
+      <div class="pm-header-right">
+        <el-button size="small" type="primary" @click="openAdd">+ Ekle</el-button>
+        <el-button size="small" @click="openGroupManager">📁 Gruplar</el-button>
+        <el-button size="small" type="danger" plain @click="lockVault">🔒 Kilitle</el-button>
+      </div>
+    </div>
+
+    <!-- Entry List -->
+    <div class="pm-list">
+      <div v-if="!filteredEntries.length" class="pm-empty">
+        <div style="font-size:40px;margin-bottom:8px">🔑</div>
+        <div>Henüz kayıt yok</div>
+      </div>
+      <div v-for="entry in filteredEntries" :key="entry.id" class="pm-entry" :class="{ active: selectedId === entry.id }" @click="selectEntry(entry)">
+        <div class="pm-entry-icon" :style="{ background: entry.color || '#5c6bc0' }">{{entry.title ? entry.title[0].toUpperCase() : '?'}}</div>
+        <div class="pm-entry-info">
+          <div class="pm-entry-title">{{entry.title}}</div>
+          <div class="pm-entry-user">{{entry.username}}</div>
+        </div>
+        <div class="pm-entry-group-tag">{{entry.group}}</div>
+      </div>
+    </div>
+
+    <!-- Detail Panel (dialog) -->
+    <el-dialog v-model="showDetail" :title="isEditing ? (editingEntry.id ? 'Düzenle' : 'Yeni Kayıt') : detailEntry?.title" width="420px" :close-on-click-modal="false" append-to-body>
+      <template v-if="isEditing">
+        <el-form label-position="top" size="small">
+          <el-form-item label="Başlık">
+            <el-input v-model="editingEntry.title" placeholder="Örn: Gmail" />
+          </el-form-item>
+          <el-form-item label="Grup">
+            <el-select v-model="editingEntry.group" filterable allow-create style="width:100%">
+              <el-option v-for="g in groups" :key="g" :label="g" :value="g" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Kullanıcı Adı">
+            <el-input v-model="editingEntry.username" placeholder="kullanici@mail.com" />
+          </el-form-item>
+          <el-form-item label="Şifre">
+            <div style="display:flex;gap:6px">
+              <el-input v-model="editingEntry.password" type="password" show-password style="flex:1" />
+              <el-button @click="generatePassword" title="Şifre üret">🎲</el-button>
+            </div>
+          </el-form-item>
+          <el-form-item label="URL">
+            <el-input v-model="editingEntry.url" placeholder="https://..." />
+          </el-form-item>
+          <el-form-item label="Notlar">
+            <el-input v-model="editingEntry.notes" type="textarea" :rows="2" />
+          </el-form-item>
+        </el-form>
+        <!-- Password Generator Options -->
+        <div v-if="showGenOpts" class="pm-gen-opts">
+          <div class="pm-gen-title">Şifre Üretici</div>
+          <div class="pm-gen-row">
+            <span>Uzunluk: {{genLength}}</span>
+            <el-slider v-model="genLength" :min="8" :max="64" :show-tooltip="false" style="flex:1;margin:0 12px" />
+          </div>
+          <div class="pm-gen-checks">
+            <el-checkbox v-model="genUpper">Büyük harf</el-checkbox>
+            <el-checkbox v-model="genLower">Küçük harf</el-checkbox>
+            <el-checkbox v-model="genDigits">Rakam</el-checkbox>
+            <el-checkbox v-model="genSymbols">Sembol</el-checkbox>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="detailEntry">
+        <div class="pm-detail-rows">
+          <div class="pm-detail-row">
+            <div class="pm-detail-label">Kullanıcı</div>
+            <div class="pm-detail-val">{{detailEntry.username}} <el-button size="small" text @click="copyText(detailEntry.username)">📋</el-button></div>
+          </div>
+          <div class="pm-detail-row">
+            <div class="pm-detail-label">Şifre</div>
+            <div class="pm-detail-val">
+              <span>{{showPass ? detailEntry.password : '••••••••'}}</span>
+              <el-button size="small" text @click="showPass=!showPass">{{showPass ? '🙈' : '👁'}}</el-button>
+              <el-button size="small" text @click="copyText(detailEntry.password)">📋</el-button>
+            </div>
+          </div>
+          <div class="pm-detail-row" v-if="detailEntry.url">
+            <div class="pm-detail-label">URL</div>
+            <div class="pm-detail-val">{{detailEntry.url}} <el-button size="small" text @click="copyText(detailEntry.url)">📋</el-button></div>
+          </div>
+          <div class="pm-detail-row" v-if="detailEntry.group">
+            <div class="pm-detail-label">Grup</div>
+            <div class="pm-detail-val">{{detailEntry.group}}</div>
+          </div>
+          <div class="pm-detail-row" v-if="detailEntry.notes">
+            <div class="pm-detail-label">Notlar</div>
+            <div class="pm-detail-val pm-notes">{{detailEntry.notes}}</div>
+          </div>
+          <div class="pm-detail-row">
+            <div class="pm-detail-label">Değiştirilme</div>
+            <div class="pm-detail-val">{{detailEntry.modified || '-'}}</div>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <template v-if="isEditing">
+          <el-button @click="showDetail=false">İptal</el-button>
+          <el-button type="primary" @click="saveEntry">Kaydet</el-button>
+        </template>
+        <template v-else>
+          <el-button type="danger" plain @click="deleteEntry(detailEntry)">Sil</el-button>
+          <el-button type="primary" @click="editEntry(detailEntry)">Düzenle</el-button>
+        </template>
+      </template>
+    </el-dialog>
+
+    <!-- Group Manager Dialog -->
+    <el-dialog v-model="showGroups" title="Grupları Yönet" width="340px" append-to-body>
+      <div class="pm-group-list">
+        <div v-for="(g, i) in groups" :key="i" class="pm-group-item">
+          <span>{{g}}</span>
+          <el-button size="small" text type="danger" @click="removeGroup(i)" :disabled="g==='Genel'">✕</el-button>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <el-input v-model="newGroupName" size="small" placeholder="Yeni grup adı..." @keyup.enter="addGroup" />
+        <el-button size="small" type="primary" @click="addGroup">Ekle</el-button>
+      </div>
+    </el-dialog>
+
+    <!-- Copy Toast -->
+    <transition name="el-fade-in">
+      <div v-if="copyToast" class="pm-toast">✓ Kopyalandı</div>
+    </transition>
+  </template>
+</div>

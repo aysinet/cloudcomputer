@@ -1,0 +1,66 @@
+<div class="pdf-app">
+  <!-- Toolbar -->
+  <div class="pdf-toolbar">
+    <div class="pdf-toolbar-left">
+      <button class="pdf-btn" @click="openFile" title="Open PDF">📂</button>
+      <button class="pdf-btn" @click="uploadPdf" title="Upload PDF">📤</button>
+      <button class="pdf-btn" @click="saveToFs" :disabled="!pdfData" title="Save to Files">💾</button>
+      <button class="pdf-btn" @click="downloadPdf" :disabled="!pdfData" title="Download PDF">📥</button>
+      <div class="pdf-separator"></div>
+      <button class="pdf-btn" @click="zoomOut" :disabled="!pdfData" title="Zoom Out">➖</button>
+      <span class="pdf-zoom-label">{{ zoomPercent }}%</span>
+      <button class="pdf-btn" @click="zoomIn" :disabled="!pdfData" title="Zoom In">➕</button>
+      <button class="pdf-btn" @click="resetZoom" :disabled="!pdfData" title="Reset Zoom">🔄</button>
+      <div class="pdf-separator"></div>
+      <button class="pdf-btn" @click="fitWidth" :disabled="!pdfData" title="Fit Width">↔️</button>
+      <button class="pdf-btn" @click="fitPage" :disabled="!pdfData" title="Fit Page">📄</button>
+    </div>
+    <div class="pdf-toolbar-center">
+      <button class="pdf-btn pdf-nav-btn" @click="prevPage" :disabled="!pdfData || currentPage <= 1">◀</button>
+      <span class="pdf-page-info" v-if="pdfData">
+        <input type="number" class="pdf-page-input" :value="currentPage" @change="goToPage($event.target.value)" :min="1" :max="totalPages" /> / {{ totalPages }}
+      </span>
+      <button class="pdf-btn pdf-nav-btn" @click="nextPage" :disabled="!pdfData || currentPage >= totalPages">▶</button>
+    </div>
+    <div class="pdf-toolbar-right">
+      <button class="pdf-btn" @click="rotateLeft" :disabled="!pdfData" title="Rotate Left">↩️</button>
+      <button class="pdf-btn" @click="rotateRight" :disabled="!pdfData" title="Rotate Right">↪️</button>
+      <button class="pdf-btn" @click="printPdf" :disabled="!pdfData" title="Print">🖨️</button>
+    </div>
+  </div>
+
+  <!-- Hidden file input for upload -->
+  <input type="file" ref="fileInput" accept=".pdf" style="display:none" @change="handleFileUpload" />
+
+  <!-- Content Area -->
+  <div class="pdf-content" ref="pdfContent" @scroll="handleScroll">
+    <!-- Welcome Screen -->
+    <div v-if="!pdfData && !loading" class="pdf-welcome">
+      <div class="pdf-welcome-icon">📕</div>
+      <div class="pdf-welcome-title">PDF Viewer</div>
+      <div class="pdf-welcome-text">{{ welcomeText }}</div>
+      <div class="pdf-welcome-actions">
+        <button class="pdf-action-btn" @click="openFile">📂 {{ openText }}</button>
+        <button class="pdf-action-btn" @click="uploadPdf">📤 {{ uploadText }}</button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loading" class="pdf-loading">
+      <div class="pdf-spinner"></div>
+      <div>{{ loadingText }}</div>
+    </div>
+
+    <!-- PDF Pages -->
+    <div v-if="pdfData && !loading" class="pdf-pages" :style="{ transform: 'rotate(' + rotation + 'deg)' }">
+      <canvas v-for="p in totalPages" :key="p" :ref="el => { if(el) canvasRefs[p] = el }" class="pdf-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="pdf-statusbar" v-if="pdfData">
+    <span>📕 {{ currentFileName }}</span>
+    <span>{{ currentPage }} / {{ totalPages }}</span>
+    <span>{{ zoomPercent }}%</span>
+  </div>
+</div>

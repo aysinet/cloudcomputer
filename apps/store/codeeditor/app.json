@@ -1,0 +1,40 @@
+{
+  "id": "codeeditor",
+  "name": "Kod EditÃ¶rÃ¼",
+  "icon": "ğŸ’»",
+  "color": "linear-gradient(135deg,#0078d4,#1e1e1e)",
+  "type": "internal",
+  "size": {
+    "w": 900,
+    "h": 640
+  },
+  "global": false,
+  "description": "Monaco tabanlÄ± kod editÃ¶rÃ¼ â€” 14 dil desteÄŸi, kod Ã§alÄ±ÅŸtÄ±rma, dosya aÃ§ma/kaydetme",
+  "lang": {
+    "tr": {
+      "name": "Kod EditÃ¶rÃ¼",
+      "description": "Monaco tabanlÄ± kod editÃ¶rÃ¼ â€” 14 dil desteÄŸi, kod Ã§alÄ±ÅŸtÄ±rma"
+    },
+    "en": {
+      "name": "Code Editor",
+      "description": "Monaco-based code editor â€” 14 language support, code execution"
+    },
+    "de": {
+      "name": "Code-Editor",
+      "description": "Monaco-basierter Code-Editor â€” 14 Sprachen, Code-AusfÃ¼hrung"
+    },
+    "fr": {
+      "name": "Ã‰diteur de code",
+      "description": "Ã‰diteur de code basÃ© sur Monaco â€” 14 langages, exÃ©cution de code"
+    },
+    "es": {
+      "name": "Editor de cÃ³digo",
+      "description": "Editor de cÃ³digo basado en Monaco â€” 14 lenguajes, ejecuciÃ³n de cÃ³digo"
+    },
+    "ru": {
+      "name": "Ğ ĞµĞ´Ğ°ĞºÑ‚Ğ¾Ñ€ ĞºĞ¾Ğ´Ğ°",
+      "description": "Ğ ĞµĞ´Ğ°ĞºÑ‚Ğ¾Ñ€ ĞºĞ¾Ğ´Ğ° Ğ½Ğ° Monaco â€” Ğ¿Ğ¾Ğ´Ğ´ĞµÑ€Ğ¶ĞºĞ° 14 ÑĞ·Ñ‹ĞºĞ¾Ğ², Ğ²Ñ‹Ğ¿Ğ¾Ğ»Ğ½ĞµĞ½Ğ¸Ğµ ĞºĞ¾Ğ´Ğ°"
+    }
+  },
+  "category": "productivity"
+}
