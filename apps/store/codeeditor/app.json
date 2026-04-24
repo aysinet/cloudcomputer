@@ -1,7 +1,7 @@
 {
   "id": "codeeditor",
-  "name": "Kod EditÃ¶rÃ¼",
-  "icon": "ğŸ’»",
+  "name": "Kod Editörü",
+  "icon": "💻",
   "color": "linear-gradient(135deg,#0078d4,#1e1e1e)",
   "type": "internal",
   "size": {
@@ -9,31 +9,31 @@
     "h": 640
   },
   "global": false,
-  "description": "Monaco tabanlÄ± kod editÃ¶rÃ¼ â€” 14 dil desteÄŸi, kod Ã§alÄ±ÅŸtÄ±rma, dosya aÃ§ma/kaydetme",
+  "description": "Monaco tabanlı kod editörü — söz dizimi vurgulama, dosya aç/kaydet",
   "lang": {
     "tr": {
-      "name": "Kod EditÃ¶rÃ¼",
-      "description": "Monaco tabanlÄ± kod editÃ¶rÃ¼ â€” 14 dil desteÄŸi, kod Ã§alÄ±ÅŸtÄ±rma"
+      "name": "Kod Editörü",
+      "description": "Monaco tabanlı kod editörü — söz dizimi vurgulama, dosya aç/kaydet"
     },
     "en": {
       "name": "Code Editor",
-      "description": "Monaco-based code editor â€” 14 language support, code execution"
+      "description": "Monaco-based code editor — syntax highlighting, file open/save"
     },
     "de": {
       "name": "Code-Editor",
-      "description": "Monaco-basierter Code-Editor â€” 14 Sprachen, Code-AusfÃ¼hrung"
+      "description": "Monaco-basierter Code-Editor — Syntaxhervorhebung, Datei öffnen/speichern"
     },
     "fr": {
-      "name": "Ã‰diteur de code",
-      "description": "Ã‰diteur de code basÃ© sur Monaco â€” 14 langages, exÃ©cution de code"
+      "name": "Éditeur de code",
+      "description": "Éditeur de code Monaco — coloration syntaxique, ouvrir/enregistrer"
     },
     "es": {
-      "name": "Editor de cÃ³digo",
-      "description": "Editor de cÃ³digo basado en Monaco â€” 14 lenguajes, ejecuciÃ³n de cÃ³digo"
+      "name": "Editor de código",
+      "description": "Editor de código Monaco — resaltado de sintaxis, abrir/guardar"
     },
     "ru": {
-      "name": "Ğ ĞµĞ´Ğ°ĞºÑ‚Ğ¾Ñ€ ĞºĞ¾Ğ´Ğ°",
-      "description": "Ğ ĞµĞ´Ğ°ĞºÑ‚Ğ¾Ñ€ ĞºĞ¾Ğ´Ğ° Ğ½Ğ° Monaco â€” Ğ¿Ğ¾Ğ´Ğ´ĞµÑ€Ğ¶ĞºĞ° 14 ÑĞ·Ñ‹ĞºĞ¾Ğ², Ğ²Ñ‹Ğ¿Ğ¾Ğ»Ğ½ĞµĞ½Ğ¸Ğµ ĞºĞ¾Ğ´Ğ°"
+      "name": "Редактор кода",
+      "description": "Редактор кода Monaco — подсветка синтаксиса, открытие/сохранение файлов"
     }
   },
   "category": "productivity"

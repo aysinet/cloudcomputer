@@ -1,7 +1,7 @@
 {
   "id": "mail-app",
   "name": "Mail",
-  "icon": "ğŸ“§",
+  "icon": "📧",
   "color": "linear-gradient(135deg,#4a90d9,#1a5276)",
   "type": "internal",
   "size": {
@@ -9,31 +9,31 @@
     "h": 620
   },
   "global": false,
-  "description": "E-posta gÃ¶nderme ve alma â€” SMTP ve POP3 desteÄŸi",
+  "description": "E-posta gönderme ve alma — SMTP ve POP3 desteği",
   "lang": {
     "tr": {
       "name": "Mail",
-      "description": "E-posta gÃ¶nderme ve alma â€” SMTP ve POP3 desteÄŸi"
+      "description": "E-posta gönderme ve alma — SMTP ve POP3 desteği"
     },
     "en": {
       "name": "Mail",
-      "description": "Send and receive emails â€” SMTP and POP3 support"
+      "description": "Send and receive emails — SMTP and POP3 support"
     },
     "de": {
       "name": "Mail",
-      "description": "E-Mails senden und empfangen â€” SMTP- und POP3-UnterstÃ¼tzung"
+      "description": "E-Mails senden und empfangen — SMTP- und POP3-Unterstützung"
     },
     "fr": {
       "name": "Mail",
-      "description": "Envoyer et recevoir des e-mails â€” Support SMTP et POP3"
+      "description": "Envoyer et recevoir des e-mails — Support SMTP et POP3"
     },
     "es": {
       "name": "Correo",
-      "description": "Enviar y recibir correos â€” Soporte SMTP y POP3"
+      "description": "Enviar y recibir correos — Soporte SMTP y POP3"
     },
     "ru": {
-      "name": "ĞŸĞ¾Ñ‡Ñ‚Ğ°",
-      "description": "ĞÑ‚Ğ¿Ñ€Ğ°Ğ²ĞºĞ° Ğ¸ Ğ¿Ğ¾Ğ»ÑƒÑ‡ĞµĞ½Ğ¸Ğµ Ğ¿Ğ¸ÑĞµĞ¼ â€” Ğ¿Ğ¾Ğ´Ğ´ĞµÑ€Ğ¶ĞºĞ° SMTP Ğ¸ POP3"
+      "name": "Почта",
+      "description": "Отправка и получение писем — поддержка SMTP и POP3"
     }
   },
   "category": "productivity"

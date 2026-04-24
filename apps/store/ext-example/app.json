@@ -1,7 +1,7 @@
 {
   "id": "ext-example",
   "name": "External App",
-  "icon": "ğŸŒ",
+  "icon": "🌐",
   "color": "linear-gradient(135deg,#0078d4,#005a9e)",
   "type": "external",
   "url": "http://localhost:9090",
@@ -10,11 +10,11 @@
     "h": 600
   },
   "global": false,
-  "description": "Harici uygulama Ã¶rneÄŸi (localhost:9090)",
+  "description": "Harici uygulama örneği (localhost:9090)",
   "lang": {
     "tr": {
       "name": "Harici Uygulama",
-      "description": "Harici uygulama Ã¶rneÄŸi (localhost:9090)"
+      "description": "Harici uygulama örneği (localhost:9090)"
     },
     "en": {
       "name": "External App",
@@ -22,7 +22,7 @@
     },
     "de": {
       "name": "Externe App",
-      "description": "Beispiel fÃ¼r externe Anwendung (localhost:9090)"
+      "description": "Beispiel für externe Anwendung (localhost:9090)"
     },
     "fr": {
       "name": "App Externe",
@@ -30,11 +30,11 @@
     },
     "es": {
       "name": "App Externa",
-      "description": "Ejemplo de aplicaciÃ³n externa (localhost:9090)"
+      "description": "Ejemplo de aplicación externa (localhost:9090)"
     },
     "ru": {
-      "name": "Ğ’Ğ½ĞµÑˆĞ½ĞµĞµ Ğ¿Ñ€Ğ¸Ğ»Ğ¾Ğ¶ĞµĞ½Ğ¸Ğµ",
-      "description": "ĞŸÑ€Ğ¸Ğ¼ĞµÑ€ Ğ²Ğ½ĞµÑˆĞ½ĞµĞ³Ğ¾ Ğ¿Ñ€Ğ¸Ğ»Ğ¾Ğ¶ĞµĞ½Ğ¸Ñ (localhost:9090)"
+      "name": "Внешнее приложение",
+      "description": "Пример внешнего приложения (localhost:9090)"
     }
   },
   "category": "other"

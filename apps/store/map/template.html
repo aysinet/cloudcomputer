@@ -1,9 +1,8 @@
-<div class="map-app">
+<div class="map-app" @mousemove="onAppMouseMove">
+  <!-- HOVER TRIGGER ZONE -->
+  <div class="map-hover-zone" @mouseenter="openDrawer"></div>
   <!-- DRAWER -->
-  <el-drawer v-model="drawerOpen" direction="ltr" :size="280" :with-header="false"
-    :modal="false" :append-to-body="false" :show-close="false"
-    modal-class="map-drawer-modal" class="map-drawer"
-    @open="onDrawerChange" @close="onDrawerChange">
+  <div :class="['map-slide-drawer', drawerOpen && 'open']" @mouseleave="closeDrawer">
     <div class="map-drawer-inner">
       <div class="map-sb-tabs">
         <button :class="['map-sb-tab', sidebarTab==='markers'&&'active']" @click="sidebarTab='markers'">📍 {{L('markers')}}</button>
@@ -117,12 +116,7 @@
         </div>
       </div>
     </div>
-  </el-drawer>
-
-  <!-- Drawer toggle button -->
-  <button class="map-drawer-toggle" @click="drawerOpen=!drawerOpen">
-    {{drawerOpen ? '◀' : '☰'}}
-  </button>
+  </div>
 
   <!-- MAP AREA -->
   <div class="map-main">

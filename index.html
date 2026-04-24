@@ -94,6 +94,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .winbox .wb-icon{top:0!important;left:6px!important;width:16px!important;height:28px!important}
 .winbox .wb-control{top:0!important}
 .winbox .wb-control .wb-close,.winbox .wb-control .wb-min,.winbox .wb-control .wb-max,.winbox .wb-control .wb-full{width:28px!important;height:28px!important;background-size:12px!important}
+.winbox.min{display:none!important}
 
 /* ── CalcApp ── */
 .calc-root{width:100%;height:100%;background:#1e1e2e;display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',sans-serif}
@@ -1419,7 +1420,12 @@ const I18N = {
     storeTitle: 'Uygulama Mağazası', appsAvailable: 'uygulama mevcut',
     internal: 'Dahili', external: 'Harici', install: 'Kur', uninstall: 'Kaldır',
     // Volume
-    volMute: '🔇 Sessiz', volUnmute: '🔈 Sesi Aç'
+    volMute: '🔇 Sessiz', volUnmute: '🔈 Sesi Aç',
+    // Wallpaper
+    settingsWallpaper: 'Duvar Kağıdı', wpMode: 'Uygulama Modu', wpModeDesc: 'Tüm masaüstlerine aynı veya ayrı duvar kağıdı',
+    wpAll: 'Tümüne Aynı', wpPer: 'Ayrı Ayrı', wpDesktopSelect: 'Masaüstü Seç',
+    wpUpload: 'Resim Yükle', wpUploadBtn: 'Yükle', wpGallery: 'Duvar Kağıtları',
+    wpUploading: 'Yükleniyor...', wpDefault: 'Varsayılan'
   },
   en: {
     apps: 'Applications', user: 'User', loading: 'Loading...', search: 'Search...',
@@ -1445,7 +1451,11 @@ const I18N = {
     send: 'Send', openApp: 'Open App',
     storeTitle: 'App Store', appsAvailable: 'apps available',
     internal: 'Internal', external: 'External', install: 'Install', uninstall: 'Uninstall',
-    volMute: '🔇 Mute', volUnmute: '🔈 Unmute'
+    volMute: '🔇 Mute', volUnmute: '🔈 Unmute',
+    settingsWallpaper: 'Wallpaper', wpMode: 'Mode', wpModeDesc: 'Same wallpaper for all desktops or different for each',
+    wpAll: 'Same for All', wpPer: 'Per Desktop', wpDesktopSelect: 'Select Desktop',
+    wpUpload: 'Upload Image', wpUploadBtn: 'Upload', wpGallery: 'Wallpapers',
+    wpUploading: 'Uploading...', wpDefault: 'Default'
   },
   de: {
     apps: 'Anwendungen', user: 'Benutzer', loading: 'Laden...', search: 'Suchen...',
@@ -1471,7 +1481,11 @@ const I18N = {
     send: 'Senden', openApp: 'App öffnen',
     storeTitle: 'App Store', appsAvailable: 'Apps verfügbar',
     internal: 'Intern', external: 'Extern', install: 'Installieren', uninstall: 'Deinstallieren',
-    volMute: '🔇 Stumm', volUnmute: '🔈 Ton an'
+    volMute: '🔇 Stumm', volUnmute: '🔈 Ton an',
+    settingsWallpaper: 'Hintergrundbild', wpMode: 'Modus', wpModeDesc: 'Gleiches oder verschiedenes Hintergrundbild für alle Desktops',
+    wpAll: 'Für alle gleich', wpPer: 'Pro Desktop', wpDesktopSelect: 'Desktop auswählen',
+    wpUpload: 'Bild hochladen', wpUploadBtn: 'Hochladen', wpGallery: 'Hintergrundbilder',
+    wpUploading: 'Wird hochgeladen...', wpDefault: 'Standard'
   },
   fr: {
     apps: 'Applications', user: 'Utilisateur', loading: 'Chargement...', search: 'Rechercher...',
@@ -1497,7 +1511,11 @@ const I18N = {
     send: 'Envoyer', openApp: 'Ouvrir l\'app',
     storeTitle: 'Boutique d\'apps', appsAvailable: 'apps disponibles',
     internal: 'Interne', external: 'Externe', install: 'Installer', uninstall: 'Désinstaller',
-    volMute: '🔇 Muet', volUnmute: '🔈 Son activé'
+    volMute: '🔇 Muet', volUnmute: '🔈 Son activé',
+    settingsWallpaper: 'Fond d\'écran', wpMode: 'Mode', wpModeDesc: 'Même fond d\'écran pour tous les bureaux ou différent pour chacun',
+    wpAll: 'Identique pour tous', wpPer: 'Par bureau', wpDesktopSelect: 'Sélectionner le bureau',
+    wpUpload: 'Charger une image', wpUploadBtn: 'Charger', wpGallery: 'Fonds d\'écran',
+    wpUploading: 'Chargement...', wpDefault: 'Par défaut'
   },
   es: {
     apps: 'Aplicaciones', user: 'Usuario', loading: 'Cargando...', search: 'Buscar...',
@@ -1523,7 +1541,11 @@ const I18N = {
     send: 'Enviar', openApp: 'Abrir app',
     storeTitle: 'Tienda de apps', appsAvailable: 'apps disponibles',
     internal: 'Interna', external: 'Externa', install: 'Instalar', uninstall: 'Desinstalar',
-    volMute: '🔇 Silenciar', volUnmute: '🔈 Activar sonido'
+    volMute: '🔇 Silenciar', volUnmute: '🔈 Activar sonido',
+    settingsWallpaper: 'Fondo de pantalla', wpMode: 'Modo', wpModeDesc: 'Mismo fondo para todos los escritorios o diferente para cada uno',
+    wpAll: 'Igual para todos', wpPer: 'Por escritorio', wpDesktopSelect: 'Seleccionar escritorio',
+    wpUpload: 'Subir imagen', wpUploadBtn: 'Subir', wpGallery: 'Fondos de pantalla',
+    wpUploading: 'Subiendo...', wpDefault: 'Predeterminado'
   },
   ru: {
     apps: 'Приложения', user: 'Пользователь', loading: 'Загрузка...', search: 'Поиск...',
@@ -1549,7 +1571,11 @@ const I18N = {
     send: 'Отправить', openApp: 'Открыть',
     storeTitle: 'Магазин приложений', appsAvailable: 'приложений доступно',
     internal: 'Встроенное', external: 'Внешнее', install: 'Установить', uninstall: 'Удалить',
-    volMute: '🔇 Без звука', volUnmute: '🔈 Включить звук'
+    volMute: '🔇 Без звука', volUnmute: '🔈 Включить звук',
+    settingsWallpaper: 'Обои', wpMode: 'Режим', wpModeDesc: 'Одинаковые обои для всех рабочих столов или разные',
+    wpAll: 'Одинаковые для всех', wpPer: 'Для каждого стола', wpDesktopSelect: 'Выбрать рабочий стол',
+    wpUpload: 'Загрузить изображение', wpUploadBtn: 'Загрузить', wpGallery: 'Обои',
+    wpUploading: 'Загрузка...', wpDefault: 'По умолчанию'
   }
 };
 
@@ -2863,6 +2889,14 @@ createApp({
           if (skipFocusEvent) return;
           const w = openWindows.value.find(w => w.id === app.id);
           if (w) w.focused = false;
+        },
+        onminimize() {
+          const w = openWindows.value.find(w => w.id === app.id);
+          if (w) { w.minimized = true; w.focused = false; }
+        },
+        onrestore() {
+          const w = openWindows.value.find(w => w.id === app.id);
+          if (w) { w.minimized = false; }
         }
       });
       wbMap[app.id] = wb;
@@ -2969,16 +3003,15 @@ createApp({
         switchDesktop(win.desktop);
         return;
       }
-      const wbEl = wb.body.parentElement;
       skipFocusEvent = true;
       if (win.minimized) {
-        wbEl.style.display = '';
+        wb.restore();
         openWindows.value.forEach(w => w.focused = false);
         win.minimized = false;
         win.focused = true;
         wb.focus();
       } else {
-        wbEl.style.display = 'none';
+        wb.minimize();
         win.minimized = true;
         win.focused = false;
       }

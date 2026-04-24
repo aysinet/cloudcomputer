@@ -1,7 +1,7 @@
 {
   "id": "photos",
-  "name": "FotoÄŸraflar",
-  "icon": "ğŸ–¼ï¸",
+  "name": "Fotoğraflar",
+  "icon": "🖼️",
   "color": "linear-gradient(135deg,#f093fb,#f5576c)",
   "type": "internal",
   "size": {
@@ -9,31 +9,31 @@
     "h": 560
   },
   "global": false,
-  "description": "FotoÄŸraf galerisi â€” yÃ¼kle, kategorile, etiketle, koleksiyon oluÅŸtur, slayt gÃ¶sterisi",
+  "description": "Fotoğraf galerisi — albümler, slayt gösterisi, düzenleme",
   "lang": {
     "tr": {
-      "name": "FotoÄŸraflar",
-      "description": "FotoÄŸraf galerisi â€” yÃ¼kle, kategorile, etiketle, koleksiyon ve slayt gÃ¶sterisi"
+      "name": "Fotoğraflar",
+      "description": "Fotoğraf galerisi — albümler, slayt gösterisi, düzenleme"
     },
     "en": {
       "name": "Photos",
-      "description": "Photo gallery â€” upload, categorize, tag, collections and slideshow"
+      "description": "Photo gallery — albums, slideshow, editing"
     },
     "de": {
       "name": "Fotos",
-      "description": "Fotogalerie â€” hochladen, kategorisieren, markieren, Sammlungen und Diashow"
+      "description": "Fotogalerie — Alben, Diashow, Bearbeitung"
     },
     "fr": {
       "name": "Photos",
-      "description": "Galerie photo â€” tÃ©lÃ©charger, catÃ©goriser, Ã©tiqueter, collections et diaporama"
+      "description": "Galerie photos — albums, diaporama, édition"
     },
     "es": {
       "name": "Fotos",
-      "description": "GalerÃ­a de fotos â€” subir, categorizar, etiquetar, colecciones y presentaciÃ³n"
+      "description": "Galería de fotos — álbumes, presentación, edición"
     },
     "ru": {
-      "name": "Ğ¤Ğ¾Ñ‚Ğ¾",
-      "description": "Ğ¤Ğ¾Ñ‚Ğ¾Ğ³Ğ°Ğ»ĞµÑ€ĞµÑ â€” Ğ·Ğ°Ğ³Ñ€ÑƒĞ·ĞºĞ°, ĞºĞ°Ñ‚ĞµĞ³Ğ¾Ñ€Ğ¸Ğ¸, Ñ‚ĞµĞ³Ğ¸, ĞºĞ¾Ğ»Ğ»ĞµĞºÑ†Ğ¸Ğ¸ Ğ¸ ÑĞ»Ğ°Ğ¹Ğ´-ÑˆĞ¾Ñƒ"
+      "name": "Фотографии",
+      "description": "Фотогалерея — альбомы, слайд-шоу, редактирование"
     }
   },
   "category": "media"

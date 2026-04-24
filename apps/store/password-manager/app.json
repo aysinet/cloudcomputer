@@ -1,7 +1,7 @@
 {
   "id": "password-manager",
-  "name": "Åifre YÃ¶neticisi",
-  "icon": "ğŸ”",
+  "name": "Şifre Yöneticisi",
+  "icon": "🔐",
   "color": "linear-gradient(135deg,#1a237e,#283593)",
   "type": "internal",
   "size": {
@@ -9,31 +9,31 @@
     "h": 520
   },
   "global": false,
-  "description": "KeePass tarzÄ± ÅŸifre yÃ¶neticisi.",
+  "description": "Şifre yöneticisi — AES şifreleme, güvenli kasa",
   "lang": {
     "tr": {
-      "name": "Åifre YÃ¶neticisi",
-      "description": "KeePass tarzÄ± ÅŸifre yÃ¶neticisi. AES-256-GCM ÅŸifreleme, gruplar, ÅŸifre Ã¼retici."
+      "name": "Şifre Yöneticisi",
+      "description": "Şifre yöneticisi — AES şifreleme, güvenli kasa"
     },
     "en": {
       "name": "Password Manager",
-      "description": "KeePass-style password manager. AES-256-GCM encryption, groups, password generator."
+      "description": "Password manager — AES encryption, secure vault"
     },
     "de": {
       "name": "Passwort-Manager",
-      "description": "KeePass-Ã¤hnlicher Passwort-Manager. AES-256-GCM-VerschlÃ¼sselung, Gruppen, Passwortgenerator."
+      "description": "Passwort-Manager — AES-Verschlüsselung, sicherer Tresor"
     },
     "fr": {
       "name": "Gestionnaire de mots de passe",
-      "description": "Gestionnaire de mots de passe style KeePass. Chiffrement AES-256-GCM, groupes, gÃ©nÃ©rateur."
+      "description": "Gestionnaire de mots de passe — chiffrement AES, coffre-fort sécurisé"
     },
     "es": {
-      "name": "Gestor de contraseÃ±as",
-      "description": "Gestor de contraseÃ±as estilo KeePass. Cifrado AES-256-GCM, grupos, generador."
+      "name": "Gestor de contraseñas",
+      "description": "Gestor de contraseñas — cifrado AES, caja fuerte segura"
     },
     "ru": {
-      "name": "ĞœĞµĞ½ĞµĞ´Ğ¶ĞµÑ€ Ğ¿Ğ°Ñ€Ğ¾Ğ»ĞµĞ¹",
-      "description": "ĞœĞµĞ½ĞµĞ´Ğ¶ĞµÑ€ Ğ¿Ğ°Ñ€Ğ¾Ğ»ĞµĞ¹ Ğ² ÑÑ‚Ğ¸Ğ»Ğµ KeePass. Ğ¨Ğ¸Ñ„Ñ€Ğ¾Ğ²Ğ°Ğ½Ğ¸Ğµ AES-256-GCM, Ğ³Ñ€ÑƒĞ¿Ğ¿Ñ‹, Ğ³ĞµĞ½ĞµÑ€Ğ°Ñ‚Ğ¾Ñ€."
+      "name": "Менеджер паролей",
+      "description": "Менеджер паролей — AES-шифрование, безопасное хранилище"
     }
   },
   "category": "tools"

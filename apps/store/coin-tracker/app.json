@@ -1,7 +1,7 @@
 {
   "id": "coin-tracker",
   "name": "Coin Tracker",
-  "icon": "ğŸ“ˆ",
+  "icon": "📈",
   "color": "linear-gradient(135deg,#f7931a,#ffad42)",
   "type": "internal",
   "size": {
@@ -9,31 +9,31 @@
     "h": 520
   },
   "global": false,
-  "description": "Binance Ã¼zerinden gerÃ§ek zamanlÄ± kripto para fiyat takibi.",
+  "description": "Kripto para takip — canlı fiyatlar, favoriler, portföy",
   "lang": {
     "tr": {
-      "name": "Coin Takip",
-      "description": "Binance Ã¼zerinden gerÃ§ek zamanlÄ± kripto para fiyat takibi. Favori ve gizleme desteÄŸi."
+      "name": "Coin Tracker",
+      "description": "Kripto para takip — canlı fiyatlar, favoriler, portföy"
     },
     "en": {
       "name": "Coin Tracker",
-      "description": "Real-time cryptocurrency price tracking via Binance. Favorite and hide support."
+      "description": "Cryptocurrency tracker — live prices, favorites, portfolio"
     },
     "de": {
-      "name": "Krypto-Tracker",
-      "description": "Echtzeit-KryptowÃ¤hrungsverfolgung Ã¼ber Binance. Favoriten- und AusblendunterstÃ¼tzung."
+      "name": "Coin Tracker",
+      "description": "Kryptowährungstracker — Live-Preise, Favoriten, Portfolio"
     },
     "fr": {
-      "name": "Suivi Crypto",
-      "description": "Suivi en temps rÃ©el des prix des cryptomonnaies via Binance."
+      "name": "Coin Tracker",
+      "description": "Suivi crypto — prix en direct, favoris, portefeuille"
     },
     "es": {
-      "name": "Rastreador Cripto",
-      "description": "Seguimiento de precios de criptomonedas en tiempo real a travÃ©s de Binance."
+      "name": "Coin Tracker",
+      "description": "Seguimiento de criptomonedas — precios en vivo, favoritos, portafolio"
     },
     "ru": {
-      "name": "ĞšÑ€Ğ¸Ğ¿Ñ‚Ğ¾-Ñ‚Ñ€ĞµĞºĞµÑ€",
-      "description": "ĞÑ‚ÑĞ»ĞµĞ¶Ğ¸Ğ²Ğ°Ğ½Ğ¸Ğµ Ñ†ĞµĞ½ ĞºÑ€Ğ¸Ğ¿Ñ‚Ğ¾Ğ²Ğ°Ğ»ÑÑ‚ Ğ² Ñ€ĞµĞ°Ğ»ÑŒĞ½Ğ¾Ğ¼ Ğ²Ñ€ĞµĞ¼ĞµĞ½Ğ¸ Ñ‡ĞµÑ€ĞµĞ· Binance."
+      "name": "Coin Tracker",
+      "description": "Отслеживание криптовалют — цены в реальном времени, избранное, портфель"
     }
   },
   "category": "finance"

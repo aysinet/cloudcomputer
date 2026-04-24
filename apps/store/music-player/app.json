@@ -1,7 +1,7 @@
 {
   "id": "music-player",
-  "name": "MÃ¼zik Ã‡alar",
-  "icon": "ğŸµ",
+  "name": "Müzik Çalar",
+  "icon": "🎵",
   "color": "linear-gradient(135deg,#11998e,#38ef7d)",
   "type": "internal",
   "size": {
@@ -9,31 +9,31 @@
     "h": 520
   },
   "global": false,
-  "description": "MÃ¼zik Ã§alar",
+  "description": "Müzik çalar — çalma listesi, albüm kapağı, ileri/geri",
   "lang": {
     "tr": {
-      "name": "MÃ¼zik Ã‡alar",
-      "description": "MÃ¼zik Ã§alar â€” MP3/WAV/OGG dosyalarÄ±nÄ± Ã§al, playlist yÃ¶net"
+      "name": "Müzik Çalar",
+      "description": "Müzik çalar — çalma listesi, albüm kapağı, ileri/geri"
     },
     "en": {
       "name": "Music Player",
-      "description": "Music player â€” Play MP3/WAV/OGG files, manage playlists"
+      "description": "Music player — playlist, album art, skip"
     },
     "de": {
-      "name": "Musikspieler",
-      "description": "Musikspieler â€” MP3/WAV/OGG-Dateien abspielen, Playlists verwalten"
+      "name": "Musikplayer",
+      "description": "Musikplayer — Wiedergabeliste, Albumcover, Überspringen"
     },
     "fr": {
-      "name": "Lecteur Musique",
-      "description": "Lecteur de musique â€” Lire des fichiers MP3/WAV/OGG, gÃ©rer les playlists"
+      "name": "Lecteur de musique",
+      "description": "Lecteur de musique — liste de lecture, pochette, passer"
     },
     "es": {
-      "name": "Reproductor MÃºsica",
-      "description": "Reproductor de mÃºsica â€” Reproducir archivos MP3/WAV/OGG, gestionar listas"
+      "name": "Reproductor de música",
+      "description": "Reproductor de música — lista de reproducción, carátula, saltar"
     },
     "ru": {
-      "name": "ĞœÑƒĞ·Ñ‹ĞºĞ°Ğ»ÑŒĞ½Ñ‹Ğ¹ Ğ¿Ğ»ĞµĞµÑ€",
-      "description": "ĞœÑƒĞ·Ñ‹ĞºĞ°Ğ»ÑŒĞ½Ñ‹Ğ¹ Ğ¿Ğ»ĞµĞµÑ€ â€” Ğ’Ğ¾ÑĞ¿Ñ€Ğ¾Ğ¸Ğ·Ğ²ĞµĞ´ĞµĞ½Ğ¸Ğµ MP3/WAV/OGG, ÑƒĞ¿Ñ€Ğ°Ğ²Ğ»ĞµĞ½Ğ¸Ğµ Ğ¿Ğ»ĞµĞ¹Ğ»Ğ¸ÑÑ‚Ğ°Ğ¼Ğ¸"
+      "name": "Музыкальный плеер",
+      "description": "Музыкальный плеер — плейлист, обложка, перемотка"
     }
   },
   "category": "media"

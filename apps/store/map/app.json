@@ -1,7 +1,7 @@
 {
   "id": "map",
   "name": "Harita",
-  "icon": "ğŸ—ºï¸",
+  "icon": "🗺️",
   "color": "linear-gradient(135deg,#2ecc71,#27ae60)",
   "type": "internal",
   "size": {
@@ -9,31 +9,31 @@
     "h": 560
   },
   "global": false,
-  "description": "Harita â€” lokasyon iÅŸaretle, gÃ¶rÃ¼nÃ¼m kaydet, katman seÃ§",
+  "description": "Harita — lokasyon işaretle, görünüm kaydet, katman seç",
   "lang": {
     "tr": {
       "name": "Harita",
-      "description": "Harita â€” lokasyon iÅŸaretle, gÃ¶rÃ¼nÃ¼m kaydet, katman seÃ§"
+      "description": "Harita — lokasyon işaretle, görünüm kaydet, katman seç"
     },
     "en": {
       "name": "Map",
-      "description": "Map â€” mark locations, save views, select layers"
+      "description": "Map — mark locations, save views, select layers"
     },
     "de": {
       "name": "Karte",
-      "description": "Karte â€” Standorte markieren, Ansichten speichern, Ebenen wÃ¤hlen"
+      "description": "Karte — Standorte markieren, Ansichten speichern, Ebenen wählen"
     },
     "fr": {
       "name": "Carte",
-      "description": "Carte â€” marquer des lieux, sauvegarder des vues, choisir des couches"
+      "description": "Carte — marquer des lieux, sauvegarder des vues, choisir des couches"
     },
     "es": {
       "name": "Mapa",
-      "description": "Mapa â€” marcar ubicaciones, guardar vistas, seleccionar capas"
+      "description": "Mapa — marcar ubicaciones, guardar vistas, seleccionar capas"
     },
     "ru": {
-      "name": "ĞšĞ°Ñ€Ñ‚Ğ°",
-      "description": "ĞšĞ°Ñ€Ñ‚Ğ° â€” Ğ¾Ñ‚Ğ¼ĞµÑ‡Ğ°Ñ‚ÑŒ Ğ¼ĞµÑÑ‚Ğ°, ÑĞ¾Ñ…Ñ€Ğ°Ğ½ÑÑ‚ÑŒ Ğ²Ğ¸Ğ´Ñ‹, Ğ²Ñ‹Ğ±Ğ¸Ñ€Ğ°Ñ‚ÑŒ ÑĞ»Ğ¾Ğ¸"
+      "name": "Карта",
+      "description": "Карта — отмечать места, сохранять виды, выбирать слои"
     }
   },
   "category": "tools"

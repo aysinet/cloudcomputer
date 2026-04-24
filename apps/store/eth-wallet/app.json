@@ -1,7 +1,7 @@
 {
   "id": "eth-wallet",
-  "name": "ETH CÃ¼zdan",
-  "icon": "ğŸ’",
+  "name": "ETH Cüzdan",
+  "icon": "💎",
   "color": "linear-gradient(135deg,#627eea,#3b5998)",
   "type": "internal",
   "size": {
@@ -9,31 +9,31 @@
     "h": 600
   },
   "global": false,
-  "description": "Ethereum cÃ¼zdan â€” oluÅŸtur, iÃ§e aktar, bakiye, gÃ¶nder, NFT listele",
+  "description": "Ethereum cüzdanı — bakiye, gönder, işlem geçmişi",
   "lang": {
     "tr": {
-      "name": "ETH CÃ¼zdan",
-      "description": "Ethereum cÃ¼zdan â€” oluÅŸtur, iÃ§e aktar, bakiye, gÃ¶nder, NFT listele"
+      "name": "ETH Cüzdan",
+      "description": "Ethereum cüzdanı — bakiye, gönder, işlem geçmişi"
     },
     "en": {
       "name": "ETH Wallet",
-      "description": "Ethereum wallet â€” create, import, balance, send, list NFTs"
+      "description": "Ethereum wallet — balance, send, transaction history"
     },
     "de": {
-      "name": "ETH Wallet",
-      "description": "Ethereum Wallet â€” erstellen, importieren, Saldo, senden, NFTs auflisten"
+      "name": "ETH-Wallet",
+      "description": "Ethereum-Wallet — Kontostand, Senden, Transaktionshistorie"
     },
     "fr": {
       "name": "Portefeuille ETH",
-      "description": "Portefeuille Ethereum â€” crÃ©er, importer, solde, envoyer, lister les NFTs"
+      "description": "Portefeuille Ethereum — solde, envoyer, historique des transactions"
     },
     "es": {
-      "name": "Billetera ETH",
-      "description": "Billetera Ethereum â€” crear, importar, saldo, enviar, listar NFTs"
+      "name": "Cartera ETH",
+      "description": "Cartera Ethereum — saldo, enviar, historial de transacciones"
     },
     "ru": {
-      "name": "ETH ĞšĞ¾ÑˆĞµĞ»Ñ‘Ğº",
-      "description": "Ethereum ĞºĞ¾ÑˆĞµĞ»Ñ‘Ğº â€” ÑĞ¾Ğ·Ğ´Ğ°Ñ‚ÑŒ, Ğ¸Ğ¼Ğ¿Ğ¾Ñ€Ñ‚Ğ¸Ñ€Ğ¾Ğ²Ğ°Ñ‚ÑŒ, Ğ±Ğ°Ğ»Ğ°Ğ½Ñ, Ğ¾Ñ‚Ğ¿Ñ€Ğ°Ğ²Ğ¸Ñ‚ÑŒ, ÑĞ¿Ğ¸ÑĞ¾Ğº NFT"
+      "name": "Кошелёк ETH",
+      "description": "Кошелёк Ethereum — баланс, отправка, история транзакций"
     }
   },
   "category": "finance"

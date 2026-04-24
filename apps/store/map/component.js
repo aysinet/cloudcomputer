@@ -100,7 +100,7 @@
     const savedViews = ref([]);
     const sidebarTab = ref('markers');
     const drawerOpen = ref(false);
-    const activeLayer = ref('osm');
+    const activeLayer = ref(localStorage.getItem('map_active_layer') || 'osm');
     const search = ref('');
     const placing = ref(false);
 
@@ -276,6 +276,7 @@
     // Layer switching
     function switchLayer(id) {
       activeLayer.value = id;
+      try { localStorage.setItem('map_active_layer', id); } catch {}
       if (!map) return;
       [tileLayerOSM, tileLayerSat, tileLayerTopo].forEach(l => { if (l) l.setVisible(false); });
       if (id === 'osm' && tileLayerOSM) tileLayerOSM.setVisible(true);
@@ -303,6 +304,20 @@
       setTimeout(() => { if (map) map.updateSize(); }, 350);
     }
 
+    function openDrawer() {
+      drawerOpen.value = true;
+      onDrawerChange();
+    }
+    function closeDrawer() {
+      drawerOpen.value = false;
+      onDrawerChange();
+    }
+    function onAppMouseMove(e) {
+      if (!drawerOpen.value && e.clientX - e.currentTarget.getBoundingClientRect().left <= 6) {
+        openDrawer();
+      }
+    }
+
     // Filtered markers
     const filteredMarkers = computed(() => {
       if (!search.value) return markers.value;
@@ -326,9 +341,9 @@
       markerSource = new ol.source.Vector();
       markerLayer = new ol.layer.Vector({ source: markerSource, zIndex: 10 });
 
-      tileLayerOSM = new ol.layer.Tile({ source: LAYER_CONFIGS.osm(), visible: true });
-      tileLayerSat = new ol.layer.Tile({ source: LAYER_CONFIGS.satellite(), visible: false });
-      tileLayerTopo = new ol.layer.Tile({ source: LAYER_CONFIGS.topo(), visible: false });
+      tileLayerOSM = new ol.layer.Tile({ source: LAYER_CONFIGS.osm(), visible: activeLayer.value === 'osm' });
+      tileLayerSat = new ol.layer.Tile({ source: LAYER_CONFIGS.satellite(), visible: activeLayer.value === 'satellite' });
+      tileLayerTopo = new ol.layer.Tile({ source: LAYER_CONFIGS.topo(), visible: activeLayer.value === 'topo' });
 
       const tooltipEl = document.getElementById('map-app-tooltip');
 
@@ -396,8 +411,8 @@
       await nextTick();
       setTimeout(initMap, 100);
       // Intro: briefly open drawer then close to hint its existence
-      setTimeout(() => { drawerOpen.value = true; }, 600);
-      setTimeout(() => { drawerOpen.value = false; }, 2200);
+      setTimeout(() => { drawerOpen.value = true; onDrawerChange(); }, 600);
+      setTimeout(() => { drawerOpen.value = false; onDrawerChange(); }, 2200);
     });
 
     onUnmounted(() => {
@@ -408,7 +423,7 @@
     return {
       L, markers, savedViews, sidebarTab, drawerOpen, activeLayer, search, placing,
       showForm, editingId, form, formError, showViewForm, viewFormName, markerIcons,
-      filteredMarkers, onDrawerChange,
+      filteredMarkers, onDrawerChange, openDrawer, closeDrawer, onAppMouseMove,
       openNewMarker, openEditMarker, cancelForm, saveMarker, deleteMarker, flyToMarker,
       openSaveView, saveView, deleteView, goToView,
       switchLayer, fitAll, goToMyLocation

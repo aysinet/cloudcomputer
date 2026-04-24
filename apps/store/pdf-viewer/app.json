@@ -1,7 +1,7 @@
 {
   "id": "pdf-viewer",
-  "name": "PDF GÃ¶rÃ¼ntÃ¼leyici",
-  "icon": "ğŸ“•",
+  "name": "PDF Görüntüleyici",
+  "icon": "📕",
   "color": "linear-gradient(135deg, #e74c3c, #c0392b)",
   "type": "internal",
   "size": {
@@ -9,31 +9,31 @@
     "h": 680
   },
   "global": false,
-  "description": "PDF dosyalarÄ±nÄ± gÃ¶rÃ¼ntÃ¼leyin, yÃ¼kleyin ve indirin",
+  "description": "PDF görüntüleyici — dosya aç, sayfa gezinme, yakınlaştırma",
   "lang": {
     "tr": {
-      "name": "PDF GÃ¶rÃ¼ntÃ¼leyici",
-      "description": "PDF dosyalarÄ±nÄ± gÃ¶rÃ¼ntÃ¼leyin, yÃ¼kleyin ve indirin"
+      "name": "PDF Görüntüleyici",
+      "description": "PDF görüntüleyici — dosya aç, sayfa gezinme, yakınlaştırma"
     },
     "en": {
       "name": "PDF Viewer",
-      "description": "View, upload, and download PDF files"
+      "description": "PDF viewer — open file, page navigation, zoom"
     },
     "de": {
-      "name": "PDF-Betrachter",
-      "description": "PDF-Dateien anzeigen, hochladen und herunterladen"
+      "name": "PDF-Viewer",
+      "description": "PDF-Viewer — Datei öffnen, Seitennavigation, Zoom"
     },
     "fr": {
       "name": "Visionneuse PDF",
-      "description": "Afficher, tÃ©lÃ©charger et tÃ©lÃ©verser des fichiers PDF"
+      "description": "Visionneuse PDF — ouvrir, navigation, zoom"
     },
     "es": {
       "name": "Visor de PDF",
-      "description": "Ver, cargar y descargar archivos PDF"
+      "description": "Visor de PDF — abrir, navegación, zoom"
     },
     "ru": {
-      "name": "ĞŸÑ€Ğ¾ÑĞ¼Ğ¾Ñ‚Ñ€ PDF",
-      "description": "ĞŸÑ€Ğ¾ÑĞ¼Ğ¾Ñ‚Ñ€, Ğ·Ğ°Ğ³Ñ€ÑƒĞ·ĞºĞ° Ğ¸ ÑĞºĞ°Ñ‡Ğ¸Ğ²Ğ°Ğ½Ğ¸Ğµ PDF-Ñ„Ğ°Ğ¹Ğ»Ğ¾Ğ²"
+      "name": "Просмотрщик PDF",
+      "description": "Просмотрщик PDF — открытие, навигация, масштабирование"
     }
   },
   "category": "tools"

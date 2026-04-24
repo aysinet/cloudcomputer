@@ -1,7 +1,7 @@
 {
   "id": "rss-reader",
   "name": "RSS Okuyucu",
-  "icon": "ğŸ“°",
+  "icon": "📰",
   "color": "linear-gradient(135deg,#ff9a56,#ff6b6b)",
   "type": "internal",
   "size": {
@@ -9,31 +9,31 @@
     "h": 520
   },
   "global": false,
-  "description": "RSS ve Atom beslemelerini takip edin",
+  "description": "RSS okuyucu — akış ekle, makale oku, favoriler",
   "lang": {
     "tr": {
       "name": "RSS Okuyucu",
-      "description": "RSS ve Atom beslemelerini takip edin â€” arka planda otomatik kontrol ve bildirim"
+      "description": "RSS okuyucu — akış ekle, makale oku, favoriler"
     },
     "en": {
       "name": "RSS Reader",
-      "description": "Follow RSS and Atom feeds â€” automatic background check and notifications"
+      "description": "RSS reader — add feeds, read articles, favorites"
     },
     "de": {
       "name": "RSS-Reader",
-      "description": "RSS- und Atom-Feeds verfolgen â€” automatische HintergrundprÃ¼fung und Benachrichtigungen"
+      "description": "RSS-Reader — Feeds hinzufügen, Artikel lesen, Favoriten"
     },
     "fr": {
       "name": "Lecteur RSS",
-      "description": "Suivez les flux RSS et Atom â€” vÃ©rification automatique en arriÃ¨re-plan"
+      "description": "Lecteur RSS — ajouter des flux, lire des articles, favoris"
     },
     "es": {
       "name": "Lector RSS",
-      "description": "Siga fuentes RSS y Atom â€” verificaciÃ³n automÃ¡tica en segundo plano"
+      "description": "Lector RSS — añadir feeds, leer artículos, favoritos"
     },
     "ru": {
-      "name": "RSS-Ñ€Ğ¸Ğ´ĞµÑ€",
-      "description": "ĞÑ‚ÑĞ»ĞµĞ¶Ğ¸Ğ²Ğ°Ğ½Ğ¸Ğµ RSS Ğ¸ Atom Ğ»ĞµĞ½Ñ‚ â€” Ğ°Ğ²Ñ‚Ğ¾Ğ¼Ğ°Ñ‚Ğ¸Ñ‡ĞµÑĞºĞ°Ñ Ğ¿Ñ€Ğ¾Ğ²ĞµÑ€ĞºĞ° Ğ¸ ÑƒĞ²ĞµĞ´Ğ¾Ğ¼Ğ»ĞµĞ½Ğ¸Ñ"
+      "name": "RSS-ридер",
+      "description": "RSS-ридер — добавление каналов, чтение статей, избранное"
     }
   },
   "category": "internet"

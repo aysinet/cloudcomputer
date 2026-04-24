@@ -1,7 +1,7 @@
 {
   "id": "sudoku",
   "name": "Sudoku",
-  "icon": "ğŸ”¢",
+  "icon": "🔢",
   "color": "linear-gradient(135deg, #6c5ce7, #a29bfe)",
   "type": "internal",
   "size": {
@@ -9,31 +9,31 @@
     "h": 620
   },
   "global": false,
-  "description": "Klasik Sudoku bulmaca oyunu. Kolay, orta ve zor seviyeler.",
+  "description": "Sudoku bulmaca oyunu — kolay, orta, zor",
   "lang": {
     "tr": {
       "name": "Sudoku",
-      "description": "Klasik Sudoku bulmaca oyunu. Kolay, orta ve zor seviyeler."
+      "description": "Sudoku bulmaca oyunu — kolay, orta, zor"
     },
     "en": {
       "name": "Sudoku",
-      "description": "Classic Sudoku puzzle game. Easy, medium and hard levels."
+      "description": "Sudoku puzzle game — easy, medium, hard"
     },
     "de": {
       "name": "Sudoku",
-      "description": "Klassisches Sudoku-RÃ¤tselspiel. Leicht, mittel und schwer."
+      "description": "Sudoku-Puzzlespiel — leicht, mittel, schwer"
     },
     "fr": {
       "name": "Sudoku",
-      "description": "Jeu de puzzle Sudoku classique. Niveaux facile, moyen et difficile."
+      "description": "Jeu de puzzle Sudoku — facile, moyen, difficile"
     },
     "es": {
       "name": "Sudoku",
-      "description": "Juego de puzle Sudoku clÃ¡sico. Niveles fÃ¡cil, medio y difÃ­cil."
+      "description": "Juego de puzzle Sudoku — fácil, medio, difícil"
     },
     "ru": {
-      "name": "Ğ¡ÑƒĞ´Ğ¾ĞºÑƒ",
-      "description": "ĞšĞ»Ğ°ÑÑĞ¸Ñ‡ĞµÑĞºĞ°Ñ Ğ³Ğ¾Ğ»Ğ¾Ğ²Ğ¾Ğ»Ğ¾Ğ¼ĞºĞ° Ğ¡ÑƒĞ´Ğ¾ĞºÑƒ. Ğ›Ñ‘Ğ³ĞºĞ¸Ğ¹, ÑÑ€ĞµĞ´Ğ½Ğ¸Ğ¹ Ğ¸ ÑĞ»Ğ¾Ğ¶Ğ½Ñ‹Ğ¹ ÑƒÑ€Ğ¾Ğ²Ğ½Ğ¸."
+      "name": "Судоку",
+      "description": "Головоломка Судоку — лёгкий, средний, сложный"
     }
   },
   "category": "games"

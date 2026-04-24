@@ -1,14 +1,12 @@
 .map-app{display:flex;height:100%;background:#111118;color:#fff;font-family:inherit;overflow:hidden;position:relative}
 
-/* Drawer overrides */
-.map-app .el-drawer{background:#13131d !important;border-right:1px solid rgba(255,255,255,.08) !important;overflow:hidden !important}
-.map-app .el-drawer__body{padding:0 !important;overflow:hidden;display:flex;flex-direction:column;height:100%}
-.map-app .el-overlay{background:transparent !important}
-.map-drawer-inner{display:flex;flex-direction:column;height:100%;overflow:hidden}
+/* Hover trigger zone */
+.map-hover-zone{position:absolute;top:0;left:0;width:8px;height:100%;z-index:15;cursor:default}
 
-/* Drawer toggle */
-.map-drawer-toggle{position:absolute;top:50%;left:4px;z-index:10;transform:translateY(-50%);width:24px;height:44px;border:none;border-radius:0 6px 6px 0;background:rgba(0,0,0,.55);color:rgba(255,255,255,.6);font-size:13px;cursor:pointer;backdrop-filter:blur(4px);transition:.15s;display:flex;align-items:center;justify-content:center}
-.map-drawer-toggle:hover{background:rgba(0,0,0,.75);color:#fff}
+/* Slide drawer */
+.map-slide-drawer{position:absolute;top:0;left:0;width:280px;height:100%;z-index:12;background:#13131d;border-right:1px solid rgba(255,255,255,.08);transform:translateX(-100%);transition:transform .25s ease;overflow:hidden;display:flex;flex-direction:column}
+.map-slide-drawer.open{transform:translateX(0)}
+.map-drawer-inner{display:flex;flex-direction:column;height:100%;overflow:hidden}
 .map-sb-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
 .map-sb-tab{flex:1;height:36px;border:none;background:none;color:rgba(255,255,255,.4);font-size:11px;font-weight:600;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:4px}
 .map-sb-tab:hover{background:rgba(255,255,255,.04);color:rgba(255,255,255,.7)}

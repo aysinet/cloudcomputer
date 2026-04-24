@@ -1,7 +1,7 @@
 {
   "id": "pomodoro",
   "name": "Pomodoro",
-  "icon": "ğŸ…",
+  "icon": "🍅",
   "color": "linear-gradient(135deg,#e44d26,#f16529)",
   "type": "internal",
   "size": {
@@ -9,31 +9,31 @@
     "h": 380
   },
   "global": false,
-  "description": "Pomodoro zamanlayÄ±cÄ±",
+  "description": "Pomodoro zamanlayıcı — çalışma/mola döngüsü",
   "lang": {
     "tr": {
       "name": "Pomodoro",
-      "description": "Pomodoro zamanlayÄ±cÄ± â€” odaklanma ve mola dÃ¶ngÃ¼sÃ¼"
+      "description": "Pomodoro zamanlayıcı — çalışma/mola döngüsü"
     },
     "en": {
       "name": "Pomodoro",
-      "description": "Pomodoro timer â€” focus and break cycle"
+      "description": "Pomodoro timer — work/break cycle"
     },
     "de": {
       "name": "Pomodoro",
-      "description": "Pomodoro-Timer â€” Fokus- und Pausenzyklus"
+      "description": "Pomodoro-Timer — Arbeits-/Pausenzyklus"
     },
     "fr": {
       "name": "Pomodoro",
-      "description": "Minuteur Pomodoro â€” cycle de concentration et pause"
+      "description": "Minuteur Pomodoro — cycle travail/pause"
     },
     "es": {
       "name": "Pomodoro",
-      "description": "Temporizador Pomodoro â€” ciclo de enfoque y descanso"
+      "description": "Temporizador Pomodoro — ciclo trabajo/descanso"
     },
     "ru": {
-      "name": "ĞŸĞ¾Ğ¼Ğ¾Ğ´Ğ¾Ñ€Ğ¾",
-      "description": "Ğ¢Ğ°Ğ¹Ğ¼ĞµÑ€ ĞŸĞ¾Ğ¼Ğ¾Ğ´Ğ¾Ñ€Ğ¾ â€” Ñ†Ğ¸ĞºĞ» ĞºĞ¾Ğ½Ñ†ĞµĞ½Ñ‚Ñ€Ğ°Ñ†Ğ¸Ğ¸ Ğ¸ Ğ¿ĞµÑ€ĞµÑ€Ñ‹Ğ²Ğ°"
+      "name": "Помодоро",
+      "description": "Таймер Помодоро — цикл работы/отдыха"
     }
   },
   "category": "productivity"
