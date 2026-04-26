@@ -150,7 +150,10 @@
         document.head.appendChild(link);
         var script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js';
-        script.onload = function() { katexReady.value = true; resolve(); };
+        script.onload = function() {
+          if (window.katex) { katexReady.value = true; resolve(); }
+          else { katexError.value = 'KaTeX loaded but not available'; reject(); }
+        };
         script.onerror = function() { katexError.value = 'Failed to load KaTeX'; reject(); };
         document.head.appendChild(script);
       });
@@ -326,7 +329,7 @@
 
     /* ── Render preview ── */
     function renderPreview() {
-      if (!katexReady.value || !previewEl.value) return;
+      if (!katexReady.value || !previewEl.value || !window.katex) return;
       try {
         window.katex.render(latex.value, previewEl.value, {
           throwOnError: false,

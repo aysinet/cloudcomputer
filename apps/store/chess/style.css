@@ -149,3 +149,56 @@
   border: none;
   background: #fff;
 }
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .chess-root {
+    min-height: 100%;
+  }
+
+  .chess-status-screen {
+    padding: 16px;
+  }
+
+  .chess-icon-large {
+    font-size: 48px;
+  }
+
+  .chess-status-text {
+    font-size: 15px;
+  }
+
+  .chess-sub-text {
+    font-size: 12px;
+  }
+
+  .chess-error-msg {
+    font-size: 12px;
+    padding: 8px 12px;
+    max-width: 100%;
+  }
+
+  .chess-btn-large {
+    padding: 10px 24px;
+    font-size: 14px;
+  }
+
+  .chess-toolbar {
+    padding: 4px 8px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .chess-info {
+    font-size: 11px;
+  }
+
+  .chess-iframe {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .chess-running {
+    height: 100%;
+  }
+}

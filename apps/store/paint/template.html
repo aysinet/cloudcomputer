@@ -3,9 +3,13 @@
   <div class="paint-toolbar">
     <!-- File actions -->
     <div class="paint-tb-group">
-      <button class="paint-tb-btn" @click="newCanvas" title="Yeni">📄</button>
-      <button class="paint-tb-btn" @click="openFile" title="Aç">📂</button>
-      <button class="paint-tb-btn" @click="saveFile" title="Kaydet (PNG)">💾</button>
+      <button class="paint-tb-btn" @click="newCanvas" :title="L('newFile')">📄</button>
+      <button class="paint-tb-btn" @click="openFile" :title="L('open')">📂</button>
+      <button class="paint-tb-btn" @click="saveFile" :title="L('save')">💾</button>
+      <button class="paint-tb-btn" @click="saveFileAs" :title="L('saveAs')">📋</button>
+      <div class="paint-tb-sep"></div>
+      <button class="paint-tb-btn" @click="uploadFile" :title="L('upload')">📤</button>
+      <button class="paint-tb-btn" @click="downloadFile" :title="L('download')">📥</button>
       <input type="file" ref="fileInput" accept="image/*" style="display:none" @change="onFileOpen" />
     </div>
     <div class="paint-tb-sep"></div>
@@ -97,6 +101,7 @@
   <div class="paint-statusbar">
     <span>{{mouseX}}, {{mouseY}} px</span>
     <span>{{canvasW}} × {{canvasH}}</span>
-    <span>Araç: {{currentToolLabel}}</span>
+    <span v-if="currentFileName" style="color:#a6e3a1">📁 {{currentFileName}}</span>
+    <span>{{L('tool')}}: {{currentToolLabel}}</span>
   </div>
 </div>

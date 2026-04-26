@@ -1,0 +1,40 @@
+{
+  "id": "sokoban",
+  "name": "Sokoban",
+  "icon": "📦",
+  "color": "linear-gradient(135deg,#e17055,#d63031)",
+  "type": "internal",
+  "size": {
+    "w": 560,
+    "h": 640
+  },
+  "global": false,
+  "description": "Klasik Sokoban bulmaca oyunu — kutuları hedef noktalara itin, 30 bölüm",
+  "lang": {
+    "tr": {
+      "name": "Sokoban",
+      "description": "Klasik Sokoban bulmaca oyunu — kutuları hedef noktalara itin, 30 bölüm"
+    },
+    "en": {
+      "name": "Sokoban",
+      "description": "Classic Sokoban puzzle game — push boxes to target locations, 30 levels"
+    },
+    "de": {
+      "name": "Sokoban",
+      "description": "Klassisches Sokoban-Puzzle — schieben Sie Kisten auf Zielfelder, 30 Level"
+    },
+    "fr": {
+      "name": "Sokoban",
+      "description": "Jeu de puzzle Sokoban classique — poussez les caisses vers les cibles, 30 niveaux"
+    },
+    "es": {
+      "name": "Sokoban",
+      "description": "Juego de puzzle Sokoban clásico — empuja cajas a los objetivos, 30 niveles"
+    },
+    "ru": {
+      "name": "Сокобан",
+      "description": "Классическая головоломка Сокобан — толкайте ящики на целевые поля, 30 уровней"
+    }
+  },
+  "category": "games"
+}

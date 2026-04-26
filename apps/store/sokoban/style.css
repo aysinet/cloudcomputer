@@ -1,0 +1,187 @@
+.sokoban-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1a1a2e;
+  color: #cdd6f4;
+  font-family: 'Segoe UI', sans-serif;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.sokoban-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #16213e;
+  border-bottom: 1px solid #313244;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.level-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.level-label {
+  font-weight: 600;
+  font-size: 14px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.sokoban-stats {
+  display: flex;
+  gap: 14px;
+  font-size: 13px;
+}
+
+.sokoban-stats .stat b {
+  color: #89b4fa;
+}
+
+.sokoban-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.sokoban-canvas-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 12px;
+}
+
+.sokoban-canvas {
+  image-rendering: pixelated;
+  border-radius: 6px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.4);
+}
+
+.sokoban-hint {
+  text-align: center;
+  padding: 6px;
+  font-size: 11px;
+  color: #6c7086;
+  background: #16213e;
+  border-top: 1px solid #313244;
+}
+
+/* Win overlay */
+.sokoban-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.sokoban-win-card {
+  background: #1e1e2e;
+  border: 2px solid #a6e3a1;
+  border-radius: 16px;
+  padding: 32px 40px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(166, 227, 161, 0.3);
+}
+
+.win-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.win-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: #a6e3a1;
+  margin-bottom: 8px;
+}
+
+.win-stats {
+  font-size: 14px;
+  color: #bac2de;
+  margin-bottom: 16px;
+}
+
+/* Level select grid */
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.level-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 6px;
+  border-radius: 8px;
+  background: #313244;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.level-cell:hover {
+  background: #45475a;
+  transform: scale(1.05);
+}
+
+.level-cell.active {
+  border: 2px solid #89b4fa;
+  background: #1e1e2e;
+}
+
+.level-cell.done {
+  background: #1e3a2f;
+}
+
+.level-cell.done .level-num {
+  color: #a6e3a1;
+}
+
+.level-num {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.level-best {
+  font-size: 10px;
+  color: #f9e2af;
+  margin-top: 2px;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .sokoban-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 6px 8px;
+  }
+
+  .level-nav, .sokoban-stats, .sokoban-actions {
+    justify-content: center;
+  }
+
+  .sokoban-stats {
+    font-size: 12px;
+    gap: 10px;
+  }
+
+  .sokoban-actions .el-button {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .level-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}

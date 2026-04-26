@@ -5,56 +5,68 @@
     tr: {
       pencil:'Kalem', brush:'Fırça', eraser:'Silgi', line:'Çizgi',
       rect:'Dikdörtgen', ellipse:'Elips', fill:'Dolgu', picker:'Renk Seçici', text:'Metin',
-      newFile:'Yeni', open:'Aç', save:'Kaydet (PNG)', undo:'Geri Al', redo:'Yinele',
+      newFile:'Yeni', open:'Aç', save:'Kaydet', saveAs:'Farklı Kaydet',
+      upload:'Yükle', download:'İndir (PNG)',
+      undo:'Geri Al', redo:'Yinele',
       bgColor:'Arka plan rengi', fgColor:'Ön plan rengi', resize:'Boyutlandır',
       filled:'Dolu', width:'Genişlik', height:'Yükseklik',
       apply:'Uygula', cancel:'İptal', textPlaceholder:'Metin gir...',
-      tool:'Araç'
+      tool:'Araç', saved:'Kaydedildi', error:'Hata'
     },
     en: {
       pencil:'Pencil', brush:'Brush', eraser:'Eraser', line:'Line',
       rect:'Rectangle', ellipse:'Ellipse', fill:'Fill', picker:'Color Picker', text:'Text',
-      newFile:'New', open:'Open', save:'Save (PNG)', undo:'Undo', redo:'Redo',
+      newFile:'New', open:'Open', save:'Save', saveAs:'Save As',
+      upload:'Upload', download:'Download (PNG)',
+      undo:'Undo', redo:'Redo',
       bgColor:'Background color', fgColor:'Foreground color', resize:'Resize',
       filled:'Filled', width:'Width', height:'Height',
       apply:'Apply', cancel:'Cancel', textPlaceholder:'Enter text...',
-      tool:'Tool'
+      tool:'Tool', saved:'Saved', error:'Error'
     },
     de: {
       pencil:'Stift', brush:'Pinsel', eraser:'Radierer', line:'Linie',
       rect:'Rechteck', ellipse:'Ellipse', fill:'Füllen', picker:'Farbwähler', text:'Text',
-      newFile:'Neu', open:'Öffnen', save:'Speichern (PNG)', undo:'Rückgängig', redo:'Wiederholen',
+      newFile:'Neu', open:'Öffnen', save:'Speichern', saveAs:'Speichern unter',
+      upload:'Hochladen', download:'Herunterladen (PNG)',
+      undo:'Rückgängig', redo:'Wiederholen',
       bgColor:'Hintergrundfarbe', fgColor:'Vordergrundfarbe', resize:'Größe ändern',
       filled:'Gefüllt', width:'Breite', height:'Höhe',
       apply:'Anwenden', cancel:'Abbrechen', textPlaceholder:'Text eingeben...',
-      tool:'Werkzeug'
+      tool:'Werkzeug', saved:'Gespeichert', error:'Fehler'
     },
     fr: {
       pencil:'Crayon', brush:'Pinceau', eraser:'Gomme', line:'Ligne',
       rect:'Rectangle', ellipse:'Ellipse', fill:'Remplir', picker:'Pipette', text:'Texte',
-      newFile:'Nouveau', open:'Ouvrir', save:'Enregistrer (PNG)', undo:'Annuler', redo:'Rétablir',
+      newFile:'Nouveau', open:'Ouvrir', save:'Enregistrer', saveAs:'Enregistrer sous',
+      upload:'Importer', download:'Télécharger (PNG)',
+      undo:'Annuler', redo:'Rétablir',
       bgColor:'Couleur de fond', fgColor:'Couleur de premier plan', resize:'Redimensionner',
       filled:'Rempli', width:'Largeur', height:'Hauteur',
       apply:'Appliquer', cancel:'Annuler', textPlaceholder:'Saisir texte...',
-      tool:'Outil'
+      tool:'Outil', saved:'Enregistré', error:'Erreur'
     },
     es: {
       pencil:'Lápiz', brush:'Pincel', eraser:'Borrador', line:'Línea',
       rect:'Rectángulo', ellipse:'Elipse', fill:'Rellenar', picker:'Cuentagotas', text:'Texto',
-      newFile:'Nuevo', open:'Abrir', save:'Guardar (PNG)', undo:'Deshacer', redo:'Rehacer',
+      newFile:'Nuevo', open:'Abrir', save:'Guardar', saveAs:'Guardar como',
+      upload:'Subir', download:'Descargar (PNG)',
+      undo:'Deshacer', redo:'Rehacer',
       bgColor:'Color de fondo', fgColor:'Color de primer plano', resize:'Redimensionar',
       filled:'Relleno', width:'Ancho', height:'Alto',
       apply:'Aplicar', cancel:'Cancelar', textPlaceholder:'Escribir texto...',
-      tool:'Herramienta'
+      tool:'Herramienta', saved:'Guardado', error:'Error'
     },
     ru: {
       pencil:'Карандаш', brush:'Кисть', eraser:'Ластик', line:'Линия',
       rect:'Прямоугольник', ellipse:'Эллипс', fill:'Заливка', picker:'Пипетка', text:'Текст',
-      newFile:'Новый', open:'Открыть', save:'Сохранить (PNG)', undo:'Отмена', redo:'Повтор',
+      newFile:'Новый', open:'Открыть', save:'Сохранить', saveAs:'Сохранить как',
+      upload:'Загрузить', download:'Скачать (PNG)',
+      undo:'Отмена', redo:'Повтор',
       bgColor:'Цвет фона', fgColor:'Цвет переднего плана', resize:'Размер',
       filled:'Залитый', width:'Ширина', height:'Высота',
       apply:'Применить', cancel:'Отмена', textPlaceholder:'Введите текст...',
-      tool:'Инструмент'
+      tool:'Инструмент', saved:'Сохранено', error:'Ошибка'
     }
   };
 
@@ -129,6 +141,12 @@
       const textMode = ref(false);
       const textPos = ref({ x: 0, y: 0 });
       const textValue = ref('');
+      const currentFilePath = ref('');
+      const currentFileName = ref('');
+
+      const IMG_FILTERS = [
+        { label: 'Images', extensions: ['.png', '.jpg', '.jpeg', '.bmp', '.gif', '.webp'] }
+      ];
 
       const currentToolLabel = computed(() => {
         const t = tools.value.find(x => x.id === tool.value);
@@ -208,10 +226,54 @@
         if (!ctx) return;
         ctx.fillStyle = bgColor.value;
         ctx.fillRect(0, 0, canvasW.value, canvasH.value);
+        currentFilePath.value = '';
+        currentFileName.value = '';
         pushHistory();
       }
 
-      function openFile() {
+      function loadImageToCanvas(img) {
+        canvasW.value = img.width;
+        canvasH.value = img.height;
+        nextTick(() => {
+          mainCanvas.value.width = img.width;
+          mainCanvas.value.height = img.height;
+          previewCanvas.value.width = img.width;
+          previewCanvas.value.height = img.height;
+          ctx = mainCanvas.value.getContext('2d');
+          previewCtx = previewCanvas.value.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          pushHistory();
+        });
+      }
+
+      // Open from server via FileDialog
+      async function openFile() {
+        if (!window.FileDialog) return;
+        const result = await window.FileDialog.open({
+          title: '📂 ' + L('open'),
+          filters: IMG_FILTERS
+        });
+        if (!result) return;
+        try {
+          const token = localStorage.getItem('auth_token') || '';
+          const resp = await fetch('/api/fs/read-binary?path=' + encodeURIComponent(result.path), {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          if (!resp.ok) { ElMessage.error(L('error')); return; }
+          const data = await resp.json();
+          const ext = (result.name.split('.').pop() || 'png').toLowerCase();
+          const mimeMap = { png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', bmp:'image/bmp', gif:'image/gif', webp:'image/webp' };
+          const mime = mimeMap[ext] || 'image/png';
+          const img = new Image();
+          img.onload = () => loadImageToCanvas(img);
+          img.src = 'data:' + mime + ';base64,' + data.content;
+          currentFilePath.value = result.path;
+          currentFileName.value = result.name;
+        } catch { ElMessage.error(L('error')); }
+      }
+
+      // Upload from local device
+      function uploadFile() {
         if (fileInput.value) fileInput.value.click();
       }
 
@@ -221,30 +283,63 @@
         const reader = new FileReader();
         reader.onload = (ev) => {
           const img = new Image();
-          img.onload = () => {
-            canvasW.value = img.width;
-            canvasH.value = img.height;
-            nextTick(() => {
-              mainCanvas.value.width = img.width;
-              mainCanvas.value.height = img.height;
-              previewCanvas.value.width = img.width;
-              previewCanvas.value.height = img.height;
-              ctx = mainCanvas.value.getContext('2d');
-              previewCtx = previewCanvas.value.getContext('2d');
-              ctx.drawImage(img, 0, 0);
-              pushHistory();
-            });
-          };
+          img.onload = () => loadImageToCanvas(img);
           img.src = ev.target.result;
         };
         reader.readAsDataURL(file);
+        currentFileName.value = file.name;
+        currentFilePath.value = '';
         e.target.value = '';
       }
 
-      function saveFile() {
+      // Save to server (same path or save-as)
+      async function saveFile() {
+        if (currentFilePath.value) {
+          await saveToPath(currentFilePath.value);
+        } else {
+          await saveFileAs();
+        }
+      }
+
+      async function saveFileAs() {
+        if (!window.FileDialog || !mainCanvas.value) return;
+        const result = await window.FileDialog.save({
+          title: '💾 ' + L('saveAs'),
+          defaultName: currentFileName.value || 'paint-' + Date.now() + '.png',
+          filters: [
+            { label: 'PNG', extensions: ['.png'] },
+            { label: 'JPEG', extensions: ['.jpg', '.jpeg'] }
+          ]
+        });
+        if (!result) return;
+        currentFilePath.value = result.path;
+        currentFileName.value = result.name;
+        await saveToPath(result.path);
+      }
+
+      async function saveToPath(filePath) {
+        if (!mainCanvas.value) return;
+        try {
+          const ext = (filePath.split('.').pop() || 'png').toLowerCase();
+          const mime = (ext === 'jpg' || ext === 'jpeg') ? 'image/jpeg' : 'image/png';
+          const dataUrl = mainCanvas.value.toDataURL(mime);
+          const b64 = dataUrl.split(',')[1];
+          const token = localStorage.getItem('auth_token') || '';
+          const resp = await fetch('/api/fs/write-binary', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filePath: filePath, content: b64 })
+          });
+          if (resp.ok) { ElMessage.success(L('saved')); }
+          else { ElMessage.error(L('error')); }
+        } catch { ElMessage.error(L('error')); }
+      }
+
+      // Download to local device
+      function downloadFile() {
         if (!mainCanvas.value) return;
         const link = document.createElement('a');
-        link.download = 'paint-' + Date.now() + '.png';
+        link.download = currentFileName.value || 'paint-' + Date.now() + '.png';
         link.href = mainCanvas.value.toDataURL('image/png');
         link.click();
       }
@@ -509,7 +604,9 @@
         if (textMode.value) return;
         if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); }
         if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redo(); }
-        if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveFile(); }
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') { e.preventDefault(); saveFileAs(); }
+        else if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveFile(); }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'o') { e.preventDefault(); openFile(); }
         if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); newCanvas(); }
       }
 
@@ -518,21 +615,10 @@
         const detail = e.detail || window.__screenshotImage;
         if (!detail || !detail.dataUrl) return;
         const img = new Image();
-        img.onload = () => {
-          canvasW.value = img.width;
-          canvasH.value = img.height;
-          nextTick(() => {
-            mainCanvas.value.width = img.width;
-            mainCanvas.value.height = img.height;
-            previewCanvas.value.width = img.width;
-            previewCanvas.value.height = img.height;
-            ctx = mainCanvas.value.getContext('2d');
-            previewCtx = previewCanvas.value.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            pushHistory();
-          });
-        };
+        img.onload = () => loadImageToCanvas(img);
         img.src = detail.dataUrl;
+        currentFileName.value = 'screenshot.png';
+        currentFilePath.value = '';
         window.__screenshotImage = null;
       }
       onMounted(() => {
@@ -565,8 +651,10 @@
         historyStack, historyIdx,
         showResize, resizeW, resizeH,
         textMode, textPos, textValue,
+        currentFilePath, currentFileName,
         currentToolLabel, cursorStyle,
-        undo, redo, newCanvas, openFile, onFileOpen, saveFile,
+        undo, redo, newCanvas, openFile, onFileOpen, saveFile, saveFileAs,
+        uploadFile, downloadFile,
         applyResize, pickFgColor, pickBgColor,
         onMouseDown, onMouseMove, onMouseUp,
         commitText, cancelText

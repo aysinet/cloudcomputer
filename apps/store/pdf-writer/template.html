@@ -1,0 +1,161 @@
+<div class="pw-root">
+  <!-- Loading jsPDF -->
+  <div v-if="!jspdfReady" class="pw-loading">
+    <div v-if="jspdfError" class="pw-error">⚠️ {{jspdfError}}</div>
+    <div v-else>⏳ {{t('loading')}}</div>
+  </div>
+
+  <template v-else>
+    <!-- Top Toolbar -->
+    <div class="pw-toolbar">
+      <div class="pw-toolbar-group">
+        <button class="pw-tbtn" @click="newDocument" title="New">📄</button>
+        <button class="pw-tbtn pw-tbtn-accent" @click="savePDF" :disabled="isSaving" title="Save to Server">
+          💾 {{isSaving ? '...' : t('save')}}
+        </button>
+        <button class="pw-tbtn" @click="downloadPDF" title="Download">📥 {{t('download')}}</button>
+        <button class="pw-tbtn" :class="{active: mode==='preview'}" @click="togglePreview">
+          {{mode==='preview' ? '✏️ ' + t('edit') : '👁 ' + t('preview')}}
+        </button>
+      </div>
+      <div class="pw-toolbar-group">
+        <button class="pw-tbtn" @click="showSettings = !showSettings" :class="{active: showSettings}">⚙</button>
+      </div>
+    </div>
+
+    <!-- Format Toolbar -->
+    <div v-show="mode==='edit'" class="pw-format-bar">
+      <!-- Block type -->
+      <select class="pw-select" @change="setBlockType($event.target.value); $event.target.value=''">
+        <option value="">{{t('paragraph')}}</option>
+        <option value="h1">{{t('heading1')}}</option>
+        <option value="h2">{{t('heading2')}}</option>
+        <option value="h3">{{t('heading3')}}</option>
+        <option value="p">{{t('paragraph')}}</option>
+      </select>
+
+      <span class="pw-sep"></span>
+
+      <!-- Font family -->
+      <select class="pw-select pw-select-font" :value="currentFontFamily" @change="changeFontFamily($event.target.value)">
+        <option v-for="f in fontFamilies" :key="f.id" :value="f.id">{{f.label}}</option>
+      </select>
+
+      <!-- Font size -->
+      <select class="pw-select pw-select-sm" :value="currentFontSize" @change="changeFontSize(Number($event.target.value))">
+        <option v-for="s in fontSizes" :key="s" :value="s">{{s}}</option>
+      </select>
+
+      <!-- Text color -->
+      <input type="color" class="pw-color" :value="currentTextColor" @input="changeTextColor($event.target.value)" :title="t('textColor')">
+
+      <span class="pw-sep"></span>
+
+      <!-- Bold / Italic / Underline / Strikethrough -->
+      <button class="pw-fbtn" @click="execCmd('bold')" title="Ctrl+B"><b>B</b></button>
+      <button class="pw-fbtn" @click="execCmd('italic')" title="Ctrl+I"><i>I</i></button>
+      <button class="pw-fbtn" @click="execCmd('underline')" title="Ctrl+U"><u>U</u></button>
+      <button class="pw-fbtn" @click="execCmd('strikeThrough')"><s>S</s></button>
+
+      <span class="pw-sep"></span>
+
+      <!-- Alignment -->
+      <button class="pw-fbtn" @click="execCmd('justifyLeft')" :title="t('alignLeft')">⫷</button>
+      <button class="pw-fbtn" @click="execCmd('justifyCenter')" :title="t('alignCenter')">≡</button>
+      <button class="pw-fbtn" @click="execCmd('justifyRight')" :title="t('alignRight')">⫸</button>
+      <button class="pw-fbtn" @click="execCmd('justifyFull')" :title="t('alignJustify')">☰</button>
+
+      <span class="pw-sep"></span>
+
+      <!-- Lists -->
+      <button class="pw-fbtn" @click="insertBulletList" :title="t('bulletList')">•≡</button>
+      <button class="pw-fbtn" @click="insertNumberedList" :title="t('numberedList')">1≡</button>
+
+      <span class="pw-sep"></span>
+
+      <!-- Insert -->
+      <button class="pw-fbtn" @click="triggerImageInsert" :title="t('insertImage')">🖼</button>
+      <button class="pw-fbtn" @click="insertHR" :title="t('insertLine')">─</button>
+      <button class="pw-fbtn" @click="showTableDialog = true" :title="t('insertTable')">⊞</button>
+
+      <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="onImageSelected">
+    </div>
+
+    <!-- Main body -->
+    <div class="pw-body">
+      <!-- Settings panel (toggleable) -->
+      <div v-if="showSettings" class="pw-settings-panel">
+        <div class="pw-settings-title">⚙ {{t('pageSize')}}</div>
+        <div class="pw-srow">
+          <select class="pw-select" v-model="pageSize">
+            <option v-for="ps in PAGE_SIZES" :key="ps.id" :value="ps.id">{{ps.label}}</option>
+          </select>
+        </div>
+        <div class="pw-srow">
+          <label><input type="radio" v-model="orientation" value="portrait"> {{t('portrait')}}</label>
+          <label><input type="radio" v-model="orientation" value="landscape"> {{t('landscape')}}</label>
+        </div>
+
+        <div class="pw-settings-title">{{t('margins')}} (mm)</div>
+        <div class="pw-margin-grid">
+          <label>{{t('top')}}<input class="pw-num" type="number" v-model.number="margins.top" min="0" max="50"></label>
+          <label>{{t('bottom')}}<input class="pw-num" type="number" v-model.number="margins.bottom" min="0" max="50"></label>
+          <label>{{t('left')}}<input class="pw-num" type="number" v-model.number="margins.left" min="0" max="50"></label>
+          <label>{{t('right')}}<input class="pw-num" type="number" v-model.number="margins.right" min="0" max="50"></label>
+        </div>
+
+        <div class="pw-settings-title">{{t('header')}} / {{t('footer')}}</div>
+        <input class="pw-sinput" v-model="headerText" :placeholder="t('headerPlaceholder')">
+        <input class="pw-sinput" v-model="footerText" :placeholder="t('footerPlaceholder')">
+
+        <div class="pw-settings-title">{{t('fileName')}}</div>
+        <input class="pw-sinput" v-model="fileName" :placeholder="t('unnamed')">
+      </div>
+
+      <!-- Editor / Preview area -->
+      <div class="pw-editor-area">
+        <!-- Page tabs -->
+        <div class="pw-page-tabs">
+          <button v-for="(pg, idx) in pages" :key="pg.id" class="pw-page-tab" :class="{active: currentPage===idx}" @click="goToPage(idx)">
+            {{t('page')}} {{idx + 1}}
+          </button>
+          <button class="pw-page-tab pw-page-add" @click="addPage">+</button>
+          <button v-if="pages.length > 1" class="pw-page-tab pw-page-del" @click="deletePage">🗑</button>
+        </div>
+
+        <!-- Editor mode -->
+        <div v-show="mode==='edit'" class="pw-paper-scroll">
+          <div class="pw-paper" :style="{fontFamily: currentFontFamily}">
+            <div v-for="(pg, idx) in pages" :key="pg.id" v-show="currentPage===idx"
+              class="pw-editor-page" contenteditable="true"
+              @input="syncContent"
+              @blur="syncContent"
+              v-html="pg.content"
+              :style="{fontSize: currentFontSize + 'px'}"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Preview mode -->
+        <div v-if="mode==='preview'" class="pw-preview-wrap">
+          <iframe v-if="previewUrl" :src="previewUrl" class="pw-preview-iframe"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table dialog -->
+    <div v-if="showTableDialog" class="pw-dialog-overlay" @click.self="showTableDialog=false">
+      <div class="pw-dialog">
+        <div class="pw-dialog-title">⊞ {{t('insertTable')}}</div>
+        <div class="pw-dialog-body">
+          <label>{{t('rows')}}: <input type="number" class="pw-num" v-model.number="tableRows" min="1" max="20"></label>
+          <label>{{t('columns')}}: <input type="number" class="pw-num" v-model.number="tableCols" min="1" max="10"></label>
+        </div>
+        <div class="pw-dialog-actions">
+          <button class="pw-tbtn" @click="showTableDialog=false">{{t('cancel')}}</button>
+          <button class="pw-tbtn pw-tbtn-accent" @click="insertTable">{{t('ok')}}</button>
+        </div>
+      </div>
+    </div>
+  </template>
+</div>

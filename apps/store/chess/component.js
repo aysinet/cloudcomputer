@@ -15,9 +15,9 @@
       const pullProgress = ref('');
 
       async function apiFetch(url, opts = {}) {
-        const token = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('token='));
+        const token = localStorage.getItem('auth_token');
         const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
-        if (token) headers['Authorization'] = 'Bearer ' + token.split('=')[1];
+        if (token) headers['Authorization'] = 'Bearer ' + token;
         const res = await fetch(url, { ...opts, headers });
         const ct = res.headers.get('content-type') || '';
         if (!ct.includes('application/json')) {

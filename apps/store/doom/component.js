@@ -32,10 +32,16 @@
         const token = localStorage.getItem('auth_token');
         const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
         if (token) headers['Authorization'] = 'Bearer ' + token;
-        const res = await fetch(url, { ...opts, headers });
+        let res;
+        try {
+          res = await fetch(url, { ...opts, headers });
+        } catch (e) {
+          throw new Error(t('dockerCheck') + ' (' + e.message + ')');
+        }
         const ct = res.headers.get('content-type') || '';
         if (!ct.includes('application/json')) {
-          throw new Error('Unexpected response (' + res.status + ')');
+          const text = (await res.text()).substring(0, 200);
+          throw new Error('Unexpected response (' + res.status + '): ' + text);
         }
         return res;
       }

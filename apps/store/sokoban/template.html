@@ -1,0 +1,58 @@
+<div class="sokoban-app" @touchstart="onTouchStart" @touchend="onTouchEnd">
+  <!-- Header -->
+  <div class="sokoban-header">
+    <div class="level-nav">
+      <el-button size="small" :icon="'ArrowLeft'" @click="prevLevel" :disabled="currentLevel === 0" circle />
+      <span class="level-label">{{ t('level') }} {{ currentLevel + 1 }} / {{ LEVELS.length }}</span>
+      <el-button size="small" :icon="'ArrowRight'" @click="nextLevel" :disabled="currentLevel >= LEVELS.length - 1" circle />
+    </div>
+    <div class="sokoban-stats">
+      <span class="stat"><i class="el-icon-position"></i>{{ t('moves') }}: <b>{{ moves }}</b></span>
+      <span class="stat">{{ t('pushes') }}: <b>{{ pushes }}</b></span>
+      <span class="stat" v-if="currentBest">{{ t('best') }}: <b>{{ currentBest.moves }}</b></span>
+    </div>
+    <div class="sokoban-actions">
+      <el-button size="small" @click="undo" type="info" plain>{{ t('undo') }} (Z)</el-button>
+      <el-button size="small" @click="restart" type="warning" plain>{{ t('restart') }} (R)</el-button>
+      <el-button size="small" @click="showLevelSelect = true" type="primary" plain>{{ t('selectLevel') }}</el-button>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <div class="sokoban-canvas-wrap">
+    <canvas ref="canvasEl" class="sokoban-canvas"></canvas>
+  </div>
+
+  <!-- Win overlay -->
+  <div class="sokoban-overlay" v-if="levelComplete">
+    <div class="sokoban-win-card">
+      <div class="win-icon">🎉</div>
+      <div class="win-text">{{ allComplete ? t('allCompleted') : t('completed') }}</div>
+      <div class="win-stats">
+        {{ t('moves') }}: {{ moves }} &nbsp; {{ t('pushes') }}: {{ pushes }}
+      </div>
+      <el-button v-if="!allComplete" type="success" @click="goNextLevel">{{ t('nextLevel') }} →</el-button>
+      <el-button type="primary" @click="restart" style="margin-top:8px">{{ t('restart') }}</el-button>
+    </div>
+  </div>
+
+  <!-- Level Select Dialog -->
+  <el-dialog v-model="showLevelSelect" :title="t('selectLevel')" width="400px" :append-to-body="true">
+    <div class="level-grid">
+      <div
+        v-for="(_, idx) in LEVELS" :key="idx"
+        class="level-cell"
+        :class="{ active: idx === currentLevel, done: bestScores['' + idx] }"
+        @click="selectLevel(idx)"
+      >
+        <span class="level-num">{{ idx + 1 }}</span>
+        <span class="level-best" v-if="bestScores['' + idx]">★ {{ bestScores['' + idx].moves }}</span>
+      </div>
+    </div>
+  </el-dialog>
+
+  <!-- Controls hint -->
+  <div class="sokoban-hint">
+    {{ t('arrowKeys') }} &nbsp;|&nbsp; {{ t('undoKey') }} &nbsp;|&nbsp; {{ t('restartKey') }}
+  </div>
+</div>

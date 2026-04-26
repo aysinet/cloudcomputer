@@ -1,0 +1,40 @@
+{
+  "id": "circuit",
+  "name": "Devre Tasarımcısı",
+  "icon": "🔌",
+  "color": "linear-gradient(135deg,#00b894,#0984e3)",
+  "type": "internal",
+  "size": {
+    "w": 1100,
+    "h": 700
+  },
+  "global": false,
+  "description": "Elektronik devre şeması tasarımcısı — bileşen kütüphanesi, kablo çizimi, özellik düzenleme, PNG dışa aktarma",
+  "lang": {
+    "tr": {
+      "name": "Devre Tasarımcısı",
+      "description": "Elektronik devre şeması tasarımcısı — bileşen kütüphanesi, kablo çizimi, özellik düzenleme, PNG dışa aktarma"
+    },
+    "en": {
+      "name": "Circuit Designer",
+      "description": "Electronic circuit schematic designer — component library, wire drawing, property editing, PNG export"
+    },
+    "de": {
+      "name": "Schaltplan-Designer",
+      "description": "Elektronischer Schaltplan-Designer — Bauteilbibliothek, Verdrahtung, Eigenschaftsbearbeitung, PNG-Export"
+    },
+    "fr": {
+      "name": "Concepteur de Circuits",
+      "description": "Concepteur de schémas électroniques — bibliothèque de composants, câblage, édition de propriétés, export PNG"
+    },
+    "es": {
+      "name": "Diseñador de Circuitos",
+      "description": "Diseñador de esquemas electrónicos — biblioteca de componentes, cableado, edición de propiedades, exportación PNG"
+    },
+    "ru": {
+      "name": "Конструктор Схем",
+      "description": "Дизайнер электронных схем — библиотека компонентов, проводка, редактирование свойств, экспорт PNG"
+    }
+  },
+  "category": "productivity"
+}

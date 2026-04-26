@@ -14,8 +14,8 @@
 <link rel="stylesheet" href="https://unpkg.com/ol@10.5.0/ol.css">
 <script src="https://unpkg.com/ol@10.5.0/dist/ol.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/simple-mind-map@0.12.1/dist/simpleMindMap.esm.min.css">
 <script src="https://unpkg.com/simple-mind-map@0.12.1/dist/simpleMindMap.umd.min.js"></script>
 <style>
@@ -565,6 +565,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
           <img :src="currentWpUrl" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #555" />
         </div>
       </template>
+      <template v-else-if="active==='session'">
+        <div class="settings-row">
+          <div><div class="lbl">{{t('restoreApps')}}</div><div class="sub">{{t('restoreAppsDesc')}}</div></div>
+          <div class="ctrl"><label class="settings-toggle"><input type="checkbox" :checked="restoreSession" @change="toggleRestoreSession"><span class="settings-slider"></span></label></div>
+        </div>
+      </template>
       <template v-else>
         <template v-for="row in currentRows">
           <div class="settings-row">
@@ -825,7 +831,8 @@ const useSettingsStore = defineStore('settings', {
     locale: localStorage.getItem('sys_locale') || 'tr',
     wallpaperAll: '',
     wallpapers: { 1: '', 2: '', 3: '', 4: '' },
-    wallpaperMode: 'all'
+    wallpaperMode: 'all',
+    restoreSession: false
   }),
   actions: {
     async load() {
@@ -843,6 +850,7 @@ const useSettingsStore = defineStore('settings', {
         if (s.wallpaperAll) this.wallpaperAll = s.wallpaperAll;
         if (s.wallpapers) this.wallpapers = { ...this.wallpapers, ...s.wallpapers };
         if (s.wallpaperMode) this.wallpaperMode = s.wallpaperMode;
+        if (s.restoreSession !== undefined) this.restoreSession = s.restoreSession;
       } catch {}
     },
     async save(data) {
@@ -1187,7 +1195,8 @@ const I18N = {
     settingsWallpaper: 'Duvar Kağıdı', wpMode: 'Uygulama Modu', wpModeDesc: 'Tüm masaüstlerine aynı veya ayrı duvar kağıdı',
     wpAll: 'Tümüne Aynı', wpPer: 'Ayrı Ayrı', wpDesktopSelect: 'Masaüstü Seç',
     wpUpload: 'Resim Yükle', wpUploadBtn: 'Yükle', wpGallery: 'Duvar Kağıtları',
-    wpUploading: 'Yükleniyor...', wpDefault: 'Varsayılan'
+    wpUploading: 'Yükleniyor...', wpDefault: 'Varsayılan',
+    settingsSession: 'Oturum', restoreApps: 'Uygulamaları Geri Yükle', restoreAppsDesc: 'Sayfa yenilendiğinde açık uygulamalar tekrar açılsın'
   },
   en: {
     apps: 'Applications', user: 'User', loading: 'Loading...', search: 'Search...',
@@ -1217,7 +1226,8 @@ const I18N = {
     settingsWallpaper: 'Wallpaper', wpMode: 'Mode', wpModeDesc: 'Same wallpaper for all desktops or different for each',
     wpAll: 'Same for All', wpPer: 'Per Desktop', wpDesktopSelect: 'Select Desktop',
     wpUpload: 'Upload Image', wpUploadBtn: 'Upload', wpGallery: 'Wallpapers',
-    wpUploading: 'Uploading...', wpDefault: 'Default'
+    wpUploading: 'Uploading...', wpDefault: 'Default',
+    settingsSession: 'Session', restoreApps: 'Restore Apps', restoreAppsDesc: 'Reopen apps after page refresh'
   },
   de: {
     apps: 'Anwendungen', user: 'Benutzer', loading: 'Laden...', search: 'Suchen...',
@@ -1247,7 +1257,8 @@ const I18N = {
     settingsWallpaper: 'Hintergrundbild', wpMode: 'Modus', wpModeDesc: 'Gleiches oder verschiedenes Hintergrundbild für alle Desktops',
     wpAll: 'Für alle gleich', wpPer: 'Pro Desktop', wpDesktopSelect: 'Desktop auswählen',
     wpUpload: 'Bild hochladen', wpUploadBtn: 'Hochladen', wpGallery: 'Hintergrundbilder',
-    wpUploading: 'Wird hochgeladen...', wpDefault: 'Standard'
+    wpUploading: 'Wird hochgeladen...', wpDefault: 'Standard',
+    settingsSession: 'Sitzung', restoreApps: 'Apps wiederherstellen', restoreAppsDesc: 'Offene Apps nach Seitenaktualisierung erneut öffnen'
   },
   fr: {
     apps: 'Applications', user: 'Utilisateur', loading: 'Chargement...', search: 'Rechercher...',
@@ -1277,7 +1288,8 @@ const I18N = {
     settingsWallpaper: 'Fond d\'écran', wpMode: 'Mode', wpModeDesc: 'Même fond d\'écran pour tous les bureaux ou différent pour chacun',
     wpAll: 'Identique pour tous', wpPer: 'Par bureau', wpDesktopSelect: 'Sélectionner le bureau',
     wpUpload: 'Charger une image', wpUploadBtn: 'Charger', wpGallery: 'Fonds d\'écran',
-    wpUploading: 'Chargement...', wpDefault: 'Par défaut'
+    wpUploading: 'Chargement...', wpDefault: 'Par défaut',
+    settingsSession: 'Session', restoreApps: 'Restaurer les applications', restoreAppsDesc: 'Rouvrir les applications après actualisation de la page'
   },
   es: {
     apps: 'Aplicaciones', user: 'Usuario', loading: 'Cargando...', search: 'Buscar...',
@@ -1307,7 +1319,8 @@ const I18N = {
     settingsWallpaper: 'Fondo de pantalla', wpMode: 'Modo', wpModeDesc: 'Mismo fondo para todos los escritorios o diferente para cada uno',
     wpAll: 'Igual para todos', wpPer: 'Por escritorio', wpDesktopSelect: 'Seleccionar escritorio',
     wpUpload: 'Subir imagen', wpUploadBtn: 'Subir', wpGallery: 'Fondos de pantalla',
-    wpUploading: 'Subiendo...', wpDefault: 'Predeterminado'
+    wpUploading: 'Subiendo...', wpDefault: 'Predeterminado',
+    settingsSession: 'Sesión', restoreApps: 'Restaurar aplicaciones', restoreAppsDesc: 'Reabrir aplicaciones tras actualizar la página'
   },
   ru: {
     apps: 'Приложения', user: 'Пользователь', loading: 'Загрузка...', search: 'Поиск...',
@@ -1337,7 +1350,8 @@ const I18N = {
     settingsWallpaper: 'Обои', wpMode: 'Режим', wpModeDesc: 'Одинаковые обои для всех рабочих столов или разные',
     wpAll: 'Одинаковые для всех', wpPer: 'Для каждого стола', wpDesktopSelect: 'Выбрать рабочий стол',
     wpUpload: 'Загрузить изображение', wpUploadBtn: 'Загрузить', wpGallery: 'Обои',
-    wpUploading: 'Загрузка...', wpDefault: 'По умолчанию'
+    wpUploading: 'Загрузка...', wpDefault: 'По умолчанию',
+    settingsSession: 'Сессия', restoreApps: 'Восстановить приложения', restoreAppsDesc: 'Открывать приложения заново после обновления страницы'
   }
 };
 
@@ -1793,6 +1807,7 @@ const SettingsApp = {
       { id: 'location', icon: '📍', name: t('settingsLocation') },
       { id: 'language', icon: '🌐', name: t('settingsLanguage') },
       { id: 'sound', icon: '🔊', name: t('settingsSound') },
+      { id: 'session', icon: '🔄', name: t('settingsSession') || 'Oturum' },
       { id: 'network', icon: '📶', name: t('settingsNetwork') },
       { id: 'about', icon: 'ℹ️', name: t('settingsAbout') }
     ]);
@@ -1984,7 +1999,15 @@ const SettingsApp = {
       if (window._applyWallpaper) window._applyWallpaper();
     }
 
-    return { active, tabs, currentRows, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper };
+    // ── Session restore ──
+    const restoreSession = ref(settingsStore.restoreSession || false);
+
+    function toggleRestoreSession(e) {
+      restoreSession.value = e.target.checked;
+      settingsStore.save({ restoreSession: e.target.checked });
+    }
+
+    return { active, tabs, currentRows, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession };
   }
 };
 
@@ -2671,6 +2694,39 @@ createApp({
       document.head.appendChild(link);
     }
 
+    // ── Session save/restore ──
+    let _sessionSaveTimer = null;
+    function saveSessionState() {
+      if (!settingsStore.restoreSession) return;
+      clearTimeout(_sessionSaveTimer);
+      _sessionSaveTimer = setTimeout(() => {
+        const sessionApps = openWindows.value.map(w => ({ id: w.id, desktop: w.desktop }));
+        settingsStore.save({ sessionApps });
+      }, 500);
+    }
+
+    async function restoreSessionApps() {
+      if (!settingsStore.restoreSession) return;
+      try {
+        const res = await fetch('/api/settings');
+        if (!res.ok) return;
+        const s = await res.json();
+        const sessionApps = s.sessionApps;
+        if (!Array.isArray(sessionApps) || sessionApps.length === 0) return;
+        for (const sa of sessionApps) {
+          const app = apps.value.find(a => a.id === sa.id);
+          if (!app) continue;
+          if (openWindows.value.find(w => w.id === sa.id)) continue;
+          const prevDesktop = currentDesktop.value;
+          currentDesktop.value = sa.desktop || 1;
+          openApp(app);
+          currentDesktop.value = prevDesktop;
+        }
+        // Switch to desktop 1 and show/hide windows properly
+        switchDesktop(currentDesktop.value);
+      } catch {}
+    }
+
     function openApp(app) {
       const existing = openWindows.value.find(w => w.id === app.id);
       if (existing) { focusWindow(existing); return; }
@@ -2703,6 +2759,7 @@ createApp({
           }
           openWindows.value = openWindows.value.filter(w => w.id !== app.id);
           delete wbMap[app.id];
+          saveSessionState();
           return false;
         },
         onfocus() {
@@ -2745,6 +2802,7 @@ createApp({
           subApps[app.id] = subApp;
         }
       }
+      saveSessionState();
     }
 
     // ── Dynamic app install/uninstall ──
@@ -3085,7 +3143,7 @@ createApp({
       window.addEventListener('app-installed', onAppInstalled);
       window.addEventListener('app-uninstalled', onAppUninstalled);
       window.addEventListener('open-app-action', onOpenAppAction);
-      loadInstalledApps();
+      loadInstalledApps().then(() => restoreSessionApps());
       connectWS();
     });
     onUnmounted(() => {
@@ -3115,8 +3173,23 @@ createApp({
       // Load CSS
       loadAppCss('screenshot');
       try {
+        // Ensure html2canvas is loaded (bypass AMD define conflict with Monaco)
+        var _h2c = window.html2canvas;
+        if (!_h2c || typeof _h2c !== 'function') {
+          await new Promise(function(resolve, reject) {
+            var _amdDefine = window.define;
+            window.define = undefined;
+            var s = document.createElement('script');
+            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+            s.onload = function() { window.define = _amdDefine; resolve(); };
+            s.onerror = function() { window.define = _amdDefine; reject(new Error('html2canvas yüklenemedi')); };
+            document.head.appendChild(s);
+          });
+          _h2c = window.html2canvas;
+        }
+        if (typeof _h2c !== 'function') throw new Error('html2canvas yüklenemedi');
         // Capture current screen with html2canvas
-        ssCapturedCanvas = await html2canvas(document.getElementById('app'), {
+        ssCapturedCanvas = await _h2c(document.getElementById('app'), {
           useCORS: true, allowTaint: true, scale: 1,
           ignoreElements: function(el) { return el.classList && el.classList.contains('ss-overlay'); }
         });

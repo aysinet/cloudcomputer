@@ -1,0 +1,113 @@
+<div class="cir-root">
+  <!-- Toolbar -->
+  <div class="cir-toolbar">
+    <div class="cir-toolbar-left">
+      <button class="cir-tbtn" @click="newCircuit" title="Ctrl+N">📄 {{t('newFile')}}</button>
+      <button class="cir-tbtn" @click="saveCircuit">💾 {{t('save')}}</button>
+      <button class="cir-tbtn" @click="loadCircuit">📂 {{t('load')}}</button>
+      <button class="cir-tbtn" @click="exportPng">🖼 {{t('exportPng')}}</button>
+      <span class="cir-sep"></span>
+      <button class="cir-tbtn" @click="undo" title="Ctrl+Z">↩ {{t('undo')}}</button>
+      <button class="cir-tbtn" @click="redo" title="Ctrl+Y">↪ {{t('redo')}}</button>
+      <span class="cir-sep"></span>
+      <button class="cir-tbtn" :class="{active: activeTool==='select'}" @click="activeTool='select'">🖱 {{t('select')}}</button>
+      <button class="cir-tbtn" :class="{active: activeTool==='wire'}" @click="activeTool='wire'">〰 {{t('wire')}}</button>
+      <button class="cir-tbtn" :class="{active: activeTool==='delete'}" @click="activeTool='delete'">🗑 {{t('delete')}}</button>
+      <button class="cir-tbtn" @click="rotateSelected" :disabled="!selectedId" title="R">🔄 {{t('rotate')}}</button>
+    </div>
+    <div class="cir-toolbar-right">
+      <button class="cir-tbtn cir-tbtn-sm" @click="zoomOut" title="-">➖</button>
+      <span class="cir-zoom-label">{{Math.round(zoom * 100)}}%</span>
+      <button class="cir-tbtn cir-tbtn-sm" @click="zoomIn" title="+">➕</button>
+      <button class="cir-tbtn cir-tbtn-sm" @click="zoomFit">⬜</button>
+    </div>
+  </div>
+
+  <div class="cir-body">
+    <!-- Left panel: Components -->
+    <div class="cir-panel cir-panel-left">
+      <div class="cir-panel-title">🔌 {{t('components')}}</div>
+      <div class="cir-cat-tabs">
+        <button v-for="cat in compCats" :key="cat.id" class="cir-cat-btn" :class="{active: compCat===cat.id}" @click="compCat=cat.id">{{cat.label}}</button>
+      </div>
+      <div class="cir-comp-list">
+        <button v-for="comp in categoryComponents" :key="comp.id" class="cir-comp-btn" @click="addComponent(comp.id)" :title="comp.label">
+          <span class="cir-comp-sym">{{comp.symbol}}</span>
+          <span class="cir-comp-name">{{comp.label}}</span>
+        </button>
+      </div>
+      <div class="cir-grid-opts">
+        <label class="cir-chk"><input type="checkbox" v-model="showGridOpt"> {{t('showGrid')}}</label>
+        <label class="cir-chk"><input type="checkbox" v-model="snapGrid"> {{t('snapToGrid')}}</label>
+      </div>
+    </div>
+
+    <!-- Canvas -->
+    <div class="cir-canvas-wrap" ref="canvasWrap">
+      <canvas ref="canvasEl"
+        @mousedown="onMouseDown"
+        @mousemove="onMouseMove"
+        @mouseup="onMouseUp"
+        @wheel.prevent="onWheel"
+        @contextmenu.prevent
+      ></canvas>
+      <div class="cir-status-bar">
+        <span>{{t('totalComponents')}}: {{stats.components}}</span>
+        <span>{{t('wires')}}: {{stats.wires}}</span>
+        <span>Zoom: {{Math.round(zoom * 100)}}%</span>
+        <span>{{t('gridSnap')}}: {{snapGrid ? '✓' : '✗'}}</span>
+      </div>
+    </div>
+
+    <!-- Right panel: Properties -->
+    <div class="cir-panel cir-panel-right">
+      <div class="cir-panel-title">⚙ {{t('properties')}}</div>
+      <div v-if="selectedComp" class="cir-props">
+        <div class="cir-prop-row">
+          <label>{{t('id')}}</label>
+          <span class="cir-prop-val">#{{selectedComp.id}}</span>
+        </div>
+        <div class="cir-prop-row">
+          <label>{{t('name')}}</label>
+          <input class="cir-input" :value="selectedComp.name" @input="updateSelectedProp('name', $event.target.value)">
+        </div>
+        <div class="cir-prop-row">
+          <label>{{t('value')}}</label>
+          <input class="cir-input" :value="selectedComp.value" @input="updateSelectedProp('value', $event.target.value)">
+        </div>
+        <div class="cir-prop-row">
+          <label>{{t('rotation')}}</label>
+          <span class="cir-prop-val">{{selectedComp.rotation}}°</span>
+          <button class="cir-tbtn cir-tbtn-sm" @click="rotateSelected">🔄</button>
+        </div>
+        <div class="cir-prop-row">
+          <label>{{t('x')}}</label>
+          <span class="cir-prop-val">{{selectedComp.x}}</span>
+        </div>
+        <div class="cir-prop-row">
+          <label>{{t('y')}}</label>
+          <span class="cir-prop-val">{{selectedComp.y}}</span>
+        </div>
+        <div class="cir-prop-row">
+          <label>{{t('pins')}}</label>
+          <span class="cir-prop-val">{{selectedComp.type}}</span>
+        </div>
+        <div class="cir-prop-actions">
+          <button class="cir-btn-del" @click="deleteSelected">🗑 {{t('delete')}}</button>
+        </div>
+      </div>
+      <div v-else class="cir-no-sel">
+        <div class="cir-no-sel-icon">🔍</div>
+        <div>{{t('noSelection')}}</div>
+      </div>
+
+      <div class="cir-panel-title cir-mt">📋 {{t('netlist')}}</div>
+      <div class="cir-netlist-area">
+        <button class="cir-tbtn" @click="copyNetlist" :disabled="!components.length">📋 {{t('copyNetlist')}}</button>
+      </div>
+
+      <div class="cir-panel-title cir-mt">📝 {{t('circuitName')}}</div>
+      <input class="cir-input cir-full" v-model="circuitName" :placeholder="t('unnamed')">
+    </div>
+  </div>
+</div>

@@ -1,0 +1,40 @@
+{
+  "id": "pdf-writer",
+  "name": "PDF Oluşturucu",
+  "icon": "📝",
+  "color": "linear-gradient(135deg,#e74c3c,#c0392b)",
+  "type": "internal",
+  "size": {
+    "w": 960,
+    "h": 680
+  },
+  "global": false,
+  "description": "PDF oluşturucu — zengin metin düzenleyici, resim ekleme, sayfa yönetimi, sunucuya kaydetme",
+  "lang": {
+    "tr": {
+      "name": "PDF Oluşturucu",
+      "description": "PDF oluşturucu — zengin metin düzenleyici, resim ekleme, sayfa yönetimi, sunucuya kaydetme"
+    },
+    "en": {
+      "name": "PDF Writer",
+      "description": "PDF creator — rich text editor, image insertion, page management, save to server"
+    },
+    "de": {
+      "name": "PDF-Ersteller",
+      "description": "PDF-Ersteller — Rich-Text-Editor, Bilder einfügen, Seitenverwaltung, auf Server speichern"
+    },
+    "fr": {
+      "name": "Créateur PDF",
+      "description": "Créateur PDF — éditeur de texte enrichi, insertion d'images, gestion des pages, sauvegarde sur serveur"
+    },
+    "es": {
+      "name": "Creador de PDF",
+      "description": "Creador de PDF — editor de texto enriquecido, inserción de imágenes, gestión de páginas, guardar en servidor"
+    },
+    "ru": {
+      "name": "Создатель PDF",
+      "description": "Создатель PDF — редактор текста, вставка изображений, управление страницами, сохранение на сервер"
+    }
+  },
+  "category": "productivity"
+}

@@ -210,7 +210,9 @@
       });
 
       const favCoins = computed(() => {
-        return allCoins.value.filter(c => favorites.value.includes(c.symbol));
+        return favorites.value
+          .map(sym => allCoins.value.find(c => c.symbol === sym))
+          .filter(Boolean);
       });
 
       const displayCoins = computed(() => {
