@@ -34,6 +34,18 @@
     "ru": {
       "name": "PostIt Заметки",
       "description": "Приклейте заметки на рабочий стол — перетаскивание, изменение размера, раскрашивание"
+    },
+    "zh": {
+      "name": "便利贴",
+      "description": "桌面便签"
+    },
+    "ja": {
+      "name": "付箋",
+      "description": "デスクトップ付箋"
+    },
+    "it": {
+      "name": "Post-it",
+      "description": "Note adesive per il desktop"
     }
   },
   "category": "productivity"

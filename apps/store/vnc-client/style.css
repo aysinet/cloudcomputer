@@ -1,0 +1,315 @@
+.vnc-app {
+  display: flex;
+  height: 100%;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+.vnc-sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: #16213e;
+  border-right: 1px solid #2a2a4a;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-shrink: 0;
+  transition: width 0.2s, min-width 0.2s;
+}
+
+.vnc-sidebar.collapsed {
+  width: 24px;
+  min-width: 24px;
+  overflow: hidden;
+}
+
+.vnc-sidebar.collapsed .vnc-sidebar-content {
+  display: none;
+}
+
+.vnc-sidebar-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  background: #2a2a4a;
+  color: #aaa;
+  width: 20px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px 0 0 4px;
+  font-size: 11px;
+  z-index: 5;
+  transition: background 0.15s;
+}
+
+.vnc-sidebar-toggle:hover {
+  background: #3a3a5a;
+  color: #fff;
+}
+
+.vnc-sidebar-content {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vnc-logo {
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  padding: 8px 0;
+  color: #89b4fa;
+}
+
+/* ── Form ── */
+.vnc-form .el-form-item {
+  margin-bottom: 10px;
+}
+
+.vnc-form .el-form-item__label {
+  color: #bbb !important;
+  font-size: 12px !important;
+  padding-bottom: 2px !important;
+}
+
+.vnc-form .el-input__wrapper {
+  background: #1a1a2e !important;
+  border: 1px solid #2a2a4a !important;
+  box-shadow: none !important;
+}
+
+.vnc-form .el-input__inner {
+  color: #e0e0e0 !important;
+}
+
+.vnc-form .el-input-number {
+  width: 100%;
+}
+
+.vnc-form .el-input-number .el-input__wrapper {
+  background: #1a1a2e !important;
+}
+
+.vnc-form-options {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.vnc-form-options .el-checkbox {
+  color: #bbb !important;
+}
+
+.vnc-form-options .el-checkbox__label {
+  color: #bbb !important;
+  font-size: 12px !important;
+}
+
+.vnc-form-actions {
+  margin-bottom: 4px;
+}
+
+/* ── Dividers ── */
+.vnc-app .el-divider {
+  border-color: #2a2a4a !important;
+  margin: 10px 0 6px !important;
+}
+
+.vnc-app .el-divider__text {
+  background: #16213e !important;
+  color: #888 !important;
+  font-size: 11px !important;
+}
+
+/* ── Status ── */
+.vnc-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.vnc-conn-info {
+  font-size: 11px;
+  color: #aaa;
+}
+
+.vnc-toolbar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vnc-toolbar-actions .el-button {
+  justify-content: flex-start;
+  font-size: 12px;
+}
+
+/* ── Save Row ── */
+.vnc-save-row {
+  display: flex;
+  gap: 6px;
+}
+
+/* ── Saved / Recent ── */
+.vnc-empty {
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.vnc-saved-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.vnc-saved-item:hover {
+  background: rgba(137, 180, 250, 0.1);
+}
+
+.vnc-saved-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.vnc-saved-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #e0e0e0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vnc-saved-addr {
+  display: block;
+  font-size: 11px;
+  color: #888;
+}
+
+/* ── Display Area ── */
+.vnc-display-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0f0f23;
+  position: relative;
+  overflow: hidden;
+}
+
+.vnc-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #555;
+}
+
+.vnc-placeholder-icon {
+  font-size: 48px;
+}
+
+.vnc-placeholder-text {
+  font-size: 15px;
+  color: #888;
+}
+
+.vnc-placeholder-sub {
+  font-size: 12px;
+  color: #555;
+}
+
+.vnc-error-state .vnc-placeholder-text {
+  color: #f38ba8;
+}
+
+.vnc-error-state .vnc-placeholder-sub {
+  color: #f38ba8;
+  opacity: 0.7;
+  max-width: 300px;
+  text-align: center;
+  word-break: break-word;
+}
+
+/* ── VNC Canvas ── */
+.vnc-canvas-container {
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+
+.vnc-canvas-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.vnc-canvas-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* ── Scrollbar ── */
+.vnc-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.vnc-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.vnc-sidebar::-webkit-scrollbar-thumb {
+  background: #2a2a4a;
+  border-radius: 2px;
+}
+
+/* ── Mobile ── */
+@media (max-width: 700px) {
+  .vnc-sidebar {
+    width: 100%;
+    min-width: 100%;
+    max-height: 50%;
+    border-right: none;
+    border-bottom: 1px solid #2a2a4a;
+  }
+
+  .vnc-app {
+    flex-direction: column;
+  }
+
+  .vnc-sidebar.collapsed {
+    width: 100%;
+    min-width: 100%;
+    height: 24px;
+    min-height: 24px;
+  }
+
+  .vnc-sidebar-toggle {
+    top: 0;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 48px;
+    height: 20px;
+    border-radius: 0 0 4px 4px;
+  }
+}

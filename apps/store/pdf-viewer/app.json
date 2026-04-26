@@ -34,6 +34,18 @@
     "ru": {
       "name": "Просмотрщик PDF",
       "description": "Просмотрщик PDF — открытие, навигация, масштабирование"
+    },
+    "zh": {
+      "name": "PDF阅读器",
+      "description": "查看PDF文件"
+    },
+    "ja": {
+      "name": "PDFビューア",
+      "description": "PDFファイルを表示"
+    },
+    "it": {
+      "name": "Visualizzatore PDF",
+      "description": "Visualizza file PDF"
     }
   },
   "category": "tools"

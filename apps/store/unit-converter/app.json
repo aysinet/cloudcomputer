@@ -34,6 +34,18 @@
     "ru": {
       "name": "Конвертер Единиц",
       "description": "Конвертация единиц длины, веса, температуры, площади, объёма, скорости"
+    },
+    "zh": {
+      "name": "单位转换",
+      "description": "转换各种度量单位"
+    },
+    "ja": {
+      "name": "単位変換",
+      "description": "さまざまな単位を変換"
+    },
+    "it": {
+      "name": "Convertitore unità",
+      "description": "Converti varie unità di misura"
     }
   },
   "category": "tools"

@@ -16,6 +16,17 @@
       const availableFiles = ref({ public: [], user: [] });
       const uploading = ref(false);
 
+      // Visualizer state
+      const vizActive = ref(false);
+      const vizMode = ref('bars'); // bars | wave | circle
+      const vizModes = ['bars', 'wave', 'circle'];
+      let audioCtx = null;
+      let analyser = null;
+      let sourceNode = null;
+      let vizRafId = null;
+      let vizCanvas = null;
+      let vizCtx = null;
+
       let audio = null;
       let rafId = null;
 
@@ -44,6 +55,7 @@
         const track = tracks.value[i];
         if (!audio) createAudio();
         audio.src = track.url;
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         audio.play().then(() => {
           playing.value = true;
           rafId = requestAnimationFrame(updateTime);
@@ -232,12 +244,133 @@
         return tracks.value.some(t => t.url === file.url);
       }
 
+      // ── Visualizer ──
+      function ensureAudioContext() {
+        if (audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 512;
+        analyser.smoothingTimeConstant = 0.8;
+        if (audio) {
+          sourceNode = audioCtx.createMediaElementSource(audio);
+          sourceNode.connect(analyser);
+          analyser.connect(audioCtx.destination);
+        }
+      }
+
+      function toggleVisualizer() {
+        vizActive.value = !vizActive.value;
+        if (vizActive.value) {
+          ensureAudioContext();
+          if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+          nextTick(() => {
+            const el = document.querySelector('.mp-viz-canvas');
+            if (el) {
+              vizCanvas = el;
+              vizCtx = el.getContext('2d');
+              resizeVizCanvas();
+              drawViz();
+            }
+          });
+        } else {
+          if (vizRafId) { cancelAnimationFrame(vizRafId); vizRafId = null; }
+        }
+      }
+
+      function cycleVizMode() {
+        const i = vizModes.indexOf(vizMode.value);
+        vizMode.value = vizModes[(i + 1) % vizModes.length];
+      }
+
+      function resizeVizCanvas() {
+        if (!vizCanvas) return;
+        const parent = vizCanvas.parentElement;
+        if (!parent) return;
+        vizCanvas.width = parent.clientWidth;
+        vizCanvas.height = parent.clientHeight;
+      }
+
+      function drawViz() {
+        if (!vizActive.value || !analyser || !vizCtx || !vizCanvas) return;
+        vizRafId = requestAnimationFrame(drawViz);
+        const w = vizCanvas.width;
+        const h = vizCanvas.height;
+        const bufLen = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufLen);
+
+        vizCtx.clearRect(0, 0, w, h);
+
+        if (vizMode.value === 'bars') {
+          analyser.getByteFrequencyData(dataArray);
+          const barCount = Math.min(bufLen, 128);
+          const barW = w / barCount;
+          for (let i = 0; i < barCount; i++) {
+            const val = dataArray[i] / 255;
+            const barH = val * h * 0.9;
+            const hue = (i / barCount) * 120 + 140;
+            vizCtx.fillStyle = `hsla(${hue}, 85%, 55%, 0.85)`;
+            vizCtx.fillRect(i * barW, h - barH, barW - 1, barH);
+            // Mirror glow on top
+            vizCtx.fillStyle = `hsla(${hue}, 85%, 55%, 0.15)`;
+            vizCtx.fillRect(i * barW, h - barH - barH * 0.08, barW - 1, barH * 0.08);
+          }
+        } else if (vizMode.value === 'wave') {
+          analyser.getByteTimeDomainData(dataArray);
+          vizCtx.lineWidth = 2.5;
+          vizCtx.strokeStyle = '#38ef7d';
+          vizCtx.shadowColor = '#38ef7d';
+          vizCtx.shadowBlur = 12;
+          vizCtx.beginPath();
+          const sliceW = w / bufLen;
+          for (let i = 0; i < bufLen; i++) {
+            const v = dataArray[i] / 128.0;
+            const y = (v * h) / 2;
+            if (i === 0) vizCtx.moveTo(0, y);
+            else vizCtx.lineTo(i * sliceW, y);
+          }
+          vizCtx.lineTo(w, h / 2);
+          vizCtx.stroke();
+          vizCtx.shadowBlur = 0;
+        } else if (vizMode.value === 'circle') {
+          analyser.getByteFrequencyData(dataArray);
+          const cx = w / 2, cy = h / 2;
+          const radius = Math.min(w, h) * 0.25;
+          const bars = Math.min(bufLen, 180);
+          for (let i = 0; i < bars; i++) {
+            const val = dataArray[i] / 255;
+            const angle = (i / bars) * Math.PI * 2 - Math.PI / 2;
+            const len = val * radius * 0.9 + 4;
+            const x1 = cx + Math.cos(angle) * radius;
+            const y1 = cy + Math.sin(angle) * radius;
+            const x2 = cx + Math.cos(angle) * (radius + len);
+            const y2 = cy + Math.sin(angle) * (radius + len);
+            const hue = (i / bars) * 360;
+            vizCtx.strokeStyle = `hsla(${hue}, 80%, 60%, 0.8)`;
+            vizCtx.lineWidth = 2;
+            vizCtx.beginPath();
+            vizCtx.moveTo(x1, y1);
+            vizCtx.lineTo(x2, y2);
+            vizCtx.stroke();
+          }
+          // Inner circle
+          vizCtx.beginPath();
+          vizCtx.arc(cx, cy, radius - 2, 0, Math.PI * 2);
+          vizCtx.strokeStyle = 'rgba(56,239,125,0.3)';
+          vizCtx.lineWidth = 1.5;
+          vizCtx.stroke();
+        }
+      }
+
+      let vizResizeHandler = null;
+
       onMounted(async () => {
         createAudio();
         await loadPlaylist();
         await loadFiles();
         loading.value = false;
         if (volStore && mediaHandlers) volStore.registerMedia(mediaHandlers);
+        vizResizeHandler = () => resizeVizCanvas();
+        window.addEventListener('resize', vizResizeHandler);
       });
 
       // ── URL link ──
@@ -257,6 +390,9 @@
       onUnmounted(() => {
         if (audio) { audio.pause(); audio.src = ''; audio = null; }
         if (rafId) cancelAnimationFrame(rafId);
+        if (vizRafId) cancelAnimationFrame(vizRafId);
+        if (vizResizeHandler) window.removeEventListener('resize', vizResizeHandler);
+        if (audioCtx) { audioCtx.close().catch(() => {}); audioCtx = null; }
         if (volStore && mediaHandlers) volStore.unregisterMedia(mediaHandlers);
       });
 
@@ -264,9 +400,11 @@
         tracks, index, playing, elapsed, duration, volume, loading,
         tab, availableFiles, uploading, linkUrl,
         currentTrack, progress,
+        vizActive, vizMode,
         play, toggle, next, prev, seek, setVolume, formatTime,
         addToPlaylist, removeFromPlaylist, moveTrack,
-        triggerUpload, deleteFile, isInPlaylist, addFromUrl
+        triggerUpload, deleteFile, isInPlaylist, addFromUrl,
+        toggleVisualizer, cycleVizMode
       };
     }
   };

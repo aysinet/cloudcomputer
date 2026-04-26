@@ -59,8 +59,11 @@
         placeholder:'Написать заметку...', yellow:'Жёлтый', pink:'Розовый', blue:'Синий',
         green:'Зелёный', purple:'Фиолетовый', orange:'Оранжевый', color:'Цвет',
         manager:'Менеджер', notes:'заметки'
-      }
-    };
+      },
+    zh: { title: 'PostIt Notes', newPostit: 'New PostIt', noPostits: 'No postits yet', empty: 'Empty note', deleteConfirm: 'Are you sure you want to delete this note?', delete: 'Delete', yes: 'Yes', cancel: 'Cancel', hide: 'Hide', show: 'Show', showAll: 'Show All', hideAll: 'Hide All', loading: 'Loading...', placeholder: 'Write a note...', yellow: 'Yellow', pink: 'Pink', blue: 'Blue', green: 'Green', purple: 'Purple', orange: 'Orange', color: 'Color', manager: 'Manager', notes: 'notes' },
+    ja: { title: 'PostIt Notes', newPostit: 'New PostIt', noPostits: 'No postits yet', empty: 'Empty note', deleteConfirm: 'Are you sure you want to delete this note?', delete: 'Delete', yes: 'Yes', cancel: 'Cancel', hide: 'Hide', show: 'Show', showAll: 'Show All', hideAll: 'Hide All', loading: 'Loading...', placeholder: 'Write a note...', yellow: 'Yellow', pink: 'Pink', blue: 'Blue', green: 'Green', purple: 'Purple', orange: 'Orange', color: 'Color', manager: 'Manager', notes: 'notes' },
+    it: { title: 'PostIt Notes', newPostit: 'New PostIt', noPostits: 'No postits yet', empty: 'Empty note', deleteConfirm: 'Are you sure you want to delete this note?', delete: 'Delete', yes: 'Yes', cancel: 'Cancel', hide: 'Hide', show: 'Show', showAll: 'Show All', hideAll: 'Hide All', loading: 'Loading...', placeholder: 'Write a note...', yellow: 'Yellow', pink: 'Pink', blue: 'Blue', green: 'Green', purple: 'Purple', orange: 'Orange', color: 'Color', manager: 'Manager', notes: 'notes' }
+  };
 
     function getLocale() { return localStorage.getItem('sys_locale') || 'tr'; }
     const locale = ref(getLocale());

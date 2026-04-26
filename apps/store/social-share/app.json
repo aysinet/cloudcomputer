@@ -34,6 +34,18 @@
     "ru": {
       "name": "Соцсети",
       "description": "Поделиться в соцсетях — Twitter, Facebook, WhatsApp, Telegram и др."
+    },
+    "zh": {
+      "name": "社交分享",
+      "description": "分享内容到社交媒体"
+    },
+    "ja": {
+      "name": "ソーシャルシェア",
+      "description": "SNSにコンテンツを共有"
+    },
+    "it": {
+      "name": "Condivisione social",
+      "description": "Condividi contenuti sui social media"
     }
   },
   "category": "social"

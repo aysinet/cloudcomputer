@@ -11,12 +11,42 @@
   "global": false,
   "description": "Docker tabanlı satranç oyunu (rmeira/chess)",
   "lang": {
-    "tr": { "name": "Satranç", "description": "Docker tabanlı satranç oyunu" },
-    "en": { "name": "Chess", "description": "Docker-based chess game" },
-    "de": { "name": "Schach", "description": "Docker-basiertes Schachspiel" },
-    "fr": { "name": "Échecs", "description": "Jeu d'échecs basé sur Docker" },
-    "es": { "name": "Ajedrez", "description": "Juego de ajedrez basado en Docker" },
-    "ru": { "name": "Шахматы", "description": "Шахматы на базе Docker" }
+    "tr": {
+      "name": "Satranç",
+      "description": "Docker tabanlı satranç oyunu"
+    },
+    "en": {
+      "name": "Chess",
+      "description": "Docker-based chess game"
+    },
+    "de": {
+      "name": "Schach",
+      "description": "Docker-basiertes Schachspiel"
+    },
+    "fr": {
+      "name": "Échecs",
+      "description": "Jeu d'échecs basé sur Docker"
+    },
+    "es": {
+      "name": "Ajedrez",
+      "description": "Juego de ajedrez basado en Docker"
+    },
+    "ru": {
+      "name": "Шахматы",
+      "description": "Шахматы на базе Docker"
+    },
+    "zh": {
+      "name": "国际象棋",
+      "description": "经典国际象棋游戏"
+    },
+    "ja": {
+      "name": "チェス",
+      "description": "クラシックチェスゲーム"
+    },
+    "it": {
+      "name": "Scacchi",
+      "description": "Gioco di scacchi classico"
+    }
   },
   "category": "games",
   "docker": {

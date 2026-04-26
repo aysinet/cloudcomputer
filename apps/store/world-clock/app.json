@@ -34,6 +34,18 @@
     "ru": {
       "name": "Мировые часы",
       "description": "Мировые часы — несколько часовых поясов, добавить города"
+    },
+    "zh": {
+      "name": "世界时钟",
+      "description": "查看世界各地时间"
+    },
+    "ja": {
+      "name": "世界時計",
+      "description": "世界各地の時間を表示"
+    },
+    "it": {
+      "name": "Orologio mondiale",
+      "description": "Visualizza orari in tutto il mondo"
     }
   },
   "category": "tools"

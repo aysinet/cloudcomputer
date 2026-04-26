@@ -1,0 +1,189 @@
+<div class="yt-app">
+  <!-- Player View -->
+  <template v-if="currentVideo">
+    <div class="yt-player-view">
+      <div class="yt-player-header">
+        <el-button @click="closePlayer" size="small" :icon="'ArrowLeft'" circle />
+        <span class="yt-player-title">{{ currentVideo.title }}</span>
+        <div class="yt-player-actions">
+          <el-tooltip :content="isFavorite(currentVideo.videoId) ? t('removeFav') : t('addFav')" placement="bottom">
+            <el-button @click="toggleFavorite(currentVideo)" size="small" :type="isFavorite(currentVideo.videoId) ? 'danger' : 'default'" circle>
+              {{ isFavorite(currentVideo.videoId) ? '❤️' : '🤍' }}
+            </el-button>
+          </el-tooltip>
+          <el-tooltip :content="t('copyLink')" placement="bottom">
+            <el-button @click="copyLink" size="small" circle>📋</el-button>
+          </el-tooltip>
+          <el-tooltip :content="t('openYoutube')" placement="bottom">
+            <el-button @click="openOnYoutube" size="small" type="danger" circle>▶</el-button>
+          </el-tooltip>
+        </div>
+      </div>
+      <div class="yt-player-embed">
+        <iframe
+          :src="embedUrl"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+          class="yt-iframe"
+        ></iframe>
+      </div>
+      <div class="yt-player-info">
+        <div class="yt-player-meta">
+          <span class="yt-channel">{{ currentVideo.author }}</span>
+          <span v-if="currentVideo.views" class="yt-views">{{ formatViews(currentVideo.views) }} {{ t('views') }}</span>
+          <span v-if="currentVideo.published" class="yt-published">{{ currentVideo.published }}</span>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Browse View -->
+  <template v-else>
+    <!-- Top Bar -->
+    <div class="yt-topbar">
+      <div class="yt-logo" @click="goHome">📺 <span>YouTube</span></div>
+      <div class="yt-search-bar">
+        <el-input
+          v-model="searchQuery"
+          :placeholder="t('searchPlaceholder')"
+          @keyup.enter="doSearch"
+          clearable
+          size="default"
+          class="yt-search-input"
+        >
+          <template #append>
+            <el-button @click="doSearch" :icon="'Search'">{{ t('search') }}</el-button>
+          </template>
+        </el-input>
+      </div>
+      <div class="yt-url-bar">
+        <el-input
+          v-model="urlInput"
+          :placeholder="t('pasteUrl')"
+          @keyup.enter="watchFromUrl"
+          size="small"
+          class="yt-url-input"
+        >
+          <template #append>
+            <el-button @click="watchFromUrl" size="small">{{ t('watch') }}</el-button>
+          </template>
+        </el-input>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <el-tabs v-model="activeTab" class="yt-tabs">
+      <el-tab-pane :label="'🏠 ' + t('home')" name="home">
+        <div class="yt-section-title">🔥 {{ t('trending') }}</div>
+        <div v-if="loadingTrending" class="yt-loading">
+          <el-icon class="is-loading"><i class="el-icon-loading"></i></el-icon>
+          {{ t('loading') }}
+        </div>
+        <div v-else-if="trendingVideos.length === 0" class="yt-empty">
+          {{ t('noResults') }}
+          <el-button type="primary" size="small" @click="loadTrending" style="margin-top:8px">🔄</el-button>
+        </div>
+        <div v-else class="yt-grid">
+          <div v-for="v in trendingVideos" :key="v.videoId" class="yt-card" @click="watchVideo(v)">
+            <div class="yt-thumb-wrap">
+              <img :src="v.thumbnail" class="yt-thumb" loading="lazy" />
+              <span class="yt-duration">{{ formatDuration(v.duration) }}</span>
+            </div>
+            <div class="yt-card-info">
+              <div class="yt-card-title">{{ v.title }}</div>
+              <div class="yt-card-meta">
+                <span class="yt-card-author">{{ v.author }}</span>
+                <span v-if="v.views">{{ formatViews(v.views) }} {{ t('views') }}</span>
+                <span v-if="v.published">{{ v.published }}</span>
+              </div>
+            </div>
+            <el-button
+              class="yt-fav-btn"
+              @click.stop="toggleFavorite(v)"
+              :type="isFavorite(v.videoId) ? 'danger' : 'info'"
+              size="small" circle plain
+            >{{ isFavorite(v.videoId) ? '❤️' : '🤍' }}</el-button>
+          </div>
+        </div>
+      </el-tab-pane>
+
+      <el-tab-pane :label="'🔍 ' + t('search')" name="search">
+        <div v-if="searching" class="yt-loading">
+          <el-icon class="is-loading"><i class="el-icon-loading"></i></el-icon>
+          {{ t('loading') }}
+        </div>
+        <div v-else-if="searchResults.length === 0" class="yt-empty">{{ t('noResults') }}</div>
+        <div v-else class="yt-grid">
+          <div v-for="v in searchResults" :key="v.videoId" class="yt-card" @click="watchVideo(v)">
+            <div class="yt-thumb-wrap">
+              <img :src="v.thumbnail" class="yt-thumb" loading="lazy" />
+              <span class="yt-duration">{{ formatDuration(v.duration) }}</span>
+            </div>
+            <div class="yt-card-info">
+              <div class="yt-card-title">{{ v.title }}</div>
+              <div class="yt-card-meta">
+                <span class="yt-card-author">{{ v.author }}</span>
+                <span v-if="v.views">{{ formatViews(v.views) }} {{ t('views') }}</span>
+                <span v-if="v.published">{{ v.published }}</span>
+              </div>
+            </div>
+            <el-button
+              class="yt-fav-btn"
+              @click.stop="toggleFavorite(v)"
+              :type="isFavorite(v.videoId) ? 'danger' : 'info'"
+              size="small" circle plain
+            >{{ isFavorite(v.videoId) ? '❤️' : '🤍' }}</el-button>
+          </div>
+        </div>
+        <div v-if="searchResults.length > 0" class="yt-load-more">
+          <el-button @click="loadMore" :loading="loadingMore" type="primary" plain>{{ t('loadMore') }}</el-button>
+        </div>
+      </el-tab-pane>
+
+      <el-tab-pane :label="'❤️ ' + t('favorites') + ' (' + favorites.length + ')'" name="favorites">
+        <div v-if="favorites.length === 0" class="yt-empty">{{ t('noFavorites') }}</div>
+        <div v-else class="yt-grid">
+          <div v-for="v in favorites" :key="v.videoId" class="yt-card" @click="watchVideo(v)">
+            <div class="yt-thumb-wrap">
+              <img :src="v.thumbnail" class="yt-thumb" loading="lazy" />
+              <span class="yt-duration">{{ formatDuration(v.duration) }}</span>
+            </div>
+            <div class="yt-card-info">
+              <div class="yt-card-title">{{ v.title }}</div>
+              <div class="yt-card-meta">
+                <span class="yt-card-author">{{ v.author }}</span>
+              </div>
+            </div>
+            <el-button
+              class="yt-fav-btn"
+              @click.stop="toggleFavorite(v)"
+              type="danger" size="small" circle plain
+            >❤️</el-button>
+          </div>
+        </div>
+      </el-tab-pane>
+
+      <el-tab-pane :label="'📜 ' + t('history') + ' (' + watchHistory.length + ')'" name="history">
+        <div v-if="watchHistory.length > 0" class="yt-history-actions">
+          <el-button @click="clearHistory" type="danger" size="small" plain>🗑 {{ t('clearHistory') }}</el-button>
+        </div>
+        <div v-if="watchHistory.length === 0" class="yt-empty">{{ t('noHistory') }}</div>
+        <div v-else class="yt-grid">
+          <div v-for="v in watchHistory" :key="v.videoId + v.watchedAt" class="yt-card" @click="watchVideo(v)">
+            <div class="yt-thumb-wrap">
+              <img :src="v.thumbnail" class="yt-thumb" loading="lazy" />
+              <span class="yt-duration">{{ formatDuration(v.duration) }}</span>
+            </div>
+            <div class="yt-card-info">
+              <div class="yt-card-title">{{ v.title }}</div>
+              <div class="yt-card-meta">
+                <span class="yt-card-author">{{ v.author }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
+  </template>
+</div>

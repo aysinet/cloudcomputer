@@ -35,6 +35,18 @@
     "ru": {
       "name": "Внешнее приложение",
       "description": "Пример внешнего приложения (localhost:9090)"
+    },
+    "zh": {
+      "name": "扩展示例",
+      "description": "示例扩展应用"
+    },
+    "ja": {
+      "name": "拡張サンプル",
+      "description": "サンプル拡張アプリ"
+    },
+    "it": {
+      "name": "Esempio estensione",
+      "description": "App estensione di esempio"
     }
   },
   "category": "other"

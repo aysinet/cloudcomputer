@@ -67,7 +67,10 @@
       filled:'Залитый', width:'Ширина', height:'Высота',
       apply:'Применить', cancel:'Отмена', textPlaceholder:'Введите текст...',
       tool:'Инструмент', saved:'Сохранено', error:'Ошибка'
-    }
+    },
+    zh: { pencil: 'Pencil', brush: 'Brush', eraser: 'Eraser', line: 'Line', rect: 'Rectangle', ellipse: 'Ellipse', fill: 'Fill', picker: 'Color Picker', text: 'Text', newFile: 'New', open: 'Open', save: 'Save', saveAs: 'Save As', upload: 'Upload', download: 'Download (PNG)', undo: 'Undo', redo: 'Redo', bgColor: 'Background color', fgColor: 'Foreground color', resize: 'Resize', filled: 'Filled', width: 'Width', height: 'Height', apply: 'Apply', cancel: 'Cancel', textPlaceholder: 'Enter text...', tool: 'Tool', saved: 'Saved', error: 'Error' },
+    ja: { pencil: 'Pencil', brush: 'Brush', eraser: 'Eraser', line: 'Line', rect: 'Rectangle', ellipse: 'Ellipse', fill: 'Fill', picker: 'Color Picker', text: 'Text', newFile: 'New', open: 'Open', save: 'Save', saveAs: 'Save As', upload: 'Upload', download: 'Download (PNG)', undo: 'Undo', redo: 'Redo', bgColor: 'Background color', fgColor: 'Foreground color', resize: 'Resize', filled: 'Filled', width: 'Width', height: 'Height', apply: 'Apply', cancel: 'Cancel', textPlaceholder: 'Enter text...', tool: 'Tool', saved: 'Saved', error: 'Error' },
+    it: { pencil: 'Pencil', brush: 'Brush', eraser: 'Eraser', line: 'Line', rect: 'Rectangle', ellipse: 'Ellipse', fill: 'Fill', picker: 'Color Picker', text: 'Text', newFile: 'New', open: 'Open', save: 'Save', saveAs: 'Save As', upload: 'Upload', download: 'Download (PNG)', undo: 'Undo', redo: 'Redo', bgColor: 'Background color', fgColor: 'Foreground color', resize: 'Resize', filled: 'Filled', width: 'Width', height: 'Height', apply: 'Apply', cancel: 'Cancel', textPlaceholder: 'Enter text...', tool: 'Tool', saved: 'Saved', error: 'Error' }
   };
 
   function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }

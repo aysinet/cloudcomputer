@@ -34,6 +34,18 @@
     "ru": {
       "name": "Карта",
       "description": "Карта — отмечать места, сохранять виды, выбирать слои"
+    },
+    "zh": {
+      "name": "地图",
+      "description": "浏览世界地图"
+    },
+    "ja": {
+      "name": "マップ",
+      "description": "世界地図を閲覧"
+    },
+    "it": {
+      "name": "Mappa",
+      "description": "Esplora la mappa del mondo"
     }
   },
   "category": "tools"

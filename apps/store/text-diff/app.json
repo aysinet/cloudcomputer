@@ -34,6 +34,18 @@
     "ru": {
       "name": "Сравнение Текста",
       "description": "Сравнение текста и файлов — diff рядом, сравнение папок"
+    },
+    "zh": {
+      "name": "文本比较",
+      "description": "比较两段文本的差异"
+    },
+    "ja": {
+      "name": "テキスト比較",
+      "description": "2つのテキストの差分を比較"
+    },
+    "it": {
+      "name": "Diff testo",
+      "description": "Confronta le differenze tra due testi"
     }
   },
   "category": "tools"

@@ -57,8 +57,11 @@
         success:'Успешно', error:'Ошибка', saved:'Запись сохранена',
         deleted:'Запись удалена', micError:'Доступ к микрофону отклонён',
         deleteConfirm:'Вы уверены, что хотите удалить эту запись?', cancel:'Отмена'
-      }
-    };
+      },
+    zh: { title: 'Audio Recorder', record: 'Record', pause: 'Pause', resume: 'Resume', stop: 'Stop', recordings: 'Recordings', noRecordings: 'No recordings yet', download: 'Download', delete: 'Delete', connected: 'Connected', disconnected: 'Disconnected', recordingState: 'Recording...', pausedState: 'Paused', success: 'Success', error: 'Error', saved: 'Recording saved', deleted: 'Recording deleted', micError: 'Microphone access denied', deleteConfirm: 'Are you sure you want to delete this recording?', cancel: 'Cancel' },
+    ja: { title: 'Audio Recorder', record: 'Record', pause: 'Pause', resume: 'Resume', stop: 'Stop', recordings: 'Recordings', noRecordings: 'No recordings yet', download: 'Download', delete: 'Delete', connected: 'Connected', disconnected: 'Disconnected', recordingState: 'Recording...', pausedState: 'Paused', success: 'Success', error: 'Error', saved: 'Recording saved', deleted: 'Recording deleted', micError: 'Microphone access denied', deleteConfirm: 'Are you sure you want to delete this recording?', cancel: 'Cancel' },
+    it: { title: 'Audio Recorder', record: 'Record', pause: 'Pause', resume: 'Resume', stop: 'Stop', recordings: 'Recordings', noRecordings: 'No recordings yet', download: 'Download', delete: 'Delete', connected: 'Connected', disconnected: 'Disconnected', recordingState: 'Recording...', pausedState: 'Paused', success: 'Success', error: 'Error', saved: 'Recording saved', deleted: 'Recording deleted', micError: 'Microphone access denied', deleteConfirm: 'Are you sure you want to delete this recording?', cancel: 'Cancel' }
+  };
 
     function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
     const locale = ref(getLocale());

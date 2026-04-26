@@ -34,6 +34,18 @@
     "ru": {
       "name": "Судоку",
       "description": "Головоломка Судоку — лёгкий, средний, сложный"
+    },
+    "zh": {
+      "name": "数独",
+      "description": "经典数独游戏"
+    },
+    "ja": {
+      "name": "数独",
+      "description": "クラシック数独ゲーム"
+    },
+    "it": {
+      "name": "Sudoku",
+      "description": "Gioco classico Sudoku"
     }
   },
   "category": "games"

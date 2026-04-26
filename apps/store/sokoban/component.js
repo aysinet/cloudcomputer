@@ -55,7 +55,10 @@
       nextLevel:'Следующий уровень', best:'Лучший', na:'-',
       controls:'Управление', arrowKeys:'Стрелки или WASD для движения',
       undoKey:'Z: Отмена', restartKey:'R: Заново'
-    }
+    },
+    zh: { title: 'Sokoban', level: 'Level', moves: 'Moves', pushes: 'Pushes', restart: 'Restart', undo: 'Undo', prev: 'Previous', next: 'Next', selectLevel: 'Select Level', completed: 'Congratulations! Level completed!', allCompleted: 'You completed all levels! 🎉', nextLevel: 'Next Level', best: 'Best', na: '-', controls: 'Controls', arrowKeys: 'Arrow keys or WASD to move', undoKey: 'Z: Undo', restartKey: 'R: Restart' },
+    ja: { title: 'Sokoban', level: 'Level', moves: 'Moves', pushes: 'Pushes', restart: 'Restart', undo: 'Undo', prev: 'Previous', next: 'Next', selectLevel: 'Select Level', completed: 'Congratulations! Level completed!', allCompleted: 'You completed all levels! 🎉', nextLevel: 'Next Level', best: 'Best', na: '-', controls: 'Controls', arrowKeys: 'Arrow keys or WASD to move', undoKey: 'Z: Undo', restartKey: 'R: Restart' },
+    it: { title: 'Sokoban', level: 'Level', moves: 'Moves', pushes: 'Pushes', restart: 'Restart', undo: 'Undo', prev: 'Previous', next: 'Next', selectLevel: 'Select Level', completed: 'Congratulations! Level completed!', allCompleted: 'You completed all levels! 🎉', nextLevel: 'Next Level', best: 'Best', na: '-', controls: 'Controls', arrowKeys: 'Arrow keys or WASD to move', undoKey: 'Z: Undo', restartKey: 'R: Restart' }
   };
 
   function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }

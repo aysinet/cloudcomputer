@@ -1,0 +1,52 @@
+{
+  "id": "youtube",
+  "name": "YouTube",
+  "icon": "📺",
+  "color": "linear-gradient(135deg,#ff0000,#cc0000)",
+  "type": "internal",
+  "size": {
+    "w": 900,
+    "h": 640
+  },
+  "global": false,
+  "description": "YouTube video arama ve izleme uygulaması",
+  "lang": {
+    "tr": {
+      "name": "YouTube",
+      "description": "YouTube video arama ve izleme uygulaması"
+    },
+    "en": {
+      "name": "YouTube",
+      "description": "YouTube video search and watch app"
+    },
+    "de": {
+      "name": "YouTube",
+      "description": "YouTube Video-Such- und Wiedergabe-App"
+    },
+    "fr": {
+      "name": "YouTube",
+      "description": "Application de recherche et lecture YouTube"
+    },
+    "es": {
+      "name": "YouTube",
+      "description": "Aplicación de búsqueda y reproducción de YouTube"
+    },
+    "ru": {
+      "name": "YouTube",
+      "description": "Приложение для поиска и просмотра YouTube"
+    },
+    "zh": {
+      "name": "YouTube",
+      "description": "搜索和观看YouTube视频"
+    },
+    "ja": {
+      "name": "YouTube",
+      "description": "YouTube動画を検索して視聴"
+    },
+    "it": {
+      "name": "YouTube",
+      "description": "Cerca e guarda video YouTube"
+    }
+  },
+  "category": "media"
+}

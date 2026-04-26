@@ -34,6 +34,18 @@
     "ru": {
       "name": "Видеоредактор",
       "description": "Редактирование видео — обрезка, разделение, текст, скорость и экспорт"
+    },
+    "zh": {
+      "name": "视频编辑器",
+      "description": "编辑视频文件"
+    },
+    "ja": {
+      "name": "ビデオエディタ",
+      "description": "動画ファイルを編集"
+    },
+    "it": {
+      "name": "Editor video",
+      "description": "Modifica file video"
     }
   },
   "category": "media"

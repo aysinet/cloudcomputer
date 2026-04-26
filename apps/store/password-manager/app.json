@@ -34,6 +34,18 @@
     "ru": {
       "name": "Менеджер паролей",
       "description": "Менеджер паролей — AES-шифрование, безопасное хранилище"
+    },
+    "zh": {
+      "name": "密码管理器",
+      "description": "安全管理密码"
+    },
+    "ja": {
+      "name": "パスワードマネージャー",
+      "description": "パスワードを安全に管理"
+    },
+    "it": {
+      "name": "Gestore password",
+      "description": "Gestisci le password in modo sicuro"
     }
   },
   "category": "tools"

@@ -11,12 +11,42 @@
   "global": false,
   "description": "Klasik Reversi (Othello) strateji oyunu",
   "lang": {
-    "tr": { "name": "Reversi", "description": "Klasik Reversi (Othello) strateji oyunu" },
-    "en": { "name": "Reversi", "description": "Classic Reversi (Othello) strategy game" },
-    "de": { "name": "Reversi", "description": "Klassisches Reversi (Othello) Strategiespiel" },
-    "fr": { "name": "Reversi", "description": "Jeu de stratégie Reversi (Othello) classique" },
-    "es": { "name": "Reversi", "description": "Juego de estrategia clásico Reversi (Othello)" },
-    "ru": { "name": "Реверси", "description": "Классическая стратегическая игра Реверси (Отелло)" }
+    "tr": {
+      "name": "Reversi",
+      "description": "Klasik Reversi (Othello) strateji oyunu"
+    },
+    "en": {
+      "name": "Reversi",
+      "description": "Classic Reversi (Othello) strategy game"
+    },
+    "de": {
+      "name": "Reversi",
+      "description": "Klassisches Reversi (Othello) Strategiespiel"
+    },
+    "fr": {
+      "name": "Reversi",
+      "description": "Jeu de stratégie Reversi (Othello) classique"
+    },
+    "es": {
+      "name": "Reversi",
+      "description": "Juego de estrategia clásico Reversi (Othello)"
+    },
+    "ru": {
+      "name": "Реверси",
+      "description": "Классическая стратегическая игра Реверси (Отелло)"
+    },
+    "zh": {
+      "name": "黑白棋",
+      "description": "经典黑白棋游戏"
+    },
+    "ja": {
+      "name": "リバーシ",
+      "description": "クラシックリバーシゲーム"
+    },
+    "it": {
+      "name": "Reversi",
+      "description": "Gioco classico Reversi"
+    }
   },
   "category": "games"
 }

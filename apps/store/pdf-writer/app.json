@@ -34,6 +34,18 @@
     "ru": {
       "name": "Создатель PDF",
       "description": "Создатель PDF — редактор текста, вставка изображений, управление страницами, сохранение на сервер"
+    },
+    "zh": {
+      "name": "PDF编辑器",
+      "description": "创建PDF文档"
+    },
+    "ja": {
+      "name": "PDFライター",
+      "description": "PDF文書を作成"
+    },
+    "it": {
+      "name": "Scrittore PDF",
+      "description": "Crea documenti PDF"
     }
   },
   "category": "productivity"

@@ -34,6 +34,18 @@
     "ru": {
       "name": "Coin Tracker",
       "description": "Отслеживание криптовалют — цены в реальном времени, избранное, портфель"
+    },
+    "zh": {
+      "name": "加密货币追踪",
+      "description": "追踪加密货币价格"
+    },
+    "ja": {
+      "name": "暗号通貨トラッカー",
+      "description": "暗号通貨の価格を追跡"
+    },
+    "it": {
+      "name": "Tracker crypto",
+      "description": "Monitora i prezzi delle criptovalute"
     }
   },
   "category": "finance"

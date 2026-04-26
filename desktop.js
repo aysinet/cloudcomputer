@@ -888,9 +888,94 @@ app.use(express.static(path.join(__dirname), {
   index: false
 }));
 
+// ── VNC WebSocket-to-TCP Proxy ──
+const vncWss = new WebSocketServer({ noServer: true });
+
+vncWss.on('connection', (ws, req) => {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const targetHost = url.searchParams.get('host');
+  const targetPort = parseInt(url.searchParams.get('port')) || 5900;
+
+  if (!targetHost || !/^[a-zA-Z0-9._-]+$/.test(targetHost)) {
+    ws.close(4002, 'Invalid host');
+    return;
+  }
+  if (targetPort < 1 || targetPort > 65535) {
+    ws.close(4003, 'Invalid port');
+    return;
+  }
+
+  // Prevent SSRF: block localhost/internal ranges
+  const blocked = ['127.0.0.1', '0.0.0.0', 'localhost', '::1'];
+  if (blocked.includes(targetHost.toLowerCase())) {
+    ws.close(4004, 'Blocked host');
+    return;
+  }
+
+  const net = require('net');
+  const tcp = net.createConnection({ host: targetHost, port: targetPort }, () => {
+    // TCP connected — bridge data
+  });
+
+  tcp.on('data', (data) => {
+    if (ws.readyState === 1) {
+      try { ws.send(data); } catch {}
+    }
+  });
+
+  ws.on('message', (data) => {
+    if (!tcp.destroyed) {
+      try { tcp.write(Buffer.from(data)); } catch {}
+    }
+  });
+
+  tcp.on('error', (err) => {
+    if (ws.readyState === 1) ws.close(4005, 'TCP error: ' + err.message);
+  });
+
+  tcp.on('close', () => {
+    if (ws.readyState === 1) ws.close(1000, 'VNC connection closed');
+  });
+
+  ws.on('close', () => {
+    if (!tcp.destroyed) tcp.destroy();
+  });
+
+  ws.on('error', () => {
+    if (!tcp.destroyed) tcp.destroy();
+  });
+});
+
 // ── WebSocket ──
-const wss = new WebSocketServer({ server, path: '/ws' });
+const wss = new WebSocketServer({ noServer: true });
 const wsClients = new Set();
+
+// Route WebSocket upgrades
+server.on('upgrade', (req, socket, head) => {
+  const pathname = new URL(req.url, `http://${req.headers.host}`).pathname;
+
+  if (pathname === '/api/vnc/proxy') {
+    // Authenticate
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const token = url.searchParams.get('token') || parseCookies(req.headers.cookie).token || '';
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+    vncWss.handleUpgrade(req, socket, head, (ws) => {
+      vncWss.emit('connection', ws, req);
+    });
+  } else if (pathname === '/ws') {
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      wss.emit('connection', ws, req);
+    });
+  } else {
+    // Let http-proxy-middleware handle other upgrades (e.g. /proxy/:appId)
+    // Don't destroy - the proxy middleware attaches its own upgrade handler
+  }
+});
 
 wss.on('connection', (ws, req) => {
   // Authenticate WebSocket via JWT token in query string or cookie
@@ -4207,6 +4292,94 @@ app.delete('/api/postit/:id', authMiddleware, (req, res) => {
   postits.splice(idx, 1);
   saveUserPostits(req.user.username, postits);
   res.json({ ok: true });
+});
+
+// ── YouTube Search Proxy (Invidious) ──
+const YT_INVIDIOUS_INSTANCES = [
+  'https://vid.puffyan.us',
+  'https://inv.nadeko.net',
+  'https://invidious.fdn.fr',
+  'https://yt.artemislena.eu'
+];
+
+app.get('/api/youtube/search', authMiddleware, async (req, res) => {
+  const q = (req.query.q || '').trim();
+  const page = parseInt(req.query.page) || 1;
+  if (!q) return res.json([]);
+  const https = require('https');
+  const http = require('http');
+
+  for (const instance of YT_INVIDIOUS_INSTANCES) {
+    try {
+      const url = `${instance}/api/v1/search?q=${encodeURIComponent(q)}&page=${page}&type=video`;
+      const data = await new Promise((resolve, reject) => {
+        const mod = url.startsWith('https') ? https : http;
+        const request = mod.get(url, { timeout: 8000 }, (resp) => {
+          let body = '';
+          resp.on('data', chunk => body += chunk);
+          resp.on('end', () => {
+            try { resolve(JSON.parse(body)); } catch { reject(new Error('parse')); }
+          });
+        });
+        request.on('error', reject);
+        request.on('timeout', () => { request.destroy(); reject(new Error('timeout')); });
+      });
+      if (Array.isArray(data)) {
+        const results = data.filter(v => v.type === 'video').map(v => ({
+          videoId: v.videoId,
+          title: v.title,
+          author: v.author,
+          duration: v.lengthSeconds,
+          views: v.viewCount,
+          published: v.publishedText,
+          thumbnail: v.videoThumbnails && v.videoThumbnails.length > 0
+            ? v.videoThumbnails.find(t => t.quality === 'medium')?.url || v.videoThumbnails[0].url
+            : ''
+        }));
+        return res.json(results);
+      }
+    } catch {}
+  }
+  res.json([]);
+});
+
+app.get('/api/youtube/trending', authMiddleware, async (req, res) => {
+  const region = (req.query.region || 'US').substring(0, 2);
+  const https = require('https');
+  const http = require('http');
+
+  for (const instance of YT_INVIDIOUS_INSTANCES) {
+    try {
+      const url = `${instance}/api/v1/trending?region=${encodeURIComponent(region)}`;
+      const data = await new Promise((resolve, reject) => {
+        const mod = url.startsWith('https') ? https : http;
+        const request = mod.get(url, { timeout: 8000 }, (resp) => {
+          let body = '';
+          resp.on('data', chunk => body += chunk);
+          resp.on('end', () => {
+            try { resolve(JSON.parse(body)); } catch { reject(new Error('parse')); }
+          });
+        });
+        request.on('error', reject);
+        request.on('timeout', () => { request.destroy(); reject(new Error('timeout')); });
+      });
+      if (Array.isArray(data)) {
+        const results = data.filter(v => v.type === 'video').slice(0, 20).map(v => ({
+          videoId: v.videoId,
+          title: v.title,
+          author: v.author,
+          duration: v.lengthSeconds,
+          views: v.viewCount,
+          published: v.publishedText,
+          thumbnail: v.videoThumbnails && v.videoThumbnails.length > 0
+            ? v.videoThumbnails.find(t => t.quality === 'medium')?.url || v.videoThumbnails[0].url
+            : ''
+        }));
+        return res.json(results);
+      }
+    } catch {}
+  }
+  res.json([]);
 });
 
 server.listen(config.server.port, config.server.host, () => {

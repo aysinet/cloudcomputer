@@ -34,6 +34,18 @@
     "ru": {
       "name": "Редактор Формул",
       "description": "Редактор математических формул — пишите в LaTeX, экспортируйте в PNG/SVG/LaTeX/MathML"
+    },
+    "zh": {
+      "name": "数学公式",
+      "description": "创建和计算数学公式"
+    },
+    "ja": {
+      "name": "数式エディタ",
+      "description": "数式の作成と計算"
+    },
+    "it": {
+      "name": "Formula matematica",
+      "description": "Crea e calcola formule matematiche"
     }
   },
   "category": "productivity"

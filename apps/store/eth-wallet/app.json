@@ -34,6 +34,18 @@
     "ru": {
       "name": "Кошелёк ETH",
       "description": "Кошелёк Ethereum — баланс, отправка, история транзакций"
+    },
+    "zh": {
+      "name": "以太坊钱包",
+      "description": "管理以太坊资产"
+    },
+    "ja": {
+      "name": "ETHウォレット",
+      "description": "イーサリアム資産の管理"
+    },
+    "it": {
+      "name": "Portafoglio ETH",
+      "description": "Gestisci risorse Ethereum"
     }
   },
   "category": "finance"

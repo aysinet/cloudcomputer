@@ -62,3 +62,15 @@
 .mp-upload-btn{padding:3px 10px;border:none;border-radius:4px;background:rgba(56,239,125,.15);color:#38ef7d;font-size:11px;cursor:pointer;transition:.15s}
 .mp-upload-btn:hover{background:rgba(56,239,125,.3)}
 .mp-upload-btn:disabled{opacity:.5;cursor:default}
+
+/* Visualizer */
+.mp-viz-overlay{position:absolute;inset:0;z-index:100;background:#000;display:flex;flex-direction:column}
+.mp-viz-canvas{flex:1;width:100%;display:block}
+.mp-viz-controls{position:absolute;top:10px;right:10px;display:flex;gap:6px;z-index:101}
+.mp-viz-btn{padding:4px 10px;border:none;border-radius:6px;background:rgba(255,255,255,.12);color:#fff;font-size:12px;cursor:pointer;backdrop-filter:blur(6px);transition:.15s}
+.mp-viz-btn:hover{background:rgba(255,255,255,.25)}
+.mp-viz-player{position:absolute;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:16px;padding:14px 20px;background:linear-gradient(transparent,rgba(0,0,0,.8));z-index:101}
+.mp-viz-title{position:absolute;left:16px;font-size:12px;opacity:.7;max-width:30%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mp-viz-btns{display:flex;gap:10px;align-items:center}
+.mp-viz-toggle{font-size:14px !important}
+.mp-viz-toggle.active{background:rgba(56,239,125,.25);box-shadow:0 0 8px rgba(56,239,125,.3)}

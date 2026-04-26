@@ -34,6 +34,18 @@
     "ru": {
       "name": "Видеоплеер",
       "description": "Видеоплеер — плейлист, полный экран"
+    },
+    "zh": {
+      "name": "视频播放器",
+      "description": "播放视频文件"
+    },
+    "ja": {
+      "name": "ビデオプレーヤー",
+      "description": "動画ファイルを再生"
+    },
+    "it": {
+      "name": "Lettore video",
+      "description": "Riproduci file video"
     }
   },
   "category": "media"

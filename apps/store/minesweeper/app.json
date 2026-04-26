@@ -34,6 +34,18 @@
     "ru": {
       "name": "Сапёр",
       "description": "Классическая игра Сапёр — лёгкий, средний, сложный"
+    },
+    "zh": {
+      "name": "扫雷",
+      "description": "经典扫雷游戏"
+    },
+    "ja": {
+      "name": "マインスイーパー",
+      "description": "クラシックマインスイーパーゲーム"
+    },
+    "it": {
+      "name": "Campo minato",
+      "description": "Gioco classico campo minato"
     }
   },
   "category": "games"

@@ -80,8 +80,11 @@
         compressDone:'Архив создан', extractDone:'Извлечение завершено',
         noSelection:'Выберите файлы', noArchive:'Выберите архивный файл',
         invalidFormat:'Неподдерживаемый формат файла'
-      }
-    };
+      },
+    zh: { title: 'Archiver', tabCompress: 'Compress', tabExtract: 'Extract', format: 'Format', selectFiles: 'Select Files / Folders', selectArchive: 'Select Archive', compress: 'Compress', extract: 'Extract', archiveName: 'Archive Name', extractTo: 'Extract To', archiveContents: 'Archive Contents', emptyDir: 'Folder is empty', itemsSelected: 'items selected', gzipHint: 'GZIP compresses a single file only', compressing: 'Compressing...', extracting: 'Extracting...', success: 'Success', error: 'Error', compressDone: 'Archive created', extractDone: 'Extraction completed', noSelection: 'Please select files', noArchive: 'Please select an archive file', invalidFormat: 'Unsupported file format' },
+    ja: { title: 'Archiver', tabCompress: 'Compress', tabExtract: 'Extract', format: 'Format', selectFiles: 'Select Files / Folders', selectArchive: 'Select Archive', compress: 'Compress', extract: 'Extract', archiveName: 'Archive Name', extractTo: 'Extract To', archiveContents: 'Archive Contents', emptyDir: 'Folder is empty', itemsSelected: 'items selected', gzipHint: 'GZIP compresses a single file only', compressing: 'Compressing...', extracting: 'Extracting...', success: 'Success', error: 'Error', compressDone: 'Archive created', extractDone: 'Extraction completed', noSelection: 'Please select files', noArchive: 'Please select an archive file', invalidFormat: 'Unsupported file format' },
+    it: { title: 'Archiver', tabCompress: 'Compress', tabExtract: 'Extract', format: 'Format', selectFiles: 'Select Files / Folders', selectArchive: 'Select Archive', compress: 'Compress', extract: 'Extract', archiveName: 'Archive Name', extractTo: 'Extract To', archiveContents: 'Archive Contents', emptyDir: 'Folder is empty', itemsSelected: 'items selected', gzipHint: 'GZIP compresses a single file only', compressing: 'Compressing...', extracting: 'Extracting...', success: 'Success', error: 'Error', compressDone: 'Archive created', extractDone: 'Extraction completed', noSelection: 'Please select files', noArchive: 'Please select an archive file', invalidFormat: 'Unsupported file format' }
+  };
 
     function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
     const locale = ref(getLocale());

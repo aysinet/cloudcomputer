@@ -11,12 +11,42 @@
   "global": false,
   "description": "Klasik Doom oyunu — Docker tabanlı WASM sürümü",
   "lang": {
-    "tr": { "name": "Doom", "description": "Klasik Doom oyunu — tarayıcıda oyna" },
-    "en": { "name": "Doom", "description": "Classic Doom game — play in browser" },
-    "de": { "name": "Doom", "description": "Klassisches Doom-Spiel — im Browser spielen" },
-    "fr": { "name": "Doom", "description": "Jeu Doom classique — jouez dans le navigateur" },
-    "es": { "name": "Doom", "description": "Juego clásico Doom — juega en el navegador" },
-    "ru": { "name": "Doom", "description": "Классический Doom — играйте в браузере" }
+    "tr": {
+      "name": "Doom",
+      "description": "Klasik Doom oyunu — tarayıcıda oyna"
+    },
+    "en": {
+      "name": "Doom",
+      "description": "Classic Doom game — play in browser"
+    },
+    "de": {
+      "name": "Doom",
+      "description": "Klassisches Doom-Spiel — im Browser spielen"
+    },
+    "fr": {
+      "name": "Doom",
+      "description": "Jeu Doom classique — jouez dans le navigateur"
+    },
+    "es": {
+      "name": "Doom",
+      "description": "Juego clásico Doom — juega en el navegador"
+    },
+    "ru": {
+      "name": "Doom",
+      "description": "Классический Doom — играйте в браузере"
+    },
+    "zh": {
+      "name": "Doom",
+      "description": "经典射击游戏"
+    },
+    "ja": {
+      "name": "Doom",
+      "description": "クラシックシューティングゲーム"
+    },
+    "it": {
+      "name": "Doom",
+      "description": "Gioco sparatutto classico"
+    }
   },
   "category": "games",
   "docker": {

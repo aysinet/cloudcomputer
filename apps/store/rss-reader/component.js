@@ -73,7 +73,10 @@
       untitled:'Без названия', markRead:'Отметить как прочитанное',
       goToSource:'Перейти к источнику', share:'Поделиться', noArticleContent:'Нет содержимого',
       addError:'Не удалось добавить', connError:'Ошибка подключения'
-    }
+    },
+    zh: { title: 'RSS Reader', back: 'Back', article: 'Article', unread: 'unread', hideRead: 'Hide read', showRead: 'Show read', markAllRead: 'Mark all as read', markAllBtn: '✓ All', refresh: 'Refresh', refreshAll: 'Refresh all', loading: 'Loading...', urlPlaceholder: 'Paste RSS URL...', namePlaceholder: 'Name (optional)', emptyTitle: 'No RSS feeds added yet', emptyHint: 'Add an RSS URL above', articles: 'articles', remove: 'Remove', noContent: 'No content found in this feed', untitled: 'Untitled', markRead: 'Mark as read', goToSource: 'Go to Source', share: 'Share', noArticleContent: 'No content', addError: 'Could not add', connError: 'Connection error' },
+    ja: { title: 'RSS Reader', back: 'Back', article: 'Article', unread: 'unread', hideRead: 'Hide read', showRead: 'Show read', markAllRead: 'Mark all as read', markAllBtn: '✓ All', refresh: 'Refresh', refreshAll: 'Refresh all', loading: 'Loading...', urlPlaceholder: 'Paste RSS URL...', namePlaceholder: 'Name (optional)', emptyTitle: 'No RSS feeds added yet', emptyHint: 'Add an RSS URL above', articles: 'articles', remove: 'Remove', noContent: 'No content found in this feed', untitled: 'Untitled', markRead: 'Mark as read', goToSource: 'Go to Source', share: 'Share', noArticleContent: 'No content', addError: 'Could not add', connError: 'Connection error' },
+    it: { title: 'RSS Reader', back: 'Back', article: 'Article', unread: 'unread', hideRead: 'Hide read', showRead: 'Show read', markAllRead: 'Mark all as read', markAllBtn: '✓ All', refresh: 'Refresh', refreshAll: 'Refresh all', loading: 'Loading...', urlPlaceholder: 'Paste RSS URL...', namePlaceholder: 'Name (optional)', emptyTitle: 'No RSS feeds added yet', emptyHint: 'Add an RSS URL above', articles: 'articles', remove: 'Remove', noContent: 'No content found in this feed', untitled: 'Untitled', markRead: 'Mark as read', goToSource: 'Go to Source', share: 'Share', noArticleContent: 'No content', addError: 'Could not add', connError: 'Connection error' }
   };
 
   function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }

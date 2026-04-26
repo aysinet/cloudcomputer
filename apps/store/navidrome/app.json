@@ -11,12 +11,42 @@
   "global": false,
   "description": "Docker tabanlı müzik sunucusu ve yayın servisi (Navidrome)",
   "lang": {
-    "tr": { "name": "Navidrome", "description": "Docker tabanlı müzik sunucusu — kendi Spotify'ınız" },
-    "en": { "name": "Navidrome", "description": "Docker-based music server — your personal Spotify" },
-    "de": { "name": "Navidrome", "description": "Docker-basierter Musikserver — Ihr persönliches Spotify" },
-    "fr": { "name": "Navidrome", "description": "Serveur musical Docker — votre Spotify personnel" },
-    "es": { "name": "Navidrome", "description": "Servidor de música Docker — tu Spotify personal" },
-    "ru": { "name": "Navidrome", "description": "Музыкальный сервер Docker — ваш личный Spotify" }
+    "tr": {
+      "name": "Navidrome",
+      "description": "Docker tabanlı müzik sunucusu — kendi Spotify'ınız"
+    },
+    "en": {
+      "name": "Navidrome",
+      "description": "Docker-based music server — your personal Spotify"
+    },
+    "de": {
+      "name": "Navidrome",
+      "description": "Docker-basierter Musikserver — Ihr persönliches Spotify"
+    },
+    "fr": {
+      "name": "Navidrome",
+      "description": "Serveur musical Docker — votre Spotify personnel"
+    },
+    "es": {
+      "name": "Navidrome",
+      "description": "Servidor de música Docker — tu Spotify personal"
+    },
+    "ru": {
+      "name": "Navidrome",
+      "description": "Музыкальный сервер Docker — ваш личный Spotify"
+    },
+    "zh": {
+      "name": "Navidrome",
+      "description": "音乐流媒体服务器"
+    },
+    "ja": {
+      "name": "Navidrome",
+      "description": "音楽ストリーミングサーバー"
+    },
+    "it": {
+      "name": "Navidrome",
+      "description": "Server di streaming musicale"
+    }
   },
   "category": "media",
   "docker": {

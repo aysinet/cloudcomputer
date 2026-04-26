@@ -34,6 +34,18 @@
     "ru": {
       "name": "Архиватор",
       "description": "Сжатие и распаковка архивов ZIP и GZIP"
+    },
+    "zh": {
+      "name": "压缩工具",
+      "description": "压缩和解压文件"
+    },
+    "ja": {
+      "name": "アーカイバ",
+      "description": "ファイルの圧縮と展開"
+    },
+    "it": {
+      "name": "Archiviatore",
+      "description": "Comprimi e decomprimi file"
     }
   },
   "category": "tools"

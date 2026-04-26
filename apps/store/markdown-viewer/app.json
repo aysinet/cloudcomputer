@@ -34,6 +34,18 @@
     "ru": {
       "name": "Просмотр Markdown",
       "description": "Редактор и просмотр Markdown — предварительный просмотр, открытие/сохранение"
+    },
+    "zh": {
+      "name": "Markdown查看器",
+      "description": "查看Markdown文件"
+    },
+    "ja": {
+      "name": "Markdownビューア",
+      "description": "Markdownファイルを表示"
+    },
+    "it": {
+      "name": "Visualizzatore Markdown",
+      "description": "Visualizza file Markdown"
     }
   },
   "category": "development"

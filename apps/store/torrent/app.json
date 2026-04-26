@@ -34,6 +34,18 @@
     "ru": {
       "name": "Торрент",
       "description": "P2P Торрент-клиент — загрузка и раздача через magnet-ссылки и .torrent-файлы"
+    },
+    "zh": {
+      "name": "种子下载",
+      "description": "管理种子下载"
+    },
+    "ja": {
+      "name": "トレント",
+      "description": "トレントダウンロードを管理"
+    },
+    "it": {
+      "name": "Torrent",
+      "description": "Gestisci download torrent"
     }
   },
   "category": "internet"

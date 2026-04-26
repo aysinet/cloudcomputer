@@ -34,6 +34,18 @@
     "ru": {
       "name": "Сокобан",
       "description": "Классическая головоломка Сокобан — толкайте ящики на целевые поля, 30 уровней"
+    },
+    "zh": {
+      "name": "推箱子",
+      "description": "经典推箱子益智游戏"
+    },
+    "ja": {
+      "name": "倉庫番",
+      "description": "クラシック倉庫番パズルゲーム"
+    },
+    "it": {
+      "name": "Sokoban",
+      "description": "Gioco puzzle classico Sokoban"
     }
   },
   "category": "games"

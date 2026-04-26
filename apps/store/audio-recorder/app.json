@@ -34,6 +34,18 @@
     "ru": {
       "name": "Аудиорекордер",
       "description": "Запись с микрофона — запись WAV в реальном времени на сервер"
+    },
+    "zh": {
+      "name": "录音机",
+      "description": "录制音频"
+    },
+    "ja": {
+      "name": "レコーダー",
+      "description": "オーディオを録音"
+    },
+    "it": {
+      "name": "Registratore audio",
+      "description": "Registra audio"
     }
   },
   "category": "tools"

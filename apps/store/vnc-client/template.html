@@ -1,0 +1,134 @@
+<div class="vnc-app">
+  <!-- Sidebar / Connection Panel -->
+  <div class="vnc-sidebar" :class="{ collapsed: !showSidebar && status === 'connected' }">
+    <div class="vnc-sidebar-toggle" v-if="status === 'connected'" @click="showSidebar = !showSidebar">
+      {{ showSidebar ? '◀' : '▶' }}
+    </div>
+
+    <div class="vnc-sidebar-content" v-show="showSidebar || status !== 'connected'">
+      <!-- Logo -->
+      <div class="vnc-logo">🖥️ {{ t('title') }}</div>
+
+      <!-- Quick Connect -->
+      <el-divider content-position="left">{{ t('quickConnect') }}</el-divider>
+
+      <el-form label-position="top" size="small" class="vnc-form">
+        <el-form-item :label="t('host')">
+          <el-input v-model="host" :placeholder="'192.168.1.100'" clearable
+            @keyup.enter="doConnect" :disabled="status === 'connected' || status === 'connecting'" />
+        </el-form-item>
+
+        <el-form-item :label="t('port')">
+          <el-input-number v-model="port" :min="1" :max="65535" controls-position="right"
+            :disabled="status === 'connected' || status === 'connecting'" style="width:100%" />
+        </el-form-item>
+
+        <el-form-item :label="t('password')">
+          <el-input v-model="password" type="password" show-password :placeholder="t('password')"
+            :disabled="status === 'connected' || status === 'connecting'"
+            @keyup.enter="doConnect" />
+        </el-form-item>
+
+        <div class="vnc-form-options">
+          <el-checkbox v-model="viewOnly" :label="t('viewOnly')" @change="handleViewOnlyChange" />
+          <el-checkbox v-model="localScaling" :label="t('localScaling')" @change="handleScalingChange" />
+        </div>
+
+        <div class="vnc-form-actions">
+          <el-button v-if="status !== 'connected' && status !== 'connecting'"
+            type="primary" @click="doConnect" :loading="status === 'loading-novnc'" style="width:100%">
+            🔗 {{ t('connect') }}
+          </el-button>
+          <el-button v-if="status === 'connected'"
+            type="danger" @click="doDisconnect" style="width:100%">
+            ✂️ {{ t('disconnect') }}
+          </el-button>
+          <el-button v-if="status === 'connecting'"
+            type="warning" @click="doDisconnect" style="width:100%" loading>
+            {{ t('connecting') }}
+          </el-button>
+        </div>
+      </el-form>
+
+      <!-- Connection tools (when connected) -->
+      <template v-if="status === 'connected'">
+        <el-divider content-position="left">{{ t('status') }}</el-divider>
+        <div class="vnc-status-bar">
+          <el-tag type="success" size="small">● {{ t('connected') }}</el-tag>
+          <span class="vnc-conn-info">{{ host }}:{{ port }}</span>
+        </div>
+        <div class="vnc-toolbar-actions">
+          <el-button size="small" @click="sendCtrlAltDel" plain>⌨️ {{ t('sendCtrlAltDel') }}</el-button>
+          <el-button size="small" @click="toggleFullscreen" plain>🖥️ {{ t('fullscreen') }}</el-button>
+          <el-button size="small" @click="takeScreenshot" plain>📸 {{ t('screenshot') }}</el-button>
+        </div>
+      </template>
+
+      <!-- Save connection -->
+      <template v-if="host && status !== 'connected'">
+        <el-divider />
+        <div class="vnc-save-row">
+          <el-input v-model="connName" :placeholder="t('connectionName')" size="small" style="flex:1" />
+          <el-button size="small" type="success" @click="saveConnection" plain>💾</el-button>
+        </div>
+      </template>
+
+      <!-- Saved connections -->
+      <el-divider content-position="left">{{ t('savedConnections') }}</el-divider>
+      <div v-if="savedConns.length === 0" class="vnc-empty">{{ t('noSaved') }}</div>
+      <div v-for="(conn, idx) in savedConns" :key="idx" class="vnc-saved-item" @click="useSaved(conn)">
+        <div class="vnc-saved-info">
+          <span class="vnc-saved-name">{{ conn.name }}</span>
+          <span class="vnc-saved-addr">{{ conn.host }}:{{ conn.port }}</span>
+        </div>
+        <el-button size="small" type="danger" circle plain @click.stop="deleteSaved(idx)">✕</el-button>
+      </div>
+
+      <!-- Recent connections -->
+      <template v-if="recentConns.length > 0">
+        <el-divider content-position="left">{{ t('recent') }}</el-divider>
+        <div v-for="(conn, idx) in recentConns" :key="'r' + idx" class="vnc-saved-item"
+          @click="host = conn.host; port = conn.port">
+          <div class="vnc-saved-info">
+            <span class="vnc-saved-addr">{{ conn.host }}:{{ conn.port }}</span>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- VNC Display Area -->
+  <div class="vnc-display-area">
+    <!-- Idle / Not connected -->
+    <div v-if="status === 'idle'" class="vnc-placeholder">
+      <div class="vnc-placeholder-icon">🖥️</div>
+      <div class="vnc-placeholder-text">{{ t('connectionInfo') }}</div>
+    </div>
+
+    <!-- Loading noVNC -->
+    <div v-if="status === 'loading-novnc'" class="vnc-placeholder">
+      <div class="vnc-placeholder-icon" style="font-size:32px">⏳</div>
+      <div class="vnc-placeholder-text">{{ t('loadingNoVNC') }}</div>
+    </div>
+
+    <!-- Connecting -->
+    <div v-if="status === 'connecting'" class="vnc-placeholder">
+      <div class="vnc-placeholder-icon" style="font-size:32px">🔄</div>
+      <div class="vnc-placeholder-text">{{ t('connecting') }}</div>
+      <div class="vnc-placeholder-sub">{{ t('wsProxy') }}</div>
+    </div>
+
+    <!-- Error -->
+    <div v-if="status === 'error'" class="vnc-placeholder vnc-error-state">
+      <div class="vnc-placeholder-icon">❌</div>
+      <div class="vnc-placeholder-text">{{ t('error') }}</div>
+      <div class="vnc-placeholder-sub" v-if="errorMsg">{{ errorMsg }}</div>
+      <el-button type="primary" @click="doConnect" style="margin-top:12px">🔄 {{ t('reconnect') }}</el-button>
+    </div>
+
+    <!-- VNC Canvas Container -->
+    <div ref="vncContainer" class="vnc-canvas-container"
+      v-show="status === 'connected'">
+    </div>
+  </div>
+</div>

@@ -4,16 +4,49 @@
   "icon": "🐙",
   "color": "linear-gradient(135deg,#24292e,#586069)",
   "type": "internal",
-  "size": { "w": 1000, "h": 680 },
+  "size": {
+    "w": 1000,
+    "h": 680
+  },
   "global": false,
   "description": "GitHub repository manager with git operations, issues, pull requests and more.",
   "category": "development",
   "lang": {
-    "tr": { "name": "GitHub", "description": "Git işlemleri, depolar, issue'lar ve pull request yönetimi." },
-    "en": { "name": "GitHub", "description": "Git operations, repositories, issues and pull request management." },
-    "de": { "name": "GitHub", "description": "Git-Operationen, Repositories, Issues und Pull-Request-Verwaltung." },
-    "fr": { "name": "GitHub", "description": "Opérations Git, dépôts, issues et gestion de pull requests." },
-    "es": { "name": "GitHub", "description": "Operaciones Git, repositorios, issues y gestión de pull requests." },
-    "ru": { "name": "GitHub", "description": "Git-операции, репозитории, issues и управление pull-запросами." }
+    "tr": {
+      "name": "GitHub",
+      "description": "Git işlemleri, depolar, issue'lar ve pull request yönetimi."
+    },
+    "en": {
+      "name": "GitHub",
+      "description": "Git operations, repositories, issues and pull request management."
+    },
+    "de": {
+      "name": "GitHub",
+      "description": "Git-Operationen, Repositories, Issues und Pull-Request-Verwaltung."
+    },
+    "fr": {
+      "name": "GitHub",
+      "description": "Opérations Git, dépôts, issues et gestion de pull requests."
+    },
+    "es": {
+      "name": "GitHub",
+      "description": "Operaciones Git, repositorios, issues y gestión de pull requests."
+    },
+    "ru": {
+      "name": "GitHub",
+      "description": "Git-операции, репозитории, issues и управление pull-запросами."
+    },
+    "zh": {
+      "name": "GitHub",
+      "description": "浏览GitHub仓库"
+    },
+    "ja": {
+      "name": "GitHub",
+      "description": "GitHubリポジトリを閲覧"
+    },
+    "it": {
+      "name": "GitHub",
+      "description": "Esplora repository GitHub"
+    }
   }
 }

@@ -34,6 +34,18 @@
     "ru": {
       "name": "Paint",
       "description": "Редактор изображений — рисование, фигуры, текст, палитра"
+    },
+    "zh": {
+      "name": "画图",
+      "description": "绘画和图像编辑"
+    },
+    "ja": {
+      "name": "ペイント",
+      "description": "お絵かきと画像編集"
+    },
+    "it": {
+      "name": "Paint",
+      "description": "Disegno e modifica immagini"
     }
   },
   "category": "productivity"

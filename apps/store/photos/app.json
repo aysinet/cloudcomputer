@@ -34,6 +34,18 @@
     "ru": {
       "name": "Фотографии",
       "description": "Фотогалерея — альбомы, слайд-шоу, редактирование"
+    },
+    "zh": {
+      "name": "照片",
+      "description": "查看和管理照片"
+    },
+    "ja": {
+      "name": "フォト",
+      "description": "写真の表示と管理"
+    },
+    "it": {
+      "name": "Foto",
+      "description": "Visualizza e gestisci foto"
     }
   },
   "category": "media"

@@ -34,6 +34,18 @@
     "ru": {
       "name": "Аудиоредактор",
       "description": "Редактирование аудиофайлов — обрезка, копирование, эффекты и экспорт WAV"
+    },
+    "zh": {
+      "name": "音频编辑器",
+      "description": "编辑和处理音频文件"
+    },
+    "ja": {
+      "name": "オーディオエディタ",
+      "description": "オーディオファイルの編集と処理"
+    },
+    "it": {
+      "name": "Editor audio",
+      "description": "Modifica ed elabora file audio"
     }
   },
   "category": "tools"

@@ -34,6 +34,18 @@
     "ru": {
       "name": "Конструктор Схем",
       "description": "Дизайнер электронных схем — библиотека компонентов, проводка, редактирование свойств, экспорт PNG"
+    },
+    "zh": {
+      "name": "电路设计",
+      "description": "设计电子电路"
+    },
+    "ja": {
+      "name": "回路設計",
+      "description": "電子回路を設計"
+    },
+    "it": {
+      "name": "Circuiti",
+      "description": "Progetta circuiti elettronici"
     }
   },
   "category": "productivity"

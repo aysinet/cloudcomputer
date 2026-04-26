@@ -1,0 +1,52 @@
+{
+  "id": "vnc-client",
+  "name": "VNC İstemcisi",
+  "icon": "🖥️",
+  "color": "linear-gradient(135deg,#2d3436,#636e72)",
+  "type": "internal",
+  "size": {
+    "w": 960,
+    "h": 700
+  },
+  "global": false,
+  "description": "VNC sunucuya bağlanarak uzak masaüstü görüntüleme ve kontrol",
+  "lang": {
+    "tr": {
+      "name": "VNC İstemcisi",
+      "description": "VNC sunucuya bağlanarak uzak masaüstü görüntüleme ve kontrol"
+    },
+    "en": {
+      "name": "VNC Client",
+      "description": "Connect to VNC servers for remote desktop viewing and control"
+    },
+    "de": {
+      "name": "VNC-Client",
+      "description": "Verbindung zu VNC-Servern für Remote-Desktop-Anzeige und -Steuerung"
+    },
+    "fr": {
+      "name": "Client VNC",
+      "description": "Connexion aux serveurs VNC pour affichage et contrôle de bureau distant"
+    },
+    "es": {
+      "name": "Cliente VNC",
+      "description": "Conexión a servidores VNC para visualización y control de escritorio remoto"
+    },
+    "ru": {
+      "name": "VNC-клиент",
+      "description": "Подключение к VNC-серверам для просмотра и управления удалённым рабочим столом"
+    },
+    "zh": {
+      "name": "VNC客户端",
+      "description": "远程桌面连接"
+    },
+    "ja": {
+      "name": "VNCクライアント",
+      "description": "リモートデスクトップ接続"
+    },
+    "it": {
+      "name": "Client VNC",
+      "description": "Connessione desktop remoto"
+    }
+  },
+  "category": "utilities"
+}

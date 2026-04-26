@@ -34,6 +34,18 @@
     "ru": {
       "name": "Напоминание",
       "description": "Напоминание — уведомления по времени, повторяющиеся задачи"
+    },
+    "zh": {
+      "name": "提醒",
+      "description": "设置提醒和闹钟"
+    },
+    "ja": {
+      "name": "リマインダー",
+      "description": "リマインダーとアラームを設定"
+    },
+    "it": {
+      "name": "Promemoria",
+      "description": "Imposta promemoria e sveglie"
     }
   },
   "category": "productivity"

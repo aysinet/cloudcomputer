@@ -34,6 +34,18 @@
     "ru": {
       "name": "Редактор кода",
       "description": "Редактор кода Monaco — подсветка синтаксиса, открытие/сохранение файлов"
+    },
+    "zh": {
+      "name": "代码编辑器",
+      "description": "编写和编辑代码"
+    },
+    "ja": {
+      "name": "コードエディタ",
+      "description": "コードの作成と編集"
+    },
+    "it": {
+      "name": "Editor codice",
+      "description": "Scrivi e modifica codice"
     }
   },
   "category": "development"

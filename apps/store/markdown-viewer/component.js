@@ -69,8 +69,11 @@
         strikethrough:'Зачёркнутый', heading:'Заголовок', quote:'Цитата', list:'Список',
         orderedList:'Нумерованный список', checkbox:'Флажок', hr:'Горизонтальная линия',
         lines:'строк', chars:'символов', words:'слов'
-      }
-    };
+      },
+    zh: { title: 'Markdown Viewer', open: 'Open', save: 'Save', saveAs: 'Save As', newFile: 'New', edit: 'Edit', preview: 'Preview', split: 'Split', wordWrap: 'Word Wrap', fontSize: 'Font Size', exportHtml: 'Export as HTML', print: 'Print', copied: 'Copied', saved: 'Saved ✓', untitled: 'Untitled.md', tocTitle: 'Table of Contents', insertTable: 'Insert Table', insertImage: 'Insert Image', insertLink: 'Insert Link', insertCode: 'Code Block', bold: 'Bold', italic: 'Italic', strikethrough: 'Strikethrough', heading: 'Heading', quote: 'Blockquote', list: 'List', orderedList: 'Ordered List', checkbox: 'Checkbox', hr: 'Horizontal Rule', lines: 'lines', chars: 'characters', words: 'words' },
+    ja: { title: 'Markdown Viewer', open: 'Open', save: 'Save', saveAs: 'Save As', newFile: 'New', edit: 'Edit', preview: 'Preview', split: 'Split', wordWrap: 'Word Wrap', fontSize: 'Font Size', exportHtml: 'Export as HTML', print: 'Print', copied: 'Copied', saved: 'Saved ✓', untitled: 'Untitled.md', tocTitle: 'Table of Contents', insertTable: 'Insert Table', insertImage: 'Insert Image', insertLink: 'Insert Link', insertCode: 'Code Block', bold: 'Bold', italic: 'Italic', strikethrough: 'Strikethrough', heading: 'Heading', quote: 'Blockquote', list: 'List', orderedList: 'Ordered List', checkbox: 'Checkbox', hr: 'Horizontal Rule', lines: 'lines', chars: 'characters', words: 'words' },
+    it: { title: 'Markdown Viewer', open: 'Open', save: 'Save', saveAs: 'Save As', newFile: 'New', edit: 'Edit', preview: 'Preview', split: 'Split', wordWrap: 'Word Wrap', fontSize: 'Font Size', exportHtml: 'Export as HTML', print: 'Print', copied: 'Copied', saved: 'Saved ✓', untitled: 'Untitled.md', tocTitle: 'Table of Contents', insertTable: 'Insert Table', insertImage: 'Insert Image', insertLink: 'Insert Link', insertCode: 'Code Block', bold: 'Bold', italic: 'Italic', strikethrough: 'Strikethrough', heading: 'Heading', quote: 'Blockquote', list: 'List', orderedList: 'Ordered List', checkbox: 'Checkbox', hr: 'Horizontal Rule', lines: 'lines', chars: 'characters', words: 'words' }
+  };
 
     function getLocale() { return localStorage.getItem('sys_locale') || 'tr'; }
     var locale = ref(getLocale());

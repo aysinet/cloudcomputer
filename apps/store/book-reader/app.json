@@ -34,6 +34,18 @@
     "ru": {
       "name": "Читалка",
       "description": "Читалка электронных книг — поддержка форматов EPUB, PDF, TXT, HTML, FB2"
+    },
+    "zh": {
+      "name": "电子书阅读器",
+      "description": "阅读电子书籍"
+    },
+    "ja": {
+      "name": "ブックリーダー",
+      "description": "電子書籍を読む"
+    },
+    "it": {
+      "name": "Lettore libri",
+      "description": "Leggi libri digitali"
     }
   },
   "category": "tools"

@@ -34,6 +34,18 @@
     "ru": {
       "name": "Почта",
       "description": "Отправка и получение писем — поддержка SMTP и POP3"
+    },
+    "zh": {
+      "name": "邮件",
+      "description": "收发电子邮件"
+    },
+    "ja": {
+      "name": "メール",
+      "description": "メールの送受信"
+    },
+    "it": {
+      "name": "Posta",
+      "description": "Invia e ricevi email"
     }
   },
   "category": "productivity"

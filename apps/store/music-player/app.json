@@ -34,6 +34,18 @@
     "ru": {
       "name": "Музыкальный плеер",
       "description": "Музыкальный плеер — плейлист, обложка, перемотка"
+    },
+    "zh": {
+      "name": "音乐播放器",
+      "description": "播放音乐文件"
+    },
+    "ja": {
+      "name": "ミュージックプレーヤー",
+      "description": "音楽ファイルを再生"
+    },
+    "it": {
+      "name": "Lettore musicale",
+      "description": "Riproduci file musicali"
     }
   },
   "category": "media"

@@ -34,6 +34,18 @@
     "ru": {
       "name": "Stock Tracker",
       "description": "Отслеживание акций NASDAQ — котировки в реальном времени, избранное, портфель"
+    },
+    "zh": {
+      "name": "股票追踪",
+      "description": "追踪股票价格"
+    },
+    "ja": {
+      "name": "株式トラッカー",
+      "description": "株価を追跡"
+    },
+    "it": {
+      "name": "Tracker azioni",
+      "description": "Monitora i prezzi delle azioni"
     }
   },
   "category": "finance"

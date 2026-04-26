@@ -1,6 +1,26 @@
 <div class="mp-root">
   <div v-if="loading" class="mp-loading">Yükleniyor...</div>
   <template v-else>
+    <!-- Visualizer Fullscreen Overlay -->
+    <div v-if="vizActive" class="mp-viz-overlay" @dblclick="toggleVisualizer">
+      <canvas class="mp-viz-canvas"></canvas>
+      <div class="mp-viz-controls">
+        <button class="mp-viz-btn" @click="cycleVizMode" :title="vizMode">
+          {{vizMode === 'bars' ? '📊' : vizMode === 'wave' ? '〰️' : '⭕'}} {{vizMode}}
+        </button>
+        <button class="mp-viz-btn" @click="toggleVisualizer">✕</button>
+      </div>
+      <!-- Mini player controls in visualizer -->
+      <div class="mp-viz-player">
+        <div class="mp-viz-title">{{currentTrack ? currentTrack.title : ''}}</div>
+        <div class="mp-viz-btns">
+          <button class="mp-btn" @click="prev">⏮</button>
+          <button class="mp-btn mp-play" @click="toggle">{{playing ? '⏸' : '▶'}}</button>
+          <button class="mp-btn" @click="next">⏭</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Now Playing -->
     <div class="mp-now">
       <div class="mp-art" :class="{ spinning: playing }">{{currentTrack ? (currentTrack.icon || '🎵') : '🎵'}}</div>
@@ -21,6 +41,7 @@
       <button class="mp-btn" @click="prev" title="Önceki">⏮</button>
       <button class="mp-btn mp-play" @click="toggle">{{playing ? '⏸' : '▶'}}</button>
       <button class="mp-btn" @click="next" title="Sonraki">⏭</button>
+      <button class="mp-btn mp-viz-toggle" :class="{active: vizActive}" @click="toggleVisualizer" title="Görselleştirici">🎆</button>
       <div class="mp-vol">
         <span class="mp-vol-icon">{{volume > 50 ? '🔊' : volume > 0 ? '🔉' : '🔇'}}</span>
         <div class="mp-vol-bar" @click="setVolume($event)">

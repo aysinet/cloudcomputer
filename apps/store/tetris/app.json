@@ -34,6 +34,18 @@
     "ru": {
       "name": "Тетрис",
       "description": "Классический Тетрис — очки, уровни, предпросмотр"
+    },
+    "zh": {
+      "name": "俄罗斯方块",
+      "description": "经典俄罗斯方块游戏"
+    },
+    "ja": {
+      "name": "テトリス",
+      "description": "クラシックテトリスゲーム"
+    },
+    "it": {
+      "name": "Tetris",
+      "description": "Gioco classico Tetris"
     }
   },
   "category": "games"

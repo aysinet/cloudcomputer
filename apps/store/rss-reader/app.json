@@ -34,6 +34,18 @@
     "ru": {
       "name": "RSS-ридер",
       "description": "RSS-ридер — добавление каналов, чтение статей, избранное"
+    },
+    "zh": {
+      "name": "RSS阅读器",
+      "description": "阅读RSS订阅源"
+    },
+    "ja": {
+      "name": "RSSリーダー",
+      "description": "RSSフィードを読む"
+    },
+    "it": {
+      "name": "Lettore RSS",
+      "description": "Leggi feed RSS"
     }
   },
   "category": "internet"

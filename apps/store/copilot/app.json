@@ -4,7 +4,10 @@
   "icon": "🤖",
   "color": "linear-gradient(135deg,#24292e,#6cc644)",
   "type": "internal",
-  "size": { "w": 920, "h": 660 },
+  "size": {
+    "w": 920,
+    "h": 660
+  },
   "global": false,
   "description": "GitHub Copilot CLI tabanlı AI asistan — kodları sunucuda hazırlat, soru sor, dosya değiştir",
   "lang": {
@@ -31,6 +34,18 @@
     "ru": {
       "name": "Copilot",
       "description": "ИИ-ассистент на базе GitHub Copilot CLI — генерация кода на сервере, вопросы, редактирование файлов"
+    },
+    "zh": {
+      "name": "AI助手",
+      "description": "AI驱动的对话助手"
+    },
+    "ja": {
+      "name": "AIアシスタント",
+      "description": "AI搭載チャットアシスタント"
+    },
+    "it": {
+      "name": "Assistente AI",
+      "description": "Assistente chat basato su AI"
     }
   },
   "category": "development"
