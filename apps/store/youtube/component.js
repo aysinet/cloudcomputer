@@ -84,7 +84,7 @@
   return {
     setup() {
       var locale = ref(getLocale());
-      var localeTimer;
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
       function t(k) { return (LANGS[locale.value] || LANGS.tr)[k] || LANGS.tr[k] || k; }
 
       // ── State ──
@@ -294,11 +294,11 @@
       onMounted(function() {
         loadPersistedData();
         loadTrending();
-        localeTimer = setInterval(function() { locale.value = getLocale(); }, 1000);
+        window.addEventListener('locale-changed', onLocaleChanged);
       });
 
       onUnmounted(function() {
-        if (localeTimer) clearInterval(localeTimer);
+        window.removeEventListener('locale-changed', onLocaleChanged);
       });
 
       return {

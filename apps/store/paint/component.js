@@ -613,7 +613,7 @@
         if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); newCanvas(); }
       }
 
-      let localeTimer = null;
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
       function onPaintOpenImage(e) {
         const detail = e.detail || window.__screenshotImage;
         if (!detail || !detail.dataUrl) return;
@@ -625,7 +625,7 @@
         window.__screenshotImage = null;
       }
       onMounted(() => {
-        localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+        window.addEventListener('locale-changed', onLocaleChanged);
         nextTick(() => {
           initCanvas();
           // Check if opened from screenshot
@@ -640,8 +640,7 @@
       onUnmounted(() => {
         window.removeEventListener('keydown', onKeyDown);
         window.removeEventListener('paint-open-image', onPaintOpenImage);
-        if (localeTimer) clearInterval(localeTimer);
-      });
+        window.removeEventListener('locale-changed', onLocaleChanged));
 
       watch(showResize, (v) => {
         if (v) { resizeW.value = canvasW.value; resizeH.value = canvasH.value; }

@@ -98,9 +98,9 @@
       emptyPortfolio: 'Добавьте монеты в свой портфель',
       favTooltip: 'Избранное', hideTooltip: 'Скрыть', editTooltip: 'Редактировать', deleteTooltip: 'Удалить'
     },
-    zh: { title: 'Coin Tracker', tabAll: 'All', tabFav: 'Favorites', tabPortfolio: 'Portfolio', searchPlaceholder: 'Search coin... (BTCUSDT)', showHidden: 'Show hidden', live: 'Live', disconnected: 'Disconnected', lastUpdate: 'Last', colSymbol: 'Symbol', colPrice: 'Price (USDT)', colActions: 'Actions', noResult: 'No results found', loading: 'Loading data...', editTitle: 'Edit', addTitle: 'Add Coin', lblSymbol: 'Symbol', lblAmount: 'Amount', lblBuyPrice: 'Buy Price (USDT)', btnSave: 'Save', btnAdd: 'Add', btnCancel: 'Cancel', usdtBalance: 'USDT Balance', totalCost: 'Total Cost', currentValue: 'Current Value', pnl: 'Profit / Loss', colCoin: 'Coin', colAmount: 'Amount', colBuy: 'Buy', colCurrent: 'Current', colValue: 'Value', colPnl: 'P/L', emptyPortfolio: 'Add coins to your portfolio', favTooltip: 'Favorite', hideTooltip: 'Hide', editTooltip: 'Edit', deleteTooltip: 'Delete' },
-    ja: { title: 'Coin Tracker', tabAll: 'All', tabFav: 'Favorites', tabPortfolio: 'Portfolio', searchPlaceholder: 'Search coin... (BTCUSDT)', showHidden: 'Show hidden', live: 'Live', disconnected: 'Disconnected', lastUpdate: 'Last', colSymbol: 'Symbol', colPrice: 'Price (USDT)', colActions: 'Actions', noResult: 'No results found', loading: 'Loading data...', editTitle: 'Edit', addTitle: 'Add Coin', lblSymbol: 'Symbol', lblAmount: 'Amount', lblBuyPrice: 'Buy Price (USDT)', btnSave: 'Save', btnAdd: 'Add', btnCancel: 'Cancel', usdtBalance: 'USDT Balance', totalCost: 'Total Cost', currentValue: 'Current Value', pnl: 'Profit / Loss', colCoin: 'Coin', colAmount: 'Amount', colBuy: 'Buy', colCurrent: 'Current', colValue: 'Value', colPnl: 'P/L', emptyPortfolio: 'Add coins to your portfolio', favTooltip: 'Favorite', hideTooltip: 'Hide', editTooltip: 'Edit', deleteTooltip: 'Delete' },
-    it: { title: 'Coin Tracker', tabAll: 'All', tabFav: 'Favorites', tabPortfolio: 'Portfolio', searchPlaceholder: 'Search coin... (BTCUSDT)', showHidden: 'Show hidden', live: 'Live', disconnected: 'Disconnected', lastUpdate: 'Last', colSymbol: 'Symbol', colPrice: 'Price (USDT)', colActions: 'Actions', noResult: 'No results found', loading: 'Loading data...', editTitle: 'Edit', addTitle: 'Add Coin', lblSymbol: 'Symbol', lblAmount: 'Amount', lblBuyPrice: 'Buy Price (USDT)', btnSave: 'Save', btnAdd: 'Add', btnCancel: 'Cancel', usdtBalance: 'USDT Balance', totalCost: 'Total Cost', currentValue: 'Current Value', pnl: 'Profit / Loss', colCoin: 'Coin', colAmount: 'Amount', colBuy: 'Buy', colCurrent: 'Current', colValue: 'Value', colPnl: 'P/L', emptyPortfolio: 'Add coins to your portfolio', favTooltip: 'Favorite', hideTooltip: 'Hide', editTooltip: 'Edit', deleteTooltip: 'Delete' }
+    zh: { title:'加密货币追踪', tabAll:'全部', tabFav:'收藏', tabPortfolio:'投资组合', searchPlaceholder:'搜索币种...', showHidden:'显示隐藏', live:'实时', disconnected:'已断开', lastUpdate:'最后更新', colSymbol:'代码', colPrice:'价格', colActions:'操作', noResult:'无结果', loading:'加载中', editTitle:'编辑', addTitle:'添加', lblSymbol:'代码', lblAmount:'数量', lblBuyPrice:'买入价', btnSave:'保存', btnAdd:'添加', btnCancel:'取消', usdtBalance:'USDT余额', totalCost:'总成本', currentValue:'当前价值', pnl:'盈亏', colCoin:'币种', colAmount:'数量', colBuy:'买入价', colCurrent:'当前价', colValue:'价值', colPnl:'盈亏', emptyPortfolio:'投资组合为空', favTooltip:'收藏', hideTooltip:'隐藏', editTooltip:'编辑', deleteTooltip:'删除' },
+    ja: { title:'暗号通貨トラッカー', tabAll:'すべて', tabFav:'お気に入り', tabPortfolio:'ポートフォリオ', searchPlaceholder:'通貨を検索...', showHidden:'非表示を表示', live:'リアルタイム', disconnected:'切断', lastUpdate:'最終更新', colSymbol:'シンボル', colPrice:'価格', colActions:'操作', noResult:'結果なし', loading:'読込中', editTitle:'編集', addTitle:'追加', lblSymbol:'シンボル', lblAmount:'数量', lblBuyPrice:'購入価格', btnSave:'保存', btnAdd:'追加', btnCancel:'キャンセル', usdtBalance:'USDT残高', totalCost:'総コスト', currentValue:'現在価値', pnl:'損益', colCoin:'通貨', colAmount:'数量', colBuy:'購入価格', colCurrent:'現在価格', colValue:'価値', colPnl:'損益', emptyPortfolio:'ポートフォリオは空です', favTooltip:'お気に入り', hideTooltip:'非表示', editTooltip:'編集', deleteTooltip:'削除' },
+    it: { title:'Tracker Criptovalute', tabAll:'Tutte', tabFav:'Preferite', tabPortfolio:'Portafoglio', searchPlaceholder:'Cerca moneta...', showHidden:'Mostra nascoste', live:'In tempo reale', disconnected:'Disconnesso', lastUpdate:'Ultimo aggiornamento', colSymbol:'Simbolo', colPrice:'Prezzo', colActions:'Azioni', noResult:'Nessun risultato', loading:'Caricamento', editTitle:'Modifica', addTitle:'Aggiungi', lblSymbol:'Simbolo', lblAmount:'Quantità', lblBuyPrice:'Prezzo acquisto', btnSave:'Salva', btnAdd:'Aggiungi', btnCancel:'Annulla', usdtBalance:'Saldo USDT', totalCost:'Costo totale', currentValue:'Valore attuale', pnl:'P/L', colCoin:'Moneta', colAmount:'Quantità', colBuy:'Acquisto', colCurrent:'Attuale', colValue:'Valore', colPnl:'P/L', emptyPortfolio:'Portafoglio vuoto', favTooltip:'Preferita', hideTooltip:'Nascondi', editTooltip:'Modifica', deleteTooltip:'Elimina' }
   };
 
   function getLocale() {
@@ -367,17 +367,16 @@
       onMounted(() => {
         loadPrefs();
         connectWS();
-        localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+        window.addEventListener('locale-changed', onLocaleChanged);
       });
 
-      let localeTimer = null;
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
       onUnmounted(() => {
         if (ws) {
           ws.onclose = null;
           ws.close();
         }
-        if (localeTimer) clearInterval(localeTimer);
-      });
+        window.removeEventListener('locale-changed', onLocaleChanged));
 
       return {
         L,

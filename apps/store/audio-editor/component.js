@@ -114,9 +114,9 @@
         deleteConfirm:'Вы уверены, что хотите удалить выделенную область?',
         undone:'Отменено', redone:'Повторено'
       },
-    zh: { title: 'Audio Editor', open: 'Open', export: 'Export', cut: 'Cut', copy: 'Copy', paste: 'Paste', delete: 'Delete', effects: 'Effects', apply: 'Apply', duration: 'Duration', selection: 'Selection', cursor: 'Cursor', loadAudio: 'Click to load an audio file', openFile: 'Open File', musicFiles: 'Music Files', recordings: 'Recordings', browse: 'Browse', noFiles: 'No files found', cancel: 'Cancel', exportTitle: 'Export WAV', filename: 'File Name', saveLocation: 'Save Location', musicFolder: 'Music Folder', recordingsFolder: 'Recordings Folder', downloadLocal: 'Download to Computer', success: 'Success', error: 'Error', exported: 'File saved', loading: 'Loading...', processing: 'Processing...', exporting: 'Exporting...', gainDb: 'Gain (dB)', noSelection: 'Please select a region', fx_gain: 'Gain', fx_fadeIn: 'Fade In', fx_fadeOut: 'Fade Out', fx_normalize: 'Normalize', fx_reverse: 'Reverse', fx_silence: 'Silence', fx_amplify: 'Amplify', fx_invert: 'Invert Phase', deleteConfirm: 'Are you sure you want to delete the selected region?', undone: 'Undone', redone: 'Redone' },
-    ja: { title: 'Audio Editor', open: 'Open', export: 'Export', cut: 'Cut', copy: 'Copy', paste: 'Paste', delete: 'Delete', effects: 'Effects', apply: 'Apply', duration: 'Duration', selection: 'Selection', cursor: 'Cursor', loadAudio: 'Click to load an audio file', openFile: 'Open File', musicFiles: 'Music Files', recordings: 'Recordings', browse: 'Browse', noFiles: 'No files found', cancel: 'Cancel', exportTitle: 'Export WAV', filename: 'File Name', saveLocation: 'Save Location', musicFolder: 'Music Folder', recordingsFolder: 'Recordings Folder', downloadLocal: 'Download to Computer', success: 'Success', error: 'Error', exported: 'File saved', loading: 'Loading...', processing: 'Processing...', exporting: 'Exporting...', gainDb: 'Gain (dB)', noSelection: 'Please select a region', fx_gain: 'Gain', fx_fadeIn: 'Fade In', fx_fadeOut: 'Fade Out', fx_normalize: 'Normalize', fx_reverse: 'Reverse', fx_silence: 'Silence', fx_amplify: 'Amplify', fx_invert: 'Invert Phase', deleteConfirm: 'Are you sure you want to delete the selected region?', undone: 'Undone', redone: 'Redone' },
-    it: { title: 'Audio Editor', open: 'Open', export: 'Export', cut: 'Cut', copy: 'Copy', paste: 'Paste', delete: 'Delete', effects: 'Effects', apply: 'Apply', duration: 'Duration', selection: 'Selection', cursor: 'Cursor', loadAudio: 'Click to load an audio file', openFile: 'Open File', musicFiles: 'Music Files', recordings: 'Recordings', browse: 'Browse', noFiles: 'No files found', cancel: 'Cancel', exportTitle: 'Export WAV', filename: 'File Name', saveLocation: 'Save Location', musicFolder: 'Music Folder', recordingsFolder: 'Recordings Folder', downloadLocal: 'Download to Computer', success: 'Success', error: 'Error', exported: 'File saved', loading: 'Loading...', processing: 'Processing...', exporting: 'Exporting...', gainDb: 'Gain (dB)', noSelection: 'Please select a region', fx_gain: 'Gain', fx_fadeIn: 'Fade In', fx_fadeOut: 'Fade Out', fx_normalize: 'Normalize', fx_reverse: 'Reverse', fx_silence: 'Silence', fx_amplify: 'Amplify', fx_invert: 'Invert Phase', deleteConfirm: 'Are you sure you want to delete the selected region?', undone: 'Undone', redone: 'Redone' }
+    zh: { title:'音频编辑器', open:'打开', export:'导出', cut:'剪切', copy:'复制', paste:'粘贴', delete:'删除', effects:'效果', apply:'应用', duration:'时长', selection:'选区', cursor:'光标', loadAudio:'加载音频', openFile:'打开文件', musicFiles:'音乐文件', recordings:'录音', browse:'浏览', noFiles:'没有文件', cancel:'取消', exportTitle:'导出音频', filename:'文件名', saveLocation:'保存位置', musicFolder:'音乐文件夹', recordingsFolder:'录音文件夹', downloadLocal:'下载到本地', success:'成功', error:'错误', exported:'已导出', loading:'加载中', processing:'处理中', exporting:'导出中', gainDb:'增益(dB)', noSelection:'无选区', fx_gain:'增益', fx_fadeIn:'淡入', fx_fadeOut:'淡出', fx_normalize:'标准化', fx_reverse:'反转', fx_silence:'静音', fx_amplify:'放大', fx_invert:'反相', deleteConfirm:'确认删除？', undone:'已撤销', redone:'已重做' },
+    ja: { title:'オーディオエディタ', open:'開く', export:'エクスポート', cut:'カット', copy:'コピー', paste:'ペースト', delete:'削除', effects:'エフェクト', apply:'適用', duration:'再生時間', selection:'選択範囲', cursor:'カーソル', loadAudio:'音声を読込', openFile:'ファイルを開く', musicFiles:'音楽ファイル', recordings:'録音', browse:'参照', noFiles:'ファイルなし', cancel:'キャンセル', exportTitle:'エクスポート', filename:'ファイル名', saveLocation:'保存先', musicFolder:'音楽フォルダ', recordingsFolder:'録音フォルダ', downloadLocal:'ローカルにダウンロード', success:'成功', error:'エラー', exported:'エクスポート完了', loading:'読込中', processing:'処理中', exporting:'エクスポート中', gainDb:'ゲイン(dB)', noSelection:'選択なし', fx_gain:'ゲイン', fx_fadeIn:'フェードイン', fx_fadeOut:'フェードアウト', fx_normalize:'ノーマライズ', fx_reverse:'リバース', fx_silence:'無音', fx_amplify:'増幅', fx_invert:'反転', deleteConfirm:'削除しますか？', undone:'元に戻しました', redone:'やり直しました' },
+    it: { title:'Editor Audio', open:'Apri', export:'Esporta', cut:'Taglia', copy:'Copia', paste:'Incolla', delete:'Elimina', effects:'Effetti', apply:'Applica', duration:'Durata', selection:'Selezione', cursor:'Cursore', loadAudio:'Carica audio', openFile:'Apri file', musicFiles:'File musicali', recordings:'Registrazioni', browse:'Sfoglia', noFiles:'Nessun file', cancel:'Annulla', exportTitle:'Esporta audio', filename:'Nome file', saveLocation:'Posizione', musicFolder:'Cartella musica', recordingsFolder:'Cartella registrazioni', downloadLocal:'Scarica in locale', success:'Successo', error:'Errore', exported:'Esportato', loading:'Caricamento', processing:'Elaborazione', exporting:'Esportazione', gainDb:'Guadagno (dB)', noSelection:'Nessuna selezione', fx_gain:'Guadagno', fx_fadeIn:'Dissolvenza in entrata', fx_fadeOut:'Dissolvenza in uscita', fx_normalize:'Normalizza', fx_reverse:'Inverti', fx_silence:'Silenzio', fx_amplify:'Amplifica', fx_invert:'Inverti fase', deleteConfirm:'Confermi eliminazione?', undone:'Annullato', redone:'Ripristinato' }
   };
 
     function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
@@ -184,7 +184,7 @@
     const exportFilename = ref('edited_audio.wav');
     const exportLocation = ref('music');
 
-    let localeTimer = null;
+    function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
 
     function showStatus(msg, type) {
       statusMsg.value = msg; statusType.value = type;
@@ -841,7 +841,7 @@
     }
 
     onMounted(() => {
-      localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+      window.addEventListener('locale-changed', onLocaleChanged);
       window.addEventListener('resize', onResize);
       nextTick(() => {
         if (waveCanvas.value) {
@@ -855,8 +855,7 @@
     });
 
     onUnmounted(() => {
-      if (localeTimer) clearInterval(localeTimer);
-      if (isPlaying.value) stopPlay();
+      window.removeEventListener('locale-changed', onLocaleChanged)if (isPlaying.value) stopPlay();
       if (audioCtx) { audioCtx.close(); audioCtx = null; }
       window.removeEventListener('resize', onResize);
       if (animFrame) cancelAnimationFrame(animFrame);

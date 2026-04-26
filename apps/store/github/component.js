@@ -136,8 +136,9 @@
   return {
     setup(props, { expose }) {
       const appEl = document.getElementById('app');
-      const lang = ref((appEl?.__vue_app__?._instance?.exposed?.lang?.value) || localStorage.getItem('ui_lang') || 'en');
+      const lang = ref(localStorage.getItem('sys_locale') || 'en');
       const L = computed(() => LANGS[lang.value] || LANGS.en);
+      function onLocaleChanged(e) { lang.value = e.detail || localStorage.getItem('sys_locale') || 'en'; }
 
       function getToken() { return localStorage.getItem('auth_token') || localStorage.getItem('token') || ''; }
       function authHeaders() { return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' }; }
@@ -633,6 +634,7 @@
 
       // ── Init ──
       onMounted(async () => {
+        window.addEventListener('locale-changed', onLocaleChanged);
         await loadSettings();
         if (token.value) {
           loadGhUser();

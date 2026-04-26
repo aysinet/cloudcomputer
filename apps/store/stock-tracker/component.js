@@ -116,9 +116,9 @@
       preMarket: 'Премаркет', postMarket: 'Постмаркет',
       high: 'Макс.', low: 'Мин.', prevClose: 'Пред. закр.'
     },
-    zh: { title: 'Stock Tracker', tabAll: 'All', tabFav: 'Favorites', tabPortfolio: 'Portfolio', searchPlaceholder: 'Search stock... (AAPL)', showHidden: 'Show hidden', live: 'Live', disconnected: 'Disconnected', lastUpdate: 'Last', colSymbol: 'Symbol', colPrice: 'Price ($)', colChange: 'Change', colActions: 'Actions', noResult: 'No results found', loading: 'Loading data...', noKey: 'FINNHUB_API_KEY not set', editTitle: 'Edit', addTitle: 'Add Stock', lblSymbol: 'Symbol', lblAmount: 'Shares', lblBuyPrice: 'Buy Price ($)', btnSave: 'Save', btnAdd: 'Add', btnCancel: 'Cancel', usdBalance: 'USD Balance', totalCost: 'Total Cost', currentValue: 'Current Value', pnl: 'Profit / Loss', colStock: 'Stock', colAmount: 'Shares', colBuy: 'Buy', colCurrent: 'Current', colValue: 'Value', colPnl: 'P/L', emptyPortfolio: 'Add stocks to your portfolio', favTooltip: 'Favorite', hideTooltip: 'Hide', editTooltip: 'Edit', deleteTooltip: 'Delete', marketOpen: 'Market Open', marketClosed: 'Market Closed', preMarket: 'Pre-Market', postMarket: 'Post-Market', high: 'High', low: 'Low', prevClose: 'Prev Close' },
-    ja: { title: 'Stock Tracker', tabAll: 'All', tabFav: 'Favorites', tabPortfolio: 'Portfolio', searchPlaceholder: 'Search stock... (AAPL)', showHidden: 'Show hidden', live: 'Live', disconnected: 'Disconnected', lastUpdate: 'Last', colSymbol: 'Symbol', colPrice: 'Price ($)', colChange: 'Change', colActions: 'Actions', noResult: 'No results found', loading: 'Loading data...', noKey: 'FINNHUB_API_KEY not set', editTitle: 'Edit', addTitle: 'Add Stock', lblSymbol: 'Symbol', lblAmount: 'Shares', lblBuyPrice: 'Buy Price ($)', btnSave: 'Save', btnAdd: 'Add', btnCancel: 'Cancel', usdBalance: 'USD Balance', totalCost: 'Total Cost', currentValue: 'Current Value', pnl: 'Profit / Loss', colStock: 'Stock', colAmount: 'Shares', colBuy: 'Buy', colCurrent: 'Current', colValue: 'Value', colPnl: 'P/L', emptyPortfolio: 'Add stocks to your portfolio', favTooltip: 'Favorite', hideTooltip: 'Hide', editTooltip: 'Edit', deleteTooltip: 'Delete', marketOpen: 'Market Open', marketClosed: 'Market Closed', preMarket: 'Pre-Market', postMarket: 'Post-Market', high: 'High', low: 'Low', prevClose: 'Prev Close' },
-    it: { title: 'Stock Tracker', tabAll: 'All', tabFav: 'Favorites', tabPortfolio: 'Portfolio', searchPlaceholder: 'Search stock... (AAPL)', showHidden: 'Show hidden', live: 'Live', disconnected: 'Disconnected', lastUpdate: 'Last', colSymbol: 'Symbol', colPrice: 'Price ($)', colChange: 'Change', colActions: 'Actions', noResult: 'No results found', loading: 'Loading data...', noKey: 'FINNHUB_API_KEY not set', editTitle: 'Edit', addTitle: 'Add Stock', lblSymbol: 'Symbol', lblAmount: 'Shares', lblBuyPrice: 'Buy Price ($)', btnSave: 'Save', btnAdd: 'Add', btnCancel: 'Cancel', usdBalance: 'USD Balance', totalCost: 'Total Cost', currentValue: 'Current Value', pnl: 'Profit / Loss', colStock: 'Stock', colAmount: 'Shares', colBuy: 'Buy', colCurrent: 'Current', colValue: 'Value', colPnl: 'P/L', emptyPortfolio: 'Add stocks to your portfolio', favTooltip: 'Favorite', hideTooltip: 'Hide', editTooltip: 'Edit', deleteTooltip: 'Delete', marketOpen: 'Market Open', marketClosed: 'Market Closed', preMarket: 'Pre-Market', postMarket: 'Post-Market', high: 'High', low: 'Low', prevClose: 'Prev Close' }
+    zh: { title:'股票追踪', tabAll:'全部', tabFav:'收藏', tabPortfolio:'投资组合', searchPlaceholder:'搜索股票...', showHidden:'显示隐藏', live:'实时', disconnected:'已断开', lastUpdate:'最后更新', colSymbol:'代码', colPrice:'价格', colChange:'涨跌', colActions:'操作', noResult:'无结果', loading:'加载中', noKey:'无API密钥', editTitle:'编辑', addTitle:'添加', lblSymbol:'代码', lblAmount:'数量', lblBuyPrice:'买入价', btnSave:'保存', btnAdd:'添加', btnCancel:'取消', usdBalance:'美元余额', totalCost:'总成本', currentValue:'当前价值', pnl:'盈亏', colStock:'股票', colAmount:'数量', colBuy:'买入价', colCurrent:'当前价', colValue:'价值', colPnl:'盈亏', emptyPortfolio:'投资组合为空', favTooltip:'收藏', hideTooltip:'隐藏', editTooltip:'编辑', deleteTooltip:'删除', marketOpen:'开盘', marketClosed:'收盘', preMarket:'盘前', postMarket:'盘后', high:'最高', low:'最低', prevClose:'前收盘价' },
+    ja: { title:'株式トラッカー', tabAll:'すべて', tabFav:'お気に入り', tabPortfolio:'ポートフォリオ', searchPlaceholder:'銘柄を検索...', showHidden:'非表示を表示', live:'リアルタイム', disconnected:'切断', lastUpdate:'最終更新', colSymbol:'シンボル', colPrice:'株価', colChange:'変動', colActions:'操作', noResult:'結果なし', loading:'読込中', noKey:'APIキーなし', editTitle:'編集', addTitle:'追加', lblSymbol:'シンボル', lblAmount:'数量', lblBuyPrice:'購入価格', btnSave:'保存', btnAdd:'追加', btnCancel:'キャンセル', usdBalance:'USD残高', totalCost:'総コスト', currentValue:'現在価値', pnl:'損益', colStock:'銘柄', colAmount:'数量', colBuy:'購入価格', colCurrent:'現在価格', colValue:'価値', colPnl:'損益', emptyPortfolio:'ポートフォリオは空です', favTooltip:'お気に入り', hideTooltip:'非表示', editTooltip:'編集', deleteTooltip:'削除', marketOpen:'取引中', marketClosed:'取引終了', preMarket:'プレマーケット', postMarket:'アフターマーケット', high:'高値', low:'安値', prevClose:'前日終値' },
+    it: { title:'Tracker Azioni', tabAll:'Tutte', tabFav:'Preferite', tabPortfolio:'Portafoglio', searchPlaceholder:'Cerca azione...', showHidden:'Mostra nascoste', live:'In tempo reale', disconnected:'Disconnesso', lastUpdate:'Ultimo aggiornamento', colSymbol:'Simbolo', colPrice:'Prezzo', colChange:'Variazione', colActions:'Azioni', noResult:'Nessun risultato', loading:'Caricamento', noKey:'Nessuna chiave API', editTitle:'Modifica', addTitle:'Aggiungi', lblSymbol:'Simbolo', lblAmount:'Quantità', lblBuyPrice:'Prezzo acquisto', btnSave:'Salva', btnAdd:'Aggiungi', btnCancel:'Annulla', usdBalance:'Saldo USD', totalCost:'Costo totale', currentValue:'Valore attuale', pnl:'P/L', colStock:'Azione', colAmount:'Quantità', colBuy:'Acquisto', colCurrent:'Attuale', colValue:'Valore', colPnl:'P/L', emptyPortfolio:'Portafoglio vuoto', favTooltip:'Preferita', hideTooltip:'Nascondi', editTooltip:'Modifica', deleteTooltip:'Elimina', marketOpen:'Mercato aperto', marketClosed:'Mercato chiuso', preMarket:'Pre-mercato', postMarket:'Post-mercato', high:'Massimo', low:'Minimo', prevClose:'Chiusura precedente' }
   };
 
   function getLocale() {
@@ -431,14 +431,14 @@
         return 'st-market-closed';
       });
 
-      let localeTimer = null;
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
       let marketTimer = null;
 
       onMounted(() => {
         loadPrefs();
         connectWS();
         fetchMarketStatus();
-        localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+        window.addEventListener('locale-changed', onLocaleChanged);
         marketTimer = setInterval(fetchMarketStatus, 60000);
       });
 
@@ -447,8 +447,7 @@
           ws.onclose = null;
           ws.close();
         }
-        if (localeTimer) clearInterval(localeTimer);
-        if (marketTimer) clearInterval(marketTimer);
+        window.removeEventListener('locale-changed', onLocaleChanged)if (marketTimer) clearInterval(marketTimer);
       });
 
       return {

@@ -74,9 +74,9 @@
       goToSource:'Перейти к источнику', share:'Поделиться', noArticleContent:'Нет содержимого',
       addError:'Не удалось добавить', connError:'Ошибка подключения'
     },
-    zh: { title: 'RSS Reader', back: 'Back', article: 'Article', unread: 'unread', hideRead: 'Hide read', showRead: 'Show read', markAllRead: 'Mark all as read', markAllBtn: '✓ All', refresh: 'Refresh', refreshAll: 'Refresh all', loading: 'Loading...', urlPlaceholder: 'Paste RSS URL...', namePlaceholder: 'Name (optional)', emptyTitle: 'No RSS feeds added yet', emptyHint: 'Add an RSS URL above', articles: 'articles', remove: 'Remove', noContent: 'No content found in this feed', untitled: 'Untitled', markRead: 'Mark as read', goToSource: 'Go to Source', share: 'Share', noArticleContent: 'No content', addError: 'Could not add', connError: 'Connection error' },
-    ja: { title: 'RSS Reader', back: 'Back', article: 'Article', unread: 'unread', hideRead: 'Hide read', showRead: 'Show read', markAllRead: 'Mark all as read', markAllBtn: '✓ All', refresh: 'Refresh', refreshAll: 'Refresh all', loading: 'Loading...', urlPlaceholder: 'Paste RSS URL...', namePlaceholder: 'Name (optional)', emptyTitle: 'No RSS feeds added yet', emptyHint: 'Add an RSS URL above', articles: 'articles', remove: 'Remove', noContent: 'No content found in this feed', untitled: 'Untitled', markRead: 'Mark as read', goToSource: 'Go to Source', share: 'Share', noArticleContent: 'No content', addError: 'Could not add', connError: 'Connection error' },
-    it: { title: 'RSS Reader', back: 'Back', article: 'Article', unread: 'unread', hideRead: 'Hide read', showRead: 'Show read', markAllRead: 'Mark all as read', markAllBtn: '✓ All', refresh: 'Refresh', refreshAll: 'Refresh all', loading: 'Loading...', urlPlaceholder: 'Paste RSS URL...', namePlaceholder: 'Name (optional)', emptyTitle: 'No RSS feeds added yet', emptyHint: 'Add an RSS URL above', articles: 'articles', remove: 'Remove', noContent: 'No content found in this feed', untitled: 'Untitled', markRead: 'Mark as read', goToSource: 'Go to Source', share: 'Share', noArticleContent: 'No content', addError: 'Could not add', connError: 'Connection error' }
+    zh: { title:'RSS阅读器', back:'返回', article:'文章', unread:'未读', hideRead:'隐藏已读', showRead:'显示已读', markAllRead:'全部标为已读', markAllBtn:'全部已读', refresh:'刷新', refreshAll:'全部刷新', loading:'加载中', urlPlaceholder:'输入RSS地址...', namePlaceholder:'输入名称...', emptyTitle:'欢迎', emptyHint:'添加RSS源开始阅读', articles:'文章', remove:'移除', noContent:'无内容', untitled:'无标题', markRead:'标为已读', goToSource:'访问原文', share:'分享', noArticleContent:'无文章内容', addError:'添加失败', connError:'连接错误' },
+    ja: { title:'RSSリーダー', back:'戻る', article:'記事', unread:'未読', hideRead:'既読を非表示', showRead:'既読を表示', markAllRead:'すべて既読', markAllBtn:'すべて既読', refresh:'更新', refreshAll:'すべて更新', loading:'読込中', urlPlaceholder:'RSS URLを入力...', namePlaceholder:'名前を入力...', emptyTitle:'ようこそ', emptyHint:'RSSフィードを追加して閲覧開始', articles:'記事', remove:'削除', noContent:'コンテンツなし', untitled:'無題', markRead:'既読にする', goToSource:'元記事へ', share:'共有', noArticleContent:'記事コンテンツなし', addError:'追加エラー', connError:'接続エラー' },
+    it: { title:'Lettore RSS', back:'Indietro', article:'Articolo', unread:'Non letti', hideRead:'Nascondi letti', showRead:'Mostra letti', markAllRead:'Segna tutti come letti', markAllBtn:'Tutti letti', refresh:'Aggiorna', refreshAll:'Aggiorna tutto', loading:'Caricamento', urlPlaceholder:'Inserisci URL RSS...', namePlaceholder:'Inserisci nome...', emptyTitle:'Benvenuto', emptyHint:'Aggiungi feed RSS per iniziare', articles:'Articoli', remove:'Rimuovi', noContent:'Nessun contenuto', untitled:'Senza titolo', markRead:'Segna come letto', goToSource:'Vai alla fonte', share:'Condividi', noArticleContent:'Nessun contenuto articolo', addError:'Errore aggiunta', connError:'Errore connessione' }
   };
 
   function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
@@ -312,9 +312,9 @@
 
       watch(showRead, (val) => { localStorage.setItem('rss_showRead', val ? 'true' : 'false'); });
 
-      let localeTimer = null;
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
       onMounted(async () => {
-        localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+        window.addEventListener('locale-changed', onLocaleChanged);
         await loadData();
         loading.value = false;
         window.addEventListener('rss-navigate', onRssNavigate);
@@ -332,8 +332,7 @@
 
       onUnmounted(() => {
         window.removeEventListener('rss-navigate', onRssNavigate);
-        if (localeTimer) clearInterval(localeTimer);
-      });
+        window.removeEventListener('locale-changed', onLocaleChanged));
 
       return {
         L, feeds, readItems, loading, refreshing, adding, newUrl, newName, addError, showRead,

@@ -498,16 +498,15 @@
         persistVault();
       }
 
-      let localeTimer = null;
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
       onMounted(() => {
-        localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+        window.addEventListener('locale-changed', onLocaleChanged);
       });
 
       onUnmounted(() => {
         if (autoLockTimer) clearTimeout(autoLockTimer);
         if (toastTimer) clearTimeout(toastTimer);
-        if (localeTimer) clearInterval(localeTimer);
-      });
+        window.removeEventListener('locale-changed', onLocaleChanged));
 
       return {
         L,

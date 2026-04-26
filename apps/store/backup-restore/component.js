@@ -100,9 +100,9 @@
         selectFile:'Выбрать файл', orSelectExisting:'или выберите существующую копию',
         uploading:'Загрузка...', uploaded:'Загружено'
       },
-    zh: { title: 'Backup & Restore', backup: 'Backup', restore: 'Restore', backups: 'Backups', noBackups: 'No backups yet', format: 'Format', createBackup: 'Create Backup', download: 'Download', delete: 'Delete', deleteConfirm: 'Are you sure you want to delete this backup?', restoreConfirm: 'Do you want to restore from this backup?\n\nAll open programs will be closed and current data will be replaced with the backup contents.', restoreBtn: 'Restore', uploadBackup: 'Upload Backup File', creating: 'Creating backup...', restoring: 'Restoring...', success: 'Success', error: 'Error', backupCreated: 'Backup created', restoreDone: 'Restore completed. Page will reload.', size: 'Size', date: 'Date', actions: 'Actions', closeWarning: 'All open windows will be closed.', tabBackup: 'Backup', tabRestore: 'Restore', selectFile: 'Select File', orSelectExisting: 'or select an existing backup', uploading: 'Uploading...', uploaded: 'Uploaded' },
-    ja: { title: 'Backup & Restore', backup: 'Backup', restore: 'Restore', backups: 'Backups', noBackups: 'No backups yet', format: 'Format', createBackup: 'Create Backup', download: 'Download', delete: 'Delete', deleteConfirm: 'Are you sure you want to delete this backup?', restoreConfirm: 'Do you want to restore from this backup?\n\nAll open programs will be closed and current data will be replaced with the backup contents.', restoreBtn: 'Restore', uploadBackup: 'Upload Backup File', creating: 'Creating backup...', restoring: 'Restoring...', success: 'Success', error: 'Error', backupCreated: 'Backup created', restoreDone: 'Restore completed. Page will reload.', size: 'Size', date: 'Date', actions: 'Actions', closeWarning: 'All open windows will be closed.', tabBackup: 'Backup', tabRestore: 'Restore', selectFile: 'Select File', orSelectExisting: 'or select an existing backup', uploading: 'Uploading...', uploaded: 'Uploaded' },
-    it: { title: 'Backup & Restore', backup: 'Backup', restore: 'Restore', backups: 'Backups', noBackups: 'No backups yet', format: 'Format', createBackup: 'Create Backup', download: 'Download', delete: 'Delete', deleteConfirm: 'Are you sure you want to delete this backup?', restoreConfirm: 'Do you want to restore from this backup?\n\nAll open programs will be closed and current data will be replaced with the backup contents.', restoreBtn: 'Restore', uploadBackup: 'Upload Backup File', creating: 'Creating backup...', restoring: 'Restoring...', success: 'Success', error: 'Error', backupCreated: 'Backup created', restoreDone: 'Restore completed. Page will reload.', size: 'Size', date: 'Date', actions: 'Actions', closeWarning: 'All open windows will be closed.', tabBackup: 'Backup', tabRestore: 'Restore', selectFile: 'Select File', orSelectExisting: 'or select an existing backup', uploading: 'Uploading...', uploaded: 'Uploaded' }
+    zh: { title:'备份与恢复', backup:'备份', restore:'恢复', backups:'备份列表', noBackups:'没有备份', format:'格式', createBackup:'创建备份', download:'下载', delete:'删除', deleteConfirm:'确认删除？', restoreConfirm:'确认恢复？', restoreBtn:'恢复', uploadBackup:'上传备份', creating:'创建中...', restoring:'恢复中...', success:'成功', error:'错误', backupCreated:'备份已创建', restoreDone:'恢复完成', size:'大小', date:'日期', actions:'操作', closeWarning:'关闭警告', tabBackup:'备份', tabRestore:'恢复', selectFile:'选择文件', orSelectExisting:'或选择已有备份', uploading:'上传中...', uploaded:'已上传' },
+    ja: { title:'バックアップと復元', backup:'バックアップ', restore:'復元', backups:'バックアップ一覧', noBackups:'バックアップなし', format:'形式', createBackup:'バックアップ作成', download:'ダウンロード', delete:'削除', deleteConfirm:'削除しますか？', restoreConfirm:'復元しますか？', restoreBtn:'復元', uploadBackup:'バックアップをアップロード', creating:'作成中...', restoring:'復元中...', success:'成功', error:'エラー', backupCreated:'バックアップ作成完了', restoreDone:'復元完了', size:'サイズ', date:'日付', actions:'操作', closeWarning:'閉じる警告', tabBackup:'バックアップ', tabRestore:'復元', selectFile:'ファイル選択', orSelectExisting:'または既存を選択', uploading:'アップロード中...', uploaded:'アップロード完了' },
+    it: { title:'Backup e Ripristino', backup:'Backup', restore:'Ripristina', backups:'Elenco backup', noBackups:'Nessun backup', format:'Formato', createBackup:'Crea backup', download:'Scarica', delete:'Elimina', deleteConfirm:'Confermi eliminazione?', restoreConfirm:'Confermi ripristino?', restoreBtn:'Ripristina', uploadBackup:'Carica backup', creating:'Creazione...', restoring:'Ripristino...', success:'Successo', error:'Errore', backupCreated:'Backup creato', restoreDone:'Ripristino completato', size:'Dimensione', date:'Data', actions:'Azioni', closeWarning:'Avviso chiusura', tabBackup:'Backup', tabRestore:'Ripristino', selectFile:'Seleziona file', orSelectExisting:'o seleziona esistente', uploading:'Caricamento...', uploaded:'Caricato' }
   };
 
     function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
@@ -313,12 +313,12 @@
       input.click();
     }
 
-    let localeTimer = null;
+    function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
     onMounted(async () => {
       await loadBackups();
-      localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+      window.addEventListener('locale-changed', onLocaleChanged);
     });
-    onUnmounted(() => { if (localeTimer) clearInterval(localeTimer); });
+    onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged));
 
     return {
       L, tab, format, backups, busy, busyText, statusMsg, statusType,

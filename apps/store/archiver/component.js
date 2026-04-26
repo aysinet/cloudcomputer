@@ -81,9 +81,9 @@
         noSelection:'Выберите файлы', noArchive:'Выберите архивный файл',
         invalidFormat:'Неподдерживаемый формат файла'
       },
-    zh: { title: 'Archiver', tabCompress: 'Compress', tabExtract: 'Extract', format: 'Format', selectFiles: 'Select Files / Folders', selectArchive: 'Select Archive', compress: 'Compress', extract: 'Extract', archiveName: 'Archive Name', extractTo: 'Extract To', archiveContents: 'Archive Contents', emptyDir: 'Folder is empty', itemsSelected: 'items selected', gzipHint: 'GZIP compresses a single file only', compressing: 'Compressing...', extracting: 'Extracting...', success: 'Success', error: 'Error', compressDone: 'Archive created', extractDone: 'Extraction completed', noSelection: 'Please select files', noArchive: 'Please select an archive file', invalidFormat: 'Unsupported file format' },
-    ja: { title: 'Archiver', tabCompress: 'Compress', tabExtract: 'Extract', format: 'Format', selectFiles: 'Select Files / Folders', selectArchive: 'Select Archive', compress: 'Compress', extract: 'Extract', archiveName: 'Archive Name', extractTo: 'Extract To', archiveContents: 'Archive Contents', emptyDir: 'Folder is empty', itemsSelected: 'items selected', gzipHint: 'GZIP compresses a single file only', compressing: 'Compressing...', extracting: 'Extracting...', success: 'Success', error: 'Error', compressDone: 'Archive created', extractDone: 'Extraction completed', noSelection: 'Please select files', noArchive: 'Please select an archive file', invalidFormat: 'Unsupported file format' },
-    it: { title: 'Archiver', tabCompress: 'Compress', tabExtract: 'Extract', format: 'Format', selectFiles: 'Select Files / Folders', selectArchive: 'Select Archive', compress: 'Compress', extract: 'Extract', archiveName: 'Archive Name', extractTo: 'Extract To', archiveContents: 'Archive Contents', emptyDir: 'Folder is empty', itemsSelected: 'items selected', gzipHint: 'GZIP compresses a single file only', compressing: 'Compressing...', extracting: 'Extracting...', success: 'Success', error: 'Error', compressDone: 'Archive created', extractDone: 'Extraction completed', noSelection: 'Please select files', noArchive: 'Please select an archive file', invalidFormat: 'Unsupported file format' }
+    zh: { title:'归档工具', tabCompress:'压缩', tabExtract:'解压', format:'格式', selectFiles:'选择文件/文件夹', selectArchive:'选择归档文件', compress:'压缩', extract:'解压', archiveName:'归档名称', extractTo:'解压到', archiveContents:'归档内容', emptyDir:'文件夹为空', itemsSelected:'个项目已选', gzipHint:'GZIP仅压缩单个文件', compressing:'压缩中...', extracting:'解压中...', success:'成功', error:'错误', compressDone:'归档已创建', extractDone:'解压完成', noSelection:'请选择文件', noArchive:'请选择归档文件', invalidFormat:'不支持的文件格式' },
+    ja: { title:'アーカイバ', tabCompress:'圧縮', tabExtract:'展開', format:'形式', selectFiles:'ファイル/フォルダを選択', selectArchive:'アーカイブを選択', compress:'圧縮', extract:'展開', archiveName:'アーカイブ名', extractTo:'展開先', archiveContents:'アーカイブ内容', emptyDir:'フォルダは空です', itemsSelected:'個選択中', gzipHint:'GZIPは単一ファイルのみ圧縮', compressing:'圧縮中...', extracting:'展開中...', success:'成功', error:'エラー', compressDone:'アーカイブ作成完了', extractDone:'展開完了', noSelection:'ファイルを選択してください', noArchive:'アーカイブファイルを選択してください', invalidFormat:'未対応のファイル形式' },
+    it: { title:'Archiviatore', tabCompress:'Comprimi', tabExtract:'Estrai', format:'Formato', selectFiles:'Seleziona file/cartelle', selectArchive:'Seleziona archivio', compress:'Comprimi', extract:'Estrai', archiveName:'Nome archivio', extractTo:'Estrai in', archiveContents:'Contenuto archivio', emptyDir:'Cartella vuota', itemsSelected:'elementi selezionati', gzipHint:'GZIP comprime solo un file', compressing:'Compressione...', extracting:'Estrazione...', success:'Successo', error:'Errore', compressDone:'Archivio creato', extractDone:'Estrazione completata', noSelection:'Seleziona dei file', noArchive:'Seleziona un file archivio', invalidFormat:'Formato non supportato' }
   };
 
     function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
@@ -113,7 +113,7 @@
     const archiveContents = ref([]);
     const extractDest = ref('');
 
-    let localeTimer = null;
+    function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
 
     function showStatus(msg, type) {
       statusMsg.value = msg;
@@ -280,9 +280,9 @@
     onMounted(() => {
       loadCompressDir();
       loadExtractDir();
-      localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+      window.addEventListener('locale-changed', onLocaleChanged);
     });
-    onUnmounted(() => { if (localeTimer) clearInterval(localeTimer); });
+    onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged));
 
     return {
       tab, format, busy, busyText, statusMsg, statusType, L,

@@ -88,9 +88,9 @@
         nameRequired:'Имя обязательно', coordRequired:'Координаты обязательны',
         search:'Поиск...', total:'Всего'
       },
-    zh: { title: 'Map', markers: 'Markers', views: 'Views', layers: 'Layer', addMarker: 'Add Marker', editMarker: 'Edit Marker', deleteMarker: 'Delete Marker', saveView: 'Save View', deleteView: 'Delete View', goToView: 'Go', name: 'Name', description: 'Description', color: 'Color', icon: 'Icon', lat: 'Latitude', lon: 'Longitude', save: 'Save', cancel: 'Cancel', delete: 'Delete', edit: 'Edit', noMarkers: 'No markers yet', noViews: 'No saved views yet', clickToPlace: 'Click on the map to place a marker', deleteConfirm: 'Are you sure you want to delete this?', viewName: 'View Name', currentView: 'Current View', zoom: 'Zoom', osm: 'OpenStreetMap', satellite: 'Satellite (Google)', topo: 'Topographic', sidebar: 'Panel', fitAll: 'Fit All', myLocation: 'My Location', nameRequired: 'Name is required', coordRequired: 'Coordinates required', search: 'Search...', total: 'Total' },
-    ja: { title: 'Map', markers: 'Markers', views: 'Views', layers: 'Layer', addMarker: 'Add Marker', editMarker: 'Edit Marker', deleteMarker: 'Delete Marker', saveView: 'Save View', deleteView: 'Delete View', goToView: 'Go', name: 'Name', description: 'Description', color: 'Color', icon: 'Icon', lat: 'Latitude', lon: 'Longitude', save: 'Save', cancel: 'Cancel', delete: 'Delete', edit: 'Edit', noMarkers: 'No markers yet', noViews: 'No saved views yet', clickToPlace: 'Click on the map to place a marker', deleteConfirm: 'Are you sure you want to delete this?', viewName: 'View Name', currentView: 'Current View', zoom: 'Zoom', osm: 'OpenStreetMap', satellite: 'Satellite (Google)', topo: 'Topographic', sidebar: 'Panel', fitAll: 'Fit All', myLocation: 'My Location', nameRequired: 'Name is required', coordRequired: 'Coordinates required', search: 'Search...', total: 'Total' },
-    it: { title: 'Map', markers: 'Markers', views: 'Views', layers: 'Layer', addMarker: 'Add Marker', editMarker: 'Edit Marker', deleteMarker: 'Delete Marker', saveView: 'Save View', deleteView: 'Delete View', goToView: 'Go', name: 'Name', description: 'Description', color: 'Color', icon: 'Icon', lat: 'Latitude', lon: 'Longitude', save: 'Save', cancel: 'Cancel', delete: 'Delete', edit: 'Edit', noMarkers: 'No markers yet', noViews: 'No saved views yet', clickToPlace: 'Click on the map to place a marker', deleteConfirm: 'Are you sure you want to delete this?', viewName: 'View Name', currentView: 'Current View', zoom: 'Zoom', osm: 'OpenStreetMap', satellite: 'Satellite (Google)', topo: 'Topographic', sidebar: 'Panel', fitAll: 'Fit All', myLocation: 'My Location', nameRequired: 'Name is required', coordRequired: 'Coordinates required', search: 'Search...', total: 'Total' }
+    zh: { title:'地图', markers:'标记', views:'视图', layers:'图层', addMarker:'添加标记', editMarker:'编辑标记', deleteMarker:'删除标记', saveView:'保存视图', deleteView:'删除视图', goToView:'前往视图', name:'名称', description:'描述', color:'颜色', icon:'图标', lat:'纬度', lon:'经度', save:'保存', cancel:'取消', delete:'删除', edit:'编辑', noMarkers:'没有标记', noViews:'没有视图', clickToPlace:'点击地图放置', deleteConfirm:'确认删除？', viewName:'视图名称', currentView:'当前视图', zoom:'缩放', osm:'地图', satellite:'卫星', topo:'地形', sidebar:'侧边栏', fitAll:'显示全部', myLocation:'我的位置', nameRequired:'请输入名称', coordRequired:'请输入坐标', search:'搜索', total:'总计' },
+    ja: { title:'マップ', markers:'マーカー', views:'ビュー', layers:'レイヤー', addMarker:'マーカー追加', editMarker:'マーカー編集', deleteMarker:'マーカー削除', saveView:'ビュー保存', deleteView:'ビュー削除', goToView:'ビューに移動', name:'名前', description:'説明', color:'色', icon:'アイコン', lat:'緯度', lon:'経度', save:'保存', cancel:'キャンセル', delete:'削除', edit:'編集', noMarkers:'マーカーなし', noViews:'ビューなし', clickToPlace:'クリックして配置', deleteConfirm:'削除しますか？', viewName:'ビュー名', currentView:'現在のビュー', zoom:'ズーム', osm:'地図', satellite:'衛星', topo:'地形', sidebar:'サイドバー', fitAll:'すべて表示', myLocation:'現在地', nameRequired:'名前を入力してください', coordRequired:'座標を入力してください', search:'検索', total:'合計' },
+    it: { title:'Mappa', markers:'Marcatori', views:'Viste', layers:'Livelli', addMarker:'Aggiungi marcatore', editMarker:'Modifica marcatore', deleteMarker:'Elimina marcatore', saveView:'Salva vista', deleteView:'Elimina vista', goToView:'Vai alla vista', name:'Nome', description:'Descrizione', color:'Colore', icon:'Icona', lat:'Latitudine', lon:'Longitudine', save:'Salva', cancel:'Annulla', delete:'Elimina', edit:'Modifica', noMarkers:'Nessun marcatore', noViews:'Nessuna vista', clickToPlace:'Clicca per posizionare', deleteConfirm:'Confermi eliminazione?', viewName:'Nome vista', currentView:'Vista attuale', zoom:'Zoom', osm:'Mappa', satellite:'Satellite', topo:'Topografico', sidebar:'Barra laterale', fitAll:'Mostra tutto', myLocation:'La mia posizione', nameRequired:'Nome richiesto', coordRequired:'Coordinate richieste', search:'Cerca', total:'Totale' }
   };
 
     function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
@@ -335,7 +335,7 @@
     // Setup map
     let mapContainer = null;
     let tooltipOverlay = null;
-    let localeTimer = null;
+    function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
 
     function initMap() {
       const container = document.getElementById('map-app-container');
@@ -411,7 +411,7 @@
 
     onMounted(async () => {
       await loadData();
-      localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+      window.addEventListener('locale-changed', onLocaleChanged);
       await nextTick();
       setTimeout(initMap, 100);
       // Intro: briefly open drawer then close to hint its existence
@@ -420,8 +420,7 @@
     });
 
     onUnmounted(() => {
-      if (localeTimer) clearInterval(localeTimer);
-      if (map) { map.setTarget(null); map = null; }
+      window.removeEventListener('locale-changed', onLocaleChanged)if (map) { map.setTarget(null); map = null; }
     });
 
     return {

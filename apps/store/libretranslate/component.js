@@ -102,9 +102,9 @@
       loadingLangs: 'Загрузка языков...', apiReady: 'API готов',
       apiWaiting: 'Ожидание API'
     },
-    zh: { title: 'LibreTranslate', pulling: 'Downloading Docker image', pullingNote: 'Language models are downloaded on first setup, this may take a while...', starting: 'Starting LibreTranslate...', startingNote: 'Loading language models', errorTitle: 'An error occurred', retry: 'Retry', errorNote: 'Make sure Docker is installed and running.', startBtn: 'Start', subtitle: 'Open source machine translation', restart: 'Restart', stop: 'Stop', sourceLang: 'Source Language', targetLang: 'Target Language', inputPlaceholder: 'Enter text to translate...', translateBtn: 'Translate', translating: 'Translating...', swap: 'Swap', autoDetect: 'Auto Detect', copyBtn: 'Copy', copied: 'Copied!', clearBtn: 'Clear', charCount: 'characters', loadingLangs: 'Loading languages...', apiReady: 'API Ready', apiWaiting: 'Waiting for API' },
-    ja: { title: 'LibreTranslate', pulling: 'Downloading Docker image', pullingNote: 'Language models are downloaded on first setup, this may take a while...', starting: 'Starting LibreTranslate...', startingNote: 'Loading language models', errorTitle: 'An error occurred', retry: 'Retry', errorNote: 'Make sure Docker is installed and running.', startBtn: 'Start', subtitle: 'Open source machine translation', restart: 'Restart', stop: 'Stop', sourceLang: 'Source Language', targetLang: 'Target Language', inputPlaceholder: 'Enter text to translate...', translateBtn: 'Translate', translating: 'Translating...', swap: 'Swap', autoDetect: 'Auto Detect', copyBtn: 'Copy', copied: 'Copied!', clearBtn: 'Clear', charCount: 'characters', loadingLangs: 'Loading languages...', apiReady: 'API Ready', apiWaiting: 'Waiting for API' },
-    it: { title: 'LibreTranslate', pulling: 'Downloading Docker image', pullingNote: 'Language models are downloaded on first setup, this may take a while...', starting: 'Starting LibreTranslate...', startingNote: 'Loading language models', errorTitle: 'An error occurred', retry: 'Retry', errorNote: 'Make sure Docker is installed and running.', startBtn: 'Start', subtitle: 'Open source machine translation', restart: 'Restart', stop: 'Stop', sourceLang: 'Source Language', targetLang: 'Target Language', inputPlaceholder: 'Enter text to translate...', translateBtn: 'Translate', translating: 'Translating...', swap: 'Swap', autoDetect: 'Auto Detect', copyBtn: 'Copy', copied: 'Copied!', clearBtn: 'Clear', charCount: 'characters', loadingLangs: 'Loading languages...', apiReady: 'API Ready', apiWaiting: 'Waiting for API' }
+    zh: { title:'LibreTranslate', pulling:'正在下载Docker镜像...', pullingNote:'下载提示', starting:'正在启动...', startingNote:'启动提示', errorTitle:'错误', retry:'重试', errorNote:'错误提示', startBtn:'启动', subtitle:'开源机器翻译', restart:'重启', stop:'停止', sourceLang:'源语言', targetLang:'目标语言', inputPlaceholder:'输入要翻译的文本...', translateBtn:'翻译', translating:'翻译中...', swap:'交换', autoDetect:'自动检测', copyBtn:'复制', copied:'已复制', clearBtn:'清空', charCount:'字符数', loadingLangs:'加载语言列表...', apiReady:'API就绪', apiWaiting:'等待API...' },
+    ja: { title:'LibreTranslate', pulling:'Dockerイメージをダウンロード中...', pullingNote:'ダウンロードのヒント', starting:'起動中...', startingNote:'起動のヒント', errorTitle:'エラー', retry:'再試行', errorNote:'エラーのヒント', startBtn:'起動', subtitle:'オープンソース機械翻訳', restart:'再起動', stop:'停止', sourceLang:'翻訳元言語', targetLang:'翻訳先言語', inputPlaceholder:'翻訳するテキストを入力...', translateBtn:'翻訳', translating:'翻訳中...', swap:'入れ替え', autoDetect:'自動検出', copyBtn:'コピー', copied:'コピー済', clearBtn:'クリア', charCount:'文字数', loadingLangs:'言語リスト読込中...', apiReady:'API準備完了', apiWaiting:'API待機中...' },
+    it: { title:'LibreTranslate', pulling:'Download immagine Docker...', pullingNote:'Nota download', starting:'Avvio in corso...', startingNote:'Nota avvio', errorTitle:'Errore', retry:'Riprova', errorNote:'Nota errore', startBtn:'Avvia', subtitle:'Traduzione automatica open source', restart:'Riavvia', stop:'Ferma', sourceLang:'Lingua di origine', targetLang:'Lingua di destinazione', inputPlaceholder:'Inserisci testo da tradurre...', translateBtn:'Traduci', translating:'Traduzione...', swap:'Scambia', autoDetect:'Rilevamento automatico', copyBtn:'Copia', copied:'Copiato', clearBtn:'Cancella', charCount:'Caratteri', loadingLangs:'Caricamento lingue...', apiReady:'API pronta', apiWaiting:'In attesa dell\'API...' }
   };
 
   function getLocale() {
@@ -133,7 +133,7 @@
       const apiReady = ref(false);
       const copied = ref(false);
 
-      let localeTimer = null;
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
       let apiCheckTimer = null;
 
       async function apiFetch(url, opts = {}) {
@@ -335,12 +335,11 @@
 
       onMounted(() => {
         checkAndStart();
-        localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+        window.addEventListener('locale-changed', onLocaleChanged);
       });
 
       onBeforeUnmount(() => {
-        if (localeTimer) clearInterval(localeTimer);
-        if (apiCheckTimer) { clearInterval(apiCheckTimer); apiCheckTimer = null; }
+        window.removeEventListener('locale-changed', onLocaleChanged)if (apiCheckTimer) { clearInterval(apiCheckTimer); apiCheckTimer = null; }
       });
 
       return {

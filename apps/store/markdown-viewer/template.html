@@ -40,6 +40,7 @@
       </el-radio-group>
       <span class="md-sep"></span>
       <button class="md-tb-btn" @click="exportHtml" :title="t('exportHtml')">📤</button>
+      <button class="md-tb-btn" @click="exportPdf" :title="t('exportPdf')">📄</button>
       <button class="md-tb-btn" @click="printPreview" :title="t('print')">🖨️</button>
       <el-switch v-model="wordWrap" size="small" :active-text="t('wordWrap')" style="--el-switch-on-color:#409eff" />
       <el-input-number v-model="fontSize" :min="10" :max="28" :step="1" size="small" style="width:90px" controls-position="right" />

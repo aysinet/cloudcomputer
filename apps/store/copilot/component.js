@@ -99,9 +99,9 @@
       allowAllTools: 'Разрешить все инструменты', allowAllToolsHelp: '⚠ Позволяет выполнять без подтверждения.',
       saving: 'Сохранение…', save: 'Сохранить', cliInfo: 'Инфо CLI'
     },
-    zh: { title: 'GitHub Copilot', chat: 'Chat', history: 'History', settings: 'Settings', notInstalled: 'CLI not installed', installHint: 'GitHub Copilot CLI is required. Install it on the server with:', checkAgain: 'Check again', emptyTitle: 'Ask Copilot anything', emptySub: 'Type a prompt and press Ctrl+Enter to run on the server.', you: 'You', thinking: 'Thinking…', stop: 'Stop', promptPlaceholder: 'Ask Copilot to write code, explain a file, or run a task…', hintCtrlEnter: 'Ctrl+Enter to send', cwd: 'cwd', userRoot: 'user root', clearAll: 'Clear all', noHistory: 'No history yet.', githubToken: 'GitHub Token', githubTokenHelp: 'Personal access token used as GH_TOKEN when running the CLI. Stored on the server for your user only.', tokenPlaceholder: 'ghp_… or github_pat_…', show: 'Show', hide: 'Hide', createToken: 'Create a fine-grained token →', workingDir: 'Working directory', workingDirHelp: 'Absolute path or relative to your user files folder. Empty = user root.', cwdPlaceholder: 'e.g. files/project', model: 'Model', modelHelp: 'Optional. Default is Claude Sonnet 4.5. Leave empty for default.', allowAllTools: 'Allow all tools (auto-approve)', allowAllToolsHelp: '⚠ Lets Copilot run shell commands and edit files without prompting. Use carefully.', saving: 'Saving…', save: 'Save', cliInfo: 'CLI info' },
-    ja: { title: 'GitHub Copilot', chat: 'Chat', history: 'History', settings: 'Settings', notInstalled: 'CLI not installed', installHint: 'GitHub Copilot CLI is required. Install it on the server with:', checkAgain: 'Check again', emptyTitle: 'Ask Copilot anything', emptySub: 'Type a prompt and press Ctrl+Enter to run on the server.', you: 'You', thinking: 'Thinking…', stop: 'Stop', promptPlaceholder: 'Ask Copilot to write code, explain a file, or run a task…', hintCtrlEnter: 'Ctrl+Enter to send', cwd: 'cwd', userRoot: 'user root', clearAll: 'Clear all', noHistory: 'No history yet.', githubToken: 'GitHub Token', githubTokenHelp: 'Personal access token used as GH_TOKEN when running the CLI. Stored on the server for your user only.', tokenPlaceholder: 'ghp_… or github_pat_…', show: 'Show', hide: 'Hide', createToken: 'Create a fine-grained token →', workingDir: 'Working directory', workingDirHelp: 'Absolute path or relative to your user files folder. Empty = user root.', cwdPlaceholder: 'e.g. files/project', model: 'Model', modelHelp: 'Optional. Default is Claude Sonnet 4.5. Leave empty for default.', allowAllTools: 'Allow all tools (auto-approve)', allowAllToolsHelp: '⚠ Lets Copilot run shell commands and edit files without prompting. Use carefully.', saving: 'Saving…', save: 'Save', cliInfo: 'CLI info' },
-    it: { title: 'GitHub Copilot', chat: 'Chat', history: 'History', settings: 'Settings', notInstalled: 'CLI not installed', installHint: 'GitHub Copilot CLI is required. Install it on the server with:', checkAgain: 'Check again', emptyTitle: 'Ask Copilot anything', emptySub: 'Type a prompt and press Ctrl+Enter to run on the server.', you: 'You', thinking: 'Thinking…', stop: 'Stop', promptPlaceholder: 'Ask Copilot to write code, explain a file, or run a task…', hintCtrlEnter: 'Ctrl+Enter to send', cwd: 'cwd', userRoot: 'user root', clearAll: 'Clear all', noHistory: 'No history yet.', githubToken: 'GitHub Token', githubTokenHelp: 'Personal access token used as GH_TOKEN when running the CLI. Stored on the server for your user only.', tokenPlaceholder: 'ghp_… or github_pat_…', show: 'Show', hide: 'Hide', createToken: 'Create a fine-grained token →', workingDir: 'Working directory', workingDirHelp: 'Absolute path or relative to your user files folder. Empty = user root.', cwdPlaceholder: 'e.g. files/project', model: 'Model', modelHelp: 'Optional. Default is Claude Sonnet 4.5. Leave empty for default.', allowAllTools: 'Allow all tools (auto-approve)', allowAllToolsHelp: '⚠ Lets Copilot run shell commands and edit files without prompting. Use carefully.', saving: 'Saving…', save: 'Save', cliInfo: 'CLI info' }
+    zh: { title:'GitHub Copilot', chat:'聊天', history:'历史', settings:'设置', notInstalled:'未安装', installHint:'安装提示', with:'与', checkAgain:'重新检查', emptyTitle:'空标题', emptySub:'暂无对话', you:'你', thinking:'思考中', stop:'停止', promptPlaceholder:'输入消息...', hintCtrlEnter:'按Ctrl+Enter发送', cwd:'工作目录', userRoot:'用户根目录', clearAll:'清空全部', noHistory:'没有历史记录', githubToken:'GitHub令牌', githubTokenHelp:'GitHub令牌帮助', tokenPlaceholder:'输入令牌', show:'显示', hide:'隐藏', createToken:'创建令牌', workingDir:'工作目录', workingDirHelp:'工作目录帮助', cwdPlaceholder:'输入路径', model:'模型', modelHelp:'模型帮助', allowAllTools:'允许所有工具', allowAllToolsHelp:'工具权限帮助', saving:'保存中', save:'保存', cliInfo:'CLI信息' },
+    ja: { title:'GitHub Copilot', chat:'チャット', history:'履歴', settings:'設定', notInstalled:'未インストール', installHint:'インストールのヒント', with:'と', checkAgain:'再確認', emptyTitle:'タイトルなし', emptySub:'会話なし', you:'あなた', thinking:'思考中', stop:'停止', promptPlaceholder:'メッセージを入力...', hintCtrlEnter:'Ctrl+Enterで送信', cwd:'作業ディレクトリ', userRoot:'ユーザールート', clearAll:'すべてクリア', noHistory:'履歴なし', githubToken:'GitHubトークン', githubTokenHelp:'トークンのヘルプ', tokenPlaceholder:'トークンを入力', show:'表示', hide:'非表示', createToken:'トークン作成', workingDir:'作業ディレクトリ', workingDirHelp:'ディレクトリのヘルプ', cwdPlaceholder:'パスを入力', model:'モデル', modelHelp:'モデルのヘルプ', allowAllTools:'全ツール許可', allowAllToolsHelp:'ツール権限のヘルプ', saving:'保存中', save:'保存', cliInfo:'CLI情報' },
+    it: { title:'GitHub Copilot', chat:'Chat', history:'Cronologia', settings:'Impostazioni', notInstalled:'Non installato', installHint:'Suggerimento installazione', with:'con', checkAgain:'Ricontrolla', emptyTitle:'Titolo vuoto', emptySub:'Nessuna conversazione', you:'Tu', thinking:'Pensando', stop:'Ferma', promptPlaceholder:'Scrivi un messaggio...', hintCtrlEnter:'Premi Ctrl+Invio per inviare', cwd:'Directory di lavoro', userRoot:'Root utente', clearAll:'Cancella tutto', noHistory:'Nessuna cronologia', githubToken:'Token GitHub', githubTokenHelp:'Guida token GitHub', tokenPlaceholder:'Inserisci token', show:'Mostra', hide:'Nascondi', createToken:'Crea token', workingDir:'Directory di lavoro', workingDirHelp:'Guida directory', cwdPlaceholder:'Inserisci percorso', model:'Modello', modelHelp:'Guida modello', allowAllTools:'Consenti tutti gli strumenti', allowAllToolsHelp:'Guida permessi strumenti', saving:'Salvataggio', save:'Salva', cliInfo:'Info CLI' }
   };
 
   return {
@@ -122,14 +122,15 @@
       let abortCtrl = null;
 
       // Locale from settings store
-      let locale = 'en';
+      const locale = ref('en');
       try {
         const s = window.Pinia && window.useSettingsStore && window.useSettingsStore();
-        if (s && s.locale) locale = s.locale;
+        if (s && s.locale) locale.value = s.locale;
       } catch (e) { /* ignore */ }
-      if (!LANGS[locale]) locale = 'en';
+      if (!LANGS[locale.value]) locale.value = 'en';
 
-      const L = (key) => (LANGS[locale] && LANGS[locale][key]) || LANGS.en[key] || key;
+      const L = (key) => (LANGS[locale.value] && LANGS[locale.value][key]) || LANGS.en[key] || key;
+      function onLocaleChanged(e) { locale.value = (e.detail && LANGS[e.detail]) ? e.detail : 'en'; }
 
       const suggestions = computed(() => ([
         L('emptyTitle') === 'Ask Copilot anything'
@@ -325,10 +326,12 @@
 
       onMounted(() => {
         loadStatus();
+        window.addEventListener('locale-changed', onLocaleChanged);
       });
 
       onBeforeUnmount(() => {
         abortPrompt();
+        window.removeEventListener('locale-changed', onLocaleChanged);
       });
 
       return {

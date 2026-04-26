@@ -108,9 +108,9 @@
         deleteConfirm:'Вы уверены, что хотите удалить этот клип?',
         undone:'Отменено', redone:'Повторено'
       },
-    zh: { title: 'Video Editor', addMedia: 'Add Media', export: 'Export', split: 'Split', delete: 'Delete', addText: 'Add Text', properties: 'Properties', clipName: 'Clip Name', trimStart: 'Trim Start', trimEnd: 'Trim End', speed: 'Speed', volume: 'Volume', timeline: 'Timeline', clips: 'clips', emptyTimeline: 'Click to add media', addMediaHint: 'Click to add a video', videos: 'Videos', browse: 'Browse', noFiles: 'No files found', exportTitle: 'Export Video', filename: 'File Name', resolution: 'Resolution', saveLocation: 'Save Location', videoFolder: 'Video Folder', downloadLocal: 'Download to Computer', cancel: 'Cancel', enterText: 'Enter text', position: 'Position', fontSize: 'Font Size', textColor: 'Text Color', add: 'Add', textOverlays: 'Text Overlays', posTop: 'Top', posCenter: 'Center', posBottom: 'Bottom', success: 'Success', error: 'Error', exported: 'Video saved', exporting: 'Exporting...', loading: 'Loading...', deleteConfirm: 'Are you sure you want to delete this clip?', undone: 'Undone', redone: 'Redone' },
-    ja: { title: 'Video Editor', addMedia: 'Add Media', export: 'Export', split: 'Split', delete: 'Delete', addText: 'Add Text', properties: 'Properties', clipName: 'Clip Name', trimStart: 'Trim Start', trimEnd: 'Trim End', speed: 'Speed', volume: 'Volume', timeline: 'Timeline', clips: 'clips', emptyTimeline: 'Click to add media', addMediaHint: 'Click to add a video', videos: 'Videos', browse: 'Browse', noFiles: 'No files found', exportTitle: 'Export Video', filename: 'File Name', resolution: 'Resolution', saveLocation: 'Save Location', videoFolder: 'Video Folder', downloadLocal: 'Download to Computer', cancel: 'Cancel', enterText: 'Enter text', position: 'Position', fontSize: 'Font Size', textColor: 'Text Color', add: 'Add', textOverlays: 'Text Overlays', posTop: 'Top', posCenter: 'Center', posBottom: 'Bottom', success: 'Success', error: 'Error', exported: 'Video saved', exporting: 'Exporting...', loading: 'Loading...', deleteConfirm: 'Are you sure you want to delete this clip?', undone: 'Undone', redone: 'Redone' },
-    it: { title: 'Video Editor', addMedia: 'Add Media', export: 'Export', split: 'Split', delete: 'Delete', addText: 'Add Text', properties: 'Properties', clipName: 'Clip Name', trimStart: 'Trim Start', trimEnd: 'Trim End', speed: 'Speed', volume: 'Volume', timeline: 'Timeline', clips: 'clips', emptyTimeline: 'Click to add media', addMediaHint: 'Click to add a video', videos: 'Videos', browse: 'Browse', noFiles: 'No files found', exportTitle: 'Export Video', filename: 'File Name', resolution: 'Resolution', saveLocation: 'Save Location', videoFolder: 'Video Folder', downloadLocal: 'Download to Computer', cancel: 'Cancel', enterText: 'Enter text', position: 'Position', fontSize: 'Font Size', textColor: 'Text Color', add: 'Add', textOverlays: 'Text Overlays', posTop: 'Top', posCenter: 'Center', posBottom: 'Bottom', success: 'Success', error: 'Error', exported: 'Video saved', exporting: 'Exporting...', loading: 'Loading...', deleteConfirm: 'Are you sure you want to delete this clip?', undone: 'Undone', redone: 'Redone' }
+    zh: { title:'视频编辑器', addMedia:'添加媒体', export:'导出', split:'分割', delete:'删除', addText:'添加文本', properties:'属性', clipName:'片段名称', trimStart:'起始裁剪', trimEnd:'结束裁剪', speed:'速度', volume:'音量', timeline:'时间线', clips:'片段', emptyTimeline:'时间线为空', addMediaHint:'添加媒体开始编辑', videos:'视频', browse:'浏览', noFiles:'没有文件', exportTitle:'导出视频', filename:'文件名', resolution:'分辨率', saveLocation:'保存位置', videoFolder:'视频文件夹', downloadLocal:'下载到本地', cancel:'取消', enterText:'输入文本', position:'位置', fontSize:'字体大小', textColor:'文字颜色', add:'添加', textOverlays:'文字叠层', posTop:'顶部', posCenter:'中间', posBottom:'底部', success:'成功', error:'错误', exported:'已导出', exporting:'导出中', loading:'加载中', deleteConfirm:'确认删除？', undone:'已撤销', redone:'已重做' },
+    ja: { title:'動画エディタ', addMedia:'メディア追加', export:'エクスポート', split:'分割', delete:'削除', addText:'テキスト追加', properties:'プロパティ', clipName:'クリップ名', trimStart:'開始トリム', trimEnd:'終了トリム', speed:'速度', volume:'音量', timeline:'タイムライン', clips:'クリップ', emptyTimeline:'タイムラインが空です', addMediaHint:'メディアを追加して編集開始', videos:'動画', browse:'参照', noFiles:'ファイルなし', exportTitle:'動画をエクスポート', filename:'ファイル名', resolution:'解像度', saveLocation:'保存先', videoFolder:'動画フォルダ', downloadLocal:'ローカルにダウンロード', cancel:'キャンセル', enterText:'テキストを入力', position:'位置', fontSize:'文字サイズ', textColor:'文字色', add:'追加', textOverlays:'テキストオーバーレイ', posTop:'上', posCenter:'中央', posBottom:'下', success:'成功', error:'エラー', exported:'エクスポート完了', exporting:'エクスポート中', loading:'読込中', deleteConfirm:'削除しますか？', undone:'元に戻しました', redone:'やり直しました' },
+    it: { title:'Editor Video', addMedia:'Aggiungi media', export:'Esporta', split:'Dividi', delete:'Elimina', addText:'Aggiungi testo', properties:'Proprietà', clipName:'Nome clip', trimStart:'Inizio taglio', trimEnd:'Fine taglio', speed:'Velocità', volume:'Volume', timeline:'Timeline', clips:'Clip', emptyTimeline:'Timeline vuota', addMediaHint:'Aggiungi media per iniziare', videos:'Video', browse:'Sfoglia', noFiles:'Nessun file', exportTitle:'Esporta video', filename:'Nome file', resolution:'Risoluzione', saveLocation:'Posizione', videoFolder:'Cartella video', downloadLocal:'Scarica in locale', cancel:'Annulla', enterText:'Inserisci testo', position:'Posizione', fontSize:'Dimensione testo', textColor:'Colore testo', add:'Aggiungi', textOverlays:'Sovrapposizioni testo', posTop:'Alto', posCenter:'Centro', posBottom:'Basso', success:'Successo', error:'Errore', exported:'Esportato', exporting:'Esportazione', loading:'Caricamento', deleteConfirm:'Confermi eliminazione?', undone:'Annullato', redone:'Ripristinato' }
   };
 
     function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
@@ -158,7 +158,7 @@
     const showTextDialog = ref(false);
     const newTextOverlay = reactive({ text: '', position: 'bottom', fontSize: 32, color: '#ffffff' });
 
-    let localeTimer = null;
+    function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
     let playTimer = null;
     let clipIdCounter = 0;
     let dragSrcIndex = -1;
@@ -699,12 +699,11 @@
     }
 
     onMounted(() => {
-      localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+      window.addEventListener('locale-changed', onLocaleChanged);
     });
 
     onUnmounted(() => {
-      if (localeTimer) clearInterval(localeTimer);
-      if (isPlaying.value && previewVideo.value) previewVideo.value.pause();
+      window.removeEventListener('locale-changed', onLocaleChanged)if (isPlaying.value && previewVideo.value) previewVideo.value.pause();
     });
 
     return {

@@ -76,9 +76,9 @@
         today:'Сегодня', tomorrow:'Завтра', thisWeek:'На этой неделе', later:'Позже',
         filterAll:'Все', filterActive:'Активные', filterDisabled:'Отключённые'
       },
-    zh: { title: 'Reminders', add: 'New Reminder', edit: 'Edit', save: 'Save', cancel: 'Cancel', delete: 'Delete', titleLabel: 'Title', noteLabel: 'Note', dateTimeLabel: 'Date & Time', repeatLabel: 'Repeat', noRepeat: 'No Repeat', hourly: 'Hourly', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', custom: 'Custom', customMinutes: 'Minutes (custom interval)', soundLabel: 'Sound', enabled: 'Enabled', disabled: 'Disabled', noReminders: 'No reminders yet', deleteConfirm: 'Are you sure you want to delete this reminder?', snoozed: 'Snoozed', upcoming: 'Upcoming', past: 'Past', all: 'All', snooze5: 'Snooze 5m', snooze15: 'Snooze 15m', dismiss: 'Dismiss', titleRequired: 'Title is required', dateRequired: 'Date and time are required', on: 'On', off: 'Off', today: 'Today', tomorrow: 'Tomorrow', thisWeek: 'This Week', later: 'Later', filterAll: 'All', filterActive: 'Active', filterDisabled: 'Disabled' },
-    ja: { title: 'Reminders', add: 'New Reminder', edit: 'Edit', save: 'Save', cancel: 'Cancel', delete: 'Delete', titleLabel: 'Title', noteLabel: 'Note', dateTimeLabel: 'Date & Time', repeatLabel: 'Repeat', noRepeat: 'No Repeat', hourly: 'Hourly', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', custom: 'Custom', customMinutes: 'Minutes (custom interval)', soundLabel: 'Sound', enabled: 'Enabled', disabled: 'Disabled', noReminders: 'No reminders yet', deleteConfirm: 'Are you sure you want to delete this reminder?', snoozed: 'Snoozed', upcoming: 'Upcoming', past: 'Past', all: 'All', snooze5: 'Snooze 5m', snooze15: 'Snooze 15m', dismiss: 'Dismiss', titleRequired: 'Title is required', dateRequired: 'Date and time are required', on: 'On', off: 'Off', today: 'Today', tomorrow: 'Tomorrow', thisWeek: 'This Week', later: 'Later', filterAll: 'All', filterActive: 'Active', filterDisabled: 'Disabled' },
-    it: { title: 'Reminders', add: 'New Reminder', edit: 'Edit', save: 'Save', cancel: 'Cancel', delete: 'Delete', titleLabel: 'Title', noteLabel: 'Note', dateTimeLabel: 'Date & Time', repeatLabel: 'Repeat', noRepeat: 'No Repeat', hourly: 'Hourly', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', custom: 'Custom', customMinutes: 'Minutes (custom interval)', soundLabel: 'Sound', enabled: 'Enabled', disabled: 'Disabled', noReminders: 'No reminders yet', deleteConfirm: 'Are you sure you want to delete this reminder?', snoozed: 'Snoozed', upcoming: 'Upcoming', past: 'Past', all: 'All', snooze5: 'Snooze 5m', snooze15: 'Snooze 15m', dismiss: 'Dismiss', titleRequired: 'Title is required', dateRequired: 'Date and time are required', on: 'On', off: 'Off', today: 'Today', tomorrow: 'Tomorrow', thisWeek: 'This Week', later: 'Later', filterAll: 'All', filterActive: 'Active', filterDisabled: 'Disabled' }
+    zh: { title:'提醒事项', add:'新建提醒', edit:'编辑', save:'保存', cancel:'取消', delete:'删除', titleLabel:'标题', noteLabel:'备注', dateTimeLabel:'日期和时间', repeatLabel:'重复', noRepeat:'不重复', hourly:'每小时', daily:'每天', weekly:'每周', monthly:'每月', custom:'自定义', customMinutes:'自定义分钟', soundLabel:'声音', enabled:'已启用', disabled:'已禁用', noReminders:'没有提醒', deleteConfirm:'确认删除？', snoozed:'已延后', upcoming:'即将到来', past:'已过', all:'全部', snooze5:'延后5分钟', snooze15:'延后15分钟', dismiss:'关闭', titleRequired:'请输入标题', dateRequired:'请选择日期', on:'开', off:'关', today:'今天', tomorrow:'明天', thisWeek:'本周', later:'稍后', filterAll:'全部', filterActive:'活跃', filterDisabled:'已禁用' },
+    ja: { title:'リマインダー', add:'新規リマインダー', edit:'編集', save:'保存', cancel:'キャンセル', delete:'削除', titleLabel:'タイトル', noteLabel:'メモ', dateTimeLabel:'日時', repeatLabel:'繰り返し', noRepeat:'繰り返しなし', hourly:'毎時', daily:'毎日', weekly:'毎週', monthly:'毎月', custom:'カスタム', customMinutes:'カスタム分', soundLabel:'サウンド', enabled:'有効', disabled:'無効', noReminders:'リマインダーなし', deleteConfirm:'削除しますか？', snoozed:'スヌーズ済', upcoming:'予定', past:'過去', all:'すべて', snooze5:'5分後に再通知', snooze15:'15分後に再通知', dismiss:'閉じる', titleRequired:'タイトルを入力してください', dateRequired:'日付を選択してください', on:'オン', off:'オフ', today:'今日', tomorrow:'明日', thisWeek:'今週', later:'後で', filterAll:'すべて', filterActive:'アクティブ', filterDisabled:'無効' },
+    it: { title:'Promemoria', add:'Nuovo promemoria', edit:'Modifica', save:'Salva', cancel:'Annulla', delete:'Elimina', titleLabel:'Titolo', noteLabel:'Note', dateTimeLabel:'Data e ora', repeatLabel:'Ripeti', noRepeat:'Non ripetere', hourly:'Ogni ora', daily:'Ogni giorno', weekly:'Ogni settimana', monthly:'Ogni mese', custom:'Personalizzato', customMinutes:'Minuti personalizzati', soundLabel:'Suono', enabled:'Attivato', disabled:'Disattivato', noReminders:'Nessun promemoria', deleteConfirm:'Confermi eliminazione?', snoozed:'Posticipato', upcoming:'In arrivo', past:'Passato', all:'Tutti', snooze5:'Posticipa 5 min', snooze15:'Posticipa 15 min', dismiss:'Chiudi', titleRequired:'Titolo richiesto', dateRequired:'Data richiesta', on:'Attivo', off:'Spento', today:'Oggi', tomorrow:'Domani', thisWeek:'Questa settimana', later:'Più tardi', filterAll:'Tutti', filterActive:'Attivi', filterDisabled:'Disattivati' }
   };
 
     function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
@@ -272,17 +272,16 @@
       disabled: reminders.value.filter(r => !r.enabled).length
     }));
 
-    let localeTimer = null;
+    function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
     let refreshTimer = null;
 
     onMounted(async () => {
       await loadReminders();
-      localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+      window.addEventListener('locale-changed', onLocaleChanged);
       refreshTimer = setInterval(loadReminders, 30000);
     });
     onUnmounted(() => {
-      if (localeTimer) clearInterval(localeTimer);
-      if (refreshTimer) clearInterval(refreshTimer);
+      window.removeEventListener('locale-changed', onLocaleChanged)if (refreshTimer) clearInterval(refreshTimer);
     });
 
     return {

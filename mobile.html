@@ -2466,17 +2466,17 @@ const APP_CATEGORY_META = {
   other: { icon: '📦', order: 99 }
 };
 const APP_CATEGORY_NAMES = {
-  system: { tr: 'Sistem', en: 'System', de: 'System', fr: 'Système', es: 'Sistema', ru: 'Система' },
-  utilities: { tr: 'Yardımcılar', en: 'Utilities', de: 'Dienstprogramme', fr: 'Utilitaires', es: 'Utilidades', ru: 'Утилиты' },
-  development: { tr: 'Geliştirme', en: 'Development', de: 'Entwicklung', fr: 'Développement', es: 'Desarrollo', ru: 'Разработка' },
-  productivity: { tr: 'Verimlilik', en: 'Productivity', de: 'Produktivität', fr: 'Productivité', es: 'Productividad', ru: 'Продуктивность' },
-  tools: { tr: 'Araçlar', en: 'Tools', de: 'Werkzeuge', fr: 'Outils', es: 'Herramientas', ru: 'Инструменты' },
-  media: { tr: 'Medya', en: 'Media', de: 'Medien', fr: 'Médias', es: 'Medios', ru: 'Медиа' },
-  games: { tr: 'Oyunlar', en: 'Games', de: 'Spiele', fr: 'Jeux', es: 'Juegos', ru: 'Игры' },
-  internet: { tr: 'İnternet', en: 'Internet', de: 'Internet', fr: 'Internet', es: 'Internet', ru: 'Интернет' },
-  social: { tr: 'Sosyal', en: 'Social', de: 'Sozial', fr: 'Social', es: 'Social', ru: 'Социальные' },
-  finance: { tr: 'Finans', en: 'Finance', de: 'Finanzen', fr: 'Finance', es: 'Finanzas', ru: 'Финансы' },
-  other: { tr: 'Diğer', en: 'Other', de: 'Sonstige', fr: 'Autres', es: 'Otros', ru: 'Другое' }
+  system: { tr: 'Sistem', en: 'System', de: 'System', fr: 'Système', es: 'Sistema', ru: 'Система', zh: '系统', ja: 'システム', it: 'Sistema' },
+  utilities: { tr: 'Yardımcılar', en: 'Utilities', de: 'Dienstprogramme', fr: 'Utilitaires', es: 'Utilidades', ru: 'Утилиты', zh: '实用工具', ja: 'ユーティリティ', it: 'Utilità' },
+  development: { tr: 'Geliştirme', en: 'Development', de: 'Entwicklung', fr: 'Développement', es: 'Desarrollo', ru: 'Разработка', zh: '开发', ja: '開発', it: 'Sviluppo' },
+  productivity: { tr: 'Verimlilik', en: 'Productivity', de: 'Produktivität', fr: 'Productivité', es: 'Productividad', ru: 'Продуктивность', zh: '生产力', ja: '生産性', it: 'Produttività' },
+  tools: { tr: 'Araçlar', en: 'Tools', de: 'Werkzeuge', fr: 'Outils', es: 'Herramientas', ru: 'Инструменты', zh: '工具', ja: 'ツール', it: 'Strumenti' },
+  media: { tr: 'Medya', en: 'Media', de: 'Medien', fr: 'Médias', es: 'Medios', ru: 'Медиа', zh: '媒体', ja: 'メディア', it: 'Media' },
+  games: { tr: 'Oyunlar', en: 'Games', de: 'Spiele', fr: 'Jeux', es: 'Juegos', ru: 'Игры', zh: '游戏', ja: 'ゲーム', it: 'Giochi' },
+  internet: { tr: 'İnternet', en: 'Internet', de: 'Internet', fr: 'Internet', es: 'Internet', ru: 'Интернет', zh: '互联网', ja: 'インターネット', it: 'Internet' },
+  social: { tr: 'Sosyal', en: 'Social', de: 'Sozial', fr: 'Social', es: 'Social', ru: 'Социальные', zh: '社交', ja: 'ソーシャル', it: 'Social' },
+  finance: { tr: 'Finans', en: 'Finance', de: 'Finanzen', fr: 'Finance', es: 'Finanzas', ru: 'Финансы', zh: '金融', ja: 'ファイナンス', it: 'Finanza' },
+  other: { tr: 'Diğer', en: 'Other', de: 'Sonstige', fr: 'Autres', es: 'Otros', ru: 'Другое', zh: '其他', ja: 'その他', it: 'Altro' }
 };
 function getAppCatName(catId, locale) {
   const names = APP_CATEGORY_NAMES[catId];
@@ -2753,6 +2753,11 @@ createApp({
         currentSubApp = null;
       }
     }
+
+    // ── Locale change: notify store apps ──
+    watch(() => settingsStore.locale, (newLocale) => {
+      window.dispatchEvent(new CustomEvent('locale-changed', { detail: newLocale }));
+    });
 
     // ── Dynamic app install/uninstall ──
     async function loadDynamicApp(manifest) {

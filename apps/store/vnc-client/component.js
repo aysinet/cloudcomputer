@@ -98,9 +98,9 @@
       wsProxy: 'Подключение через WebSocket-прокси...',
       connectionInfo: 'Введите адрес и порт VNC-сервера'
     },
-    zh: { title: 'VNC Client', host: 'Server Address', port: 'Port', password: 'Password', connect: 'Connect', disconnect: 'Disconnect', connecting: 'Connecting...', connected: 'Connected', disconnected: 'Disconnected', error: 'Connection error', hostRequired: 'Server address required', savedConnections: 'Saved Connections', save: 'Save Connection', delete: 'Delete', noSaved: 'No saved connections', name: 'Connection Name', connectionName: 'Enter connection name', fullscreen: 'Fullscreen', screenshot: 'Screenshot', clipboardSync: 'Clipboard Sync', scaling: 'Scaling', quality: 'Quality', sendCtrlAltDel: 'Send Ctrl+Alt+Del', reconnect: 'Reconnect', status: 'Status', latency: 'Latency', viewOnly: 'View Only', localScaling: 'Local Scaling', recent: 'Recent Connections', quickConnect: 'Quick Connect', loadingNoVNC: 'Loading noVNC...', loadError: 'Failed to load noVNC', wsProxy: 'Connecting via WebSocket proxy...', connectionInfo: 'Enter VNC server address and port' },
-    ja: { title: 'VNC Client', host: 'Server Address', port: 'Port', password: 'Password', connect: 'Connect', disconnect: 'Disconnect', connecting: 'Connecting...', connected: 'Connected', disconnected: 'Disconnected', error: 'Connection error', hostRequired: 'Server address required', savedConnections: 'Saved Connections', save: 'Save Connection', delete: 'Delete', noSaved: 'No saved connections', name: 'Connection Name', connectionName: 'Enter connection name', fullscreen: 'Fullscreen', screenshot: 'Screenshot', clipboardSync: 'Clipboard Sync', scaling: 'Scaling', quality: 'Quality', sendCtrlAltDel: 'Send Ctrl+Alt+Del', reconnect: 'Reconnect', status: 'Status', latency: 'Latency', viewOnly: 'View Only', localScaling: 'Local Scaling', recent: 'Recent Connections', quickConnect: 'Quick Connect', loadingNoVNC: 'Loading noVNC...', loadError: 'Failed to load noVNC', wsProxy: 'Connecting via WebSocket proxy...', connectionInfo: 'Enter VNC server address and port' },
-    it: { title: 'VNC Client', host: 'Server Address', port: 'Port', password: 'Password', connect: 'Connect', disconnect: 'Disconnect', connecting: 'Connecting...', connected: 'Connected', disconnected: 'Disconnected', error: 'Connection error', hostRequired: 'Server address required', savedConnections: 'Saved Connections', save: 'Save Connection', delete: 'Delete', noSaved: 'No saved connections', name: 'Connection Name', connectionName: 'Enter connection name', fullscreen: 'Fullscreen', screenshot: 'Screenshot', clipboardSync: 'Clipboard Sync', scaling: 'Scaling', quality: 'Quality', sendCtrlAltDel: 'Send Ctrl+Alt+Del', reconnect: 'Reconnect', status: 'Status', latency: 'Latency', viewOnly: 'View Only', localScaling: 'Local Scaling', recent: 'Recent Connections', quickConnect: 'Quick Connect', loadingNoVNC: 'Loading noVNC...', loadError: 'Failed to load noVNC', wsProxy: 'Connecting via WebSocket proxy...', connectionInfo: 'Enter VNC server address and port' }
+    zh: { title:'VNC客户端', host:'主机', port:'端口', password:'密码', connect:'连接', disconnect:'断开', connecting:'连接中', connected:'已连接', disconnected:'已断开', error:'错误', hostRequired:'请输入主机', savedConnections:'已保存的连接', save:'保存', delete:'删除', noSaved:'没有保存的连接', name:'名称', connectionName:'连接名称', fullscreen:'全屏', screenshot:'截图', clipboardSync:'剪贴板同步', scaling:'缩放', quality:'画质', sendCtrlAltDel:'发送Ctrl+Alt+Del', reconnect:'重新连接', status:'状态', latency:'延迟', viewOnly:'仅查看', localScaling:'本地缩放', recent:'最近', quickConnect:'快速连接', loadingNoVNC:'加载noVNC...', loadError:'加载失败', wsProxy:'WebSocket代理', connectionInfo:'连接信息' },
+    ja: { title:'VNCクライアント', host:'ホスト', port:'ポート', password:'パスワード', connect:'接続', disconnect:'切断', connecting:'接続中', connected:'接続済', disconnected:'切断済', error:'エラー', hostRequired:'ホストを入力してください', savedConnections:'保存済の接続', save:'保存', delete:'削除', noSaved:'保存済の接続なし', name:'名前', connectionName:'接続名', fullscreen:'全画面', screenshot:'スクリーンショット', clipboardSync:'クリップボード同期', scaling:'スケーリング', quality:'画質', sendCtrlAltDel:'Ctrl+Alt+Del送信', reconnect:'再接続', status:'状態', latency:'遅延', viewOnly:'表示のみ', localScaling:'ローカルスケーリング', recent:'最近', quickConnect:'クイック接続', loadingNoVNC:'noVNC読込中...', loadError:'読込エラー', wsProxy:'WebSocketプロキシ', connectionInfo:'接続情報' },
+    it: { title:'Client VNC', host:'Host', port:'Porta', password:'Password', connect:'Connetti', disconnect:'Disconnetti', connecting:'Connessione', connected:'Connesso', disconnected:'Disconnesso', error:'Errore', hostRequired:'Host richiesto', savedConnections:'Connessioni salvate', save:'Salva', delete:'Elimina', noSaved:'Nessuna connessione salvata', name:'Nome', connectionName:'Nome connessione', fullscreen:'Schermo intero', screenshot:'Screenshot', clipboardSync:'Sincronizza appunti', scaling:'Ridimensionamento', quality:'Qualità', sendCtrlAltDel:'Invia Ctrl+Alt+Del', reconnect:'Riconnetti', status:'Stato', latency:'Latenza', viewOnly:'Solo visualizzazione', localScaling:'Ridimensionamento locale', recent:'Recenti', quickConnect:'Connessione rapida', loadingNoVNC:'Caricamento noVNC...', loadError:'Errore caricamento', wsProxy:'Proxy WebSocket', connectionInfo:'Info connessione' }
   };
 
   function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
@@ -160,7 +160,7 @@
   return {
     setup() {
       var locale = ref(getLocale());
-      var localeTimer;
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
       function t(k) { return (LANGS[locale.value] || LANGS.tr)[k] || LANGS.tr[k] || k; }
 
       // Connection form
@@ -400,11 +400,11 @@
 
       onMounted(function() {
         loadSaved();
-        localeTimer = setInterval(function() { locale.value = getLocale(); }, 1000);
+        window.addEventListener('locale-changed', onLocaleChanged);
       });
 
       onUnmounted(function() {
-        if (localeTimer) clearInterval(localeTimer);
+        window.removeEventListener('locale-changed', onLocaleChanged);
         if (rfb) { try { rfb.disconnect(); } catch {} }
       });
 

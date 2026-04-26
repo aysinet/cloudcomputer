@@ -60,15 +60,15 @@
         green:'Зелёный', purple:'Фиолетовый', orange:'Оранжевый', color:'Цвет',
         manager:'Менеджер', notes:'заметки'
       },
-    zh: { title: 'PostIt Notes', newPostit: 'New PostIt', noPostits: 'No postits yet', empty: 'Empty note', deleteConfirm: 'Are you sure you want to delete this note?', delete: 'Delete', yes: 'Yes', cancel: 'Cancel', hide: 'Hide', show: 'Show', showAll: 'Show All', hideAll: 'Hide All', loading: 'Loading...', placeholder: 'Write a note...', yellow: 'Yellow', pink: 'Pink', blue: 'Blue', green: 'Green', purple: 'Purple', orange: 'Orange', color: 'Color', manager: 'Manager', notes: 'notes' },
-    ja: { title: 'PostIt Notes', newPostit: 'New PostIt', noPostits: 'No postits yet', empty: 'Empty note', deleteConfirm: 'Are you sure you want to delete this note?', delete: 'Delete', yes: 'Yes', cancel: 'Cancel', hide: 'Hide', show: 'Show', showAll: 'Show All', hideAll: 'Hide All', loading: 'Loading...', placeholder: 'Write a note...', yellow: 'Yellow', pink: 'Pink', blue: 'Blue', green: 'Green', purple: 'Purple', orange: 'Orange', color: 'Color', manager: 'Manager', notes: 'notes' },
-    it: { title: 'PostIt Notes', newPostit: 'New PostIt', noPostits: 'No postits yet', empty: 'Empty note', deleteConfirm: 'Are you sure you want to delete this note?', delete: 'Delete', yes: 'Yes', cancel: 'Cancel', hide: 'Hide', show: 'Show', showAll: 'Show All', hideAll: 'Hide All', loading: 'Loading...', placeholder: 'Write a note...', yellow: 'Yellow', pink: 'Pink', blue: 'Blue', green: 'Green', purple: 'Purple', orange: 'Orange', color: 'Color', manager: 'Manager', notes: 'notes' }
+    zh: { title:'便利贴', newPostit:'新建便利贴', noPostits:'没有便利贴', empty:'空', deleteConfirm:'确认删除？', delete:'删除', yes:'是', cancel:'取消', hide:'隐藏', show:'显示', showAll:'显示全部', hideAll:'隐藏全部', loading:'加载中', placeholder:'输入内容...', yellow:'黄色', pink:'粉色', blue:'蓝色', green:'绿色', purple:'紫色', orange:'橙色', color:'颜色', manager:'管理', notes:'便签' },
+    ja: { title:'付箋', newPostit:'新しい付箋', noPostits:'付箋なし', empty:'空', deleteConfirm:'削除しますか？', delete:'削除', yes:'はい', cancel:'キャンセル', hide:'非表示', show:'表示', showAll:'すべて表示', hideAll:'すべて非表示', loading:'読込中', placeholder:'内容を入力...', yellow:'黄色', pink:'ピンク', blue:'青', green:'緑', purple:'紫', orange:'オレンジ', color:'色', manager:'管理', notes:'メモ' },
+    it: { title:'Post-it', newPostit:'Nuovo Post-it', noPostits:'Nessun Post-it', empty:'Vuoto', deleteConfirm:'Confermi eliminazione?', delete:'Elimina', yes:'Sì', cancel:'Annulla', hide:'Nascondi', show:'Mostra', showAll:'Mostra tutti', hideAll:'Nascondi tutti', loading:'Caricamento', placeholder:'Scrivi qui...', yellow:'Giallo', pink:'Rosa', blue:'Blu', green:'Verde', purple:'Viola', orange:'Arancione', color:'Colore', manager:'Gestisci', notes:'Note' }
   };
 
     function getLocale() { return localStorage.getItem('sys_locale') || 'tr'; }
     const locale = ref(getLocale());
     const t = (k) => (LANGS[locale.value] && LANGS[locale.value][k]) || LANGS.en[k] || k;
-    let localeTimer;
+    function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
 
     /* ── Colors ── */
     const COLORS = [
@@ -468,12 +468,11 @@
       });
       injectTrayIcon();
       loadPostits();
-      localeTimer = setInterval(function() { locale.value = getLocale(); }, 1000);
+      window.addEventListener('locale-changed', onLocaleChanged);
     });
 
     onUnmounted(function() {
-      if (localeTimer) clearInterval(localeTimer);
-      /* Tray icon and postits persist after window close */
+      window.removeEventListener('locale-changed', onLocaleChanged)/* Tray icon and postits persist after window close */
     });
 
     return {

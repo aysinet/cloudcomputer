@@ -56,9 +56,9 @@
       controls:'Управление', arrowKeys:'Стрелки или WASD для движения',
       undoKey:'Z: Отмена', restartKey:'R: Заново'
     },
-    zh: { title: 'Sokoban', level: 'Level', moves: 'Moves', pushes: 'Pushes', restart: 'Restart', undo: 'Undo', prev: 'Previous', next: 'Next', selectLevel: 'Select Level', completed: 'Congratulations! Level completed!', allCompleted: 'You completed all levels! 🎉', nextLevel: 'Next Level', best: 'Best', na: '-', controls: 'Controls', arrowKeys: 'Arrow keys or WASD to move', undoKey: 'Z: Undo', restartKey: 'R: Restart' },
-    ja: { title: 'Sokoban', level: 'Level', moves: 'Moves', pushes: 'Pushes', restart: 'Restart', undo: 'Undo', prev: 'Previous', next: 'Next', selectLevel: 'Select Level', completed: 'Congratulations! Level completed!', allCompleted: 'You completed all levels! 🎉', nextLevel: 'Next Level', best: 'Best', na: '-', controls: 'Controls', arrowKeys: 'Arrow keys or WASD to move', undoKey: 'Z: Undo', restartKey: 'R: Restart' },
-    it: { title: 'Sokoban', level: 'Level', moves: 'Moves', pushes: 'Pushes', restart: 'Restart', undo: 'Undo', prev: 'Previous', next: 'Next', selectLevel: 'Select Level', completed: 'Congratulations! Level completed!', allCompleted: 'You completed all levels! 🎉', nextLevel: 'Next Level', best: 'Best', na: '-', controls: 'Controls', arrowKeys: 'Arrow keys or WASD to move', undoKey: 'Z: Undo', restartKey: 'R: Restart' }
+    zh: { title:'推箱子', level:'关卡', moves:'步数', pushes:'推数', restart:'重新开始', undo:'撤销', prev:'上一关', next:'下一关', selectLevel:'选择关卡', completed:'通关！', allCompleted:'全部通关！', nextLevel:'下一关', best:'最佳', na:'-', controls:'操作说明', arrowKeys:'方向键', undoKey:'撤销键', Z:'Z', restartKey:'重启键', R:'R' },
+    ja: { title:'倉庫番', level:'レベル', moves:'手数', pushes:'プッシュ', restart:'リスタート', undo:'元に戻す', prev:'前のレベル', next:'次のレベル', selectLevel:'レベル選択', completed:'クリア！', allCompleted:'全クリア！', nextLevel:'次のレベル', best:'ベスト', na:'-', controls:'操作方法', arrowKeys:'矢印キー', undoKey:'元に戻すキー', Z:'Z', restartKey:'リスタートキー', R:'R' },
+    it: { title:'Sokoban', level:'Livello', moves:'Mosse', pushes:'Spinte', restart:'Ricomincia', undo:'Annulla', prev:'Livello precedente', next:'Livello successivo', selectLevel:'Seleziona livello', completed:'Completato!', allCompleted:'Tutto completato!', nextLevel:'Livello successivo', best:'Migliore', na:'-', controls:'Controlli', arrowKeys:'Tasti freccia', undoKey:'Tasto annulla', Z:'Z', restartKey:'Tasto riavvio', R:'R' }
   };
 
   function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
@@ -161,7 +161,7 @@
     setup() {
       var locale = ref(getLocale());
       function t(k) { return (LANGS[locale.value] || LANGS.tr)[k] || LANGS.tr[k] || k; }
-      var localeTimer;
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
 
       var currentLevel = ref(0);
       var grid = ref([]);
@@ -494,13 +494,12 @@
         loadBest();
         initLevel(0);
         window.addEventListener('keydown', onKeyDown);
-        localeTimer = setInterval(function() { locale.value = getLocale(); }, 1000);
+        window.addEventListener('locale-changed', onLocaleChanged);
       });
 
       onUnmounted(function() {
         window.removeEventListener('keydown', onKeyDown);
-        if (localeTimer) clearInterval(localeTimer);
-      });
+        window.removeEventListener('locale-changed', onLocaleChanged));
 
       return {
         t, canvasEl,

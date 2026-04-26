@@ -96,9 +96,9 @@
       function L(key) { return (LANGS[locale.value] || LANGS.tr)[key] || (LANGS.tr)[key] || key; }
 
       // Reactive locale (poll for changes from settings)
-      let localeTimer = null;
-      onMounted(() => { localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000); });
-      onUnmounted(() => { if (localeTimer) clearInterval(localeTimer); });
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
+      onMounted(() => { window.addEventListener('locale-changed', onLocaleChanged); });
+      onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged));
 
       // ── State ──
       const library = ref([]);        // [{id, name, url, filename, source, ext, size, tags, category, rotation}]

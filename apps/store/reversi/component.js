@@ -163,9 +163,9 @@
 
       watch(vsAI, () => reset());
 
-      let localeTimer = null;
-      onMounted(() => { localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000); });
-      onUnmounted(() => { if (localeTimer) clearInterval(localeTimer); });
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
+      onMounted(() => { window.addEventListener('locale-changed', onLocaleChanged); });
+      onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged));
 
       reset();
 

@@ -626,6 +626,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       <el-button size="small" @click="nextMonth">&gt;</el-button>
       <el-button size="small" @click="goToday" type="primary" plain>{{t('calToday')}}</el-button>
       <span style="flex:1"></span>
+      <el-button size="small" @click="showHolidayDialog=true" plain>🏖️</el-button>
       <el-button size="small" type="primary" @click="openAdd">{{t('calAddEvent')}}</el-button>
     </div>
     <div class="cal-body">
@@ -672,6 +673,19 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
           </div>
         </div>
       </div>
+    </el-dialog>
+    <el-dialog v-model="showHolidayDialog" title="🏖️ Holidays" width="420px" :close-on-click-modal="true">
+      <div style="max-height:380px;overflow-y:auto">
+        <div v-for="c in holidayCountries" :key="c.code" style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .15s" @mouseenter="$event.target.style.background='#ecf5ff'" @mouseleave="$event.target.style.background=''" @click="addHolidays(c.code)">
+          <span style="font-size:22px">{{c.flag}}</span>
+          <span style="flex:1;font-size:14px">{{c.name}}</span>
+          <span style="font-size:11px;color:#909399">{{Object.keys(c.holidays).length}} days</span>
+          <el-button size="small" type="primary" plain>+ Add</el-button>
+        </div>
+      </div>
+      <template #footer>
+        <el-button size="small" type="danger" plain @click="clearHolidays">🗑 Clear all holidays</el-button>
+      </template>
     </el-dialog>
   </div>
 </script>
@@ -2270,6 +2284,74 @@ const ClockApp = {
 };
 
 /* ── CalendarApp ── */
+const HOLIDAY_TEMPLATES = {
+  TR: { flag: '🇹🇷', name: 'Türkiye', holidays: {
+    '01-01': 'Yılbaşı', '04-23': 'Ulusal Egemenlik ve Çocuk Bayramı', '05-01': 'Emek ve Dayanışma Günü',
+    '05-19': 'Atatürk\'ü Anma Gençlik ve Spor Bayramı', '07-15': 'Demokrasi ve Millî Birlik Günü',
+    '08-30': 'Zafer Bayramı', '10-29': 'Cumhuriyet Bayramı'
+  }},
+  US: { flag: '🇺🇸', name: 'United States', holidays: {
+    '01-01': 'New Year\'s Day', '01-20': 'Martin Luther King Jr. Day', '02-17': 'Presidents\' Day',
+    '05-26': 'Memorial Day', '06-19': 'Juneteenth', '07-04': 'Independence Day',
+    '09-01': 'Labor Day', '10-13': 'Columbus Day', '11-11': 'Veterans Day',
+    '11-27': 'Thanksgiving Day', '12-25': 'Christmas Day'
+  }},
+  DE: { flag: '🇩🇪', name: 'Deutschland', holidays: {
+    '01-01': 'Neujahrstag', '05-01': 'Tag der Arbeit', '10-03': 'Tag der Deutschen Einheit',
+    '12-25': 'Erster Weihnachtstag', '12-26': 'Zweiter Weihnachtstag'
+  }},
+  FR: { flag: '🇫🇷', name: 'France', holidays: {
+    '01-01': 'Jour de l\'An', '05-01': 'Fête du Travail', '05-08': 'Victoire 1945',
+    '07-14': 'Fête Nationale', '08-15': 'Assomption', '11-01': 'Toussaint',
+    '11-11': 'Armistice 1918', '12-25': 'Noël'
+  }},
+  GB: { flag: '🇬🇧', name: 'United Kingdom', holidays: {
+    '01-01': 'New Year\'s Day', '03-17': 'St. Patrick\'s Day', '12-25': 'Christmas Day',
+    '12-26': 'Boxing Day'
+  }},
+  JP: { flag: '🇯🇵', name: '日本', holidays: {
+    '01-01': '元日', '01-13': '成人の日', '02-11': '建国記念の日', '02-23': '天皇誕生日',
+    '03-20': '春分の日', '04-29': '昭和の日', '05-03': '憲法記念日', '05-04': 'みどりの日',
+    '05-05': 'こどもの日', '07-21': '海の日', '08-11': '山の日', '09-15': '敬老の日',
+    '09-22': '秋分の日', '10-13': 'スポーツの日', '11-03': '文化の日', '11-23': '勤労感謝の日'
+  }},
+  CN: { flag: '🇨🇳', name: '中国', holidays: {
+    '01-01': '元旦', '02-10': '春节', '02-11': '春节', '02-12': '春节',
+    '04-04': '清明节', '05-01': '劳动节', '06-10': '端午节',
+    '09-17': '中秋节', '10-01': '国庆节', '10-02': '国庆节', '10-03': '国庆节'
+  }},
+  IT: { flag: '🇮🇹', name: 'Italia', holidays: {
+    '01-01': 'Capodanno', '01-06': 'Epifania', '04-25': 'Festa della Liberazione',
+    '05-01': 'Festa dei Lavoratori', '06-02': 'Festa della Repubblica',
+    '08-15': 'Ferragosto', '11-01': 'Ognissanti', '12-08': 'Immacolata Concezione',
+    '12-25': 'Natale', '12-26': 'Santo Stefano'
+  }},
+  ES: { flag: '🇪🇸', name: 'España', holidays: {
+    '01-01': 'Año Nuevo', '01-06': 'Epifanía del Señor', '05-01': 'Fiesta del Trabajo',
+    '08-15': 'Asunción de la Virgen', '10-12': 'Fiesta Nacional de España',
+    '11-01': 'Todos los Santos', '12-06': 'Día de la Constitución',
+    '12-08': 'Inmaculada Concepción', '12-25': 'Navidad'
+  }},
+  RU: { flag: '🇷🇺', name: 'Россия', holidays: {
+    '01-01': 'Новый год', '01-07': 'Рождество Христово', '02-23': 'День защитника Отечества',
+    '03-08': 'Международный женский день', '05-01': 'Праздник Весны и Труда',
+    '05-09': 'День Победы', '06-12': 'День России', '11-04': 'День народного единства'
+  }},
+  BR: { flag: '🇧🇷', name: 'Brasil', holidays: {
+    '01-01': 'Ano Novo', '04-21': 'Tiradentes', '05-01': 'Dia do Trabalhador',
+    '09-07': 'Independência do Brasil', '10-12': 'Nossa Senhora Aparecida',
+    '11-02': 'Finados', '11-15': 'Proclamação da República', '12-25': 'Natal'
+  }},
+  KR: { flag: '🇰🇷', name: '대한민국', holidays: {
+    '01-01': '신정', '03-01': '삼일절', '05-05': '어린이날', '06-06': '현충일',
+    '08-15': '광복절', '10-03': '개천절', '10-09': '한글날', '12-25': '성탄절'
+  }},
+  IN: { flag: '🇮🇳', name: 'India', holidays: {
+    '01-26': 'Republic Day', '08-15': 'Independence Day', '10-02': 'Gandhi Jayanti',
+    '01-14': 'Makar Sankranti', '03-29': 'Holi', '11-01': 'Diwali', '12-25': 'Christmas'
+  }}
+};
+
 const CalendarApp = {
   template: '#CalendarApp',
   setup() {
@@ -2367,7 +2449,40 @@ const CalendarApp = {
     function nextMonth() { if (month.value === 11) { month.value = 0; year.value++; } else { month.value++; } }
     function goToday() { const n = new Date(); year.value = n.getFullYear(); month.value = n.getMonth(); }
 
-    return { year, month, showDialog, selectedDate, newTitle, newColor, events, colorMap, dayNames, monthLabel, calendarGrid, getEvents, dialogDate, selectedEvents, selectDate, openAdd, addEvent, removeEvent, prevMonth, nextMonth, goToday, t };
+    /* ── Holiday Templates ── */
+    const showHolidayDialog = ref(false);
+    const holidayCountries = Object.entries(HOLIDAY_TEMPLATES).map(([code, v]) => ({ code, ...v }));
+
+    function addHolidays(countryCode) {
+      const tmpl = HOLIDAY_TEMPLATES[countryCode];
+      if (!tmpl) return;
+      let added = 0;
+      Object.entries(tmpl.holidays).forEach(([mmdd, title]) => {
+        const dateStr = year.value + '-' + mmdd;
+        if (!events.value[dateStr]) events.value[dateStr] = [];
+        const exists = events.value[dateStr].some(e => e.title === title && e.holiday);
+        if (!exists) {
+          events.value[dateStr].push({ title, color: 'red', holiday: true });
+          added++;
+        }
+      });
+      saveEvents();
+      showHolidayDialog.value = false;
+      if (added > 0 && window.ElementPlus && window.ElementPlus.ElMessage) {
+        window.ElementPlus.ElMessage.success(tmpl.flag + ' ' + added + ' holidays added');
+      }
+    }
+
+    function clearHolidays() {
+      Object.keys(events.value).forEach(dateStr => {
+        events.value[dateStr] = events.value[dateStr].filter(e => !e.holiday);
+        if (events.value[dateStr].length === 0) delete events.value[dateStr];
+      });
+      saveEvents();
+      showHolidayDialog.value = false;
+    }
+
+    return { year, month, showDialog, selectedDate, newTitle, newColor, events, colorMap, dayNames, monthLabel, calendarGrid, getEvents, dialogDate, selectedEvents, selectDate, openAdd, addEvent, removeEvent, prevMonth, nextMonth, goToday, showHolidayDialog, holidayCountries, addHolidays, clearHolidays, t };
   }
 };
 
@@ -2612,17 +2727,17 @@ const APP_CATEGORY_META = {
   other: { icon: '📦', order: 99 }
 };
 const APP_CATEGORY_NAMES = {
-  system: { tr: 'Sistem', en: 'System', de: 'System', fr: 'Système', es: 'Sistema', ru: 'Система' },
-  utilities: { tr: 'Yardımcılar', en: 'Utilities', de: 'Dienstprogramme', fr: 'Utilitaires', es: 'Utilidades', ru: 'Утилиты' },
-  development: { tr: 'Geliştirme', en: 'Development', de: 'Entwicklung', fr: 'Développement', es: 'Desarrollo', ru: 'Разработка' },
-  productivity: { tr: 'Verimlilik', en: 'Productivity', de: 'Produktivität', fr: 'Productivité', es: 'Productividad', ru: 'Продуктивность' },
-  tools: { tr: 'Araçlar', en: 'Tools', de: 'Werkzeuge', fr: 'Outils', es: 'Herramientas', ru: 'Инструменты' },
-  media: { tr: 'Medya', en: 'Media', de: 'Medien', fr: 'Médias', es: 'Medios', ru: 'Медиа' },
-  games: { tr: 'Oyunlar', en: 'Games', de: 'Spiele', fr: 'Jeux', es: 'Juegos', ru: 'Игры' },
-  internet: { tr: 'İnternet', en: 'Internet', de: 'Internet', fr: 'Internet', es: 'Internet', ru: 'Интернет' },
-  social: { tr: 'Sosyal', en: 'Social', de: 'Sozial', fr: 'Social', es: 'Social', ru: 'Социальные' },
-  finance: { tr: 'Finans', en: 'Finance', de: 'Finanzen', fr: 'Finance', es: 'Finanzas', ru: 'Финансы' },
-  other: { tr: 'Diğer', en: 'Other', de: 'Sonstige', fr: 'Autres', es: 'Otros', ru: 'Другое' }
+  system: { tr: 'Sistem', en: 'System', de: 'System', fr: 'Système', es: 'Sistema', ru: 'Система', zh: '系统', ja: 'システム', it: 'Sistema' },
+  utilities: { tr: 'Yardımcılar', en: 'Utilities', de: 'Dienstprogramme', fr: 'Utilitaires', es: 'Utilidades', ru: 'Утилиты', zh: '实用工具', ja: 'ユーティリティ', it: 'Utilità' },
+  development: { tr: 'Geliştirme', en: 'Development', de: 'Entwicklung', fr: 'Développement', es: 'Desarrollo', ru: 'Разработка', zh: '开发', ja: '開発', it: 'Sviluppo' },
+  productivity: { tr: 'Verimlilik', en: 'Productivity', de: 'Produktivität', fr: 'Productivité', es: 'Productividad', ru: 'Продуктивность', zh: '生产力', ja: '生産性', it: 'Produttività' },
+  tools: { tr: 'Araçlar', en: 'Tools', de: 'Werkzeuge', fr: 'Outils', es: 'Herramientas', ru: 'Инструменты', zh: '工具', ja: 'ツール', it: 'Strumenti' },
+  media: { tr: 'Medya', en: 'Media', de: 'Medien', fr: 'Médias', es: 'Medios', ru: 'Медиа', zh: '媒体', ja: 'メディア', it: 'Media' },
+  games: { tr: 'Oyunlar', en: 'Games', de: 'Spiele', fr: 'Jeux', es: 'Juegos', ru: 'Игры', zh: '游戏', ja: 'ゲーム', it: 'Giochi' },
+  internet: { tr: 'İnternet', en: 'Internet', de: 'Internet', fr: 'Internet', es: 'Internet', ru: 'Интернет', zh: '互联网', ja: 'インターネット', it: 'Internet' },
+  social: { tr: 'Sosyal', en: 'Social', de: 'Sozial', fr: 'Social', es: 'Social', ru: 'Социальные', zh: '社交', ja: 'ソーシャル', it: 'Social' },
+  finance: { tr: 'Finans', en: 'Finance', de: 'Finanzen', fr: 'Finance', es: 'Finanzas', ru: 'Финансы', zh: '金融', ja: 'ファイナンス', it: 'Finanza' },
+  other: { tr: 'Diğer', en: 'Other', de: 'Sonstige', fr: 'Autres', es: 'Otros', ru: 'Другое', zh: '其他', ja: 'その他', it: 'Altro' }
 };
 function getAppCatName(catId, locale) {
   const names = APP_CATEGORY_NAMES[catId];
@@ -2893,8 +3008,30 @@ createApp({
           openApp(app);
           currentDesktop.value = prevDesktop;
         }
-        // Switch to desktop 1 and show/hide windows properly
-        switchDesktop(currentDesktop.value);
+        // Hide WinBox windows that belong to other desktops
+        openWindows.value.forEach(w => {
+          const wb = wbMap[w.id];
+          if (!wb) return;
+          if (w.desktop !== currentDesktop.value) {
+            const wbEl = wb.body.parentElement;
+            wbEl.style.display = 'none';
+            w.focused = false;
+          }
+        });
+      } catch {}
+    }
+
+    async function autoOpenPostits() {
+      try {
+        const token = localStorage.getItem('auth_token');
+        if (!token) return;
+        const res = await fetch('/api/postit/list', { headers: { Authorization: 'Bearer ' + token } });
+        if (!res.ok) return;
+        const list = await res.json();
+        if (!Array.isArray(list) || !list.some(p => p.visible)) return;
+        if (openWindows.value.find(w => w.id === 'postit')) return;
+        const app = apps.value.find(a => a.id === 'postit');
+        if (app) openApp(app);
       } catch {}
     }
 
@@ -2975,6 +3112,21 @@ createApp({
       }
       saveSessionState();
     }
+
+    // ── Locale change: update all WinBox titles + notify store apps ──
+    watch(() => settingsStore.locale, (newLocale) => {
+      // Update all open WinBox titles and taskbar names
+      openWindows.value.forEach(w => {
+        const app = apps.value.find(a => a.id === w.id);
+        if (!app) return;
+        const name = appName(app);
+        w.name = name;
+        const wb = wbMap[w.id];
+        if (wb) wb.setTitle(app.icon + ' ' + name);
+      });
+      // Notify store apps to update locale immediately
+      window.dispatchEvent(new CustomEvent('locale-changed', { detail: newLocale }));
+    });
 
     // ── Dynamic app install/uninstall ──
     async function loadDynamicApp(manifest) {
@@ -3314,7 +3466,11 @@ createApp({
       window.addEventListener('app-installed', onAppInstalled);
       window.addEventListener('app-uninstalled', onAppUninstalled);
       window.addEventListener('open-app-action', onOpenAppAction);
-      loadInstalledApps().then(() => restoreSessionApps());
+      loadInstalledApps().then(() => {
+        restoreSessionApps();
+        // Auto-open PostIt app if there are visible postits (independent of session restore)
+        autoOpenPostits();
+      });
       connectWS();
     });
     onUnmounted(() => {

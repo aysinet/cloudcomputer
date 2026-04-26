@@ -86,9 +86,9 @@
       enterMessage:'Введите сообщение', incomingContent:'Контент получен из другого приложения',
       copiedClipboard:'Скопировано в буфер обмена'
     },
-    zh: { title: 'Social Share', compose: 'Compose', history: 'History', contentType: 'Content Type', text: 'Text', link: 'Link', image: 'Image', message: 'Message', messagePlaceholder: 'Write the message you want to share...', url: 'Link', urlPlaceholder: 'https://example.com/page', pickImage: 'Pick from Files', imageUrlPlaceholder: 'Paste image URL...', hashtags: 'Hashtags', addHashtag: 'Add hashtag...', platforms: 'Platforms', share: 'Share', noHistory: 'No shares yet', delete: 'Delete', reshare: 'Reshare', shared: 'Shared!', selectPlatform: 'Select at least one platform', enterMessage: 'Enter a message', incomingContent: 'Content received from another app', copiedClipboard: 'Copied to clipboard' },
-    ja: { title: 'Social Share', compose: 'Compose', history: 'History', contentType: 'Content Type', text: 'Text', link: 'Link', image: 'Image', message: 'Message', messagePlaceholder: 'Write the message you want to share...', url: 'Link', urlPlaceholder: 'https://example.com/page', pickImage: 'Pick from Files', imageUrlPlaceholder: 'Paste image URL...', hashtags: 'Hashtags', addHashtag: 'Add hashtag...', platforms: 'Platforms', share: 'Share', noHistory: 'No shares yet', delete: 'Delete', reshare: 'Reshare', shared: 'Shared!', selectPlatform: 'Select at least one platform', enterMessage: 'Enter a message', incomingContent: 'Content received from another app', copiedClipboard: 'Copied to clipboard' },
-    it: { title: 'Social Share', compose: 'Compose', history: 'History', contentType: 'Content Type', text: 'Text', link: 'Link', image: 'Image', message: 'Message', messagePlaceholder: 'Write the message you want to share...', url: 'Link', urlPlaceholder: 'https://example.com/page', pickImage: 'Pick from Files', imageUrlPlaceholder: 'Paste image URL...', hashtags: 'Hashtags', addHashtag: 'Add hashtag...', platforms: 'Platforms', share: 'Share', noHistory: 'No shares yet', delete: 'Delete', reshare: 'Reshare', shared: 'Shared!', selectPlatform: 'Select at least one platform', enterMessage: 'Enter a message', incomingContent: 'Content received from another app', copiedClipboard: 'Copied to clipboard' }
+    zh: { title:'社交分享', compose:'编写', history:'历史', contentType:'内容类型', text:'文本', link:'链接', image:'图片', message:'消息', messagePlaceholder:'输入消息...', url:'链接', urlPlaceholder:'输入链接...', https:'https://', pickImage:'选择图片', imageUrlPlaceholder:'输入图片链接...', hashtags:'话题标签', addHashtag:'添加标签', platforms:'平台', share:'分享', noHistory:'没有历史', delete:'删除', reshare:'重新分享', shared:'已分享', selectPlatform:'选择平台', enterMessage:'输入消息', incomingContent:'收到的内容', copiedClipboard:'已复制到剪贴板' },
+    ja: { title:'ソーシャル共有', compose:'作成', history:'履歴', contentType:'コンテンツタイプ', text:'テキスト', link:'リンク', image:'画像', message:'メッセージ', messagePlaceholder:'メッセージを入力...', url:'URL', urlPlaceholder:'URLを入力...', https:'https://', pickImage:'画像を選択', imageUrlPlaceholder:'画像URLを入力...', hashtags:'ハッシュタグ', addHashtag:'タグ追加', platforms:'プラットフォーム', share:'共有', noHistory:'履歴なし', delete:'削除', reshare:'再共有', shared:'共有済', selectPlatform:'プラットフォーム選択', enterMessage:'メッセージ入力', incomingContent:'受信コンテンツ', copiedClipboard:'クリップボードにコピー済' },
+    it: { title:'Condivisione Social', compose:'Componi', history:'Cronologia', contentType:'Tipo contenuto', text:'Testo', link:'Link', image:'Immagine', message:'Messaggio', messagePlaceholder:'Inserisci messaggio...', url:'URL', urlPlaceholder:'Inserisci URL...', https:'https://', pickImage:'Scegli immagine', imageUrlPlaceholder:'Inserisci URL immagine...', hashtags:'Hashtag', addHashtag:'Aggiungi hashtag', platforms:'Piattaforme', share:'Condividi', noHistory:'Nessuna cronologia', delete:'Elimina', reshare:'Ricondividi', shared:'Condiviso', selectPlatform:'Seleziona piattaforma', enterMessage:'Inserisci messaggio', incomingContent:'Contenuto in arrivo', copiedClipboard:'Copiato negli appunti' }
   };
 
   function getLocale() {
@@ -355,20 +355,19 @@
         } catch { return iso; }
       }
 
-      let localeTimer = null;
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
 
       onMounted(() => {
         loadHistory();
         checkPendingShare();
         window.addEventListener('social-share-content', onShareIncoming);
-        localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+        window.addEventListener('locale-changed', onLocaleChanged);
       });
 
       onUnmounted(() => {
         window.removeEventListener('social-share-content', onShareIncoming);
         if (toastTimer) clearTimeout(toastTimer);
-        if (localeTimer) clearInterval(localeTimer);
-      });
+        window.removeEventListener('locale-changed', onLocaleChanged));
 
       return {
         L, tab, contentType, message, linkUrl, imageUrl, imagePreview,

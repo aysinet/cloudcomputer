@@ -8,7 +8,7 @@
         title:'Markdown Görüntüleyici', open:'Aç', save:'Kaydet', saveAs:'Farklı Kaydet',
         newFile:'Yeni', edit:'Düzenle', preview:'Ön İzleme', split:'Bölünmüş',
         wordWrap:'Sözcük Kaydır', fontSize:'Yazı Boyutu', exportHtml:'HTML Olarak Dışa Aktar',
-        print:'Yazdır', copied:'Kopyalandı', saved:'Kaydedildi ✓', untitled:'Adsız.md',
+        print:'Yazdır', exportPdf:'PDF Olarak Dışa Aktar', copied:'Kopyalandı', saved:'Kaydedildi ✓', untitled:'Adsız.md',
         tocTitle:'İçindekiler', insertTable:'Tablo Ekle', insertImage:'Resim Ekle',
         insertLink:'Bağlantı Ekle', insertCode:'Kod Bloğu', bold:'Kalın', italic:'İtalik',
         strikethrough:'Üstü Çizili', heading:'Başlık', quote:'Alıntı', list:'Liste',
@@ -19,7 +19,7 @@
         title:'Markdown Viewer', open:'Open', save:'Save', saveAs:'Save As',
         newFile:'New', edit:'Edit', preview:'Preview', split:'Split',
         wordWrap:'Word Wrap', fontSize:'Font Size', exportHtml:'Export as HTML',
-        print:'Print', copied:'Copied', saved:'Saved ✓', untitled:'Untitled.md',
+        print:'Print', exportPdf:'Export as PDF', copied:'Copied', saved:'Saved ✓', untitled:'Untitled.md',
         tocTitle:'Table of Contents', insertTable:'Insert Table', insertImage:'Insert Image',
         insertLink:'Insert Link', insertCode:'Code Block', bold:'Bold', italic:'Italic',
         strikethrough:'Strikethrough', heading:'Heading', quote:'Blockquote', list:'List',
@@ -30,7 +30,7 @@
         title:'Markdown-Betrachter', open:'Öffnen', save:'Speichern', saveAs:'Speichern unter',
         newFile:'Neu', edit:'Bearbeiten', preview:'Vorschau', split:'Geteilt',
         wordWrap:'Zeilenumbruch', fontSize:'Schriftgröße', exportHtml:'Als HTML exportieren',
-        print:'Drucken', copied:'Kopiert', saved:'Gespeichert ✓', untitled:'Unbenannt.md',
+        print:'Drucken', exportPdf:'Als PDF exportieren', copied:'Kopiert', saved:'Gespeichert ✓', untitled:'Unbenannt.md',
         tocTitle:'Inhaltsverzeichnis', insertTable:'Tabelle einfügen', insertImage:'Bild einfügen',
         insertLink:'Link einfügen', insertCode:'Codeblock', bold:'Fett', italic:'Kursiv',
         strikethrough:'Durchgestrichen', heading:'Überschrift', quote:'Blockzitat', list:'Liste',
@@ -41,7 +41,7 @@
         title:'Visionneuse Markdown', open:'Ouvrir', save:'Enregistrer', saveAs:'Enregistrer sous',
         newFile:'Nouveau', edit:'Éditer', preview:'Aperçu', split:'Divisé',
         wordWrap:'Retour à la ligne', fontSize:'Taille', exportHtml:'Exporter en HTML',
-        print:'Imprimer', copied:'Copié', saved:'Enregistré ✓', untitled:'SansNom.md',
+        print:'Imprimer', exportPdf:'Exporter en PDF', copied:'Copié', saved:'Enregistré ✓', untitled:'SansNom.md',
         tocTitle:'Table des matières', insertTable:'Insérer un tableau', insertImage:'Insérer une image',
         insertLink:'Insérer un lien', insertCode:'Bloc de code', bold:'Gras', italic:'Italique',
         strikethrough:'Barré', heading:'Titre', quote:'Citation', list:'Liste',
@@ -52,7 +52,7 @@
         title:'Visor Markdown', open:'Abrir', save:'Guardar', saveAs:'Guardar como',
         newFile:'Nuevo', edit:'Editar', preview:'Vista previa', split:'Dividido',
         wordWrap:'Ajuste de línea', fontSize:'Tamaño', exportHtml:'Exportar como HTML',
-        print:'Imprimir', copied:'Copiado', saved:'Guardado ✓', untitled:'SinNombre.md',
+        print:'Imprimir', exportPdf:'Exportar como PDF', copied:'Copiado', saved:'Guardado ✓', untitled:'SinNombre.md',
         tocTitle:'Tabla de contenidos', insertTable:'Insertar tabla', insertImage:'Insertar imagen',
         insertLink:'Insertar enlace', insertCode:'Bloque de código', bold:'Negrita', italic:'Cursiva',
         strikethrough:'Tachado', heading:'Encabezado', quote:'Cita', list:'Lista',
@@ -63,22 +63,22 @@
         title:'Просмотр Markdown', open:'Открыть', save:'Сохранить', saveAs:'Сохранить как',
         newFile:'Новый', edit:'Редактировать', preview:'Просмотр', split:'Разделённый',
         wordWrap:'Перенос слов', fontSize:'Размер', exportHtml:'Экспорт в HTML',
-        print:'Печать', copied:'Скопировано', saved:'Сохранено ✓', untitled:'Безымянный.md',
+        print:'Печать', exportPdf:'Экспорт в PDF', copied:'Скопировано', saved:'Сохранено ✓', untitled:'Безымянный.md',
         tocTitle:'Содержание', insertTable:'Вставить таблицу', insertImage:'Вставить изображение',
         insertLink:'Вставить ссылку', insertCode:'Блок кода', bold:'Жирный', italic:'Курсив',
         strikethrough:'Зачёркнутый', heading:'Заголовок', quote:'Цитата', list:'Список',
         orderedList:'Нумерованный список', checkbox:'Флажок', hr:'Горизонтальная линия',
         lines:'строк', chars:'символов', words:'слов'
       },
-    zh: { title: 'Markdown Viewer', open: 'Open', save: 'Save', saveAs: 'Save As', newFile: 'New', edit: 'Edit', preview: 'Preview', split: 'Split', wordWrap: 'Word Wrap', fontSize: 'Font Size', exportHtml: 'Export as HTML', print: 'Print', copied: 'Copied', saved: 'Saved ✓', untitled: 'Untitled.md', tocTitle: 'Table of Contents', insertTable: 'Insert Table', insertImage: 'Insert Image', insertLink: 'Insert Link', insertCode: 'Code Block', bold: 'Bold', italic: 'Italic', strikethrough: 'Strikethrough', heading: 'Heading', quote: 'Blockquote', list: 'List', orderedList: 'Ordered List', checkbox: 'Checkbox', hr: 'Horizontal Rule', lines: 'lines', chars: 'characters', words: 'words' },
-    ja: { title: 'Markdown Viewer', open: 'Open', save: 'Save', saveAs: 'Save As', newFile: 'New', edit: 'Edit', preview: 'Preview', split: 'Split', wordWrap: 'Word Wrap', fontSize: 'Font Size', exportHtml: 'Export as HTML', print: 'Print', copied: 'Copied', saved: 'Saved ✓', untitled: 'Untitled.md', tocTitle: 'Table of Contents', insertTable: 'Insert Table', insertImage: 'Insert Image', insertLink: 'Insert Link', insertCode: 'Code Block', bold: 'Bold', italic: 'Italic', strikethrough: 'Strikethrough', heading: 'Heading', quote: 'Blockquote', list: 'List', orderedList: 'Ordered List', checkbox: 'Checkbox', hr: 'Horizontal Rule', lines: 'lines', chars: 'characters', words: 'words' },
-    it: { title: 'Markdown Viewer', open: 'Open', save: 'Save', saveAs: 'Save As', newFile: 'New', edit: 'Edit', preview: 'Preview', split: 'Split', wordWrap: 'Word Wrap', fontSize: 'Font Size', exportHtml: 'Export as HTML', print: 'Print', copied: 'Copied', saved: 'Saved ✓', untitled: 'Untitled.md', tocTitle: 'Table of Contents', insertTable: 'Insert Table', insertImage: 'Insert Image', insertLink: 'Insert Link', insertCode: 'Code Block', bold: 'Bold', italic: 'Italic', strikethrough: 'Strikethrough', heading: 'Heading', quote: 'Blockquote', list: 'List', orderedList: 'Ordered List', checkbox: 'Checkbox', hr: 'Horizontal Rule', lines: 'lines', chars: 'characters', words: 'words' }
+    zh: { title:'Markdown查看器', open:'打开', save:'保存', saveAs:'另存为', newFile:'新建', edit:'编辑', preview:'预览', split:'分屏', wordWrap:'自动换行', fontSize:'字体大小', exportHtml:'导出HTML', print:'打印', exportPdf:'导出PDF', copied:'已复制', saved:'已保存', untitled:'未命名.md', tocTitle:'目录', insertTable:'插入表格', insertImage:'插入图片', insertLink:'插入链接', insertCode:'代码块', bold:'粗体', italic:'斜体', strikethrough:'删除线', heading:'标题', quote:'引用', list:'列表', orderedList:'有序列表', checkbox:'复选框', hr:'水平线', lines:'行', chars:'字符', words:'字' },
+    ja: { title:'Markdownビューア', open:'開く', save:'保存', saveAs:'名前を付けて保存', newFile:'新規', edit:'編集', preview:'プレビュー', split:'分割', wordWrap:'折り返し', fontSize:'文字サイズ', exportHtml:'HTML出力', print:'印刷', exportPdf:'PDF出力', copied:'コピー済', saved:'保存済', untitled:'無題.md', tocTitle:'目次', insertTable:'表を挿入', insertImage:'画像を挿入', insertLink:'リンクを挿入', insertCode:'コードブロック', bold:'太字', italic:'斜体', strikethrough:'取消線', heading:'見出し', quote:'引用', list:'リスト', orderedList:'番号リスト', checkbox:'チェックボックス', hr:'水平線', lines:'行', chars:'文字', words:'単語' },
+    it: { title:'Visualizzatore Markdown', open:'Apri', save:'Salva', saveAs:'Salva con nome', newFile:'Nuovo', edit:'Modifica', preview:'Anteprima', split:'Diviso', wordWrap:'A capo automatico', fontSize:'Dimensione testo', exportHtml:'Esporta HTML', print:'Stampa', exportPdf:'Esporta PDF', copied:'Copiato', saved:'Salvato', untitled:'SenzaNome.md', tocTitle:'Indice', insertTable:'Inserisci tabella', insertImage:'Inserisci immagine', insertLink:'Inserisci link', insertCode:'Blocco codice', bold:'Grassetto', italic:'Corsivo', strikethrough:'Barrato', heading:'Intestazione', quote:'Citazione', list:'Elenco', orderedList:'Elenco numerato', checkbox:'Casella di controllo', hr:'Linea orizzontale', lines:'righe', chars:'caratteri', words:'parole' }
   };
 
     function getLocale() { return localStorage.getItem('sys_locale') || 'tr'; }
     var locale = ref(getLocale());
     var t = function(k) { return (LANGS[locale.value] && LANGS[locale.value][k]) || LANGS.en[k] || k; };
-    var localeTimer;
+    function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
 
     /* ── State ── */
     var mdText = ref('# Hello Markdown! 🎉\n\nThis is a **Markdown** editor with _live preview_.\n\n## Features\n\n- ✅ Live preview\n- ✅ Syntax highlighting\n- ✅ File open/save\n- ✅ Export to HTML\n- ✅ Table of contents\n\n## Code Example\n\n```javascript\nfunction greet(name) {\n  console.log(`Hello, ${name}!`);\n}\n\ngreet("World");\n```\n\n## Table\n\n| Name | Age | City |\n|------|-----|------|\n| Ali | 25 | Istanbul |\n| John | 30 | London |\n\n> This is a blockquote.\n\n---\n\n[Visit GitHub](https://github.com)\n');
@@ -101,10 +101,17 @@
     function loadMarked() {
       return new Promise(function(resolve, reject) {
         if (window.marked) { markedLib = window.marked; markedLoaded.value = true; resolve(); return; }
+        var savedDefine = window.define;
+        window.define = undefined;
         var s = document.createElement('script');
         s.src = 'https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.7/marked.min.js';
-        s.onload = function() { markedLib = window.marked; markedLoaded.value = true; resolve(); };
-        s.onerror = reject;
+        s.onload = function() {
+          window.define = savedDefine;
+          markedLib = window.marked;
+          markedLoaded.value = true;
+          resolve();
+        };
+        s.onerror = function(e) { window.define = savedDefine; reject(e); };
         document.head.appendChild(s);
       });
     }
@@ -300,6 +307,47 @@
       win.print();
     }
 
+    function exportPdf() {
+      var savedDefine = window.define;
+      window.define = undefined;
+      var loadScript = function(url) {
+        return new Promise(function(resolve, reject) {
+          if (url.includes('html2canvas') && window.html2canvas) { resolve(); return; }
+          if (url.includes('jspdf') && window.jspdf) { resolve(); return; }
+          var s = document.createElement('script'); s.src = url;
+          s.onload = resolve; s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      };
+      var cssText = 'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;max-width:700px;margin:0 auto;padding:30px 20px;color:#333;line-height:1.6;font-size:13px}h1{font-size:22px}h2{font-size:18px}h3{font-size:15px}pre{background:#f4f4f4;padding:12px;border-radius:6px;overflow-x:auto;font-size:12px}code{background:#f4f4f4;padding:2px 5px;border-radius:3px;font-size:12px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:6px 10px;font-size:12px}th{background:#f4f4f4}blockquote{border-left:4px solid #ddd;margin:0;padding:0 14px;color:#666}img{max-width:100%}';
+      loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js')
+        .then(function() { return loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js'); })
+        .then(function() {
+          window.define = savedDefine;
+          var container = document.createElement('div');
+          container.style.cssText = 'position:fixed;left:-9999px;top:0;width:700px;background:#fff;padding:20px;z-index:-1';
+          container.innerHTML = '<style>' + cssText + '</style>' + htmlPreview.value;
+          document.body.appendChild(container);
+          window.html2canvas(container, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(function(canvas) {
+            document.body.removeChild(container);
+            var imgData = canvas.toDataURL('image/png');
+            var pdf = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            var pageW = pdf.internal.pageSize.getWidth();
+            var pageH = pdf.internal.pageSize.getHeight();
+            var margin = 10;
+            var contentW = pageW - margin * 2;
+            var contentH = (canvas.height * contentW) / canvas.width;
+            var yOff = margin;
+            while (yOff < contentH + margin) {
+              if (yOff > margin) pdf.addPage();
+              pdf.addImage(imgData, 'PNG', margin, margin - (yOff - margin), contentW, contentH);
+              yOff += pageH - margin * 2;
+            }
+            pdf.save((currentFileName.value || 'document').replace(/\.md$/i, '') + '.pdf');
+          });
+        }).catch(function() { window.define = savedDefine; });
+    }
+
     /* ── Settings watchers ── */
     watch(wordWrap, function(v) { if (editor) editor.updateOptions({ wordWrap: v ? 'on' : 'off' }); });
     watch(fontSize, function(v) { if (editor) editor.updateOptions({ fontSize: v }); });
@@ -317,7 +365,7 @@
 
     /* ── Lifecycle ── */
     onMounted(function() {
-      localeTimer = setInterval(function() { locale.value = getLocale(); }, 1000);
+      window.addEventListener('locale-changed', onLocaleChanged);
       loadMarked().then(function() {
         nextTick(initMonaco);
       });
@@ -342,8 +390,7 @@
     }
 
     onUnmounted(function() {
-      if (localeTimer) clearInterval(localeTimer);
-      if (editor) { editor.dispose(); editor = null; }
+      window.removeEventListener('locale-changed', onLocaleChanged)if (editor) { editor.dispose(); editor = null; }
       window.removeEventListener('open-markdown-file', onExternalOpen);
     });
 
@@ -353,7 +400,7 @@
       editorEl, previewEl, htmlPreview, stats, toc,
       markedLoaded,
       openFile, saveFile, saveFileAs, newFile,
-      exportHtml, printPreview,
+      exportHtml, printPreview, exportPdf,
       insertHeading, wrapSelection, insertTable, insertCodeBlock,
       insertLink, insertImage, insertCheckbox, insertHr,
       insertQuote, insertList, insertOrderedList,

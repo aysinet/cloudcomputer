@@ -58,9 +58,9 @@
         deleted:'Запись удалена', micError:'Доступ к микрофону отклонён',
         deleteConfirm:'Вы уверены, что хотите удалить эту запись?', cancel:'Отмена'
       },
-    zh: { title: 'Audio Recorder', record: 'Record', pause: 'Pause', resume: 'Resume', stop: 'Stop', recordings: 'Recordings', noRecordings: 'No recordings yet', download: 'Download', delete: 'Delete', connected: 'Connected', disconnected: 'Disconnected', recordingState: 'Recording...', pausedState: 'Paused', success: 'Success', error: 'Error', saved: 'Recording saved', deleted: 'Recording deleted', micError: 'Microphone access denied', deleteConfirm: 'Are you sure you want to delete this recording?', cancel: 'Cancel' },
-    ja: { title: 'Audio Recorder', record: 'Record', pause: 'Pause', resume: 'Resume', stop: 'Stop', recordings: 'Recordings', noRecordings: 'No recordings yet', download: 'Download', delete: 'Delete', connected: 'Connected', disconnected: 'Disconnected', recordingState: 'Recording...', pausedState: 'Paused', success: 'Success', error: 'Error', saved: 'Recording saved', deleted: 'Recording deleted', micError: 'Microphone access denied', deleteConfirm: 'Are you sure you want to delete this recording?', cancel: 'Cancel' },
-    it: { title: 'Audio Recorder', record: 'Record', pause: 'Pause', resume: 'Resume', stop: 'Stop', recordings: 'Recordings', noRecordings: 'No recordings yet', download: 'Download', delete: 'Delete', connected: 'Connected', disconnected: 'Disconnected', recordingState: 'Recording...', pausedState: 'Paused', success: 'Success', error: 'Error', saved: 'Recording saved', deleted: 'Recording deleted', micError: 'Microphone access denied', deleteConfirm: 'Are you sure you want to delete this recording?', cancel: 'Cancel' }
+    zh: { title:'录音机', record:'录音', pause:'暂停', resume:'继续', stop:'停止', recordings:'录音列表', noRecordings:'没有录音', download:'下载', delete:'删除', connected:'已连接', disconnected:'已断开', recordingState:'录音中', pausedState:'已暂停', success:'成功', error:'错误', saved:'已保存', deleted:'已删除', micError:'麦克风错误', deleteConfirm:'确认删除？', cancel:'取消' },
+    ja: { title:'ボイスレコーダー', record:'録音', pause:'一時停止', resume:'再開', stop:'停止', recordings:'録音一覧', noRecordings:'録音なし', download:'ダウンロード', delete:'削除', connected:'接続済', disconnected:'切断', recordingState:'録音中', pausedState:'一時停止中', success:'成功', error:'エラー', saved:'保存済', deleted:'削除済', micError:'マイクエラー', deleteConfirm:'削除しますか？', cancel:'キャンセル' },
+    it: { title:'Registratore Audio', record:'Registra', pause:'Pausa', resume:'Riprendi', stop:'Stop', recordings:'Registrazioni', noRecordings:'Nessuna registrazione', download:'Scarica', delete:'Elimina', connected:'Connesso', disconnected:'Disconnesso', recordingState:'Registrazione', pausedState:'In pausa', success:'Successo', error:'Errore', saved:'Salvato', deleted:'Eliminato', micError:'Errore microfono', deleteConfirm:'Confermi eliminazione?', cancel:'Annulla' }
   };
 
     function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
@@ -90,7 +90,7 @@
     let sourceNode = null;
     let analyserNode = null;
     let timerInterval = null;
-    let localeTimer = null;
+    function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
     let animFrame = null;
     let sessionId = '';
     const SAMPLE_RATE = 44100;
@@ -328,11 +328,11 @@
       connectWS();
       loadRecordings();
       clearCanvas();
-      localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+      window.addEventListener('locale-changed', onLocaleChanged);
     });
 
     onUnmounted(() => {
-      if (localeTimer) { clearInterval(localeTimer); localeTimer = null; }
+      window.removeEventListener('locale-changed', onLocaleChanged)
       if (recording.value) stopRecording();
       if (ws) { ws.onclose = null; ws.close(); ws = null; }
     });

@@ -28,7 +28,7 @@
 
       function getLocale() { return localStorage.getItem('sys_locale') || 'tr'; }
       const locale = ref(getLocale());
-      let localeTimer = null;
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
       function t(k) { return (LANGS[locale.value] || LANGS.tr)[k] || LANGS.tr[k] || k; }
 
       async function apiFetch(url, opts = {}) {
@@ -136,13 +136,12 @@
       }
 
       onMounted(() => {
-        localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
+        window.addEventListener('locale-changed', onLocaleChanged);
         checkAndStart();
       });
 
       onBeforeUnmount(() => {
-        if (localeTimer) clearInterval(localeTimer);
-      });
+        window.removeEventListener('locale-changed', onLocaleChanged));
 
       return {
         status, errorMsg, port, containerId, iframeSrc,
