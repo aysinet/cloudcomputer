@@ -1,0 +1,312 @@
+const express = require('express');
+const http = require('http');
+const net = require('net');
+const fs = require('fs');
+const path = require('path');
+const { execFile } = require('child_process');
+
+const app = express();
+app.use(express.json());
+
+// ── Config: ENV override > default ──
+const NETWORK_NAME = process.env.DOCKER_NETWORK || 'cloudpc-net';
+const PORT = parseInt(process.env.DM_PORT || '9800', 10);
+const PORT_START = parseInt(process.env.DM_PORT_START || '9000', 10);
+const PORT_END = parseInt(process.env.DM_PORT_END || '9999', 10);
+const PORTS_FILE = process.env.DM_PORTS_FILE || '/data/docker-ports.json';
+
+// ── Auth via shared secret ──
+const SECRET = process.env.DM_SECRET || 'cloudpc-docker-manager-secret';
+
+function authCheck(req, res, next) {
+  const token = req.headers['x-dm-secret'];
+  if (token !== SECRET) return res.status(401).json({ error: 'Unauthorized' });
+  next();
+}
+
+// ── Docker exec helper ──
+function dockerExec(args, timeout = 120000) {
+  return new Promise((resolve, reject) => {
+    execFile('docker', args, { timeout, maxBuffer: 5 * 1024 * 1024 }, (err, stdout, stderr) => {
+      if (err) return reject(new Error(stderr || err.message));
+      resolve(stdout.trim());
+    });
+  });
+}
+
+// ── Persistent port allocation tracking ──
+const portAllocations = {}; // { appId: hostPort }
+
+function loadPortAllocations() {
+  try {
+    if (fs.existsSync(PORTS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(PORTS_FILE, 'utf8'));
+      Object.assign(portAllocations, data);
+      console.log(`[PORTS] Loaded allocations:`, portAllocations);
+    }
+  } catch (e) {
+    console.error(`[PORTS] Failed to load ${PORTS_FILE}:`, e.message);
+  }
+}
+
+function savePortAllocations() {
+  try {
+    const dir = path.dirname(PORTS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(PORTS_FILE, JSON.stringify(portAllocations, null, 2));
+  } catch (e) {
+    console.error(`[PORTS] Failed to save ${PORTS_FILE}:`, e.message);
+  }
+}
+
+// Scan running Docker containers for actual host port usage
+async function scanDockerPorts() {
+  try {
+    const out = await dockerExec(['ps', '--format', '{{.Names}}\t{{.Ports}}', '--filter', 'name=cloudpc-']);
+    if (!out) return;
+    for (const line of out.split('\n')) {
+      if (!line.trim()) continue;
+      const [name, ports] = line.split('\t');
+      const appId = name.replace(/^cloudpc-/, '');
+      if (!ports) continue;
+      // Parse port mappings like "0.0.0.0:9000->5000/tcp"
+      const matches = ports.matchAll(/(\d+\.\d+\.\d+\.\d+):(\d+)->/g);
+      for (const m of matches) {
+        const hostPort = parseInt(m[2], 10);
+        if (hostPort >= PORT_START && hostPort <= PORT_END) {
+          portAllocations[appId] = hostPort;
+        }
+      }
+    }
+    savePortAllocations();
+    console.log('[PORTS] After Docker scan:', portAllocations);
+  } catch (e) {
+    console.log('[PORTS] Docker scan skipped:', e.message);
+  }
+}
+
+function getUsedPorts() {
+  return new Set(Object.values(portAllocations));
+}
+
+// ── Find available port on host within configured range ──
+function findAvailablePort() {
+  const usedPorts = getUsedPorts();
+  for (let p = PORT_START; p <= PORT_END; p++) {
+    if (!usedPorts.has(p)) return p;
+  }
+  throw new Error(`No available port in range ${PORT_START}-${PORT_END}`);
+}
+
+// ── Ensure network exists ──
+async function ensureNetwork() {
+  try {
+    await dockerExec(['network', 'inspect', NETWORK_NAME]);
+  } catch {
+    await dockerExec(['network', 'create', NETWORK_NAME]);
+  }
+}
+
+// ── Track running containers ──
+const containers = {}; // { appId: { containerId, containerName, port } }
+
+// ── Health check ──
+app.get('/health', (req, res) => res.json({ ok: true, service: 'docker-manager' }));
+
+// ── Pull image ──
+app.post('/pull', authCheck, async (req, res) => {
+  const { image } = req.body;
+  console.log(`[PULL] Request: image=${image}`);
+  if (!image || !/^[a-zA-Z0-9_\-./]+:[a-zA-Z0-9_.\-]*$|^[a-zA-Z0-9_\-./]+$/.test(image)) {
+    console.log(`[PULL] REJECTED: Invalid image name "${image}"`);
+    return res.status(400).json({ error: 'Invalid image name' });
+  }
+  try {
+    await dockerExec(['pull', image], 300000);
+    console.log(`[PULL] OK: ${image}`);
+    res.json({ ok: true, message: `Image ${image} pulled successfully` });
+  } catch (e) {
+    console.error(`[PULL] FAILED: ${image} — ${e.message}`);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Run container ──
+app.post('/run', authCheck, async (req, res) => {
+  const { image, appId, containerPort, network, volumes, env } = req.body;
+  console.log(`[RUN] Request: appId=${appId} image=${image} containerPort=${containerPort}`);
+  console.log(`[RUN] Volumes:`, volumes || '(none)');
+  console.log(`[RUN] Env:`, env || '(none)');
+
+  if (!image || !appId) {
+    console.log(`[RUN] REJECTED: missing image or appId — image=${image}, appId=${appId}`);
+    return res.status(400).json({ error: 'image and appId required' });
+  }
+  if (!/^[a-zA-Z0-9_\-./]+:[a-zA-Z0-9_.\-]*$|^[a-zA-Z0-9_\-./]+$/.test(image)) {
+    console.log(`[RUN] REJECTED: Invalid image name "${image}"`);
+    return res.status(400).json({ error: 'Invalid image name' });
+  }
+  if (!/^[a-zA-Z0-9_-]+$/.test(appId)) {
+    console.log(`[RUN] REJECTED: Invalid appId "${appId}"`);
+    return res.status(400).json({ error: 'Invalid appId' });
+  }
+
+  const containerName = `cloudpc-${appId}`;
+  const cPort = containerPort || 80;
+  const netName = network || NETWORK_NAME;
+
+  // Cleanup any existing container with same name
+  try {
+    await dockerExec(['rm', '-f', containerName]);
+    console.log(`[RUN] Cleanup: removed existing container ${containerName}`);
+  } catch {}
+
+  try {
+    await ensureNetwork();
+
+    const hostPort = findAvailablePort();
+    // Reserve port immediately to prevent race conditions
+    portAllocations[appId] = hostPort;
+    savePortAllocations();
+    console.log(`[RUN] Allocated host port: ${hostPort}`);
+    const args = [
+      'run', '-d',
+      '--name', containerName,
+      '--network', netName,
+      '-p', `${hostPort}:${cPort}`
+    ];
+
+    // Add volume mounts (validated: only allow absolute paths, no '..')
+    if (Array.isArray(volumes)) {
+      for (const v of volumes) {
+        if (typeof v === 'string' && !v.includes('..') && v.includes(':')) {
+          args.push('-v', v);
+          console.log(`[RUN] Volume: ${v}`);
+        } else {
+          console.log(`[RUN] Volume SKIPPED (invalid): ${v}`);
+        }
+      }
+    }
+
+    // Add environment variables (validated: KEY=VALUE format)
+    if (Array.isArray(env)) {
+      for (const e of env) {
+        if (typeof e === 'string' && /^[A-Za-z_][A-Za-z0-9_]*=/.test(e)) {
+          args.push('-e', e);
+        } else {
+          console.log(`[RUN] Env SKIPPED (invalid): ${e}`);
+        }
+      }
+    }
+
+    args.push(image);
+    console.log(`[RUN] docker ${args.join(' ')}`);
+
+    const containerId = await dockerExec(args);
+
+    const info = {
+      containerId: containerId.substring(0, 12),
+      containerName,
+      hostPort,
+      internalUrl: `http://${containerName}:${cPort}`
+    };
+    containers[appId] = info;
+
+    console.log(`[RUN] OK: ${containerName} (${info.containerId}) on port ${hostPort}`);
+    res.json({ ok: true, ...info });
+  } catch (e) {
+    // Release port allocation on failure
+    delete portAllocations[appId];
+    savePortAllocations();
+    console.error(`[RUN] FAILED: ${containerName} — ${e.message}`);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Stop container ──
+app.post('/stop', authCheck, async (req, res) => {
+  const { appId } = req.body;
+  console.log(`[STOP] Request: appId=${appId}`);
+  if (!appId || !/^[a-zA-Z0-9_-]+$/.test(appId)) {
+    console.log(`[STOP] REJECTED: Invalid appId "${appId}"`);
+    return res.status(400).json({ error: 'Invalid appId' });
+  }
+
+  const containerName = `cloudpc-${appId}`;
+  try {
+    await dockerExec(['rm', '-f', containerName]);
+    delete containers[appId];
+    delete portAllocations[appId];
+    savePortAllocations();
+    console.log(`[STOP] OK: ${containerName} removed`);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(`[STOP] FAILED: ${containerName} — ${e.message}`);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Container status ──
+app.get('/status/:appId', authCheck, async (req, res) => {
+  const appId = req.params.appId.replace(/[^a-zA-Z0-9_-]/g, '');
+  const containerName = `cloudpc-${appId}`;
+  try {
+    const out = await dockerExec(['inspect', '-f',
+      '{{.State.Running}}||{{range $p, $conf := .NetworkSettings.Ports}}{{$p}}={{(index $conf 0).HostPort}}{{end}}||{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}||{{json .Config.ExposedPorts}}',
+      containerName]);
+    const parts = out.split('||');
+    const running = parts[0] === 'true';
+
+    // Extract host port from port bindings (e.g. "4533/tcp=9001")
+    let hostPort = null;
+    let containerPort = 80;
+    if (parts[1]) {
+      const portMatch = parts[1].match(/(\d+)\/tcp=(\d+)/);
+      if (portMatch) {
+        containerPort = parseInt(portMatch[1], 10);
+        hostPort = parseInt(portMatch[2], 10);
+      }
+    }
+
+    // Fallback to in-memory cache
+    const info = containers[appId] || {};
+    if (!hostPort) hostPort = info.hostPort || null;
+
+    const internalUrl = `http://${containerName}:${containerPort}`;
+
+    // Update in-memory cache if we discovered port info
+    if (running && hostPort) {
+      containers[appId] = {
+        containerId: info.containerId || null,
+        containerName,
+        hostPort,
+        internalUrl
+      };
+    }
+
+    console.log(`[STATUS] ${containerName}: running=${running} hostPort=${hostPort} containerPort=${containerPort}`);
+    res.json({
+      running,
+      containerId: info.containerId || null,
+      containerName,
+      hostPort,
+      internalUrl
+    });
+  } catch (e) {
+    console.log(`[STATUS] ${containerName}: not found (${e.message})`);
+    delete containers[appId];
+    res.json({ running: false });
+  }
+});
+
+// ── Start server ──
+loadPortAllocations();
+scanDockerPorts().then(() => {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Docker Manager running on port ${PORT}`);
+    console.log(`Network: ${NETWORK_NAME}`);
+    console.log(`Port range: ${PORT_START}-${PORT_END}`);
+    console.log(`Ports file: ${PORTS_FILE}`);
+    console.log(`Allocated ports:`, portAllocations);
+  });
+});

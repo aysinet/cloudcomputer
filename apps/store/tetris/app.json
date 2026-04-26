@@ -1,0 +1,40 @@
+{
+  "id": "tetris",
+  "name": "Tetris",
+  "icon": "🧱",
+  "color": "linear-gradient(135deg,#e74c3c,#8e44ad)",
+  "type": "internal",
+  "size": {
+    "w": 480,
+    "h": 600
+  },
+  "global": false,
+  "description": "Klasik Tetris oyunu — skor, seviye, sonraki parça önizleme",
+  "lang": {
+    "tr": {
+      "name": "Tetris",
+      "description": "Klasik Tetris oyunu — skor, seviye, sonraki parça önizleme"
+    },
+    "en": {
+      "name": "Tetris",
+      "description": "Classic Tetris game — score, levels, next piece preview"
+    },
+    "de": {
+      "name": "Tetris",
+      "description": "Klassisches Tetris-Spiel — Punkte, Level, Vorschau"
+    },
+    "fr": {
+      "name": "Tetris",
+      "description": "Jeu de Tetris classique — score, niveaux, aperçu"
+    },
+    "es": {
+      "name": "Tetris",
+      "description": "Juego de Tetris clásico — puntuación, niveles, vista previa"
+    },
+    "ru": {
+      "name": "Тетрис",
+      "description": "Классический Тетрис — очки, уровни, предпросмотр"
+    }
+  },
+  "category": "games"
+}

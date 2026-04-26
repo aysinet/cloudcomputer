@@ -1,0 +1,40 @@
+{
+  "id": "torrent",
+  "name": "Torrent",
+  "icon": "🌊",
+  "color": "linear-gradient(135deg,#43a047,#1b5e20)",
+  "type": "internal",
+  "size": {
+    "w": 960,
+    "h": 640
+  },
+  "global": false,
+  "description": "P2P Torrent İstemcisi — magnet link ve .torrent dosyalarıyla indirme/paylaşım",
+  "lang": {
+    "tr": {
+      "name": "Torrent",
+      "description": "P2P Torrent İstemcisi — magnet link ve .torrent dosyalarıyla indirme/paylaşım"
+    },
+    "en": {
+      "name": "Torrent",
+      "description": "P2P Torrent Client — download and share via magnet links and .torrent files"
+    },
+    "de": {
+      "name": "Torrent",
+      "description": "P2P Torrent-Client — Download und Teilen über Magnet-Links und .torrent-Dateien"
+    },
+    "fr": {
+      "name": "Torrent",
+      "description": "Client Torrent P2P — téléchargement et partage via liens magnet et fichiers .torrent"
+    },
+    "es": {
+      "name": "Torrent",
+      "description": "Cliente Torrent P2P — descarga y comparte mediante enlaces magnet y archivos .torrent"
+    },
+    "ru": {
+      "name": "Торрент",
+      "description": "P2P Торрент-клиент — загрузка и раздача через magnet-ссылки и .torrent-файлы"
+    }
+  },
+  "category": "tools"
+}

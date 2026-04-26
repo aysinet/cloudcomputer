@@ -1,6 +1,7 @@
 ({
   setup() {
     const { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
+    const ElMessageBox = (window.ElementPlus && window.ElementPlus.ElMessageBox) || { confirm: () => Promise.resolve() };
 
     const LANGS = {
       tr: {
@@ -386,7 +387,7 @@
     // Send
     async function sendETH() {
       if (!sendForm.to || !sendForm.amount) return;
-      if (!confirm(sendForm.amount + ' ETH → ' + sendForm.to + '\n\n' + L('confirmSend'))) return;
+      try { await ElMessageBox.confirm(sendForm.amount + ' ETH → ' + sendForm.to, L('confirmSend'), { confirmButtonText: 'OK', cancelButtonText: L('cancel') || 'Cancel', type: 'warning' }); } catch { return; }
       sendForm.sending = true;
       sendError.value = '';
       sendSuccess.value = '';
@@ -487,8 +488,8 @@
       screen.value = 'unlock';
     }
 
-    function deleteWallet() {
-      if (!confirm(L('deleteConfirm'))) return;
+    async function deleteWallet() {
+      try { await ElMessageBox.confirm(L('deleteConfirm'), { confirmButtonText: 'OK', cancelButtonText: L('cancel') || 'Cancel', type: 'warning' }); } catch { return; }
       wallets.value = [];
       walletPassword.value = '';
       locked.value = true;

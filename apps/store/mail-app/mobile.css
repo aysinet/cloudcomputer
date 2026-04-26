@@ -1,0 +1,161 @@
+/* ── Mail App Mobile Overrides ── */
+/* Strategy: convert vertical sidebar into a horizontal top tab bar */
+
+.mail-layout {
+  flex-direction: column !important;
+}
+
+/* Sidebar becomes horizontal top bar */
+.mail-sidebar {
+  width: 100% !important;
+  min-width: 0 !important;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  padding: 8px !important;
+  border-right: none !important;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  background: #161922;
+  gap: 6px;
+  align-items: center;
+}
+
+.mail-compose-btn {
+  width: auto !important;
+  margin-bottom: 0 !important;
+  padding: 8px 14px !important;
+  font-size: 13px !important;
+  flex-shrink: 0;
+}
+
+.mail-account-selector {
+  margin-bottom: 0 !important;
+  flex: 1;
+  min-width: 120px;
+  max-width: 200px;
+}
+
+.mail-folders {
+  flex: 0 0 100%;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 0 0;
+  order: 99;
+}
+
+.mail-folder-item {
+  flex-shrink: 0;
+  padding: 8px 14px !important;
+  font-size: 13px;
+  margin-bottom: 0 !important;
+  white-space: nowrap;
+}
+
+.mail-sidebar-bottom {
+  border-top: none !important;
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.mail-sidebar-bottom .mail-folder-item { padding: 8px 12px !important; }
+
+/* Content fills remaining space */
+.mail-content {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.mail-content-header {
+  padding: 10px 12px;
+  min-height: 40px;
+}
+.mail-content-header h3 {
+  font-size: 14px;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mail-list-actions { gap: 4px; }
+.mail-list-actions .el-button { padding: 6px 10px !important; font-size: 12px; }
+
+/* Message list rows: subject below sender, date right */
+.mail-msg-row {
+  padding: 12px 14px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mail-msg-from {
+  width: auto;
+  min-width: 0;
+  flex: 1;
+  font-size: 14px;
+}
+.mail-msg-subject {
+  flex-basis: 100%;
+  width: 100%;
+  font-size: 13px;
+  order: 3;
+}
+.mail-msg-date {
+  font-size: 11px;
+  min-width: auto;
+}
+.mail-msg-del { display: none; }
+
+/* Read view */
+.mail-read-header { padding: 14px; }
+.mail-read-subject { font-size: 16px; }
+.mail-read-meta { flex-direction: column; align-items: flex-start; gap: 2px; }
+.mail-read-body { padding: 14px; font-size: 14px; }
+.mail-text-body, .mail-html-body { font-size: 14px; }
+
+/* Compose form */
+.mail-compose-form { padding: 12px; }
+.mail-compose-form .el-input { margin-bottom: 10px !important; }
+.mail-compose-actions {
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.mail-compose-actions .el-button {
+  width: 100%;
+  margin: 0 !important;
+}
+
+/* Settings */
+.mail-settings { padding-bottom: 20px; }
+.mail-account-card {
+  padding: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mail-acc-info { flex: 1; min-width: 0; }
+.mail-acc-email { font-size: 14px; }
+.mail-acc-detail { font-size: 11px; word-break: break-all; }
+
+/* Account add/edit form */
+.mail-form-body { padding: 14px; }
+.mail-form-actions {
+  flex-direction: column;
+  gap: 8px;
+}
+.mail-form-actions .el-button {
+  width: 100%;
+  margin: 0 !important;
+}
+
+/* Element Plus dropdowns above app-container */
+.el-popper, .el-select-dropdown { z-index: 6000 !important; }
+
+/* No-account screen */
+.mail-no-icon { font-size: 64px; }
+.mail-no-account h3 {
+  font-size: 16px;
+  padding: 0 20px;
+  text-align: center;
+}

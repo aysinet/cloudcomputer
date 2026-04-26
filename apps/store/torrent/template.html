@@ -1,0 +1,220 @@
+<div class="tor-root">
+  <!-- Not installed warning -->
+  <div v-if="!serverReady" class="tor-warning">
+    <el-alert type="warning" :title="t('notInstalled')" show-icon :closable="false"></el-alert>
+  </div>
+
+  <!-- Top toolbar -->
+  <div class="tor-toolbar">
+    <div class="tor-tb-left">
+      <el-button type="primary" size="small" @click="addDialogVisible=true">➕ {{t('addTorrent')}}</el-button>
+      <el-button size="small" @click="startAll">▶ {{t('startAll')}}</el-button>
+      <el-button size="small" @click="pauseAll">⏸ {{t('pauseAll')}}</el-button>
+      <div class="tor-sep"></div>
+      <template v-if="selectedTorrent">
+        <el-button size="small" v-if="selectedTorrent.status==='paused'||selectedTorrent.status==='error'" @click="resumeTorrent(selectedTorrent.infoHash)">▶ {{t('resume')}}</el-button>
+        <el-button size="small" v-else @click="pauseTorrent(selectedTorrent.infoHash)">⏸ {{t('pause')}}</el-button>
+        <el-button size="small" type="danger" @click="removeTorrent(selectedTorrent.infoHash, false)">🗑 {{t('remove')}}</el-button>
+        <el-button size="small" type="danger" @click="removeTorrent(selectedTorrent.infoHash, true)">🗑💾</el-button>
+      </template>
+    </div>
+    <div class="tor-tb-right">
+      <span class="tor-speed-stat">⬇ {{formatSpeed(totalDownSpeed)}}</span>
+      <span class="tor-speed-stat">⬆ {{formatSpeed(totalUpSpeed)}}</span>
+      <span class="tor-ws-indicator" :class="wsConnected?'on':'off'" :title="wsConnected?t('connected'):t('disconnected')">●</span>
+      <el-button size="small" circle @click="settingsDialogVisible=true">⚙️</el-button>
+    </div>
+  </div>
+
+  <div class="tor-body">
+    <!-- Left sidebar filters -->
+    <div class="tor-sidebar">
+      <div class="tor-filter" :class="{active:filter==='all'}" @click="filter='all'">
+        <span>📋 {{t('all')}}</span><span class="tor-filter-count">{{filterCounts.all}}</span>
+      </div>
+      <div class="tor-filter" :class="{active:filter==='downloading'}" @click="filter='downloading'">
+        <span>⬇️ {{t('downloading')}}</span><span class="tor-filter-count">{{filterCounts.downloading}}</span>
+      </div>
+      <div class="tor-filter" :class="{active:filter==='seeding'}" @click="filter='seeding'">
+        <span>⬆️ {{t('seeding')}}</span><span class="tor-filter-count">{{filterCounts.seeding}}</span>
+      </div>
+      <div class="tor-filter" :class="{active:filter==='completed'}" @click="filter='completed'">
+        <span>✅ {{t('completed')}}</span><span class="tor-filter-count">{{filterCounts.completed}}</span>
+      </div>
+      <div class="tor-filter" :class="{active:filter==='paused'}" @click="filter='paused'">
+        <span>⏸️ {{t('paused')}}</span><span class="tor-filter-count">{{filterCounts.paused}}</span>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="tor-main">
+      <!-- Torrent table -->
+      <div class="tor-table-wrap">
+        <el-table
+          :data="filteredTorrents"
+          size="small"
+          stripe
+          highlight-current-row
+          @current-change="selectTorrent"
+          :row-class-name="tableRowClass"
+          style="width:100%"
+          height="100%"
+          :empty-text="t('noTorrents')"
+        >
+          <el-table-column prop="name" :label="t('name')" min-width="220" show-overflow-tooltip>
+            <template #default="{row}">
+              <div class="tor-name-cell">
+                <span class="tor-status-icon">{{statusIcon(row.status)}}</span>
+                <span>{{row.name || row.infoHash.slice(0,12)+'…'}}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="size" :label="t('size')" width="90" align="right">
+            <template #default="{row}">{{formatBytes(row.length)}}</template>
+          </el-table-column>
+          <el-table-column :label="t('progress')" width="140" align="center">
+            <template #default="{row}">
+              <el-progress :percentage="Math.round((row.progress||0)*100)" :stroke-width="14" :text-inside="true"
+                :status="row.progress>=1?'success':''"></el-progress>
+            </template>
+          </el-table-column>
+          <el-table-column :label="t('status')" width="110" align="center">
+            <template #default="{row}">
+              <el-tag size="small" :type="statusType(row.status)">{{t(row.status)}}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column :label="t('downSpeed')" width="100" align="right">
+            <template #default="{row}">{{row.status==='downloading'?formatSpeed(row.downloadSpeed):'—'}}</template>
+          </el-table-column>
+          <el-table-column :label="t('upSpeed')" width="90" align="right">
+            <template #default="{row}">{{row.uploadSpeed>0?formatSpeed(row.uploadSpeed):'—'}}</template>
+          </el-table-column>
+          <el-table-column :label="t('peers')" width="65" align="center">
+            <template #default="{row}">{{row.numPeers||0}}</template>
+          </el-table-column>
+          <el-table-column :label="t('eta')" width="80" align="center">
+            <template #default="{row}">{{row.status==='downloading'?formatEta(row.timeRemaining/1000):'—'}}</template>
+          </el-table-column>
+          <el-table-column :label="t('ratio')" width="65" align="center">
+            <template #default="{row}">{{row.ratio!=null?row.ratio.toFixed(2):'—'}}</template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+      <!-- Detail panel -->
+      <div v-if="selectedTorrent" class="tor-detail">
+        <el-tabs v-model="detailTab" type="card" class="tor-detail-tabs">
+          <!-- General -->
+          <el-tab-pane :label="t('general')" name="general">
+            <div class="tor-detail-grid">
+              <div class="tor-dg-item"><span class="tor-dg-label">{{t('name')}}</span><span class="tor-dg-val">{{selectedTorrent.name}}</span></div>
+              <div class="tor-dg-item"><span class="tor-dg-label">{{t('size')}}</span><span class="tor-dg-val">{{formatBytes(selectedTorrent.length)}}</span></div>
+              <div class="tor-dg-item"><span class="tor-dg-label">{{t('progress')}}</span><span class="tor-dg-val">{{Math.round((selectedTorrent.progress||0)*100)}}%</span></div>
+              <div class="tor-dg-item"><span class="tor-dg-label">{{t('status')}}</span><span class="tor-dg-val">{{t(selectedTorrent.status)}}</span></div>
+              <div class="tor-dg-item"><span class="tor-dg-label">{{t('downSpeed')}}</span><span class="tor-dg-val">{{formatSpeed(selectedTorrent.downloadSpeed)}}</span></div>
+              <div class="tor-dg-item"><span class="tor-dg-label">{{t('upSpeed')}}</span><span class="tor-dg-val">{{formatSpeed(selectedTorrent.uploadSpeed)}}</span></div>
+              <div class="tor-dg-item"><span class="tor-dg-label">{{t('totalDown')}}</span><span class="tor-dg-val">{{formatBytes(selectedTorrent.downloaded)}}</span></div>
+              <div class="tor-dg-item"><span class="tor-dg-label">{{t('totalUp')}}</span><span class="tor-dg-val">{{formatBytes(selectedTorrent.uploaded)}}</span></div>
+              <div class="tor-dg-item"><span class="tor-dg-label">{{t('peers')}}</span><span class="tor-dg-val">{{selectedTorrent.numPeers||0}}</span></div>
+              <div class="tor-dg-item"><span class="tor-dg-label">{{t('ratio')}}</span><span class="tor-dg-val">{{selectedTorrent.ratio!=null?selectedTorrent.ratio.toFixed(3):'—'}}</span></div>
+              <div class="tor-dg-item tor-dg-full"><span class="tor-dg-label">{{t('hash')}}</span><span class="tor-dg-val tor-mono">{{selectedTorrent.infoHash}}</span></div>
+              <div class="tor-dg-item tor-dg-full"><span class="tor-dg-label">{{t('downloadPath')}}</span><span class="tor-dg-val">{{selectedTorrent.path}}</span></div>
+            </div>
+          </el-tab-pane>
+
+          <!-- Files -->
+          <el-tab-pane :label="t('files')" name="files">
+            <el-table :data="selectedTorrent.files||[]" size="small" stripe style="width:100%" max-height="180">
+              <el-table-column prop="name" :label="t('fileName')" min-width="200" show-overflow-tooltip></el-table-column>
+              <el-table-column :label="t('fileSize')" width="90" align="right">
+                <template #default="{row}">{{formatBytes(row.length)}}</template>
+              </el-table-column>
+              <el-table-column :label="t('fileProg')" width="130" align="center">
+                <template #default="{row}">
+                  <el-progress :percentage="Math.round((row.progress||0)*100)" :stroke-width="12" :text-inside="true"
+                    :status="row.progress>=1?'success':''"></el-progress>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-tab-pane>
+
+          <!-- Peers -->
+          <el-tab-pane :label="t('peerList')" name="peers">
+            <el-table :data="selectedTorrent.peers||[]" size="small" stripe style="width:100%" max-height="180">
+              <el-table-column prop="addr" :label="t('peerAddr')" min-width="160" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="client" :label="t('peerClient')" width="140" show-overflow-tooltip></el-table-column>
+              <el-table-column :label="t('peerDown')" width="100" align="right">
+                <template #default="{row}">{{formatSpeed(row.downloadSpeed)}}</template>
+              </el-table-column>
+              <el-table-column :label="t('peerUp')" width="100" align="right">
+                <template #default="{row}">{{formatSpeed(row.uploadSpeed)}}</template>
+              </el-table-column>
+            </el-table>
+          </el-tab-pane>
+
+          <!-- Trackers -->
+          <el-tab-pane :label="t('trackers')" name="trackers">
+            <el-table :data="selectedTorrent.announces||[]" size="small" stripe style="width:100%" max-height="180">
+              <el-table-column prop="url" :label="t('trackerUrl')" min-width="300" show-overflow-tooltip></el-table-column>
+            </el-table>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="tor-statusbar">
+    <span>🌊 {{torrents.length}} torrent</span>
+    <span>⬇ {{formatSpeed(totalDownSpeed)}}</span>
+    <span>⬆ {{formatSpeed(totalUpSpeed)}}</span>
+  </div>
+
+  <!-- Add Torrent Dialog -->
+  <el-dialog v-model="addDialogVisible" :title="t('addTorrent')" width="480px" :close-on-click-modal="false" class="tor-dialog">
+    <div class="tor-add-form">
+      <div class="tor-add-section">
+        <label>🔗 {{t('magnetLink')}}</label>
+        <el-input v-model="magnetInput" :placeholder="t('magnetPlaceholder')" type="textarea" :rows="3" clearable></el-input>
+        <el-button type="primary" size="small" @click="addMagnet" :disabled="!magnetInput.trim()" style="margin-top:8px">{{t('add')}}</el-button>
+      </div>
+      <el-divider>{{t('or')}}</el-divider>
+      <div class="tor-add-section">
+        <label>📄 {{t('torrentFile')}}</label>
+        <el-button size="small" @click="uploadTorrentFile">📂 {{t('selectFile')}}</el-button>
+      </div>
+      <el-divider></el-divider>
+      <div class="tor-add-section">
+        <label>📁 {{t('downloadPath')}}</label>
+        <el-input v-model="stDownPath" size="small" placeholder="downloads"></el-input>
+      </div>
+    </div>
+    <template #footer>
+      <el-button size="small" @click="addDialogVisible=false">{{t('cancel')}}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- Settings Dialog -->
+  <el-dialog v-model="settingsDialogVisible" :title="t('settings')" width="420px" class="tor-dialog">
+    <div class="tor-settings-form">
+      <div class="tor-setting-row">
+        <label>📁 {{t('downloadPath')}}</label>
+        <el-input v-model="stDownPath" size="small"></el-input>
+      </div>
+      <div class="tor-setting-row">
+        <label>⬇ {{t('maxDown')}}</label>
+        <el-input-number v-model="stMaxDown" :min="0" :step="100" size="small" style="width:140px"></el-input-number>
+        <span class="tor-setting-hint">0 = {{t('unlimited')}}</span>
+      </div>
+      <div class="tor-setting-row">
+        <label>⬆ {{t('maxUp')}}</label>
+        <el-input-number v-model="stMaxUp" :min="0" :step="100" size="small" style="width:140px"></el-input-number>
+        <span class="tor-setting-hint">0 = {{t('unlimited')}}</span>
+      </div>
+    </div>
+    <template #footer>
+      <el-button size="small" @click="settingsDialogVisible=false">{{t('cancel')}}</el-button>
+      <el-button type="primary" size="small" @click="saveSettings">{{t('save')}}</el-button>
+    </template>
+  </el-dialog>
+</div>

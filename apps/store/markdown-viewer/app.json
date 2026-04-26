@@ -1,0 +1,40 @@
+{
+  "id": "markdown-viewer",
+  "name": "Markdown Görüntüleyici",
+  "icon": "📝",
+  "color": "linear-gradient(135deg,#2b5797,#1e3a5f)",
+  "type": "internal",
+  "size": {
+    "w": 960,
+    "h": 660
+  },
+  "global": false,
+  "description": "Markdown editörü ve önizleyici — canlı ön izleme, söz dizimi vurgulama, dosya aç/kaydet",
+  "lang": {
+    "tr": {
+      "name": "Markdown Görüntüleyici",
+      "description": "Markdown editörü ve önizleyici — canlı ön izleme, dosya aç/kaydet"
+    },
+    "en": {
+      "name": "Markdown Viewer",
+      "description": "Markdown editor and viewer — live preview, file open/save"
+    },
+    "de": {
+      "name": "Markdown-Betrachter",
+      "description": "Markdown-Editor und -Viewer — Live-Vorschau, Datei öffnen/speichern"
+    },
+    "fr": {
+      "name": "Visionneuse Markdown",
+      "description": "Éditeur et visionneuse Markdown — aperçu en direct, ouvrir/enregistrer"
+    },
+    "es": {
+      "name": "Visor Markdown",
+      "description": "Editor y visor Markdown — vista previa en vivo, abrir/guardar"
+    },
+    "ru": {
+      "name": "Просмотр Markdown",
+      "description": "Редактор и просмотр Markdown — предварительный просмотр, открытие/сохранение"
+    }
+  },
+  "category": "development"
+}

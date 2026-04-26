@@ -1,0 +1,115 @@
+<div class="ss-root">
+  <!-- Header -->
+  <div class="ss-header">
+    <div class="ss-title">📤 {{L('title')}}</div>
+    <div class="ss-subtitle" v-if="hasIncoming">{{L('incomingContent')}}</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="ss-tabs">
+    <button class="ss-tab" :class="{active: tab==='compose'}" @click="tab='compose'">✏️ {{L('compose')}}</button>
+    <button class="ss-tab" :class="{active: tab==='history'}" @click="tab='history'">📋 {{L('history')}}</button>
+  </div>
+
+  <!-- Compose Tab -->
+  <div v-if="tab==='compose'" class="ss-compose">
+    <!-- Content Type Selector -->
+    <div class="ss-field">
+      <label class="ss-label">{{L('contentType')}}</label>
+      <div class="ss-type-btns">
+        <button class="ss-type-btn" :class="{active: contentType==='text'}" @click="contentType='text'">📝 {{L('text')}}</button>
+        <button class="ss-type-btn" :class="{active: contentType==='link'}" @click="contentType='link'">🔗 {{L('link')}}</button>
+        <button class="ss-type-btn" :class="{active: contentType==='image'}" @click="contentType='image'">🖼️ {{L('image')}}</button>
+      </div>
+    </div>
+
+    <!-- Text Input -->
+    <div class="ss-field">
+      <label class="ss-label">{{L('message')}}</label>
+      <textarea class="ss-textarea" v-model="message" :placeholder="L('messagePlaceholder')" rows="4" maxlength="1000"></textarea>
+      <div class="ss-char-count">{{message.length}} / 1000</div>
+    </div>
+
+    <!-- Link Input -->
+    <div v-if="contentType==='link'" class="ss-field">
+      <label class="ss-label">{{L('url')}}</label>
+      <input class="ss-input" v-model="linkUrl" :placeholder="L('urlPlaceholder')" type="url">
+    </div>
+
+    <!-- Image Input -->
+    <div v-if="contentType==='image'" class="ss-field">
+      <label class="ss-label">{{L('image')}}</label>
+      <div class="ss-image-area">
+        <div v-if="imagePreview" class="ss-image-preview">
+          <img :src="imagePreview" alt="preview">
+          <button class="ss-img-remove" @click="clearImage">✕</button>
+        </div>
+        <div v-else class="ss-image-placeholder" @click="pickImage">
+          <div class="ss-img-icon">🖼️</div>
+          <div>{{L('pickImage')}}</div>
+        </div>
+      </div>
+      <input class="ss-input" v-model="imageUrl" :placeholder="L('imageUrlPlaceholder')" style="margin-top:6px" type="url">
+    </div>
+
+    <!-- Hashtags -->
+    <div class="ss-field">
+      <label class="ss-label">{{L('hashtags')}}</label>
+      <div class="ss-tags-row">
+        <span v-for="(tag, i) in hashtags" :key="i" class="ss-tag">
+          #{{tag}} <span class="ss-tag-rm" @click="hashtags.splice(i,1)">✕</span>
+        </span>
+        <input class="ss-tag-input" v-model="newTag" :placeholder="L('addHashtag')" @keyup.enter="addHashtag" @keyup.,="addHashtag">
+      </div>
+    </div>
+
+    <!-- Platform selector -->
+    <div class="ss-field">
+      <label class="ss-label">{{L('platforms')}}</label>
+      <div class="ss-platforms">
+        <button v-for="p in platforms" :key="p.id" class="ss-platform-btn"
+                :class="{selected: selectedPlatforms.includes(p.id)}"
+                :style="selectedPlatforms.includes(p.id) ? {background: p.color, borderColor: p.color, color:'#fff'} : {}"
+                @click="togglePlatform(p.id)">
+          <span class="ss-platform-icon">{{p.icon}}</span>
+          <span class="ss-platform-name">{{p.name}}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Share Button -->
+    <button class="ss-share-btn" :disabled="!canShare" @click="shareContent">
+      🚀 {{L('share')}}
+    </button>
+  </div>
+
+  <!-- History Tab -->
+  <div v-if="tab==='history'" class="ss-history">
+    <div v-if="!history.length" class="ss-empty">
+      <div class="ss-empty-icon">📭</div>
+      <div>{{L('noHistory')}}</div>
+    </div>
+    <div v-for="(item, i) in history" :key="i" class="ss-history-item">
+      <div class="ss-hist-header">
+        <div class="ss-hist-platforms">
+          <span v-for="pid in item.platforms" :key="pid" class="ss-hist-badge" :style="{background: getPlatform(pid).color}">
+            {{getPlatform(pid).icon}}
+          </span>
+        </div>
+        <div class="ss-hist-date">{{formatDate(item.date)}}</div>
+        <button class="ss-hist-delete" @click="deleteHistory(i)" :title="L('delete')">🗑</button>
+      </div>
+      <div class="ss-hist-message">{{item.message}}</div>
+      <div v-if="item.link" class="ss-hist-link">🔗 {{item.link}}</div>
+      <div v-if="item.hashtags && item.hashtags.length" class="ss-hist-tags">
+        <span v-for="t in item.hashtags" class="ss-hist-tag">#{{t}}</span>
+      </div>
+      <button class="ss-hist-reshare" @click="reshare(item)">🔄 {{L('reshare')}}</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <transition name="ss-toast">
+    <div v-if="toast" class="ss-toast" :class="toast.type">{{toast.text}}</div>
+  </transition>
+</div>

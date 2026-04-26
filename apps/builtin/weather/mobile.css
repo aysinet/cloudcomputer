@@ -1,0 +1,5 @@
+/* Weather: full screen, no scroll cropping */
+.weather-root{padding-top:8px}
+.weather-city{font-size:26px}
+.weather-temp-val{font-size:64px}
+.weather-stats{margin:0 12px}

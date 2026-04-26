@@ -1,6 +1,7 @@
 ({
   setup() {
     const { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
+    const ElMessageBox = (window.ElementPlus && window.ElementPlus.ElMessageBox) || { confirm: () => Promise.resolve() };
 
     const LANGS = {
       tr: {
@@ -218,7 +219,7 @@
     }
 
     async function deleteMarker(id) {
-      if (!confirm(L('deleteConfirm'))) return;
+      try { await ElMessageBox.confirm(L('deleteConfirm'), { confirmButtonText: 'OK', cancelButtonText: L('cancel') || 'Cancel', type: 'warning' }); } catch { return; }
       try {
         await fetch('/api/map/markers/' + id, { method: 'DELETE', headers: authHeaders() });
         await loadData();
@@ -253,7 +254,7 @@
     }
 
     async function deleteView(id) {
-      if (!confirm(L('deleteConfirm'))) return;
+      try { await ElMessageBox.confirm(L('deleteConfirm'), { confirmButtonText: 'OK', cancelButtonText: L('cancel') || 'Cancel', type: 'warning' }); } catch { return; }
       try {
         await fetch('/api/map/views/' + id, { method: 'DELETE', headers: authHeaders() });
         await loadData();

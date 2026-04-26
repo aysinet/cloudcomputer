@@ -1,0 +1,101 @@
+/* ── Book Reader App ── */
+.bkr-root{display:flex;flex-direction:column;height:100%;background:#1a1a2e;color:#e0e0e0;font-family:inherit;overflow:hidden;user-select:none}
+
+/* toolbar */
+.bkr-toolbar{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;gap:6px;flex-wrap:wrap;background:#16162a}
+.bkr-tb-left,.bkr-tb-right{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.bkr-sep{width:1px;height:20px;background:rgba(255,255,255,.1);margin:0 4px}
+.bkr-page-info{font-size:12px;color:#aaa;white-space:nowrap;min-width:60px;text-align:center}
+.bkr-zoom-val{font-size:11px;color:#aaa;min-width:40px;text-align:center}
+.bkr-progress-txt{font-size:11px;color:#64b5f6;font-weight:600}
+
+/* body layout */
+.bkr-body{display:flex;flex:1;overflow:hidden}
+
+/* side panel */
+.bkr-side{width:260px;flex-shrink:0;border-right:1px solid rgba(255,255,255,.08);overflow-y:auto;background:#14142a}
+.bkr-panel-content{padding:12px}
+.bkr-panel-title{font-size:14px;font-weight:700;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08)}
+
+/* toc */
+.bkr-toc-list{display:flex;flex-direction:column;gap:2px}
+.bkr-toc-item{padding:8px 10px;font-size:13px;border-radius:6px;cursor:pointer;transition:.12s}
+.bkr-toc-item:hover{background:rgba(255,255,255,.08)}
+.bkr-toc-sub{padding-left:16px;margin-top:4px}
+.bkr-toc-sub-item{font-size:12px;color:#999}
+
+/* bookmarks */
+.bkr-bm-add{display:flex;gap:6px;margin-bottom:10px}
+.bkr-bm-list{display:flex;flex-direction:column;gap:4px}
+.bkr-bm-item{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:6px;background:rgba(255,255,255,.03)}
+.bkr-bm-item:hover{background:rgba(255,255,255,.07)}
+.bkr-bm-info{flex:1;cursor:pointer;min-width:0}
+.bkr-bm-label{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bkr-bm-meta{font-size:11px;color:#888}
+
+/* settings */
+.bkr-setting-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:12px}
+.bkr-setting-row label{color:#999;white-space:nowrap;min-width:70px}
+.bkr-setting-val{font-size:11px;color:#888;min-width:40px;text-align:right}
+
+/* library */
+.bkr-lib-list{display:flex;flex-direction:column;gap:4px}
+.bkr-lib-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;background:rgba(255,255,255,.03);transition:.12s}
+.bkr-lib-item:hover{background:rgba(255,255,255,.07)}
+.bkr-lib-info{flex:1;min-width:0}
+.bkr-lib-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bkr-lib-meta{font-size:11px;color:#888;margin-top:2px}
+.bkr-lib-fmt{background:rgba(100,181,246,.15);color:#64b5f6;padding:1px 5px;border-radius:3px;font-size:10px;font-weight:600}
+
+.bkr-empty{text-align:center;padding:24px;color:#666;font-size:13px}
+
+/* viewer */
+.bkr-viewer-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;min-width:0}
+.bkr-viewer{flex:1;overflow:auto;position:relative;user-select:text}
+
+/* loading */
+.bkr-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#888}
+.bkr-spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,.1);border-top-color:#64b5f6;border-radius:50%;animation:bkr-spin .8s linear infinite}
+@keyframes bkr-spin{to{transform:rotate(360deg)}}
+
+/* welcome */
+.bkr-welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#888;padding:30px}
+.bkr-welcome-icon{font-size:64px;margin-bottom:8px}
+.bkr-welcome-title{font-size:18px;font-weight:600;color:#aaa}
+.bkr-welcome-btns{display:flex;gap:10px;margin-top:8px}
+.bkr-welcome-drop{font-size:12px;color:#555;margin-top:8px}
+.bkr-welcome-formats{font-size:11px;color:#555;margin-top:4px;background:rgba(255,255,255,.04);padding:6px 14px;border-radius:6px}
+
+/* status bar */
+.bkr-status{display:flex;align-items:center;gap:8px;padding:4px 12px;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0;font-size:11px;color:#888;background:#14142a}
+.bkr-status-title{font-weight:600;color:#bbb;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bkr-status-author{color:#999;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bkr-status-fmt{background:rgba(100,181,246,.15);color:#64b5f6;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600}
+.bkr-status-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.bkr-progress-bar{width:100px;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.bkr-progress-fill{height:100%;background:linear-gradient(90deg,#64b5f6,#42a5f5);border-radius:2px;transition:width .3s}
+.bkr-status-pct{font-weight:600;color:#64b5f6}
+
+/* ── PDF canvases ── */
+.bkr-pdf-canvas{display:block;margin:8px auto;box-shadow:0 2px 12px rgba(0,0,0,.3);max-width:100%}
+
+/* ── Text/HTML content ── */
+.bkr-txt-content{white-space:pre-wrap;word-wrap:break-word;max-width:100%;margin:0}
+.bkr-html-content{max-width:800px;margin:0 auto}
+.bkr-html-content h1,.bkr-html-content h2,.bkr-html-content h3{margin:1em 0 .5em}
+.bkr-html-content p{margin:.5em 0}
+.bkr-html-content img{max-width:100%;height:auto}
+
+/* ── Theme variants ── */
+.bkr-theme-light .bkr-toolbar,.bkr-theme-light .bkr-side,.bkr-theme-light .bkr-status{background:#f5f5f5;border-color:#ddd}
+.bkr-theme-light .bkr-toolbar,.bkr-theme-light .bkr-side,.bkr-theme-light .bkr-status,.bkr-theme-light{color:#333}
+.bkr-theme-light .bkr-panel-title{border-color:#ddd}
+.bkr-theme-light .bkr-toc-item:hover,.bkr-theme-light .bkr-bm-item:hover,.bkr-theme-light .bkr-lib-item:hover{background:rgba(0,0,0,.04)}
+
+.bkr-theme-sepia .bkr-toolbar,.bkr-theme-sepia .bkr-side,.bkr-theme-sepia .bkr-status{background:#ede0c8;border-color:#d4c5a9}
+.bkr-theme-sepia .bkr-toolbar,.bkr-theme-sepia .bkr-side,.bkr-theme-sepia .bkr-status,.bkr-theme-sepia{color:#5b4636}
+.bkr-theme-sepia .bkr-panel-title{border-color:#d4c5a9}
+.bkr-theme-sepia .bkr-toc-item:hover,.bkr-theme-sepia .bkr-bm-item:hover,.bkr-theme-sepia .bkr-lib-item:hover{background:rgba(0,0,0,.04)}
+
+/* epub.js iframe override */
+.bkr-viewer iframe{border:none!important}

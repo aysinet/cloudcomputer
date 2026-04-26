@@ -1,6 +1,7 @@
 ({
   setup() {
     const { ref, reactive, computed, onMounted, onUnmounted } = Vue;
+    const ElMessageBox = (window.ElementPlus && window.ElementPlus.ElMessageBox) || { confirm: () => Promise.resolve() };
 
     const LANGS = {
       tr: {
@@ -172,7 +173,7 @@
     }
 
     async function deleteReminder(id) {
-      if (!confirm(L('deleteConfirm'))) return;
+      try { await ElMessageBox.confirm(L('deleteConfirm'), { confirmButtonText: 'OK', cancelButtonText: L('cancel') || 'Cancel', type: 'warning' }); } catch { return; }
       try {
         await fetch('/api/reminders/' + id, { method: 'DELETE', headers: authHeaders() });
         await loadReminders();

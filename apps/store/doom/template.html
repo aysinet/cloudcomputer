@@ -1,0 +1,47 @@
+<div class="doom-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="doom-status-screen">
+    <div class="doom-spinner"></div>
+    <div class="doom-icon-large">👹</div>
+    <div class="doom-status-text">{{ pullProgress }}</div>
+    <div class="doom-sub-text">{{ t('pullSlow') }}</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="doom-status-screen">
+    <div class="doom-spinner"></div>
+    <div class="doom-icon-large">👹</div>
+    <div class="doom-status-text">{{ t('starting') }}</div>
+    <div class="doom-sub-text">{{ t('startSub') }}</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="doom-status-screen doom-error">
+    <div class="doom-icon-large">⚠️</div>
+    <div class="doom-status-text">{{ t('error') }}</div>
+    <div class="doom-error-msg">{{ errorMsg }}</div>
+    <div class="doom-actions">
+      <button class="doom-btn doom-btn-primary" @click="checkAndStart">🔄 {{ t('retry') }}</button>
+    </div>
+    <div class="doom-sub-text">{{ t('dockerCheck') }}</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="doom-running">
+    <div class="doom-toolbar">
+      <span class="doom-info">👹 Doom — Port: {{ port }}</span>
+      <div class="doom-toolbar-actions">
+        <button class="doom-btn doom-btn-small" @click="restart" :title="t('restart')">🔄</button>
+        <button class="doom-btn doom-btn-small doom-btn-danger" @click="stopContainer" :title="t('stop')">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="doom-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="doom-status-screen">
+    <div class="doom-icon-large">👹</div>
+    <div class="doom-status-text">Doom</div>
+    <button class="doom-btn doom-btn-primary doom-btn-large" @click="checkAndStart">▶ {{ t('start') }}</button>
+  </div>
+</div>

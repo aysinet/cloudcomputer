@@ -1,0 +1,74 @@
+/* ── Torrent App (uTorrent-style) ── */
+.tor-root{display:flex;flex-direction:column;height:100%;background:#1a1a2e;color:#e0e0e0;font-family:inherit;overflow:hidden}
+
+/* warning */
+.tor-warning{padding:8px 10px;flex-shrink:0}
+
+/* toolbar */
+.tor-toolbar{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;gap:6px;background:#16162a;flex-wrap:wrap}
+.tor-tb-left,.tor-tb-right{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.tor-sep{width:1px;height:22px;background:rgba(255,255,255,.1);margin:0 4px}
+.tor-speed-stat{font-size:11px;color:#aaa;padding:2px 6px;background:rgba(255,255,255,.04);border-radius:4px;white-space:nowrap}
+.tor-ws-indicator{font-size:10px;margin:0 4px}
+.tor-ws-indicator.on{color:#4caf50}
+.tor-ws-indicator.off{color:#f44336}
+
+/* body */
+.tor-body{display:flex;flex:1;overflow:hidden}
+
+/* sidebar */
+.tor-sidebar{width:170px;flex-shrink:0;border-right:1px solid rgba(255,255,255,.06);background:#14142a;overflow-y:auto;padding:6px 0}
+.tor-filter{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;cursor:pointer;font-size:13px;transition:.12s;border-left:3px solid transparent}
+.tor-filter:hover{background:rgba(255,255,255,.05)}
+.tor-filter.active{background:rgba(76,175,80,.12);border-left-color:#4caf50;color:#81c784}
+.tor-filter-count{font-size:11px;color:#666;background:rgba(255,255,255,.06);padding:1px 6px;border-radius:8px;min-width:18px;text-align:center}
+
+/* main */
+.tor-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* table wrap */
+.tor-table-wrap{flex:1;overflow:hidden;min-height:120px}
+.tor-name-cell{display:flex;align-items:center;gap:6px}
+.tor-status-icon{font-size:13px}
+
+/* detail panel */
+.tor-detail{height:220px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.08);overflow:hidden}
+.tor-detail-tabs{height:100%}
+.tor-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;padding:6px 10px;font-size:12px}
+.tor-dg-item{display:flex;gap:6px;padding:3px 0}
+.tor-dg-full{grid-column:1/3}
+.tor-dg-label{color:#888;white-space:nowrap;min-width:90px}
+.tor-dg-val{color:#ccc;word-break:break-all}
+.tor-mono{font-family:'Consolas','Fira Code',monospace;font-size:11px}
+
+/* status bar */
+.tor-statusbar{display:flex;align-items:center;gap:16px;padding:4px 12px;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0;font-size:11px;color:#888;background:#14142a}
+
+/* add dialog */
+.tor-add-form{display:flex;flex-direction:column;gap:8px}
+.tor-add-section{display:flex;flex-direction:column;gap:6px}
+.tor-add-section label{font-size:13px;font-weight:600;color:#bbb}
+
+/* settings dialog */
+.tor-settings-form{display:flex;flex-direction:column;gap:14px}
+.tor-setting-row{display:flex;align-items:center;gap:10px}
+.tor-setting-row label{min-width:120px;font-size:13px;color:#bbb}
+.tor-setting-hint{font-size:11px;color:#888}
+
+/* ── Element Plus overrides for dark theme ── */
+.tor-root .el-table{--el-table-bg-color:transparent;--el-table-tr-bg-color:transparent;--el-table-header-bg-color:rgba(255,255,255,.03);--el-table-row-hover-bg-color:rgba(255,255,255,.05);--el-table-border-color:rgba(255,255,255,.06);--el-table-text-color:#ccc;--el-table-header-text-color:#999;--el-table-current-row-bg-color:rgba(76,175,80,.12)}
+.tor-root .el-table .el-table__body tr.tor-row-selected td{background:rgba(76,175,80,.08)!important}
+.tor-root .el-tabs__header{margin:0;background:rgba(255,255,255,.02)}
+.tor-root .el-tabs__nav{border:none!important}
+.tor-root .el-tabs__item{color:#999!important;border:none!important;font-size:12px!important}
+.tor-root .el-tabs__item.is-active{color:#81c784!important;background:rgba(76,175,80,.08)!important}
+.tor-root .el-tabs__content{padding:0!important;overflow:auto!important;height:calc(100% - 40px)!important}
+.tor-root .el-tab-pane{height:100%}
+.tor-root .el-progress__text{font-size:10px!important;color:#ccc!important}
+.tor-root .el-divider__text{background:#1a1a2e!important;color:#888!important}
+
+/* dialog dark */
+.tor-dialog .el-dialog{background:#1e1e32!important;border:1px solid rgba(255,255,255,.1)!important}
+.tor-dialog .el-dialog__header{border-bottom:1px solid rgba(255,255,255,.06)}
+.tor-dialog .el-dialog__title{color:#e0e0e0!important}
+.tor-dialog .el-dialog__body{color:#ccc}

@@ -1,0 +1,114 @@
+<div class="lt-container">
+  <!-- PULLING -->
+  <div v-if="dockerStatus==='pulling'" class="lt-status-screen">
+    <div class="lt-spinner"></div>
+    <div class="lt-status-title">{{ pullProgress }}</div>
+    <div class="lt-status-note">{{ L('pullingNote') }}</div>
+  </div>
+
+  <!-- STARTING -->
+  <div v-else-if="dockerStatus==='starting'" class="lt-status-screen">
+    <div class="lt-spinner"></div>
+    <div class="lt-status-title">{{ L('starting') }}</div>
+    <div class="lt-status-note">{{ L('startingNote') }}</div>
+  </div>
+
+  <!-- ERROR -->
+  <div v-else-if="dockerStatus==='error'" class="lt-status-screen">
+    <div class="lt-error-icon">⚠️</div>
+    <div class="lt-status-title">{{ L('errorTitle') }}</div>
+    <div class="lt-error-msg">{{ errorMsg }}</div>
+    <div class="lt-status-note">{{ L('errorNote') }}</div>
+    <button class="lt-btn lt-btn-primary" @click="checkAndStart">{{ L('retry') }}</button>
+  </div>
+
+  <!-- IDLE -->
+  <div v-else-if="dockerStatus==='idle'" class="lt-status-screen">
+    <div class="lt-idle-icon">🌐</div>
+    <div class="lt-status-title">{{ L('title') }}</div>
+    <div class="lt-status-note">{{ L('subtitle') }}</div>
+    <button class="lt-btn lt-btn-primary" @click="checkAndStart">{{ L('startBtn') }}</button>
+  </div>
+
+  <!-- RUNNING -->
+  <div v-else-if="dockerStatus==='running'" class="lt-running">
+    <div class="lt-toolbar">
+      <div class="lt-api-status" :class="{ ready: apiReady }">
+        <span class="lt-api-dot"></span>
+        <span>{{ apiReady ? L('apiReady') : L('apiWaiting') }}</span>
+      </div>
+      <div class="lt-toolbar-actions">
+        <button class="lt-toolbar-btn" @click="restart" title="">🔄</button>
+        <button class="lt-toolbar-btn lt-toolbar-btn-stop" @click="stopContainer" title="">⏹</button>
+      </div>
+    </div>
+
+    <!-- API not ready yet -->
+    <div v-if="!apiReady" class="lt-status-screen lt-api-loading">
+      <div class="lt-spinner"></div>
+      <div class="lt-status-title">{{ L('loadingLangs') }}</div>
+      <div class="lt-status-note">{{ L('startingNote') }}</div>
+    </div>
+
+    <!-- Translate UI -->
+    <div v-else class="lt-translate-area">
+      <!-- Language bar -->
+      <div class="lt-lang-bar">
+        <div class="lt-lang-select-wrap">
+          <label>{{ L('sourceLang') }}</label>
+          <select v-model="sourceLang" class="lt-select">
+            <option v-for="lang in sourceLanguages" :key="lang.code" :value="lang.code">
+              {{ lang.name }}
+            </option>
+          </select>
+        </div>
+        <button class="lt-swap-btn" @click="swapLangs" :disabled="sourceLang==='auto'" title="">⇄</button>
+        <div class="lt-lang-select-wrap">
+          <label>{{ L('targetLang') }}</label>
+          <select v-model="targetLang" class="lt-select">
+            <option v-for="lang in targetLanguages" :key="lang.code" :value="lang.code">
+              {{ lang.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Text areas -->
+      <div class="lt-text-panels">
+        <div class="lt-panel lt-panel-input">
+          <textarea
+            v-model="inputText"
+            :placeholder="L('inputPlaceholder')"
+            class="lt-textarea"
+            @keydown.ctrl.enter="translate"
+          ></textarea>
+          <div class="lt-panel-footer">
+            <span class="lt-char-count">{{ charCount }} {{ L('charCount') }}</span>
+            <button v-if="inputText" class="lt-icon-btn" @click="clearAll" :title="L('clearBtn')">✕</button>
+          </div>
+        </div>
+        <div class="lt-panel lt-panel-output">
+          <div class="lt-textarea lt-output-text" :class="{ empty: !outputText }">
+            {{ outputText || '...' }}
+          </div>
+          <div class="lt-panel-footer">
+            <span></span>
+            <button v-if="outputText" class="lt-icon-btn" @click="copyOutput" :title="L('copyBtn')">
+              {{ copied ? '✓' : '📋' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Translate button -->
+      <button
+        class="lt-btn lt-btn-primary lt-translate-btn"
+        :disabled="translating || !inputText.trim()"
+        @click="translate"
+      >
+        <span v-if="translating" class="lt-btn-spinner"></span>
+        {{ translating ? L('translating') : L('translateBtn') }}
+      </button>
+    </div>
+  </div>
+</div>

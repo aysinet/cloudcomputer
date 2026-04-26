@@ -1,0 +1,37 @@
+{
+  "id": "copilot",
+  "name": "Copilot",
+  "icon": "🤖",
+  "color": "linear-gradient(135deg,#24292e,#6cc644)",
+  "type": "internal",
+  "size": { "w": 920, "h": 660 },
+  "global": false,
+  "description": "GitHub Copilot CLI tabanlı AI asistan — kodları sunucuda hazırlat, soru sor, dosya değiştir",
+  "lang": {
+    "tr": {
+      "name": "Copilot",
+      "description": "GitHub Copilot CLI tabanlı AI asistan — kodları sunucuda hazırlat, soru sor, dosya değiştir"
+    },
+    "en": {
+      "name": "Copilot",
+      "description": "GitHub Copilot CLI based AI assistant — generate code on the server, ask questions, edit files"
+    },
+    "de": {
+      "name": "Copilot",
+      "description": "GitHub Copilot CLI basierter KI-Assistent — Code auf dem Server generieren, Fragen stellen, Dateien bearbeiten"
+    },
+    "fr": {
+      "name": "Copilot",
+      "description": "Assistant IA basé sur GitHub Copilot CLI — générer du code sur le serveur, poser des questions, modifier des fichiers"
+    },
+    "es": {
+      "name": "Copilot",
+      "description": "Asistente IA basado en GitHub Copilot CLI — generar código en el servidor, hacer preguntas, editar archivos"
+    },
+    "ru": {
+      "name": "Copilot",
+      "description": "ИИ-ассистент на базе GitHub Copilot CLI — генерация кода на сервере, вопросы, редактирование файлов"
+    }
+  },
+  "category": "development"
+}

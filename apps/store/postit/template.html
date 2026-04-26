@@ -1,0 +1,46 @@
+<div class="postit-manager">
+  <div class="pm-header">
+    <div class="pm-title">📌 {{t('title')}}</div>
+    <div class="pm-count">{{postits.length}} {{t('notes')}}</div>
+  </div>
+
+  <div class="pm-new-row">
+    <el-button type="primary" size="small" @click="createPostit('yellow')">➕ {{t('newPostit')}}</el-button>
+    <div class="pm-color-pick">
+      <button v-for="c in COLORS" :key="c.id" class="pm-color-dot" :style="{background:c.header}" :title="t(c.id)" @click="createPostit(c.id)"></button>
+    </div>
+  </div>
+
+  <div class="pm-actions-row">
+    <el-button size="small" @click="showAllPostits">👁 {{t('showAll')}}</el-button>
+    <el-button size="small" @click="hideAllPostits">🙈 {{t('hideAll')}}</el-button>
+  </div>
+
+  <div v-if="loading" class="pm-loading">{{t('loading')}}</div>
+
+  <div v-else-if="postits.length === 0" class="pm-empty">{{t('noPostits')}}</div>
+
+  <div v-else class="pm-list">
+    <div v-for="p in postits" :key="p.id" class="pm-item" @click="bringToFront(p.id)">
+      <span class="pm-item-dot" :style="{background:getColor(p.color).header}"></span>
+      <div class="pm-item-content">{{(p.content || t('empty')).replace(/\n/g,' ').slice(0,40)}}</div>
+      <div class="pm-item-btns">
+        <el-dropdown trigger="click" @command="changeColor(p.id,$event)" size="small">
+          <el-button size="small" circle title="">🎨</el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item v-for="c in COLORS" :key="c.id" :command="c.id">
+                <span :style="{display:'inline-block',width:'12px',height:'12px',borderRadius:'50%',background:c.header,marginRight:'8px',verticalAlign:'middle'}"></span>
+                {{t(c.id)}}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <el-button size="small" @click.stop="togglePostit(p)" :title="p.visible?t('hide'):t('show')">
+          {{p.visible?'👁':'🙈'}}
+        </el-button>
+        <el-button size="small" type="danger" @click.stop="deletePostit(p.id)" :title="t('delete')">🗑</el-button>
+      </div>
+    </div>
+  </div>
+</div>

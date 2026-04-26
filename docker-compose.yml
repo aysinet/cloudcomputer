@@ -1,0 +1,50 @@
+services:
+  cloudcomputer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cloudcomputer-${INSTANCE_ID:-default}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      - IS_DOCKER=true
+      - INSTANCE_ID=${INSTANCE_ID:-default}
+      - DOCKER_MANAGER_URL=http://docker-manager-${INSTANCE_ID:-default}:9800
+      - DM_SECRET=cloudpc-docker-manager-secret
+      - FINNHUB_API_KEY=${FINNHUB_API_KEY:-}
+    volumes:
+      - cloudpc-data:/app/data
+    networks:
+      - cloudpc-net
+    depends_on:
+      - docker-manager
+    restart: unless-stopped
+
+  docker-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile.docker-manager
+    container_name: docker-manager-${INSTANCE_ID:-default}
+    environment:
+      - DOCKER_NETWORK=cloudpc-net
+      - DM_SECRET=cloudpc-docker-manager-secret
+      - DM_PORT=9800
+      - DM_PORT_START=9000
+      - DM_PORT_END=9999
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - cloudpc-dm-data:/data
+    networks:
+      - cloudpc-net
+    restart: unless-stopped
+
+networks:
+  cloudpc-net:
+    name: cloudpc-net
+    driver: bridge
+
+volumes:
+  cloudpc-data:
+    name: cloudpc-${INSTANCE_ID:-default}-data
+  cloudpc-dm-data:
+    name: cloudpc-${INSTANCE_ID:-default}-dm-data

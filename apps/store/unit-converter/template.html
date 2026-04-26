@@ -1,0 +1,68 @@
+<div class="uc-app">
+  <div class="uc-header">
+    <span class="uc-title">📐 {{L('title')}}</span>
+  </div>
+
+  <!-- Category selector -->
+  <div class="uc-category-bar">
+    <el-select v-model="category" size="default" :placeholder="L('category')" style="width:100%" @change="onCategoryChange">
+      <el-option v-for="c in categories" :key="c.key" :label="L('cat_'+c.key)" :value="c.key">
+        <span>{{c.icon}} {{L('cat_'+c.key)}}</span>
+      </el-option>
+    </el-select>
+  </div>
+
+  <!-- Converter -->
+  <div class="uc-converter">
+    <!-- FROM -->
+    <div class="uc-convert-group">
+      <label class="uc-label">{{L('from')}}</label>
+      <el-select v-model="fromUnit" size="default" filterable :placeholder="L('selectUnit')" style="width:100%">
+        <el-option v-for="u in units" :key="u.key" :label="L('unit_'+u.key)" :value="u.key">
+          <span>{{L('unit_'+u.key)}} <span style="color:#999;font-size:12px">({{u.symbol}})</span></span>
+        </el-option>
+      </el-select>
+      <el-input v-model="fromValue" type="number" :placeholder="'0'" size="large" class="uc-value-input" @input="convertFromTo" />
+    </div>
+
+    <!-- Swap button -->
+    <div class="uc-swap-row">
+      <el-button circle @click="swapUnits" class="uc-swap-btn">🔄</el-button>
+    </div>
+
+    <!-- TO -->
+    <div class="uc-convert-group">
+      <label class="uc-label">{{L('to')}}</label>
+      <el-select v-model="toUnit" size="default" filterable :placeholder="L('selectUnit')" style="width:100%">
+        <el-option v-for="u in units" :key="u.key" :label="L('unit_'+u.key)" :value="u.key">
+          <span>{{L('unit_'+u.key)}} <span style="color:#999;font-size:12px">({{u.symbol}})</span></span>
+        </el-option>
+      </el-select>
+      <el-input v-model="toValue" type="number" :placeholder="'0'" size="large" class="uc-value-input" readonly />
+    </div>
+  </div>
+
+  <!-- Result display -->
+  <div class="uc-result" v-if="fromValue && toValue">
+    <div class="uc-result-text">
+      {{fromValue}} {{L('unit_'+fromUnit)}} = <strong>{{toValue}}</strong> {{L('unit_'+toUnit)}}
+    </div>
+  </div>
+
+  <!-- Formula info -->
+  <div class="uc-formula" v-if="formulaText">
+    <span class="uc-formula-label">{{L('formula')}}:</span> {{formulaText}}
+  </div>
+
+  <!-- Quick reference table -->
+  <div class="uc-ref-section">
+    <div class="uc-ref-title">{{L('quickRef')}}</div>
+    <div class="uc-ref-table">
+      <div v-for="r in refTable" :key="r.val" class="uc-ref-row">
+        <span class="uc-ref-from">{{r.from}}</span>
+        <span class="uc-ref-eq">=</span>
+        <span class="uc-ref-to">{{r.to}}</span>
+      </div>
+    </div>
+  </div>
+</div>

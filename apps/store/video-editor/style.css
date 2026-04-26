@@ -1,0 +1,396 @@
+.ved-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: linear-gradient(135deg, #0d0d18 0%, #1a1a2e 100%);
+  color: #e0e0e0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  overflow: hidden;
+  user-select: none;
+  position: relative;
+}
+
+/* ── Toolbar ── */
+.ved-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(0,0,0,0.35);
+  border-bottom: 1px solid #333;
+  flex-shrink: 0;
+}
+.ved-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ved-toolbar-group + .ved-toolbar-group { margin-left: auto; }
+
+/* ── Busy overlay ── */
+.ved-busy-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  color: #fff;
+  gap: 12px;
+}
+.ved-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #333;
+  border-top-color: #e94560;
+  border-radius: 50%;
+  animation: ved-spin 0.8s linear infinite;
+}
+@keyframes ved-spin { to { transform: rotate(360deg); } }
+.ved-busy-text { font-size: 14px; }
+.ved-progress-bar {
+  width: 200px;
+  height: 6px;
+  background: #333;
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+.ved-progress-fill {
+  height: 100%;
+  background: #e94560;
+  transition: width 0.3s;
+}
+.ved-progress-text {
+  position: absolute;
+  right: -36px;
+  top: -5px;
+  font-size: 11px;
+  color: #aaa;
+}
+
+/* ── Status ── */
+.ved-status {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 50;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #1e3a5f;
+  color: #fff;
+}
+.ved-status.success { background: #2d6a4f; }
+.ved-status.error { background: #9b2226; }
+.ved-fade-enter-active, .ved-fade-leave-active { transition: opacity 0.3s; }
+.ved-fade-enter-from, .ved-fade-leave-to { opacity: 0; }
+
+/* ── Main area ── */
+.ved-middle {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Preview ── */
+.ved-preview-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ved-preview-container {
+  flex: 1;
+  position: relative;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  min-height: 180px;
+}
+.ved-preview-video {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+.ved-text-overlay {
+  pointer-events: none;
+  font-weight: 700;
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.8);
+  white-space: nowrap;
+}
+.ved-preview-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  cursor: pointer;
+}
+.ved-ph-icon { font-size: 48px; margin-bottom: 8px; }
+
+/* ── Transport Controls ── */
+.ved-preview-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px;
+  background: rgba(0,0,0,0.3);
+  border-top: 1px solid #222;
+}
+.ved-time-display {
+  font-size: 12px;
+  color: #aaa;
+  font-variant-numeric: tabular-nums;
+  min-width: 100px;
+  text-align: center;
+}
+
+/* ── Properties Panel ── */
+.ved-properties {
+  width: 250px;
+  flex-shrink: 0;
+  background: rgba(0,0,0,0.25);
+  border-left: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 0 0 12px;
+}
+.ved-prop-title {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 12px 6px;
+  color: #ccc;
+  border-bottom: 1px solid #2a2a3e;
+}
+.ved-prop-subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 0 4px;
+  color: #999;
+}
+.ved-properties .el-form {
+  padding: 10px 12px;
+}
+.ved-properties .el-form-item {
+  margin-bottom: 10px;
+}
+.ved-properties .el-form-item__label {
+  color: #aaa !important;
+  font-size: 12px;
+}
+.ved-texts-list {
+  padding: 4px 12px;
+}
+.ved-text-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.ved-text-item span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Timeline ── */
+.ved-timeline-area {
+  flex-shrink: 0;
+  background: #0d0d16;
+  border-top: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  min-height: 110px;
+}
+.ved-timeline-header {
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #888;
+  gap: 8px;
+}
+.ved-tl-label { font-weight: 600; }
+.ved-tl-info { color: #e94560; font-weight: 600; }
+
+.ved-ruler {
+  position: relative;
+  height: 22px;
+  background: #151524;
+  border-bottom: 1px solid #2a2a3e;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0 12px;
+}
+.ved-ruler-mark {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 12px;
+  background: #444;
+}
+.ved-ruler-label {
+  position: absolute;
+  top: 12px;
+  font-size: 9px;
+  color: #666;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.ved-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #e94560;
+  z-index: 5;
+  pointer-events: none;
+  transition: left 0.05s linear;
+}
+.ved-playhead::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 10px;
+  height: 10px;
+  background: #e94560;
+  border-radius: 50%;
+}
+
+.ved-track {
+  display: flex;
+  align-items: stretch;
+  min-height: 50px;
+  padding: 4px 12px;
+  gap: 3px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.ved-clip {
+  height: 46px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #1e3a5f 0%, #1a1a3e 100%);
+  border: 1px solid #334;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  cursor: move;
+  transition: border-color 0.15s;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+.ved-clip:hover { border-color: #557; }
+.ved-clip.active {
+  border-color: #e94560;
+  background: linear-gradient(135deg, #2e1840 0%, #3a1a3e 100%);
+  box-shadow: 0 0 12px rgba(233,69,96,0.25);
+}
+.ved-clip-thumb { font-size: 18px; margin-right: 6px; }
+.ved-clip-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ved-clip-name {
+  font-size: 11px;
+  color: #ddd;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ved-clip-dur {
+  font-size: 9px;
+  color: #888;
+}
+.ved-clip-badge {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(233,69,96,0.5);
+  color: #fff;
+}
+.ved-clip-badge.text { top: auto; bottom: 2px; background: rgba(60,120,200,0.5); }
+.ved-track-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ── File picker dialog ── */
+.ved-filepicker { padding: 4px 0; }
+.ved-fp-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.ved-fp-list {
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ved-fp-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ved-fp-item:hover { background: rgba(233,69,96,0.15); }
+.ved-fp-icon { font-size: 22px; }
+.ved-fp-name {
+  flex: 1;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ved-fp-size { font-size: 11px; color: #888; }
+.ved-fp-empty {
+  text-align: center;
+  padding: 30px;
+  color: #666;
+}
+
+/* ── Element Plus dark overrides ── */
+.ved-app .el-dialog {
+  background: #1a1a2e !important;
+  border: 1px solid #333 !important;
+}
+.ved-app .el-dialog__title { color: #eee !important; }
+.ved-app .el-dialog__body { color: #ccc !important; }
+.ved-app .el-input__inner {
+  background: #111 !important;
+  border-color: #333 !important;
+  color: #eee !important;
+}
+.ved-app .el-select .el-input__inner { background: #111 !important; }
+.ved-app .el-form-item__label { color: #aaa !important; }
+.ved-app .el-input-number { width: 100%; }
+.ved-app .el-slider__runway { background: #2a2a3e; }
+.ved-app .el-slider__bar { background: #e94560; }
+.ved-app .el-slider__button { border-color: #e94560; }
+.ved-app .el-color-picker__trigger { border-color: #444; }

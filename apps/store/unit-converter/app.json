@@ -1,0 +1,40 @@
+{
+  "id": "unit-converter",
+  "name": "Birim Dönüştürücü",
+  "icon": "📐",
+  "color": "linear-gradient(135deg,#667eea,#764ba2)",
+  "type": "internal",
+  "size": {
+    "w": 480,
+    "h": 520
+  },
+  "global": false,
+  "description": "Uzunluk, ağırlık, sıcaklık, alan, hacim, hız ve daha fazlası için birim dönüştürücü",
+  "lang": {
+    "tr": {
+      "name": "Birim Dönüştürücü",
+      "description": "Uzunluk, ağırlık, sıcaklık, alan, hacim, hız ve daha fazlası için birim dönüştürücü"
+    },
+    "en": {
+      "name": "Unit Converter",
+      "description": "Convert units of length, weight, temperature, area, volume, speed and more"
+    },
+    "de": {
+      "name": "Einheitenrechner",
+      "description": "Einheiten für Länge, Gewicht, Temperatur, Fläche, Volumen, Geschwindigkeit umrechnen"
+    },
+    "fr": {
+      "name": "Convertisseur d'Unités",
+      "description": "Convertir les unités de longueur, poids, température, surface, volume, vitesse"
+    },
+    "es": {
+      "name": "Conversor de Unidades",
+      "description": "Convertir unidades de longitud, peso, temperatura, área, volumen, velocidad"
+    },
+    "ru": {
+      "name": "Конвертер Единиц",
+      "description": "Конвертация единиц длины, веса, температуры, площади, объёма, скорости"
+    }
+  },
+  "category": "tools"
+}

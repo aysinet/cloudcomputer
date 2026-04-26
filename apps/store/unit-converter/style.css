@@ -1,0 +1,75 @@
+.uc-app {
+  display: flex; flex-direction: column; height: 100%; background: #111118; color: #fff;
+  font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden;
+}
+
+/* Header */
+.uc-header {
+  display: flex; align-items: center; padding: 10px 16px;
+  background: #181825; border-bottom: 1px solid #23233a;
+}
+.uc-title { font-size: 15px; font-weight: 600; }
+
+/* Category bar */
+.uc-category-bar { padding: 10px 16px 4px; }
+
+/* Converter */
+.uc-converter {
+  padding: 8px 16px; display: flex; flex-direction: column; gap: 6px;
+}
+.uc-convert-group {
+  background: #1a1a2e; border-radius: 10px; padding: 10px 14px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.uc-label { font-size: 12px; color: #aaa; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.uc-value-input { margin-top: 4px; }
+
+/* Swap */
+.uc-swap-row { display: flex; justify-content: center; margin: -4px 0; z-index: 2; }
+.uc-swap-btn { font-size: 18px !important; }
+
+/* Result */
+.uc-result {
+  margin: 4px 16px; background: linear-gradient(135deg,#1b2838,#1a1a3e);
+  border: 1px solid #2a2a5a; border-radius: 10px; padding: 12px 16px; text-align: center;
+}
+.uc-result-text { font-size: 15px; color: #ddd; }
+.uc-result-text strong { color: #a78bfa; font-size: 18px; }
+
+/* Formula */
+.uc-formula {
+  margin: 0 16px; padding: 6px 14px; background: #1a1a2e; border-radius: 8px;
+  font-size: 12px; color: #888; font-family: 'Consolas', monospace;
+}
+.uc-formula-label { color: #667eea; font-weight: 600; }
+
+/* Quick reference */
+.uc-ref-section {
+  flex: 1; margin: 6px 16px 12px; background: #1a1a2e; border-radius: 10px;
+  padding: 10px 14px; overflow: hidden; display: flex; flex-direction: column;
+}
+.uc-ref-title { font-size: 12px; color: #aaa; font-weight: 600; margin-bottom: 6px; }
+.uc-ref-table { flex: 1; overflow-y: auto; }
+.uc-ref-table::-webkit-scrollbar { width: 5px; }
+.uc-ref-table::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+.uc-ref-row {
+  display: flex; align-items: center; gap: 8px; padding: 3px 0;
+  font-size: 13px; border-bottom: 1px solid #1e1e36;
+}
+.uc-ref-row:last-child { border-bottom: none; }
+.uc-ref-from { flex: 1; text-align: right; color: #ccc; font-family: monospace; }
+.uc-ref-eq { color: #555; font-size: 11px; }
+.uc-ref-to { flex: 1; color: #a78bfa; font-family: monospace; }
+
+/* Element Plus overrides for dark theme */
+.uc-app .el-select { --el-fill-color-blank: #22223a; --el-text-color-regular: #ddd; --el-border-color: #333; }
+.uc-app .el-input { --el-fill-color-blank: #22223a; --el-text-color-regular: #fff; --el-border-color: #333; }
+.uc-app .el-input__inner { color: #fff !important; font-size: 18px; }
+.uc-app .el-input.is-disabled .el-input__inner { color: #a78bfa !important; -webkit-text-fill-color: #a78bfa !important; }
+.uc-app .el-select-dropdown { background: #1a1a2e !important; border-color: #333 !important; }
+.uc-app .el-select-dropdown__item { color: #ddd !important; }
+.uc-app .el-select-dropdown__item.hover, .uc-app .el-select-dropdown__item:hover { background: #2a2a5a !important; }
+.uc-app .el-select-dropdown__item.selected { color: #a78bfa !important; font-weight: 700; }
+.uc-app .el-button.is-circle { background: #22223a !important; border-color: #444 !important; color: #ddd !important; }
+.uc-app .el-button.is-circle:hover { border-color: #667eea !important; }
+.uc-app .el-popper { --el-bg-color-overlay: #1a1a2e; }

@@ -1,0 +1,36 @@
+/* Browser: full-width URL bar */
+.browser-toolbar{padding:6px;gap:4px;flex-wrap:nowrap}
+.browser-nav-btn{min-width:36px;height:36px;font-size:14px}
+.browser-url-bar{flex:1}
+.browser-url-input{font-size:14px;height:36px}
+.browser-bookmarks-bar{padding:6px;overflow-x:auto}
+
+/* Element Plus dropdown popup z-index above app-container */
+.el-popper,.el-select-dropdown,.el-picker__popper,.el-message-box__wrapper,.el-overlay,.el-dialog__wrapper{z-index:6000 !important}
+.el-dialog{max-width:95vw !important;margin:5vh auto !important}
+
+/* Small screens (<360px): smaller icons */
+@media (max-width:360px){
+  .mobile-grid{grid-template-columns:repeat(3,1fr);gap:14px 4px;padding:18px 10px}
+  .icon-img{width:52px;height:52px;font-size:28px}
+  .mobile-clock{font-size:28px}
+  .dock{height:72px;margin:0 12px 12px}
+}
+
+/* Landscape phones */
+@media (orientation:landscape) and (max-height:500px){
+  .mobile-grid{grid-template-columns:repeat(8,1fr);padding:12px}
+  .mobile-header{padding:6px 16px}
+  .mobile-clock{font-size:18px;display:inline-block;margin-right:8px}
+  .mobile-date{display:inline-block;font-size:12px;margin-top:0}
+  .dock{height:64px;margin:0 12px 8px}
+  .icon-img{width:44px;height:44px;font-size:24px}
+}
+
+/* Tablet */
+@media (min-width:768px){
+  .mobile-grid{grid-template-columns:repeat(6,1fr);gap:24px 12px;padding:32px 24px}
+  .icon-img{width:64px;height:64px;font-size:34px}
+  .icon-label{font-size:13px}
+  .dock{max-width:600px;margin:0 auto 16px}
+}

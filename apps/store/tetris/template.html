@@ -1,0 +1,72 @@
+<div class="tetris-root" tabindex="0" @keydown="onKey" ref="rootEl">
+  <div class="tetris-layout">
+    <!-- Game board -->
+    <div class="tetris-board-wrap">
+      <canvas ref="boardCanvas" class="tetris-board" :width="COLS*CELL" :height="ROWS*CELL"></canvas>
+      <!-- Overlays -->
+      <div v-if="gameOver" class="tetris-overlay">
+        <div class="tetris-overlay-title">GAME OVER</div>
+        <div class="tetris-overlay-score">{{score}} puan</div>
+        <button class="tetris-play-btn" @click="startGame">Tekrar Oyna</button>
+      </div>
+      <div v-if="!started && !gameOver" class="tetris-overlay">
+        <div class="tetris-overlay-title">🧱 TETRIS</div>
+        <button class="tetris-play-btn" @click="startGame">Başla</button>
+      </div>
+      <div v-if="paused && started && !gameOver" class="tetris-overlay">
+        <div class="tetris-overlay-title">DURAKLADI</div>
+        <button class="tetris-play-btn" @click="togglePause">Devam Et</button>
+      </div>
+    </div>
+
+    <!-- Side panel -->
+    <div class="tetris-side">
+      <!-- Next piece -->
+      <div class="tetris-panel">
+        <div class="tetris-panel-title">Sonraki</div>
+        <canvas ref="nextCanvas" class="tetris-next" :width="4*CELL" :height="4*CELL"></canvas>
+      </div>
+
+      <!-- Score -->
+      <div class="tetris-panel">
+        <div class="tetris-panel-title">Skor</div>
+        <div class="tetris-score">{{score}}</div>
+      </div>
+
+      <!-- Level -->
+      <div class="tetris-panel">
+        <div class="tetris-panel-title">Seviye</div>
+        <div class="tetris-level">{{level}}</div>
+      </div>
+
+      <!-- Lines -->
+      <div class="tetris-panel">
+        <div class="tetris-panel-title">Satır</div>
+        <div class="tetris-lines">{{lines}}</div>
+      </div>
+
+      <!-- High Score -->
+      <div class="tetris-panel">
+        <div class="tetris-panel-title">En Yüksek</div>
+        <div class="tetris-highscore">{{highScore}}</div>
+      </div>
+
+      <!-- Controls -->
+      <div class="tetris-panel tetris-controls">
+        <button class="tetris-ctrl-btn" @click="togglePause" :disabled="!started||gameOver">
+          {{paused ? '▶' : '⏸'}}
+        </button>
+        <button class="tetris-ctrl-btn" @click="startGame">🔄</button>
+      </div>
+
+      <!-- Key hints -->
+      <div class="tetris-hints">
+        <div>← → Hareket</div>
+        <div>↑ Döndür</div>
+        <div>↓ Hızlan</div>
+        <div>Space Düşür</div>
+        <div>P Duraklat</div>
+      </div>
+    </div>
+  </div>
+</div>

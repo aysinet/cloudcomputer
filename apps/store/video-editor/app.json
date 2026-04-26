@@ -1,0 +1,40 @@
+{
+  "id": "video-editor",
+  "name": "Video Düzenleyici",
+  "icon": "🎬",
+  "color": "linear-gradient(135deg,#1a1a2e,#e94560)",
+  "type": "internal",
+  "size": {
+    "w": 960,
+    "h": 680
+  },
+  "global": false,
+  "description": "Video düzenleme — kırpma, bölme, metin ekleme, hız ayarı ve dışa aktarma",
+  "lang": {
+    "tr": {
+      "name": "Video Düzenleyici",
+      "description": "Video düzenleme — kırpma, bölme, metin ekleme, hız ayarı ve dışa aktarma"
+    },
+    "en": {
+      "name": "Video Editor",
+      "description": "Video editing — trim, split, text overlay, speed control and export"
+    },
+    "de": {
+      "name": "Video-Editor",
+      "description": "Videobearbeitung — Zuschneiden, Teilen, Textüberlagerung, Geschwindigkeit und Export"
+    },
+    "fr": {
+      "name": "Éditeur Vidéo",
+      "description": "Montage vidéo — découper, diviser, texte, vitesse et exportation"
+    },
+    "es": {
+      "name": "Editor de Video",
+      "description": "Edición de video — recortar, dividir, texto, velocidad y exportación"
+    },
+    "ru": {
+      "name": "Видеоредактор",
+      "description": "Редактирование видео — обрезка, разделение, текст, скорость и экспорт"
+    }
+  },
+  "category": "media"
+}

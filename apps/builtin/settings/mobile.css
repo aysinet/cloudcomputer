@@ -1,0 +1,11 @@
+/* Settings: column layout (sidebar becomes top tab bar) */
+.settings-root{flex-direction:column !important;background:#f6f6fb}
+.settings-sidebar{width:100% !important;height:auto !important;display:flex !important;overflow-x:auto;padding:0 !important;border-right:none !important;border-bottom:1px solid #e0e0ee;white-space:nowrap;flex-shrink:0}
+.settings-s-section{display:none !important}
+.settings-s-item{flex-shrink:0;padding:12px 16px !important;border-radius:0 !important;border-bottom:3px solid transparent;font-size:13px}
+.settings-s-item.active{border-bottom-color:#5050cc;background:transparent !important;color:#5050cc;font-weight:600}
+.settings-content{padding:16px}
+.settings-row{padding:14px 0;flex-wrap:wrap;gap:8px}
+.settings-row .lbl{font-size:15px}
+.settings-row input[type=range]{width:100%}
+.lang-grid{grid-template-columns:repeat(2,1fr) !important}

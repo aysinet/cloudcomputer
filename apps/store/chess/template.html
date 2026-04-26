@@ -1,0 +1,47 @@
+<div class="chess-root">
+  <!-- Loading / Pulling State -->
+  <div v-if="status === 'pulling'" class="chess-status-screen">
+    <div class="chess-spinner"></div>
+    <div class="chess-icon-large">♟️</div>
+    <div class="chess-status-text">{{ pullProgress }}</div>
+    <div class="chess-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="chess-status-screen">
+    <div class="chess-spinner"></div>
+    <div class="chess-icon-large">♟️</div>
+    <div class="chess-status-text">Satranç motoru başlatılıyor...</div>
+    <div class="chess-sub-text">Docker container hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="chess-status-screen chess-error">
+    <div class="chess-icon-large">⚠️</div>
+    <div class="chess-status-text">Bir hata oluştu</div>
+    <div class="chess-error-msg">{{ errorMsg }}</div>
+    <div class="chess-actions">
+      <button class="chess-btn chess-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="chess-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State - Show Chess in iframe -->
+  <div v-else-if="status === 'running'" class="chess-running">
+    <div class="chess-toolbar">
+      <span class="chess-info">♟️ Chess — Port: {{ port }}</span>
+      <div class="chess-toolbar-actions">
+        <button class="chess-btn chess-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="chess-btn chess-btn-small chess-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="chess-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="chess-status-screen">
+    <div class="chess-icon-large">♟️</div>
+    <div class="chess-status-text">Chess</div>
+    <button class="chess-btn chess-btn-primary chess-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

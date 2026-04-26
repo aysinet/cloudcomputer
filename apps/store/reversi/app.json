@@ -1,0 +1,22 @@
+{
+  "id": "reversi",
+  "name": "Reversi",
+  "icon": "⚫",
+  "color": "linear-gradient(135deg,#1b5e20,#388e3c)",
+  "type": "internal",
+  "size": {
+    "w": 480,
+    "h": 560
+  },
+  "global": false,
+  "description": "Klasik Reversi (Othello) strateji oyunu",
+  "lang": {
+    "tr": { "name": "Reversi", "description": "Klasik Reversi (Othello) strateji oyunu" },
+    "en": { "name": "Reversi", "description": "Classic Reversi (Othello) strategy game" },
+    "de": { "name": "Reversi", "description": "Klassisches Reversi (Othello) Strategiespiel" },
+    "fr": { "name": "Reversi", "description": "Jeu de stratégie Reversi (Othello) classique" },
+    "es": { "name": "Reversi", "description": "Juego de estrategia clásico Reversi (Othello)" },
+    "ru": { "name": "Реверси", "description": "Классическая стратегическая игра Реверси (Отелло)" }
+  },
+  "category": "games"
+}

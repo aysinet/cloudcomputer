@@ -1,5 +1,6 @@
 (function(Vue) {
   const { ref, onMounted, onUnmounted, nextTick } = Vue;
+  const ElMessage = (window.ElementPlus && window.ElementPlus.ElMessage) || { success: console.log, error: console.error, warning: console.warn };
   return {
     setup() {
       const mmContainer = ref(null);
@@ -128,7 +129,7 @@
             isDirty.value = false;
             addRecent(result.path);
           }
-        } catch (e) { alert('Geçersiz mind map dosyası: ' + e.message); }
+        } catch (e) { ElMessage.error('Geçersiz mind map dosyası: ' + e.message); }
       }
 
       async function saveMap() {
@@ -164,7 +165,7 @@
         showRecent.value = false;
         try {
           var file = await window.FileDialog.readFile(rf.path);
-          if (!file) { alert('Dosya bulunamadı: ' + rf.path); return; }
+          if (!file) { ElMessage.error('Dosya bulunamadı: ' + rf.path); return; }
           var data = JSON.parse(file.content);
           if (mindMap) {
             mindMap.setData(data);
@@ -172,7 +173,7 @@
             isDirty.value = false;
             addRecent(rf.path);
           }
-        } catch (e) { alert('Dosya açılamadı: ' + e.message); }
+        } catch (e) { ElMessage.error('Dosya açılamadı: ' + e.message); }
       }
 
       function doUndo() { if (mindMap) mindMap.execCommand('BACK'); }

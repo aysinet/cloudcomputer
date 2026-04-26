@@ -1,0 +1,6 @@
+/* Notepad: full height, larger font */
+.notepad-root{font-family:-apple-system,'Segoe UI',sans-serif}
+.notepad-toolbar{padding:8px;flex-wrap:wrap;gap:6px}
+.notepad-toolbar select,.notepad-toolbar input[type=number]{height:36px;font-size:14px}
+.notepad-tb-btn{height:36px;padding:0 12px;font-size:14px}
+.notepad-root textarea{font-size:16px;padding:16px}

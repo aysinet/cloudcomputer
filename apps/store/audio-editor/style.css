@@ -1,0 +1,104 @@
+.aed-app {
+  display: flex; flex-direction: column; height: 100%; background: #0d0d18; color: #ddd;
+  font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; position: relative;
+  outline: none;
+}
+
+/* Toolbar */
+.aed-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  padding: 6px 10px; background: #131320; border-bottom: 1px solid #1e1e36;
+  min-height: 38px;
+}
+.aed-toolbar-group { display: flex; gap: 4px; align-items: center; }
+.aed-toolbar-group + .aed-toolbar-group { border-left: 1px solid #2a2a4e; padding-left: 6px; }
+
+/* Busy overlay */
+.aed-busy-overlay {
+  position: absolute; inset: 0; z-index: 50; background: rgba(13,13,24,.92);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+}
+.aed-spinner {
+  width: 36px; height: 36px; border: 3px solid #333; border-top-color: #4fc3f7;
+  border-radius: 50%; animation: aed-spin .7s linear infinite;
+}
+@keyframes aed-spin { to { transform: rotate(360deg); } }
+.aed-busy-text { color: #aaa; font-size: 13px; }
+
+/* Status */
+.aed-status { padding: 5px 14px; text-align: center; font-size: 12px; cursor: pointer; }
+.aed-status.success { background: #1b4332; color: #52b788; }
+.aed-status.error { background: #3a0f0f; color: #e07070; }
+.aed-fade-enter-active, .aed-fade-leave-active { transition: opacity .3s; }
+.aed-fade-enter-from, .aed-fade-leave-to { opacity: 0; }
+
+/* Waveform */
+.aed-waveform-wrap {
+  flex: 1; position: relative; background: #0a0a14; border-bottom: 1px solid #1e1e36;
+  min-height: 120px; overflow: hidden;
+}
+.aed-waveform { display: block; width: 100%; height: 100%; cursor: crosshair; }
+.aed-waveform-placeholder {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px; color: #555;
+  font-size: 14px; cursor: pointer; transition: color .2s;
+}
+.aed-waveform-placeholder:hover { color: #888; }
+.aed-placeholder-icon { font-size: 48px; }
+
+/* Info bar */
+.aed-info-bar {
+  display: flex; gap: 16px; padding: 4px 12px; background: #111120;
+  font-size: 11px; color: #777; font-family: 'Consolas', monospace;
+  border-bottom: 1px solid #1a1a30;
+}
+
+/* Playback controls */
+.aed-playback {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  background: #131320; justify-content: center;
+}
+.aed-zoom-group { display: flex; gap: 4px; margin-left: 16px; }
+.aed-volume-group { display: flex; align-items: center; gap: 6px; margin-left: 12px; }
+.aed-vol-icon { font-size: 14px; }
+
+/* File picker */
+.aed-filepicker { display: flex; flex-direction: column; gap: 10px; }
+.aed-fp-tabs { display: flex; gap: 6px; }
+.aed-fp-list {
+  max-height: 280px; overflow-y: auto; border: 1px solid #2a2a4e; border-radius: 6px;
+  background: #0d0d18;
+}
+.aed-fp-list::-webkit-scrollbar { width: 5px; }
+.aed-fp-list::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+.aed-fp-item {
+  display: flex; align-items: center; gap: 8px; padding: 7px 12px;
+  cursor: pointer; border-bottom: 1px solid #1a1a30; transition: background .15s;
+  font-size: 13px;
+}
+.aed-fp-item:last-child { border-bottom: none; }
+.aed-fp-item:hover { background: #1a1a3e; }
+.aed-fp-icon { font-size: 16px; flex-shrink: 0; }
+.aed-fp-name { flex: 1; color: #ccc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aed-fp-size { font-size: 11px; color: #666; flex-shrink: 0; }
+.aed-fp-empty { text-align: center; color: #444; padding: 20px; font-size: 13px; }
+
+/* Dialog body */
+.aed-dialog-body { padding: 0 4px; }
+.aed-dialog-body label { display: block; font-size: 13px; color: #999; margin-bottom: 8px; }
+
+/* Element Plus dark overrides */
+.aed-app .el-select { --el-fill-color-blank: #1a1a2e; --el-text-color-regular: #ccc; --el-border-color: #333; }
+.aed-app .el-input { --el-fill-color-blank: #1a1a2e; --el-text-color-regular: #ddd; --el-border-color: #333; }
+.aed-app .el-slider { --el-slider-main-bg-color: #4fc3f7; }
+.aed-app .el-select-dropdown { background: #131320 !important; border-color: #333 !important; }
+.aed-app .el-select-dropdown__item { color: #ccc !important; }
+.aed-app .el-select-dropdown__item.hover, .aed-app .el-select-dropdown__item:hover { background: #1e1e3e !important; }
+.aed-app .el-select-dropdown__item.selected { color: #4fc3f7 !important; font-weight: 700; }
+.aed-app .el-dialog { --el-dialog-bg-color: #181828; --el-dialog-title-font-size: 15px; color: #ddd; }
+.aed-app .el-dialog__header { border-bottom: 1px solid #2a2a4e; }
+.aed-app .el-dialog__body { color: #ccc; }
+.aed-app .el-form-item__label { color: #aaa !important; }
+.aed-app .el-button.is-circle { background: #1a1a2e !important; border-color: #333 !important; color: #ccc !important; }
+.aed-app .el-button.is-circle:hover { border-color: #4fc3f7 !important; }
+.aed-app .el-popper { --el-bg-color-overlay: #181828; }

@@ -1,6 +1,8 @@
 ({
   setup() {
     const { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
+    const ElMessage = (window.ElementPlus && window.ElementPlus.ElMessage) || { success: console.log, error: console.error };
+    const ElMessageBox = (window.ElementPlus && window.ElementPlus.ElMessageBox) || { confirm: () => Promise.resolve() };
 
     const LANGS = {
       tr: {
@@ -341,7 +343,7 @@
     }
 
     async function deleteAccount(id) {
-      if (!confirm(L('deleteAccountConfirm'))) return;
+      try { await ElMessageBox.confirm(L('deleteAccountConfirm'), { confirmButtonText: 'OK', cancelButtonText: L('cancel') || 'Cancel', type: 'warning' }); } catch { return; }
       try {
         await fetch('/api/mail/accounts/' + id, { method: 'DELETE', headers: authHeaders() });
         await loadAccounts();
@@ -392,13 +394,44 @@
     // Watchers
     watch(folder, () => { view.value = 'list'; selectedMsg.value = null; loadMessages(); });
 
+    // Incoming compose from other apps
+    function onMailCompose(e) {
+      const data = e.detail || {};
+      resetCompose();
+      if (data.to) compose.to = data.to;
+      if (data.subject) compose.subject = data.subject;
+      if (data.text) compose.text = data.text;
+      if (data.cc) compose.cc = data.cc;
+      if (data.bcc) compose.bcc = data.bcc;
+      view.value = 'compose';
+    }
+
+    function checkPendingCompose() {
+      if (window.__mailComposeData) {
+        const data = window.__mailComposeData;
+        delete window.__mailComposeData;
+        resetCompose();
+        if (data.to) compose.to = data.to;
+        if (data.subject) compose.subject = data.subject;
+        if (data.text) compose.text = data.text;
+        if (data.cc) compose.cc = data.cc;
+        if (data.bcc) compose.bcc = data.bcc;
+        view.value = 'compose';
+      }
+    }
+
     let localeTimer = null;
     onMounted(async () => {
       localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
       await loadAccounts();
       if (activeAccountId.value) await loadMessages();
+      window.addEventListener('mail-compose', onMailCompose);
+      checkPendingCompose();
     });
-    onUnmounted(() => { if (localeTimer) clearInterval(localeTimer); });
+    onUnmounted(() => {
+      if (localeTimer) clearInterval(localeTimer);
+      window.removeEventListener('mail-compose', onMailCompose);
+    });
 
     return {
       L, accounts, activeAccountId, activeAccount, folder, view, messages, selectedMsg,

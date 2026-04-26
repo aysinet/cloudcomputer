@@ -1,0 +1,117 @@
+<div class="arc-app">
+  <!-- TABS -->
+  <div class="arc-tabs">
+    <button :class="['arc-tab', tab==='compress'&&'active']" @click="tab='compress'">🗜️ {{L('tabCompress')}}</button>
+    <button :class="['arc-tab', tab==='extract'&&'active']" @click="tab='extract'">📂 {{L('tabExtract')}}</button>
+  </div>
+
+  <!-- BUSY OVERLAY -->
+  <div v-if="busy" class="arc-busy-overlay">
+    <div class="arc-spinner"></div>
+    <div class="arc-busy-text">{{busyText}}</div>
+  </div>
+
+  <!-- STATUS MESSAGE -->
+  <transition name="arc-fade">
+    <div v-if="statusMsg" :class="['arc-status', statusType]" @click="statusMsg=''">
+      <span>{{statusType==='success'?'✓':'✕'}}</span> {{statusMsg}}
+    </div>
+  </transition>
+
+  <!-- COMPRESS TAB -->
+  <div v-if="tab==='compress'" class="arc-content">
+    <!-- Format -->
+    <div class="arc-section">
+      <div class="arc-section-title">{{L('format')}}</div>
+      <div class="arc-format-btns">
+        <button :class="['arc-fmt-btn', format==='zip'&&'active']" @click="format='zip'">📦 ZIP</button>
+        <button :class="['arc-fmt-btn', format==='gzip'&&'active']" @click="format='gzip'">📦 GZIP</button>
+      </div>
+      <div v-if="format==='gzip'" class="arc-hint">⚠️ {{L('gzipHint')}}</div>
+    </div>
+
+    <!-- File Browser -->
+    <div class="arc-section">
+      <div class="arc-section-title">{{L('selectFiles')}}</div>
+      <!-- Path bar -->
+      <div class="arc-pathbar">
+        <button class="arc-path-btn" @click="navigateUp" :disabled="!compressPath">⬆️</button>
+        <div class="arc-path-text">/{{compressPath}}</div>
+        <button class="arc-path-btn" @click="loadCompressDir">🔄</button>
+      </div>
+      <!-- File list -->
+      <div class="arc-filelist">
+        <div v-for="f in compressFiles" :key="f.path"
+             :class="['arc-fileitem', isSelected(f) && 'selected']"
+             @click="toggleSelect(f)" @dblclick="f.isDir && enterDir(f.path)">
+          <span class="arc-file-icon">{{f.isDir ? '📁' : '📄'}}</span>
+          <span class="arc-file-name">{{f.name}}</span>
+          <span class="arc-file-size">{{f.isDir ? '' : formatSize(f.size)}}</span>
+          <span v-if="isSelected(f)" class="arc-file-check">✔</span>
+        </div>
+        <div v-if="!compressFiles.length" class="arc-empty-dir">{{L('emptyDir')}}</div>
+      </div>
+      <div class="arc-selected-info" v-if="selectedItems.length">
+        {{selectedItems.length}} {{L('itemsSelected')}}
+      </div>
+    </div>
+
+    <!-- Output name & action -->
+    <div class="arc-section arc-action-section">
+      <div class="arc-output-row">
+        <label class="arc-label">{{L('archiveName')}}</label>
+        <input class="arc-input" v-model="archiveName" :placeholder="format==='zip'?'archive.zip':'file.gz'" />
+      </div>
+      <button class="arc-action-btn primary" @click="doCompress" :disabled="busy || !selectedItems.length">
+        🗜️ {{L('compress')}}
+      </button>
+    </div>
+  </div>
+
+  <!-- EXTRACT TAB -->
+  <div v-if="tab==='extract'" class="arc-content">
+    <!-- File Browser for archives -->
+    <div class="arc-section">
+      <div class="arc-section-title">{{L('selectArchive')}}</div>
+      <div class="arc-pathbar">
+        <button class="arc-path-btn" @click="extractNavigateUp" :disabled="!extractPath">⬆️</button>
+        <div class="arc-path-text">/{{extractPath}}</div>
+        <button class="arc-path-btn" @click="loadExtractDir">🔄</button>
+      </div>
+      <div class="arc-filelist">
+        <div v-for="f in extractFiles" :key="f.path"
+             :class="['arc-fileitem', selectedArchive===f.path && 'selected']"
+             @click="!f.isDir && selectArchive(f.path)" @dblclick="f.isDir && enterExtractDir(f.path)">
+          <span class="arc-file-icon">{{f.isDir ? '📁' : archiveIcon(f.name)}}</span>
+          <span class="arc-file-name">{{f.name}}</span>
+          <span class="arc-file-size">{{f.isDir ? '' : formatSize(f.size)}}</span>
+          <span v-if="selectedArchive===f.path" class="arc-file-check">✔</span>
+        </div>
+        <div v-if="!extractFiles.length" class="arc-empty-dir">{{L('emptyDir')}}</div>
+      </div>
+    </div>
+
+    <!-- Archive contents preview -->
+    <div class="arc-section" v-if="archiveContents.length">
+      <div class="arc-section-title">{{L('archiveContents')}} <span class="arc-count">{{archiveContents.length}}</span></div>
+      <div class="arc-filelist arc-preview-list">
+        <div v-for="c in archiveContents" :key="c.name" class="arc-fileitem preview">
+          <span class="arc-file-icon">{{c.isDir ? '📁' : '📄'}}</span>
+          <span class="arc-file-name">{{c.name}}</span>
+          <span class="arc-file-size">{{c.isDir ? '' : formatSize(c.size)}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Extract destination & action -->
+    <div class="arc-section arc-action-section">
+      <div class="arc-output-row">
+        <label class="arc-label">{{L('extractTo')}}</label>
+        <input class="arc-input" v-model="extractDest" placeholder="extracted/" />
+      </div>
+      <button class="arc-action-btn primary" @click="doExtract" :disabled="busy || !selectedArchive">
+        📂 {{L('extract')}}
+      </button>
+    </div>
+  </div>
+</div>

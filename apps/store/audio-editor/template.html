@@ -1,0 +1,128 @@
+<div class="aed-app">
+  <!-- TOOLBAR -->
+  <div class="aed-toolbar">
+    <div class="aed-toolbar-group">
+      <el-button size="small" @click="openFilePicker" :disabled="busy">📂 {{L('open')}}</el-button>
+      <el-button size="small" @click="exportWav" :disabled="!hasAudio || busy" type="success">💾 {{L('export')}}</el-button>
+    </div>
+    <div class="aed-toolbar-group">
+      <el-button size="small" @click="undo" :disabled="!canUndo" circle>↩</el-button>
+      <el-button size="small" @click="redo" :disabled="!canRedo" circle>↪</el-button>
+    </div>
+    <div class="aed-toolbar-group">
+      <el-button size="small" @click="cutSelection" :disabled="!hasSelection">✂ {{L('cut')}}</el-button>
+      <el-button size="small" @click="copySelection" :disabled="!hasSelection">📋 {{L('copy')}}</el-button>
+      <el-button size="small" @click="pasteClipboard" :disabled="!clipboardBuffer">📌 {{L('paste')}}</el-button>
+      <el-button size="small" @click="deleteSelection" :disabled="!hasSelection" type="danger">🗑 {{L('delete')}}</el-button>
+    </div>
+    <div class="aed-toolbar-group">
+      <el-select v-model="selectedEffect" size="small" :placeholder="L('effects')" style="width:150px">
+        <el-option v-for="e in effectList" :key="e" :label="L('fx_'+e)" :value="e" />
+      </el-select>
+      <el-button size="small" @click="applyEffect" :disabled="!hasAudio || !selectedEffect" type="warning">⚡ {{L('apply')}}</el-button>
+    </div>
+  </div>
+
+  <!-- BUSY OVERLAY -->
+  <div v-if="busy" class="aed-busy-overlay">
+    <div class="aed-spinner"></div>
+    <div class="aed-busy-text">{{busyText}}</div>
+  </div>
+
+  <!-- STATUS -->
+  <transition name="aed-fade">
+    <div v-if="statusMsg" :class="['aed-status', statusType]" @click="statusMsg=''">
+      <span>{{statusType==='success'?'✓':'✕'}}</span> {{statusMsg}}
+    </div>
+  </transition>
+
+  <!-- WAVEFORM -->
+  <div class="aed-waveform-wrap" ref="waveWrap">
+    <canvas ref="waveCanvas" class="aed-waveform"
+      @mousedown="onWaveMouseDown" @mousemove="onWaveMouseMove" @mouseup="onWaveMouseUp"
+      @dblclick="selectAll"></canvas>
+    <div v-if="!hasAudio" class="aed-waveform-placeholder" @click="openFilePicker">
+      <div class="aed-placeholder-icon">🎛️</div>
+      <div>{{L('loadAudio')}}</div>
+    </div>
+  </div>
+
+  <!-- TIMELINE INFO -->
+  <div class="aed-info-bar" v-if="hasAudio">
+    <span>{{L('duration')}}: {{formatTime(audioDuration)}}</span>
+    <span v-if="hasSelection">{{L('selection')}}: {{formatTime(selectionStart / sampleRate)}} → {{formatTime(selectionEnd / sampleRate)}} ({{formatTime((selectionEnd - selectionStart) / sampleRate)}})</span>
+    <span>{{L('cursor')}}: {{formatTime(cursorPos / sampleRate)}}</span>
+    <span>{{sampleRate}} Hz / {{channels}} ch</span>
+  </div>
+
+  <!-- PLAYBACK CONTROLS -->
+  <div class="aed-playback">
+    <el-button circle @click="skipToStart" :disabled="!hasAudio">⏮</el-button>
+    <el-button circle @click="togglePlay" :disabled="!hasAudio" :type="isPlaying?'danger':'primary'" size="large">
+      {{isPlaying ? '⏹' : '▶'}}
+    </el-button>
+    <el-button circle @click="skipToEnd" :disabled="!hasAudio">⏭</el-button>
+    <div class="aed-zoom-group">
+      <el-button size="small" @click="zoomIn" :disabled="!hasAudio">🔍+</el-button>
+      <el-button size="small" @click="zoomOut" :disabled="!hasAudio">🔍−</el-button>
+      <el-button size="small" @click="zoomFit" :disabled="!hasAudio">↔</el-button>
+    </div>
+    <div class="aed-volume-group">
+      <span class="aed-vol-icon">🔊</span>
+      <el-slider v-model="volume" :min="0" :max="100" :show-tooltip="false" size="small" style="width:100px" />
+    </div>
+  </div>
+
+  <!-- GAIN DIALOG -->
+  <el-dialog v-model="showGainDialog" :title="L('fx_gain')" width="340px" append-to-body>
+    <div class="aed-dialog-body">
+      <label>{{L('gainDb')}}</label>
+      <el-slider v-model="gainDb" :min="-20" :max="20" :step="0.5" show-input size="small" />
+    </div>
+    <template #footer>
+      <el-button @click="showGainDialog=false">{{L('cancel')}}</el-button>
+      <el-button type="primary" @click="confirmGain">{{L('apply')}}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- FILE PICKER DIALOG -->
+  <el-dialog v-model="showFilePicker" :title="L('openFile')" width="500px" append-to-body>
+    <div class="aed-filepicker">
+      <div class="aed-fp-tabs">
+        <el-button :type="fpTab==='music'?'primary':''" size="small" @click="fpTab='music'; loadMusicFiles()">🎵 {{L('musicFiles')}}</el-button>
+        <el-button :type="fpTab==='recordings'?'primary':''" size="small" @click="fpTab='recordings'; loadRecordings()">🎙️ {{L('recordings')}}</el-button>
+        <el-button :type="fpTab==='browse'?'primary':''" size="small" @click="fpTab='browse'; loadFsDir()">📁 {{L('browse')}}</el-button>
+      </div>
+      <div class="aed-fp-list">
+        <div v-for="f in fpFiles" :key="f.url||f.path" class="aed-fp-item" @click="loadFromUrl(f.url, f.filename||f.name)">
+          <span class="aed-fp-icon">{{f.icon||'🎵'}}</span>
+          <span class="aed-fp-name">{{f.filename||f.name}}</span>
+          <span class="aed-fp-size">{{formatSize(f.size)}}</span>
+        </div>
+        <div v-if="!fpFiles.length" class="aed-fp-empty">{{L('noFiles')}}</div>
+      </div>
+    </div>
+  </el-dialog>
+
+  <!-- EXPORT DIALOG -->
+  <el-dialog v-model="showExportDialog" :title="L('exportTitle')" width="400px" append-to-body>
+    <div class="aed-dialog-body">
+      <el-form label-position="top" size="default">
+        <el-form-item :label="L('filename')">
+          <el-input v-model="exportFilename" placeholder="edited_audio.wav" />
+        </el-form-item>
+        <el-form-item :label="L('saveLocation')">
+          <el-select v-model="exportLocation" style="width:100%">
+            <el-option value="music" :label="L('musicFolder')" />
+            <el-option value="recordings" :label="L('recordingsFolder')" />
+            <el-option value="download" :label="L('downloadLocal')" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+    </div>
+    <template #footer>
+      <el-button @click="showExportDialog=false">{{L('cancel')}}</el-button>
+      <el-button type="primary" @click="confirmExport" :loading="busy">💾 {{L('export')}}</el-button>
+    </template>
+  </el-dialog>
+</div>

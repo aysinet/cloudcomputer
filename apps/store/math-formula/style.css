@@ -1,0 +1,52 @@
+/* ── MathFormula Editor ── */
+.mfe-root{display:flex;flex-direction:column;height:100%;background:#1a1a2e;color:#e0e0e0;font-family:inherit;overflow:hidden}
+.mfe-loading{display:flex;align-items:center;justify-content:center;height:100%;font-size:14px;color:#888}
+.mfe-error{color:#ff6b6b}
+
+/* toolbar */
+.mfe-toolbar{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;gap:8px;flex-wrap:wrap}
+.mfe-toolbar-right{display:flex;gap:6px}
+
+/* editor panel */
+.mfe-editor-panel{display:flex;flex-direction:column;flex:1;overflow:hidden}
+.mfe-edit-area{display:flex;flex:1;overflow:hidden;gap:0}
+.mfe-input-wrap{flex:1;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.08)}
+.mfe-preview-wrap{flex:1;display:flex;flex-direction:column;min-width:0}
+.mfe-label{padding:6px 12px 2px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+.mfe-textarea{flex:1;background:#12121f;color:#a5d6ff;border:none;padding:10px 14px;font-size:14px;font-family:'Fira Code','Consolas',monospace;resize:none;outline:none;line-height:1.7}
+.mfe-textarea::placeholder{color:#555}
+.mfe-preview{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;padding:16px;min-height:80px}
+.mfe-preview-inner{text-align:center}
+.mfe-render-error{padding:4px 12px;font-size:11px;color:#ff6b6b;flex-shrink:0}
+
+/* options */
+.mfe-options{border-top:1px solid rgba(255,255,255,.08);padding:8px 12px;flex-shrink:0}
+.mfe-opt-row{display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap;font-size:12px}
+.mfe-opt-row label{color:#999;white-space:nowrap}
+.mfe-opt-val{font-size:11px;color:#888;min-width:40px}
+
+/* symbols panel */
+.mfe-symbols-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.mfe-sym-cats{display:flex;gap:4px;padding:10px 12px 6px;flex-wrap:wrap;flex-shrink:0}
+.mfe-sym-grid{display:flex;flex-wrap:wrap;gap:4px;padding:8px 12px;overflow-y:auto;flex:1;align-content:flex-start}
+.mfe-sym-btn{width:48px;height:42px;border:1px solid rgba(255,255,255,.1);border-radius:6px;background:rgba(255,255,255,.04);color:#e0e0e0;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.mfe-sym-btn:hover{background:rgba(100,181,246,.2);border-color:rgba(100,181,246,.4)}
+
+/* library panel */
+.mfe-lib-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.mfe-lib-cats{display:flex;gap:4px;padding:10px 12px 6px;flex-wrap:wrap;flex-shrink:0}
+.mfe-lib-list{flex:1;overflow-y:auto;padding:6px 12px}
+.mfe-lib-item{padding:10px 14px;margin-bottom:5px;border-radius:8px;background:rgba(255,255,255,.04);cursor:pointer;transition:.15s}
+.mfe-lib-item:hover{background:rgba(100,181,246,.12)}
+.mfe-lib-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.mfe-lib-code{font-size:11px;color:#888;font-family:'Fira Code','Consolas',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* my formulas panel */
+.mfe-formulas-panel{flex:1;overflow-y:auto;padding:10px 12px}
+.mfe-loading-sm,.mfe-empty{text-align:center;padding:30px;color:#777;font-size:13px}
+.mfe-formula-list{display:flex;flex-direction:column;gap:4px}
+.mfe-formula-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,.04);cursor:pointer;transition:.15s}
+.mfe-formula-item:hover{background:rgba(255,255,255,.09)}
+.mfe-formula-info{flex:1;min-width:0}
+.mfe-formula-name{font-size:13px;font-weight:600}
+.mfe-formula-latex{font-size:11px;color:#888;font-family:'Fira Code','Consolas',monospace;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

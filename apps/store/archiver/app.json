@@ -1,0 +1,40 @@
+{
+  "id": "archiver",
+  "name": "Arşivleyici",
+  "icon": "🗜️",
+  "color": "linear-gradient(135deg,#e65c00,#f9d423)",
+  "type": "internal",
+  "size": {
+    "w": 680,
+    "h": 560
+  },
+  "global": false,
+  "description": "ZIP ve GZIP dosyalarını sıkıştırma ve açma aracı",
+  "lang": {
+    "tr": {
+      "name": "Arşivleyici",
+      "description": "ZIP ve GZIP dosyalarını sıkıştırma ve açma aracı"
+    },
+    "en": {
+      "name": "Archiver",
+      "description": "Compress and extract ZIP and GZIP archives"
+    },
+    "de": {
+      "name": "Archivierer",
+      "description": "ZIP- und GZIP-Archive komprimieren und entpacken"
+    },
+    "fr": {
+      "name": "Archiveur",
+      "description": "Compresser et extraire des archives ZIP et GZIP"
+    },
+    "es": {
+      "name": "Archivador",
+      "description": "Comprimir y extraer archivos ZIP y GZIP"
+    },
+    "ru": {
+      "name": "Архиватор",
+      "description": "Сжатие и распаковка архивов ZIP и GZIP"
+    }
+  },
+  "category": "tools"
+}

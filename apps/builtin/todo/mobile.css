@@ -1,0 +1,6 @@
+/* Todo: bigger inputs */
+.todo-add-row{padding:14px}
+.todo-add-row input{height:42px;font-size:15px}
+.todo-add-row button{height:42px;padding:0 18px;font-size:14px}
+.todo-item{padding:14px}
+.todo-item span{font-size:15px}

@@ -9,6 +9,15 @@
     "jwtSecret": "vue-desktop-jwt-secret-change-me",
     "jwtExpiresIn": "24h"
   },
+  "docker": {
+    "managerUrl": "http://localhost:9800",
+    "secret": "cloudpc-docker-manager-secret",
+    "network": "cloudpc-net",
+    "portRange": {
+      "start": 9000,
+      "end": 9999
+    }
+  },
   "websocket": {
     "pingInterval": 30000
   },

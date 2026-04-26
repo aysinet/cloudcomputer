@@ -1,0 +1,40 @@
+{
+  "id": "postit",
+  "name": "PostIt Notlar",
+  "icon": "📌",
+  "color": "linear-gradient(135deg,#fff176,#ffb74d)",
+  "type": "internal",
+  "size": {
+    "w": 380,
+    "h": 460
+  },
+  "global": false,
+  "description": "Masaüstüne yapışkan not ekleyin — sürükle, yeniden boyutlandır, renklendir",
+  "lang": {
+    "tr": {
+      "name": "PostIt Notlar",
+      "description": "Masaüstüne yapışkan not ekleyin — sürükle, yeniden boyutlandır, renklendir"
+    },
+    "en": {
+      "name": "PostIt Notes",
+      "description": "Stick notes on your desktop — drag, resize, colorize"
+    },
+    "de": {
+      "name": "PostIt Notizen",
+      "description": "Haftnotizen auf dem Desktop — ziehen, skalieren, einfärben"
+    },
+    "fr": {
+      "name": "Notes PostIt",
+      "description": "Collez des notes sur le bureau — glisser, redimensionner, colorier"
+    },
+    "es": {
+      "name": "Notas PostIt",
+      "description": "Pega notas en el escritorio — arrastra, redimensiona, colorea"
+    },
+    "ru": {
+      "name": "PostIt Заметки",
+      "description": "Приклейте заметки на рабочий стол — перетаскивание, изменение размера, раскрашивание"
+    }
+  },
+  "category": "productivity"
+}

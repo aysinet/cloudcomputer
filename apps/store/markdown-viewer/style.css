@@ -1,0 +1,284 @@
+.md-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ── Toolbar ── */
+.md-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background: #16213e;
+  border-bottom: 1px solid #2a2a4a;
+  gap: 4px;
+  flex-wrap: wrap;
+  min-height: 38px;
+}
+
+.md-toolbar-left,
+.md-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.md-tb-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #ccc;
+  cursor: pointer;
+  padding: 4px 7px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1;
+  transition: all 0.15s;
+}
+
+.md-tb-btn:hover {
+  background: #2a2a4a;
+  border-color: #3a3a5a;
+  color: #fff;
+}
+
+.md-sep {
+  width: 1px;
+  height: 18px;
+  background: #3a3a5a;
+  margin: 0 4px;
+}
+
+.md-toolbar .el-switch__label {
+  color: #aaa !important;
+  font-size: 11px !important;
+}
+
+.md-toolbar .el-input-number {
+  --el-input-bg-color: #1e1e3a;
+  --el-input-border-color: #3a3a5a;
+  --el-input-text-color: #e0e0e0;
+}
+
+.md-toolbar .el-radio-group {
+  --el-radio-button-checked-bg-color: #409eff;
+  --el-radio-button-checked-border-color: #409eff;
+}
+
+/* ── File label ── */
+.md-file-label {
+  padding: 3px 10px;
+  font-size: 11px;
+  color: #888;
+  background: #1e1e3a;
+  border-bottom: 1px solid #2a2a4a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Main content ── */
+.md-main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── TOC Sidebar ── */
+.md-toc {
+  width: 180px;
+  min-width: 120px;
+  max-width: 220px;
+  background: #16213e;
+  border-right: 1px solid #2a2a4a;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.md-toc-title {
+  padding: 8px 10px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.md-toc-item {
+  padding: 3px 10px;
+  font-size: 12px;
+  color: #aaa;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.md-toc-item:hover {
+  background: #2a2a4a;
+  color: #fff;
+}
+
+/* ── Editor pane ── */
+.md-editor-pane {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.md-editor-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Preview pane ── */
+.md-preview-pane {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  border-left: 1px solid #2a2a4a;
+  background: #1e1e2e;
+}
+
+.md-preview-content {
+  padding: 20px 28px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #d4d4d4;
+  max-width: 800px;
+}
+
+/* ── Preview typography ── */
+.md-preview-content h1 { font-size: 2em; font-weight: 700; margin: 0.8em 0 0.4em; color: #fff; border-bottom: 1px solid #3a3a5a; padding-bottom: 0.3em; }
+.md-preview-content h2 { font-size: 1.5em; font-weight: 600; margin: 0.8em 0 0.4em; color: #f0f0f0; border-bottom: 1px solid #2a2a4a; padding-bottom: 0.2em; }
+.md-preview-content h3 { font-size: 1.25em; font-weight: 600; margin: 0.7em 0 0.3em; color: #e8e8e8; }
+.md-preview-content h4 { font-size: 1.1em; font-weight: 600; margin: 0.6em 0 0.3em; color: #ddd; }
+.md-preview-content h5, .md-preview-content h6 { font-size: 1em; font-weight: 600; margin: 0.5em 0 0.2em; color: #ccc; }
+
+.md-preview-content p { margin: 0.6em 0; }
+
+.md-preview-content a { color: #64b5f6; text-decoration: none; }
+.md-preview-content a:hover { text-decoration: underline; }
+
+.md-preview-content strong { color: #fff; }
+
+.md-preview-content code {
+  background: #2d2d44;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.9em;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  color: #e06c75;
+}
+
+.md-preview-content pre {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  padding: 14px 18px;
+  overflow-x: auto;
+  margin: 0.8em 0;
+}
+
+.md-preview-content pre code {
+  background: transparent;
+  padding: 0;
+  color: #abb2bf;
+}
+
+.md-preview-content blockquote {
+  border-left: 4px solid #4a90d9;
+  margin: 0.8em 0;
+  padding: 8px 16px;
+  color: #aaa;
+  background: rgba(74,144,217,0.08);
+  border-radius: 0 4px 4px 0;
+}
+
+.md-preview-content ul, .md-preview-content ol { padding-left: 24px; margin: 0.5em 0; }
+.md-preview-content li { margin: 0.2em 0; }
+.md-preview-content li::marker { color: #64b5f6; }
+
+.md-preview-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.8em 0;
+}
+
+.md-preview-content th, .md-preview-content td {
+  border: 1px solid #3a3a5a;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.md-preview-content th {
+  background: #16213e;
+  font-weight: 600;
+  color: #fff;
+}
+
+.md-preview-content tr:nth-child(even) td {
+  background: rgba(255,255,255,0.03);
+}
+
+.md-preview-content hr {
+  border: none;
+  border-top: 1px solid #3a3a5a;
+  margin: 1.5em 0;
+}
+
+.md-preview-content img {
+  max-width: 100%;
+  border-radius: 6px;
+  margin: 0.5em 0;
+}
+
+.md-preview-content input[type="checkbox"] {
+  margin-right: 6px;
+  accent-color: #409eff;
+}
+
+/* ── Status bar ── */
+.md-statusbar {
+  display: flex;
+  align-items: center;
+  padding: 3px 12px;
+  background: #16213e;
+  border-top: 1px solid #2a2a4a;
+  font-size: 11px;
+  color: #888;
+  gap: 16px;
+  min-height: 24px;
+  flex-shrink: 0;
+}
+
+/* ── Scrollbar ── */
+.md-app ::-webkit-scrollbar { width: 8px; height: 8px; }
+.md-app ::-webkit-scrollbar-track { background: #1a1a2e; }
+.md-app ::-webkit-scrollbar-thumb { background: #3a3a5a; border-radius: 4px; }
+.md-app ::-webkit-scrollbar-thumb:hover { background: #4a4a6a; }
+
+/* ── Element overrides ── */
+.md-app .el-input__wrapper {
+  background: #1e1e3a;
+  box-shadow: 0 0 0 1px #3a3a5a inset;
+}
+.md-app .el-input__inner { color: #e0e0e0; }
+.md-app .el-dropdown-menu {
+  background: #1e1e3a;
+  border-color: #3a3a5a;
+}
+.md-app .el-dropdown-menu__item {
+  color: #ddd;
+}
+.md-app .el-dropdown-menu__item:hover {
+  background: #2a2a4a;
+  color: #fff;
+}

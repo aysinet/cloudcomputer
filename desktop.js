@@ -29,6 +29,48 @@ if (fs.existsSync(DB_PATH)) {
 const STORE_DIR = path.join(__dirname, 'apps', 'store');
 const DATA_DIR = path.join(__dirname, 'data', 'users');
 
+// ── Docker container tracking ──
+const dockerContainers = {}; // { appId: { containerId, containerName, hostPort, internalUrl } }
+const proxyCache = {};
+
+// ── Docker Manager client (ENV > config.json > default) ──
+const DOCKER_MANAGER_URL = process.env.DOCKER_MANAGER_URL || config.docker?.managerUrl || 'http://localhost:9800';
+const DM_SECRET = process.env.DM_SECRET || config.docker?.secret || 'cloudpc-docker-manager-secret';
+const IS_DOCKER = process.env.IS_DOCKER === 'true';
+const INSTANCE_ID = process.env.INSTANCE_ID || 'default';
+
+// ── Volume placeholder resolution for Docker sub-containers ──
+function resolveVolumes(volumes, appId) {
+  if (!Array.isArray(volumes)) return volumes;
+  const volumeVars = {
+    DATA_VOLUME: `cloudpc-${INSTANCE_ID}-data`,
+    APP_VOLUME: `cloudpc-${INSTANCE_ID}-${appId}`
+  };
+  return volumes.map(v => {
+    if (typeof v !== 'string') return v;
+    return v.replace(/\$\{(DATA_VOLUME|APP_VOLUME)\}/g, (_, key) => volumeVars[key] || _);
+  });
+}
+
+async function dmFetch(path, opts = {}) {
+  const url = DOCKER_MANAGER_URL + path;
+  const headers = { 'Content-Type': 'application/json', 'x-dm-secret': DM_SECRET, ...(opts.headers || {}) };
+  let res;
+  try {
+    res = await fetch(url, { ...opts, headers });
+  } catch (e) {
+    throw new Error('Docker Manager bağlantı hatası: ' + (e.cause?.code || e.message));
+  }
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = (await res.text()).substring(0, 200);
+    throw new Error(`Docker Manager beklenmeyen yanıt (${res.status}): ${text}`);
+  }
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `DockerManager error: ${res.status}`);
+  return data;
+}
+
 // ── Middleware ──
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false }));
@@ -94,9 +136,22 @@ app.get('/api/me', authMiddleware, (req, res) => {
 app.get('/', (req, res) => {
   const token = extractToken(req);
   if (token && verifyToken(token)) {
+    const ua = req.headers['user-agent'] || '';
+    if (/Mobile|Android|iP(hone|od|ad)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/i.test(ua)) {
+      return res.redirect('/mobile');
+    }
     return res.sendFile(path.join(__dirname, 'index.html'));
   }
   res.sendFile(path.join(__dirname, 'login.html'));
+});
+
+// Mobile specific route
+app.get('/mobile', (req, res) => {
+  const token = extractToken(req);
+  if (token && verifyToken(token)) {
+    return res.sendFile(path.join(__dirname, 'mobile.html'));
+  }
+  res.redirect('/');
 });
 
 // ── App Store Helpers ──
@@ -110,10 +165,14 @@ function getStoreApps() {
   const apps = [];
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
-    const manifestPath = path.join(STORE_DIR, entry.name, 'app.json');
+    const appDir = path.join(STORE_DIR, entry.name);
+    const manifestPath = path.join(appDir, 'app.json');
     if (!fs.existsSync(manifestPath)) continue;
     try {
       const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+      // Auto-detect optional asset files so the client doesn't 404 fetching them
+      manifest.hasStyle = manifest.hasStyle === true || fs.existsSync(path.join(appDir, 'style.css'));
+      manifest.hasMobileStyle = manifest.hasMobileStyle === true || fs.existsSync(path.join(appDir, 'mobile.css'));
       apps.push(manifest);
     } catch { /* skip malformed */ }
   }
@@ -186,6 +245,15 @@ app.post('/api/apps/install', authMiddleware, (req, res) => {
     userData.installedAt[appId] = new Date().toISOString();
     saveUserInstalled(req.user.username, userData);
   }
+
+  // If app has docker config, pull the image asynchronously via DockerManager
+  if (appManifest.docker && appManifest.docker.image) {
+    const img = appManifest.docker.image;
+    dmFetch('/pull', { method: 'POST', body: JSON.stringify({ image: img }) })
+      .then(() => console.log(`Docker image pulled: ${img}`))
+      .catch(err => console.error(`Docker pull failed for ${img}:`, err.message));
+  }
+
   res.json({ ok: true, app: appManifest });
 });
 
@@ -199,6 +267,14 @@ app.post('/api/apps/uninstall', authMiddleware, (req, res) => {
   userData.installed = userData.installed.filter(id => id !== appId);
   delete userData.installedAt[appId];
   saveUserInstalled(req.user.username, userData);
+
+  // Stop Docker container if running via DockerManager
+  if (dockerContainers[appId]) {
+    dmFetch('/stop', { method: 'POST', body: JSON.stringify({ appId }) }).catch(() => {});
+    delete dockerContainers[appId];
+    delete proxyCache[appId];
+  }
+
   res.json({ ok: true });
 });
 
@@ -220,6 +296,13 @@ app.get('/api/apps/:id/style', authMiddleware, (req, res) => {
   const appId = req.params.id.replace(/[^a-zA-Z0-9_-]/g, '');
   const filePath = path.join(STORE_DIR, appId, 'style.css');
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Style not found' });
+  res.type('text/css').send(fs.readFileSync(filePath, 'utf-8'));
+});
+
+app.get('/api/apps/:id/mobile-style', authMiddleware, (req, res) => {
+  const appId = req.params.id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const filePath = path.join(STORE_DIR, appId, 'mobile.css');
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Mobile style not found' });
   res.type('text/css').send(fs.readFileSync(filePath, 'utf-8'));
 });
 
@@ -523,10 +606,112 @@ app.get('/api/code/languages', authMiddleware, (req, res) => {
   res.json(langs);
 });
 
+// ── Docker Management API (delegates to DockerManager sidecar) ──
+
+app.post('/api/docker/pull', authMiddleware, async (req, res) => {
+  const { image } = req.body;
+  if (!image || !/^[a-zA-Z0-9_\-./]+:[a-zA-Z0-9_.\-]*$|^[a-zA-Z0-9_\-./]+$/.test(image)) {
+    return res.status(400).json({ error: 'Invalid image name' });
+  }
+  try {
+    const data = await dmFetch('/pull', { method: 'POST', body: JSON.stringify({ image }) });
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/docker/run', authMiddleware, async (req, res) => {
+  const { image, appId, containerPort, volumes, env } = req.body;
+  if (!image || !appId) return res.status(400).json({ error: 'image and appId required' });
+  if (!/^[a-zA-Z0-9_\-./]+:[a-zA-Z0-9_.\-]*$|^[a-zA-Z0-9_\-./]+$/.test(image)) return res.status(400).json({ error: 'Invalid image name' });
+  if (!/^[a-zA-Z0-9_-]+$/.test(appId)) return res.status(400).json({ error: 'Invalid appId' });
+
+  // Resolve volume placeholders (${DATA_VOLUME}, ${APP_VOLUME}) to instance-specific names
+  const resolvedVolumes = resolveVolumes(volumes, appId);
+
+  try {
+    const data = await dmFetch('/run', {
+      method: 'POST',
+      body: JSON.stringify({ image, appId, containerPort: containerPort || 80, volumes: resolvedVolumes, env })
+    });
+
+    // Determine proxy target: inside Docker use container name, outside use host port
+    const proxyTarget = IS_DOCKER ? data.internalUrl : `http://localhost:${data.hostPort}`;
+
+    dockerContainers[appId] = {
+      containerId: data.containerId,
+      containerName: data.containerName,
+      hostPort: data.hostPort,
+      internalUrl: data.internalUrl
+    };
+
+    // Register dynamic proxy
+    if (proxyCache[appId]) delete proxyCache[appId];
+    proxyCache[appId] = { target: proxyTarget, appId, dynamic: true };
+
+    res.json({ ok: true, containerId: data.containerId, port: data.hostPort });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/docker/stop', authMiddleware, async (req, res) => {
+  const { appId } = req.body;
+  if (!appId || !/^[a-zA-Z0-9_-]+$/.test(appId)) return res.status(400).json({ error: 'Invalid appId' });
+  try {
+    await dmFetch('/stop', { method: 'POST', body: JSON.stringify({ appId }) });
+    delete dockerContainers[appId];
+    delete proxyCache[appId];
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/docker/status/:appId', authMiddleware, async (req, res) => {
+  const appId = req.params.appId.replace(/[^a-zA-Z0-9_-]/g, '');
+  try {
+    const data = await dmFetch('/status/' + appId);
+    if (data.running) {
+      dockerContainers[appId] = {
+        containerId: data.containerId,
+        containerName: data.containerName,
+        hostPort: data.hostPort,
+        internalUrl: data.internalUrl
+      };
+      // Ensure proxy is set up (only if we have a valid target)
+      if (!proxyCache[appId] && (IS_DOCKER ? data.internalUrl : data.hostPort)) {
+        const proxyTarget = IS_DOCKER ? data.internalUrl : `http://localhost:${data.hostPort}`;
+        proxyCache[appId] = { target: proxyTarget, appId, dynamic: true };
+      }
+    }
+    res.json({ running: data.running, containerId: data.containerId, port: data.hostPort });
+  } catch {
+    res.json({ running: false });
+  }
+});
+
 // ── External App Proxy ──
-const proxyCache = {};
+// proxyCache is declared above (Docker section may insert dynamic entries)
 app.use('/proxy/:appId', (req, res, next) => {
   const appId = req.params.appId.replace(/[^a-zA-Z0-9_-]/g, '');
+
+  // Check for dynamic Docker proxy first
+  const dynProxy = proxyCache[appId];
+  if (dynProxy && dynProxy.dynamic) {
+    if (!dynProxy.middleware) {
+      dynProxy.middleware = createProxyMiddleware({
+        target: dynProxy.target,
+        changeOrigin: true,
+        pathRewrite: (p) => p.replace(new RegExp(`^/proxy/${appId}`), ''),
+        ws: true
+      });
+    }
+    return dynProxy.middleware(req, res, next);
+  }
+
+  // Fallback to static external app from app.json
   const storeApps = getStoreApps();
   const appManifest = storeApps.find(a => a.id === appId && a.type === 'external');
   if (!appManifest) return res.status(404).json({ error: 'External app not found' });
@@ -677,7 +862,7 @@ app.post('/api/notifications', authMiddleware, (req, res) => {
     bg: bg || '#ecf5ff',
     title,
     text,
-    time: new Date().toLocaleString('tr-TR'),
+    time: new Date().toISOString(),
     read: false,
     createdAt: Date.now()
   };
@@ -727,7 +912,14 @@ wss.on('connection', (ws, req) => {
 
   ws.on('pong', () => { ws.isAlive = true; });
 
-  ws.on('message', (raw) => {
+  ws.on('message', (raw, isBinary) => {
+    if (isBinary) {
+      // Binary audio chunk for real-time recording
+      if (ws._audioSession) {
+        try { fs.appendFileSync(ws._audioSession.tmpPath, Buffer.from(raw)); ws._audioSession.size += raw.byteLength; } catch {}
+      }
+      return;
+    }
     try {
       const msg = JSON.parse(raw.toString());
       handleWSMessage(ws, msg);
@@ -757,6 +949,8 @@ function broadcastWS(message) {
   wsClients.forEach(ws => {
     if (ws.readyState !== 1) return;
     if (message.type === 'coin-prices' && !ws.coinSubscribed) return;
+    if (message.type === 'stock-prices' && !ws.stockSubscribed) return;
+    if (message.type === 'torrent-progress' && !ws.torrentSubscribed) return;
     ws.send(payload);
   });
 }
@@ -772,7 +966,7 @@ function handleWSMessage(ws, msg) {
         bg: bg || '#ecf5ff',
         title,
         text,
-        time: new Date().toLocaleString('tr-TR'),
+        time: new Date().toISOString(),
         read: false,
         createdAt: Date.now()
       };
@@ -789,6 +983,74 @@ function handleWSMessage(ws, msg) {
       break;
     case 'coin-unsubscribe':
       ws.coinSubscribed = false;
+      break;
+    case 'stock-subscribe':
+      ws.stockSubscribed = true;
+      ws.send(JSON.stringify({ type: 'stock-prices', data: stockPrices }));
+      break;
+    case 'stock-unsubscribe':
+      ws.stockSubscribed = false;
+      break;
+    case 'audio-rec-start': {
+      const { sessionId, sampleRate, channels } = msg.data || {};
+      if (!sessionId || !ws.user) break;
+      const safe = ws.user.username.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const recDir = path.join(DATA_DIR, safe, 'recordings');
+      ensureDir(recDir);
+      const tmpPath = path.join(recDir, sessionId + '.pcm.tmp');
+      ws._audioSession = { sessionId, sampleRate: sampleRate || 44100, channels: channels || 1, tmpPath, size: 0 };
+      // Create/truncate tmp file
+      fs.writeFileSync(tmpPath, Buffer.alloc(0));
+      break;
+    }
+    case 'audio-rec-stop': {
+      const sess = ws._audioSession;
+      if (!sess) break;
+      try {
+        const pcmData = fs.readFileSync(sess.tmpPath);
+        const wavHeader = buildWavHeader(pcmData.length, sess.sampleRate, sess.channels);
+        const pad = n => String(n).padStart(2, '0');
+        const now = new Date();
+        const ts = now.getFullYear() + pad(now.getMonth()+1) + pad(now.getDate()) + '_' + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
+        const wavName = 'recording_' + ts + '.wav';
+        const wavPath = path.join(path.dirname(sess.tmpPath), wavName);
+        const wavBuf = Buffer.concat([wavHeader, pcmData]);
+        fs.writeFileSync(wavPath, wavBuf);
+        fs.unlinkSync(sess.tmpPath);
+        ws.send(JSON.stringify({ type: 'audio-rec-saved', data: { filename: wavName, size: wavBuf.length } }));
+      } catch (e) {
+        ws.send(JSON.stringify({ type: 'audio-rec-error', data: { error: e.message } }));
+      }
+      ws._audioSession = null;
+      break;
+    }
+    case 'torrent-subscribe':
+      ws.torrentSubscribed = true;
+      ws.send(JSON.stringify({ type: torrentClient ? 'torrent-list' : 'torrent-not-installed', data: torrentClient ? getTorrentList() : {} }));
+      break;
+    case 'torrent-unsubscribe':
+      ws.torrentSubscribed = false;
+      break;
+    case 'torrent-add':
+      handleTorrentAdd(ws, msg.data || {});
+      break;
+    case 'torrent-pause':
+      handleTorrentPause(ws, msg.data || {});
+      break;
+    case 'torrent-resume':
+      handleTorrentResume(ws, msg.data || {});
+      break;
+    case 'torrent-remove':
+      handleTorrentRemove(ws, msg.data || {});
+      break;
+    case 'torrent-start-all':
+      handleTorrentStartAll();
+      break;
+    case 'torrent-pause-all':
+      handleTorrentPauseAll();
+      break;
+    case 'torrent-settings':
+      handleTorrentSettings(ws, msg.data || {});
       break;
     default:
       ws.send(JSON.stringify({ type: 'echo', data: msg }));
@@ -823,9 +1085,15 @@ app.get('/api/coins/favorites', authMiddleware, (req, res) => {
 });
 
 app.post('/api/coins/favorites', authMiddleware, (req, res) => {
-  const { favorites, hidden } = req.body;
+  const { favorites, hidden, portfolio, defaultTab } = req.body;
   const filePath = getCoinPrefsPath(req.user.username);
-  const data = { favorites: favorites || [], hidden: hidden || [] };
+  const cur = getUserCoinPrefs(req.user.username);
+  const data = {
+    favorites: favorites !== undefined ? (favorites || []) : cur.favorites,
+    hidden: hidden !== undefined ? (hidden || []) : cur.hidden,
+    portfolio: portfolio !== undefined ? (portfolio || []) : (cur.portfolio || []),
+    defaultTab: defaultTab !== undefined ? defaultTab : (cur.defaultTab || '')
+  };
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
   res.json({ ok: true });
 });
@@ -839,13 +1107,189 @@ function getCoinPrefsPath(username) {
 
 function getUserCoinPrefs(username) {
   const filePath = getCoinPrefsPath(username);
-  if (!fs.existsSync(filePath)) return { favorites: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT'], hidden: [] };
+  if (!fs.existsSync(filePath)) return { favorites: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT'], hidden: [], portfolio: [], defaultTab: '' };
   try { return JSON.parse(fs.readFileSync(filePath, 'utf-8')); } catch { return { favorites: [], hidden: [] }; }
 }
 
 // Start polling Binance every 5 seconds
 fetchBinancePrices();
 coinFetchInterval = setInterval(fetchBinancePrices, 5000);
+
+// ── Stock Tracker (Finnhub) ──
+const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || 'd7mmd5pr01qngrvonql0d7mmd5pr01qngrvonqlg';
+const DEFAULT_STOCKS = ['AAPL','MSFT','GOOGL','AMZN','NVDA','META','TSLA','NFLX','AVGO','AMD','COST','ADBE','PEP','CSCO','INTC','CRM','ORCL','MCD','DIS','BA'];
+let stockPrices = [];
+let stockFetchInterval = null;
+let allStockSymbols = [];
+let stockBatchIndex = 0;
+let stockSubscribedSymbols = new Set(DEFAULT_STOCKS);
+
+// Load full US stock symbol list from Finnhub at startup
+async function loadStockSymbols() {
+  if (!FINNHUB_API_KEY) return;
+  try {
+    const resp = await fetch(`https://finnhub.io/api/v1/stock/symbol?exchange=US&token=${encodeURIComponent(FINNHUB_API_KEY)}`);
+    if (!resp.ok) { console.error('[Stock Tracker] Failed to load symbols, status:', resp.status); return; }
+    const data = await resp.json();
+    allStockSymbols = data
+      .filter(s => s.type === 'Common Stock')
+      .map(s => s.symbol)
+      .sort();
+    console.log(`[Stock Tracker] Loaded ${allStockSymbols.length} US stock symbols`);
+  } catch (e) {
+    console.error('[Stock Tracker] Failed to load symbols:', e.message);
+    allStockSymbols = [...DEFAULT_STOCKS];
+  }
+}
+
+function collectStockSymbols() {
+  const all = new Set(DEFAULT_STOCKS);
+  const usersDir = path.join(DATA_DIR);
+  try {
+    const dirs = fs.readdirSync(usersDir, { withFileTypes: true }).filter(d => d.isDirectory());
+    for (const d of dirs) {
+      const fp = path.join(usersDir, d.name, 'stock-prefs.json');
+      if (fs.existsSync(fp)) {
+        try {
+          const prefs = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+          (prefs.favorites || []).forEach(s => all.add(s));
+          (prefs.portfolio || []).forEach(p => { if (p.symbol) all.add(p.symbol); });
+        } catch {}
+      }
+    }
+  } catch {}
+  stockSubscribedSymbols = all;
+}
+
+async function fetchStockPrices() {
+  if (!FINNHUB_API_KEY) return;
+  collectStockSymbols();
+
+  const BATCH_SIZE = 55;
+  const priority = [...stockSubscribedSymbols];
+  const batch = [];
+  const seen = new Set();
+
+  // 1) Priority: favorites + portfolio symbols (always in every round)
+  for (const s of priority) {
+    if (batch.length >= BATCH_SIZE) break;
+    if (!seen.has(s)) { batch.push(s); seen.add(s); }
+  }
+
+  // 2) Fill remaining slots from rotating pointer over allStockSymbols
+  if (allStockSymbols.length > 0) {
+    let idx = stockBatchIndex;
+    let scanned = 0;
+    while (batch.length < BATCH_SIZE && scanned < allStockSymbols.length) {
+      const sym = allStockSymbols[idx % allStockSymbols.length];
+      if (!seen.has(sym)) { batch.push(sym); seen.add(sym); }
+      idx++;
+      scanned++;
+    }
+    stockBatchIndex = idx % allStockSymbols.length;
+  }
+
+  // 3) Fetch in parallel (concurrency = 5, stays under 30 calls/sec)
+  const results = [];
+  const CONCURRENCY = 5;
+  for (let i = 0; i < batch.length; i += CONCURRENCY) {
+    const chunk = batch.slice(i, i + CONCURRENCY);
+    const promises = chunk.map(async (sym) => {
+      try {
+        const resp = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(sym)}&token=${encodeURIComponent(FINNHUB_API_KEY)}`);
+        if (!resp.ok) return null;
+        const d = await resp.json();
+        if (d && typeof d.c === 'number' && d.c > 0) {
+          return { symbol: sym, price: d.c, change: d.d || 0, changePercent: d.dp || 0, high: d.h || 0, low: d.l || 0, open: d.o || 0, prevClose: d.pc || 0 };
+        }
+        return null;
+      } catch { return null; }
+    });
+    const settled = await Promise.all(promises);
+    settled.forEach(r => { if (r) results.push(r); });
+  }
+
+  if (results.length > 0) {
+    const map = new Map(stockPrices.map(s => [s.symbol, s]));
+    results.forEach(r => map.set(r.symbol, r));
+    stockPrices = [...map.values()].sort((a, b) => a.symbol.localeCompare(b.symbol));
+    broadcastWS({ type: 'stock-prices', data: stockPrices });
+  }
+}
+
+app.get('/api/stocks', authMiddleware, (req, res) => {
+  res.json(stockPrices);
+});
+
+app.get('/api/stocks/search', authMiddleware, async (req, res) => {
+  if (!FINNHUB_API_KEY) return res.json([]);
+  const q = (req.query.q || '').trim();
+  if (!q) return res.json([]);
+  try {
+    const resp = await fetch(`https://finnhub.io/api/v1/search?q=${encodeURIComponent(q)}&exchange=US&token=${encodeURIComponent(FINNHUB_API_KEY)}`);
+    if (!resp.ok) return res.json([]);
+    const data = await resp.json();
+    const results = (data.result || []).filter(r => r.type === 'Common Stock').slice(0, 10).map(r => ({
+      symbol: r.symbol,
+      description: r.description
+    }));
+    res.json(results);
+  } catch { res.json([]); }
+});
+
+app.get('/api/stocks/market-status', authMiddleware, async (req, res) => {
+  if (!FINNHUB_API_KEY) return res.json({ isOpen: false, session: null });
+  try {
+    const resp = await fetch(`https://finnhub.io/api/v1/stock/market-status?exchange=US&token=${encodeURIComponent(FINNHUB_API_KEY)}`);
+    if (!resp.ok) return res.json({ isOpen: false, session: null });
+    const data = await resp.json();
+    res.json({ isOpen: data.isOpen, session: data.session, holiday: data.holiday || null });
+  } catch { res.json({ isOpen: false, session: null }); }
+});
+
+app.get('/api/stocks/favorites', authMiddleware, (req, res) => {
+  const userData = getUserStockPrefs(req.user.username);
+  res.json(userData);
+});
+
+app.post('/api/stocks/favorites', authMiddleware, (req, res) => {
+  const { favorites, hidden, portfolio, usdBalance, defaultTab } = req.body;
+  const filePath = getStockPrefsPath(req.user.username);
+  const cur = getUserStockPrefs(req.user.username);
+  const data = {
+    favorites: favorites !== undefined ? (favorites || []) : cur.favorites,
+    hidden: hidden !== undefined ? (hidden || []) : cur.hidden,
+    portfolio: portfolio !== undefined ? (portfolio || []) : (cur.portfolio || []),
+    usdBalance: usdBalance !== undefined ? usdBalance : (cur.usdBalance || 0),
+    defaultTab: defaultTab !== undefined ? defaultTab : (cur.defaultTab || '')
+  };
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  res.json({ ok: true });
+});
+
+function getStockPrefsPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'stock-prefs.json');
+}
+
+function getUserStockPrefs(username) {
+  const filePath = getStockPrefsPath(username);
+  if (!fs.existsSync(filePath)) return { favorites: ['AAPL','MSFT','NVDA','GOOGL','AMZN'], hidden: [], portfolio: [], usdBalance: 0, defaultTab: '' };
+  try { return JSON.parse(fs.readFileSync(filePath, 'utf-8')); } catch { return { favorites: [], hidden: [], portfolio: [], usdBalance: 0 }; }
+}
+
+// Start polling Finnhub every 60 seconds (rotating batches of 55)
+if (FINNHUB_API_KEY) {
+  loadStockSymbols().then(() => {
+    console.log(`[Stock Tracker] Starting price polling (batch=55, interval=60s, total symbols=${allStockSymbols.length})`);
+    fetchStockPrices();
+    stockFetchInterval = setInterval(fetchStockPrices, 60000);
+  });
+} else {
+  console.warn('[Stock Tracker] FINNHUB_API_KEY not set — stock polling disabled');
+}
 
 // ── Password Vault (AES-256-GCM encrypted storage) ──
 const VAULT_ALGO = 'aes-256-gcm';
@@ -906,12 +1350,12 @@ app.post('/api/vault/unlock', authMiddleware, (req, res) => {
   const { masterPassword } = req.body;
   if (!masterPassword) return res.status(400).json({ error: 'masterPassword required' });
   const vaultObj = loadVault(req.user.username);
-  if (!vaultObj) return res.json({ entries: [], groups: ['Genel', 'E-posta', 'Sosyal Medya', 'Banka', 'Sunucu'] });
+  if (!vaultObj) return res.json({ entries: [], groups: [] });
   try {
     const data = decryptVault(vaultObj, masterPassword);
     res.json(data);
   } catch {
-    res.status(403).json({ error: 'Yanlış ana şifre' });
+    res.status(403).json({ error: 'wrong_password' });
   }
 });
 
@@ -929,6 +1373,23 @@ app.post('/api/vault/save', authMiddleware, (req, res) => {
 app.get('/api/vault/exists', authMiddleware, (req, res) => {
   const vaultObj = loadVault(req.user.username);
   res.json({ exists: !!vaultObj });
+});
+
+// Change master password (decrypt with old, re-encrypt with new)
+app.post('/api/vault/change-password', authMiddleware, (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) return res.status(400).json({ error: 'currentPassword and newPassword required' });
+  if (newPassword.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  const vaultObj = loadVault(req.user.username);
+  if (!vaultObj) return res.status(404).json({ error: 'Vault not found' });
+  try {
+    const data = decryptVault(vaultObj, currentPassword);
+    const encrypted = encryptVault(data, newPassword);
+    saveVault(req.user.username, encrypted);
+    res.json({ ok: true });
+  } catch {
+    res.status(403).json({ error: 'Wrong current password' });
+  }
 });
 
 // ── Music API ──
@@ -1318,7 +1779,7 @@ function parseRssXml(xml) {
       link: decodeXmlEntities(link).trim(),
       description: decodeXmlEntities(desc).trim(),
       content: decodeXmlEntities(content).trim(),
-      pubDate: pubDate.trim(),
+      pubDate: decodeXmlEntities(pubDate).trim(),
       guid: decodeXmlEntities(guid).trim()
     });
   }
@@ -1339,7 +1800,7 @@ function parseRssXml(xml) {
         link: decodeXmlEntities(link).trim(),
         description: decodeXmlEntities(summary).trim(),
         content: decodeXmlEntities(content).trim(),
-        pubDate: updated.trim(),
+        pubDate: decodeXmlEntities(updated).trim(),
         guid: decodeXmlEntities(id).trim()
       });
     }
@@ -1352,7 +1813,9 @@ function decodeXmlEntities(str) {
   return str
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
     .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'");
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'")
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)));
 }
 
 function getRssChannelInfo(xml) {
@@ -1484,7 +1947,7 @@ async function fetchAllFeeds(username, notify) {
         bg: '#fff3e0',
         title: `${newCount} yeni RSS içeriği`,
         text,
-        time: new Date().toLocaleString('tr-TR'),
+        time: new Date().toISOString(),
         read: false,
         createdAt: Date.now(),
         action: { app: 'rss-reader' }
@@ -1698,7 +2161,7 @@ function startReminderChecker() {
             bg: '#fff8e1',
             title: '⏰ ' + r.title,
             text: r.note || r.title,
-            time: now.toLocaleString('tr-TR'),
+            time: now.toISOString(),
             read: false,
             createdAt: now.getTime(),
             action: { app: 'reminder' }
@@ -1765,6 +2228,679 @@ app.post('/api/ethwallet/save', authMiddleware, (req, res) => {
   const encrypted = encryptVault(data, walletPassword);
   saveWalletFile(req.user.username, encrypted);
   res.json({ ok: true });
+});
+
+// ─────────────────────────────────────────────────
+// ── Copilot CLI App ──
+// ─────────────────────────────────────────────────
+const { spawn } = require('child_process');
+
+function getUserCopilotDir(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe, 'copilot');
+  ensureDir(dir);
+  return dir;
+}
+
+function getCopilotSettingsPath(username) {
+  return path.join(getUserCopilotDir(username), 'settings.json');
+}
+
+function getCopilotSessionsPath(username) {
+  return path.join(getUserCopilotDir(username), 'sessions.json');
+}
+
+function loadCopilotSettings(username) {
+  const fp = getCopilotSettingsPath(username);
+  if (!fs.existsSync(fp)) return { cwd: '', model: '', allowAllTools: false, githubToken: '' };
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return {}; }
+}
+
+function saveCopilotSettings(username, data) {
+  fs.writeFileSync(getCopilotSettingsPath(username), JSON.stringify(data, null, 2));
+}
+
+function loadCopilotSessions(username) {
+  const fp = getCopilotSessionsPath(username);
+  if (!fs.existsSync(fp)) return [];
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return []; }
+}
+
+function saveCopilotSessions(username, sessions) {
+  // Cap to 50 most recent
+  const trimmed = sessions.slice(-50);
+  fs.writeFileSync(getCopilotSessionsPath(username), JSON.stringify(trimmed, null, 2));
+}
+
+// GET /api/copilot/status — check CLI installation + auth + settings
+function publicCopilotSettings(s) {
+  return {
+    cwd: s.cwd || '',
+    model: s.model || '',
+    allowAllTools: !!s.allowAllTools,
+    githubTokenSet: !!s.githubToken
+  };
+}
+app.get('/api/copilot/status', authMiddleware, (req, res) => {
+  const settings = loadCopilotSettings(req.user.username);
+  const pub = publicCopilotSettings(settings);
+  // Detect copilot CLI binary
+  const child = spawn('copilot', ['--version'], { shell: true });
+  let stdout = '', stderr = '';
+  child.stdout.on('data', d => stdout += d.toString());
+  child.stderr.on('data', d => stderr += d.toString());
+  let done = false;
+  child.on('error', () => {
+    if (done) return; done = true;
+    res.json({ installed: false, version: null, settings: pub, authConfigured: false, message: 'copilot CLI not found in PATH' });
+  });
+  child.on('close', (code) => {
+    if (done) return; done = true;
+    if (code === 0) {
+      res.json({ installed: true, version: stdout.trim(), authConfigured: !!settings.githubToken, settings: pub });
+    } else {
+      res.json({ installed: false, version: null, settings: pub, authConfigured: false, message: stderr.trim() || 'unknown error' });
+    }
+  });
+});
+
+// POST /api/copilot/settings — update user copilot settings
+app.post('/api/copilot/settings', authMiddleware, (req, res) => {
+  const { cwd, model, allowAllTools, githubToken } = req.body || {};
+  const cur = loadCopilotSettings(req.user.username);
+  const next = {
+    cwd: typeof cwd === 'string' ? cwd : cur.cwd || '',
+    model: typeof model === 'string' ? model : cur.model || '',
+    allowAllTools: !!(allowAllTools ?? cur.allowAllTools),
+    githubToken: typeof githubToken === 'string' ? githubToken : cur.githubToken || ''
+  };
+  saveCopilotSettings(req.user.username, next);
+  // Don't return token in response
+  res.json({ ok: true, githubTokenSet: !!next.githubToken, settings: publicCopilotSettings(next) });
+});
+
+// POST /api/copilot/prompt — run copilot CLI with -p
+// body: { prompt, cwd?, model?, allowAllTools?, sessionId? }
+// Streams plain-text response chunks via SSE.
+app.post('/api/copilot/prompt', authMiddleware, (req, res) => {
+  const { prompt, cwd: bodyCwd, model: bodyModel, allowAllTools: bodyAllow } = req.body || {};
+  if (!prompt || typeof prompt !== 'string') return res.status(400).json({ error: 'prompt required' });
+
+  const settings = loadCopilotSettings(req.user.username);
+  const cwd = (bodyCwd || settings.cwd || '').trim();
+  const model = (bodyModel || settings.model || '').trim();
+  const allowAllTools = bodyAllow !== undefined ? !!bodyAllow : !!settings.allowAllTools;
+
+  // Resolve safe cwd: must be within user's files dir or absolute existing dir
+  let resolvedCwd = process.cwd();
+  if (cwd) {
+    if (path.isAbsolute(cwd) && fs.existsSync(cwd)) {
+      resolvedCwd = cwd;
+    } else {
+      // treat as relative to user's files root
+      const userRoot = path.join(DATA_DIR, req.user.username.replace(/[^a-zA-Z0-9_-]/g, '_'), 'files');
+      ensureDir(userRoot);
+      const candidate = path.resolve(userRoot, cwd);
+      if (candidate.startsWith(userRoot) && fs.existsSync(candidate)) resolvedCwd = candidate;
+      else resolvedCwd = userRoot;
+    }
+  }
+
+  const args = ['-p', prompt];
+  if (allowAllTools) args.push('--allow-all-tools');
+  if (model) { args.push('--model', model); }
+
+  // Build env: inject GITHUB_TOKEN if user provided one
+  const env = { ...process.env };
+  if (settings.githubToken) {
+    env.GITHUB_TOKEN = settings.githubToken;
+    env.GH_TOKEN = settings.githubToken;
+  }
+
+  // SSE response
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+
+  function sse(event, data) {
+    res.write(`event: ${event}\n`);
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  }
+
+  sse('start', { cwd: resolvedCwd, model: model || 'default', allowAllTools });
+
+  let child;
+  try {
+    child = spawn('copilot', args, { cwd: resolvedCwd, env, shell: true });
+  } catch (e) {
+    sse('error', { message: e.message });
+    res.end();
+    return;
+  }
+
+  let outputBuf = '';
+  child.stdout.on('data', d => {
+    const text = d.toString();
+    outputBuf += text;
+    sse('stdout', { chunk: text });
+  });
+  child.stderr.on('data', d => {
+    const text = d.toString();
+    sse('stderr', { chunk: text });
+  });
+  child.on('error', err => {
+    sse('error', { message: err.message });
+    res.end();
+  });
+  child.on('close', code => {
+    sse('end', { exitCode: code });
+    // Save to sessions log
+    try {
+      const sessions = loadCopilotSessions(req.user.username);
+      sessions.push({
+        ts: Date.now(),
+        prompt: prompt.slice(0, 500),
+        output: outputBuf.slice(0, 5000),
+        cwd: resolvedCwd,
+        model: model || 'default',
+        exitCode: code
+      });
+      saveCopilotSessions(req.user.username, sessions);
+    } catch {}
+  });
+
+  // Allow client to abort
+  req.on('close', () => {
+    if (child && !child.killed) {
+      try { child.kill('SIGTERM'); } catch {}
+    }
+  });
+});
+
+// GET /api/copilot/sessions — list past sessions
+app.get('/api/copilot/sessions', authMiddleware, (req, res) => {
+  const sessions = loadCopilotSessions(req.user.username);
+  res.json(sessions.slice().reverse());
+});
+
+// DELETE /api/copilot/sessions — clear history
+app.delete('/api/copilot/sessions', authMiddleware, (req, res) => {
+  saveCopilotSessions(req.user.username, []);
+  res.json({ ok: true });
+});
+
+// ── GitHub App ──
+function getGithubSettingsPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe, 'github');
+  ensureDir(dir);
+  return path.join(dir, 'settings.json');
+}
+function loadGithubSettings(username) {
+  const fp = getGithubSettingsPath(username);
+  if (!fs.existsSync(fp)) return {};
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return {}; }
+}
+function saveGithubSettings(username, settings) {
+  fs.writeFileSync(getGithubSettingsPath(username), JSON.stringify(settings, null, 2));
+}
+
+// Helper: resolve repo path within user files or public data
+function resolveGitRepoPath(username, relPath) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const userFiles = path.join(DATA_DIR, safe, 'files');
+  ensureDir(userFiles);
+  if (!relPath) return null;
+  const resolved = path.resolve(userFiles, relPath);
+  // Allow paths within user files or within public data dir
+  const publicData = path.join(__dirname, 'data');
+  if (!resolved.startsWith(userFiles) && !resolved.startsWith(publicData)) return null;
+  return resolved;
+}
+
+// Scan for git repos within user files
+function findGitRepos(baseDir, maxDepth = 3) {
+  const repos = [];
+  function scan(dir, depth) {
+    if (depth > maxDepth || !fs.existsSync(dir)) return;
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const e of entries) {
+        if (!e.isDirectory()) continue;
+        if (e.name === '.git') {
+          const repoDir = dir;
+          const name = path.basename(repoDir);
+          let branch = 'unknown';
+          try {
+            const head = fs.readFileSync(path.join(repoDir, '.git', 'HEAD'), 'utf-8').trim();
+            if (head.startsWith('ref: refs/heads/')) branch = head.replace('ref: refs/heads/', '');
+          } catch {}
+          repos.push({ name, path: path.relative(baseDir, repoDir).replace(/\\/g, '/') || '.', branch });
+          continue;
+        }
+        if (e.name === 'node_modules' || e.name === '.git') continue;
+        scan(path.join(dir, e.name), depth + 1);
+      }
+    } catch {}
+  }
+  scan(baseDir, 0);
+  return repos;
+}
+
+// GitHub API proxy — forward requests to api.github.com with user's token
+function ghApiRequest(ghToken, method, apiPath, body) {
+  const https = require('https');
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.github.com',
+      path: apiPath,
+      method: method,
+      headers: {
+        'Authorization': 'Bearer ' + ghToken,
+        'User-Agent': 'CloudComputer-GitHubApp',
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      }
+    };
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const parsed = data ? JSON.parse(data) : {};
+          if (res.statusCode >= 400) return reject({ status: res.statusCode, body: parsed });
+          resolve(parsed);
+        } catch { resolve(data); }
+      });
+    });
+    req.on('error', reject);
+    if (body) req.write(JSON.stringify(body));
+    req.end();
+  });
+}
+
+// GET /api/github/settings
+app.get('/api/github/settings', authMiddleware, (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  res.json({ token: s.token || '', clonePath: s.clonePath || '' });
+});
+
+// POST /api/github/settings
+app.post('/api/github/settings', authMiddleware, (req, res) => {
+  const { token, clonePath } = req.body;
+  saveGithubSettings(req.user.username, { token: token || '', clonePath: clonePath || '' });
+  res.json({ ok: true });
+});
+
+// GET /api/github/user
+app.get('/api/github/user', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token configured' });
+  try {
+    const data = await ghApiRequest(s.token, 'GET', '/user');
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// GET /api/github/repos
+app.get('/api/github/repos', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const data = await ghApiRequest(s.token, 'GET', '/user/repos?per_page=100&sort=updated');
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// POST /api/github/repos — create repo
+app.post('/api/github/repos', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const data = await ghApiRequest(s.token, 'POST', '/user/repos', req.body);
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// DELETE /api/github/repos/:owner/:repo
+app.delete('/api/github/repos/:owner/:repo', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    await ghApiRequest(s.token, 'DELETE', `/repos/${req.params.owner}/${req.params.repo}`);
+    res.json({ ok: true });
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// GET /api/github/repos/:owner/:repo/branches
+app.get('/api/github/repos/:owner/:repo/branches', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const data = await ghApiRequest(s.token, 'GET', `/repos/${req.params.owner}/${req.params.repo}/branches?per_page=100`);
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// POST /api/github/repos/:owner/:repo/branches — create branch
+app.post('/api/github/repos/:owner/:repo/branches', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const { name, from } = req.body;
+    const refData = await ghApiRequest(s.token, 'GET', `/repos/${req.params.owner}/${req.params.repo}/git/ref/heads/${encodeURIComponent(from)}`);
+    const sha = refData.object?.sha;
+    if (!sha) return res.status(400).json({ error: 'Could not resolve source branch' });
+    const data = await ghApiRequest(s.token, 'POST', `/repos/${req.params.owner}/${req.params.repo}/git/refs`, { ref: `refs/heads/${name}`, sha });
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// DELETE /api/github/repos/:owner/:repo/branches/:branch
+app.delete('/api/github/repos/:owner/:repo/branches/:branch', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    await ghApiRequest(s.token, 'DELETE', `/repos/${req.params.owner}/${req.params.repo}/git/refs/heads/${encodeURIComponent(req.params.branch)}`);
+    res.json({ ok: true });
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// GET /api/github/repos/:owner/:repo/contents
+app.get('/api/github/repos/:owner/:repo/contents', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const p = req.query.path || '';
+    const ref = req.query.ref || 'main';
+    const apiPath = `/repos/${req.params.owner}/${req.params.repo}/contents/${encodeURIComponent(p)}?ref=${encodeURIComponent(ref)}`;
+    const data = await ghApiRequest(s.token, 'GET', apiPath);
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// GET /api/github/repos/:owner/:repo/contents/:path(*)
+app.get('/api/github/repos/:owner/:repo/contents/*', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const filePath = req.params[0] || '';
+    const ref = req.query.ref || 'main';
+    const data = await ghApiRequest(s.token, 'GET', `/repos/${req.params.owner}/${req.params.repo}/contents/${filePath}?ref=${encodeURIComponent(ref)}`);
+    // Decode base64 content for text files
+    if (data.content && data.encoding === 'base64') {
+      try { data.content = Buffer.from(data.content, 'base64').toString('utf-8'); } catch {}
+    }
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// GET /api/github/repos/:owner/:repo/commits
+app.get('/api/github/repos/:owner/:repo/commits', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const sha = req.query.sha || 'main';
+    const data = await ghApiRequest(s.token, 'GET', `/repos/${req.params.owner}/${req.params.repo}/commits?sha=${encodeURIComponent(sha)}&per_page=30`);
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// GET /api/github/repos/:owner/:repo/issues
+app.get('/api/github/repos/:owner/:repo/issues', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const state = req.query.state || 'open';
+    const data = await ghApiRequest(s.token, 'GET', `/repos/${req.params.owner}/${req.params.repo}/issues?state=${state}&per_page=50`);
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// POST /api/github/repos/:owner/:repo/issues
+app.post('/api/github/repos/:owner/:repo/issues', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const data = await ghApiRequest(s.token, 'POST', `/repos/${req.params.owner}/${req.params.repo}/issues`, req.body);
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// PATCH /api/github/repos/:owner/:repo/issues/:number
+app.patch('/api/github/repos/:owner/:repo/issues/:number', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const data = await ghApiRequest(s.token, 'PATCH', `/repos/${req.params.owner}/${req.params.repo}/issues/${req.params.number}`, req.body);
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// GET /api/github/repos/:owner/:repo/issues/:number/comments
+app.get('/api/github/repos/:owner/:repo/issues/:number/comments', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const data = await ghApiRequest(s.token, 'GET', `/repos/${req.params.owner}/${req.params.repo}/issues/${req.params.number}/comments?per_page=50`);
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// POST /api/github/repos/:owner/:repo/issues/:number/comments
+app.post('/api/github/repos/:owner/:repo/issues/:number/comments', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const data = await ghApiRequest(s.token, 'POST', `/repos/${req.params.owner}/${req.params.repo}/issues/${req.params.number}/comments`, req.body);
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// GET /api/github/repos/:owner/:repo/pulls
+app.get('/api/github/repos/:owner/:repo/pulls', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const state = req.query.state || 'open';
+    const data = await ghApiRequest(s.token, 'GET', `/repos/${req.params.owner}/${req.params.repo}/pulls?state=${state}&per_page=30`);
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// GET /api/github/gists
+app.get('/api/github/gists', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const data = await ghApiRequest(s.token, 'GET', '/gists?per_page=30');
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// GET /api/github/gists/:id
+app.get('/api/github/gists/:id', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const data = await ghApiRequest(s.token, 'GET', '/gists/' + req.params.id);
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// POST /api/github/gists
+app.post('/api/github/gists', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    const data = await ghApiRequest(s.token, 'POST', '/gists', req.body);
+    res.json(data);
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// DELETE /api/github/gists/:id
+app.delete('/api/github/gists/:id', authMiddleware, async (req, res) => {
+  const s = loadGithubSettings(req.user.username);
+  if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
+  try {
+    await ghApiRequest(s.token, 'DELETE', '/gists/' + req.params.id);
+    res.json({ ok: true });
+  } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
+});
+
+// ── Local Git Operations (via child_process, git CLI) ──
+function runGit(args, cwd, env) {
+  return new Promise((resolve, reject) => {
+    execFile('git', args, { cwd, timeout: 30000, maxBuffer: 1024 * 512, env: { ...process.env, ...env } }, (err, stdout, stderr) => {
+      if (err) return reject(new Error(stderr || err.message));
+      resolve((stdout || '').trim());
+    });
+  });
+}
+
+// GET /api/git/repos — list local git repos in user's files directory
+app.get('/api/git/repos', authMiddleware, (req, res) => {
+  const safe = req.user.username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const userFiles = path.join(DATA_DIR, safe, 'files');
+  ensureDir(userFiles);
+  const repos = findGitRepos(userFiles);
+  res.json(repos);
+});
+
+// POST /api/git/init — initialize a new git repo
+app.post('/api/git/init', authMiddleware, async (req, res) => {
+  const repoPath = resolveGitRepoPath(req.user.username, req.body.path);
+  if (!repoPath) return res.status(400).json({ error: 'Invalid path' });
+  ensureDir(repoPath);
+  try {
+    const output = await runGit(['init'], repoPath);
+    res.json({ ok: true, output });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/git/clone — clone a remote repo
+app.post('/api/git/clone', authMiddleware, async (req, res) => {
+  const { url, path: relPath } = req.body;
+  if (!url) return res.status(400).json({ error: 'URL required' });
+  const safe = req.user.username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const userFiles = path.join(DATA_DIR, safe, 'files');
+  ensureDir(userFiles);
+  const targetDir = relPath ? path.resolve(userFiles, relPath) : userFiles;
+  if (!targetDir.startsWith(userFiles)) return res.status(403).json({ error: 'Invalid path' });
+  // Build env with GH token for auth
+  const settings = loadGithubSettings(req.user.username);
+  const env = {};
+  if (settings.token && url.includes('github.com')) {
+    // Inject token into URL for HTTPS auth
+    const authedUrl = url.replace('https://github.com/', `https://${settings.token}@github.com/`);
+    try {
+      const output = await runGit(['clone', authedUrl, targetDir], userFiles, env);
+      res.json({ ok: true, output });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  } else {
+    try {
+      const output = await runGit(['clone', url, targetDir], userFiles, env);
+      res.json({ ok: true, output });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  }
+});
+
+// POST /api/git/status
+app.post('/api/git/status', authMiddleware, async (req, res) => {
+  const repoPath = resolveGitRepoPath(req.user.username, req.body.repoPath);
+  if (!repoPath) return res.status(400).json({ error: 'Invalid path' });
+  try {
+    const output = await runGit(['status', '--porcelain'], repoPath);
+    const staged = [], modified = [], untracked = [];
+    for (const line of output.split('\n')) {
+      if (!line.trim()) continue;
+      const x = line[0], y = line[1], file = line.substring(3);
+      if (x === '?' && y === '?') untracked.push(file);
+      else if (x !== ' ' && x !== '?') staged.push(file);
+      else if (y !== ' ') modified.push(file);
+    }
+    // Get current branch
+    let branch = 'unknown';
+    try { branch = await runGit(['rev-parse', '--abbrev-ref', 'HEAD'], repoPath); } catch {}
+    res.json({ staged, modified, untracked, branch });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/git/add
+app.post('/api/git/add', authMiddleware, async (req, res) => {
+  const repoPath = resolveGitRepoPath(req.user.username, req.body.repoPath);
+  if (!repoPath) return res.status(400).json({ error: 'Invalid path' });
+  const files = req.body.files || ['.'];
+  try {
+    const output = await runGit(['add', ...files], repoPath);
+    res.json({ ok: true, output });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/git/commit
+app.post('/api/git/commit', authMiddleware, async (req, res) => {
+  const repoPath = resolveGitRepoPath(req.user.username, req.body.repoPath);
+  if (!repoPath) return res.status(400).json({ error: 'Invalid path' });
+  const message = req.body.message;
+  if (!message) return res.status(400).json({ error: 'Message required' });
+  try {
+    const output = await runGit(['commit', '-m', message], repoPath);
+    res.json({ ok: true, output });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/git/pull
+app.post('/api/git/pull', authMiddleware, async (req, res) => {
+  const repoPath = resolveGitRepoPath(req.user.username, req.body.repoPath);
+  if (!repoPath) return res.status(400).json({ error: 'Invalid path' });
+  const settings = loadGithubSettings(req.user.username);
+  const env = {};
+  if (settings.token) { env.GH_TOKEN = settings.token; env.GITHUB_TOKEN = settings.token; }
+  try {
+    const output = await runGit(['pull'], repoPath, env);
+    res.json({ ok: true, output });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/git/push
+app.post('/api/git/push', authMiddleware, async (req, res) => {
+  const repoPath = resolveGitRepoPath(req.user.username, req.body.repoPath);
+  if (!repoPath) return res.status(400).json({ error: 'Invalid path' });
+  const settings = loadGithubSettings(req.user.username);
+  const env = {};
+  if (settings.token) { env.GH_TOKEN = settings.token; env.GITHUB_TOKEN = settings.token; }
+  try {
+    const output = await runGit(['push'], repoPath, env);
+    res.json({ ok: true, output });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/git/log
+app.post('/api/git/log', authMiddleware, async (req, res) => {
+  const repoPath = resolveGitRepoPath(req.user.username, req.body.repoPath);
+  if (!repoPath) return res.status(400).json({ error: 'Invalid path' });
+  try {
+    const output = await runGit(['log', '--oneline', '--format=%H||%s||%an||%ai', '-30'], repoPath);
+    const entries = output.split('\n').filter(Boolean).map(line => {
+      const [hash, message, author, date] = line.split('||');
+      return { hash, message, author, date };
+    });
+    res.json(entries);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/git/remote-add
+app.post('/api/git/remote-add', authMiddleware, async (req, res) => {
+  const repoPath = resolveGitRepoPath(req.user.username, req.body.repoPath);
+  if (!repoPath) return res.status(400).json({ error: 'Invalid path' });
+  const { name, url } = req.body;
+  if (!name || !url) return res.status(400).json({ error: 'Name and URL required' });
+  try {
+    const output = await runGit(['remote', 'add', name, url], repoPath);
+    res.json({ ok: true, output });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // ── Mail App ──
@@ -2033,6 +3169,107 @@ app.post('/api/mail/test', authMiddleware, async (req, res) => {
     res.status(400).json({ error: 'type must be smtp or pop3' });
   }
 });
+
+// ── Mail Periodic Checker (every 1 hour) ──
+const MAIL_CHECK_INTERVAL = 60 * 60 * 1000; // 1 hour
+let mailCheckTimer = null;
+
+function startMailChecker() {
+  mailCheckTimer = setInterval(async () => {
+    try {
+      if (!fs.existsSync(DATA_DIR)) return;
+      const userDirs = fs.readdirSync(DATA_DIR, { withFileTypes: true });
+      for (const d of userDirs) {
+        if (!d.isDirectory()) continue;
+        const username = d.name;
+        const data = getUserMailData(username);
+        if (!data.accounts || data.accounts.length === 0) continue;
+
+        for (const acc of data.accounts) {
+          if (!acc.pop3Host || !acc.email || !acc.password) continue;
+          let pop3;
+          try {
+            pop3 = new Pop3Command({
+              host: acc.pop3Host,
+              port: acc.pop3Port,
+              tls: acc.pop3Tls,
+              user: acc.email,
+              password: acc.password,
+              tlsOptions: { rejectUnauthorized: false }
+            });
+
+            const list = await pop3.UIDL();
+            const existingIds = new Set((acc.inbox || []).map(m => m.uid));
+            const newMails = [];
+
+            const toFetch = (Array.isArray(list) ? list : []).slice(-30).filter(item => {
+              const uid = Array.isArray(item) ? item[1] : (item.uid || item);
+              return !existingIds.has(uid);
+            });
+
+            for (const item of toFetch) {
+              const msgNum = Array.isArray(item) ? item[0] : (item.number || item.id || 1);
+              const uid = Array.isArray(item) ? item[1] : (item.uid || item);
+              try {
+                const raw = await pop3.RETR(msgNum);
+                const parsed = await simpleParser(raw);
+                newMails.push({
+                  uid,
+                  messageId: parsed.messageId || uid,
+                  from: parsed.from ? parsed.from.text : '',
+                  fromAddr: parsed.from && parsed.from.value && parsed.from.value[0] ? parsed.from.value[0].address : '',
+                  to: parsed.to ? parsed.to.text : '',
+                  subject: parsed.subject || '(No Subject)',
+                  date: parsed.date ? parsed.date.toISOString() : new Date().toISOString(),
+                  text: parsed.text || '',
+                  html: parsed.html || '',
+                  read: false,
+                  attachments: (parsed.attachments || []).map(att => ({
+                    filename: att.filename || 'attachment',
+                    contentType: att.contentType,
+                    size: att.size
+                  }))
+                });
+              } catch (e) { /* skip individual message errors */ }
+            }
+
+            if (newMails.length > 0) {
+              acc.inbox = [...newMails, ...(acc.inbox || [])];
+              if (acc.inbox.length > 200) acc.inbox = acc.inbox.slice(0, 200);
+              saveUserMailData(username, data);
+
+              // Send notification to the user
+              const now = new Date();
+              const notif = {
+                id: crypto.randomUUID(),
+                icon: '📧',
+                bg: '#e3f2fd',
+                title: '📧 ' + newMails.length + ' yeni mail',
+                text: acc.email + ' hesabına ' + newMails.length + ' yeni mail geldi',
+                time: now.toISOString(),
+                read: false,
+                createdAt: now.getTime(),
+                action: { app: 'mail-app' }
+              };
+              notifications.unshift(notif);
+              wsClients.forEach(ws => {
+                if (ws.readyState !== 1) return;
+                if (ws.user && ws.user.username === username) {
+                  ws.send(JSON.stringify({ type: 'notification', data: notif }));
+                }
+              });
+            }
+
+            await pop3.QUIT();
+          } catch (e) {
+            try { if (pop3) await pop3.QUIT(); } catch {}
+            console.error('Mail check error for ' + acc.email + ':', e.message);
+          }
+        }
+      }
+    } catch (e) { console.error('Mail checker error:', e.message); }
+  }, MAIL_CHECK_INTERVAL);
+}
 
 // ── Map App ──
 function getUserMapPath(username) {
@@ -2352,9 +3589,630 @@ app.post('/api/backup/restore', authMiddleware, async (req, res) => {
   }
 });
 
+// ── Archiver App ──
+const zlib = require('zlib');
+
+// Compress files/folders into zip or gzip
+app.post('/api/archiver/compress', authMiddleware, async (req, res) => {
+  const { format, items, outputName, outputDir } = req.body;
+  if (!items || !items.length) return res.status(400).json({ error: 'No items selected' });
+  if (!['zip', 'gzip'].includes(format)) return res.status(400).json({ error: 'Invalid format' });
+
+  const root = getUserFilesRoot(req.user.username);
+  const outFolder = safePath(root, outputDir || '');
+  if (!outFolder) return res.status(403).json({ error: 'Invalid output path' });
+
+  try {
+    if (format === 'zip') {
+      const filename = (outputName || 'archive.zip').replace(/[<>:"|?*]/g, '_');
+      const outPath = path.join(outFolder, filename.endsWith('.zip') ? filename : filename + '.zip');
+
+      await new Promise((resolve, reject) => {
+        const output = fs.createWriteStream(outPath);
+        const archive = archiver('zip', { zlib: { level: 9 } });
+        output.on('close', resolve);
+        archive.on('error', reject);
+        archive.pipe(output);
+
+        for (const itemRel of items) {
+          const itemPath = safePath(root, itemRel);
+          if (!itemPath || !fs.existsSync(itemPath)) continue;
+          const stat = fs.statSync(itemPath);
+          if (stat.isDirectory()) {
+            archive.directory(itemPath, path.basename(itemPath));
+          } else {
+            archive.file(itemPath, { name: path.basename(itemPath) });
+          }
+        }
+        archive.finalize();
+      });
+
+      const stat = fs.statSync(outPath);
+      res.json({ ok: true, filename: path.basename(outPath), size: stat.size });
+    } else {
+      // GZIP — single file only
+      if (items.length !== 1) return res.status(400).json({ error: 'GZIP supports single file only' });
+      const srcPath = safePath(root, items[0]);
+      if (!srcPath || !fs.existsSync(srcPath)) return res.status(404).json({ error: 'File not found' });
+      const srcStat = fs.statSync(srcPath);
+      if (srcStat.isDirectory()) return res.status(400).json({ error: 'GZIP cannot compress a directory' });
+
+      const baseName = path.basename(srcPath);
+      const filename = (outputName || baseName + '.gz').replace(/[<>:"|?*]/g, '_');
+      const outPath = path.join(outFolder, filename.endsWith('.gz') ? filename : filename + '.gz');
+
+      await new Promise((resolve, reject) => {
+        const input = fs.createReadStream(srcPath);
+        const output = fs.createWriteStream(outPath);
+        const gzip = zlib.createGzip({ level: 9 });
+        input.pipe(gzip).pipe(output);
+        output.on('finish', resolve);
+        output.on('error', reject);
+        input.on('error', reject);
+      });
+
+      const stat = fs.statSync(outPath);
+      res.json({ ok: true, filename: path.basename(outPath), size: stat.size });
+    }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Preview archive contents
+app.post('/api/archiver/preview', authMiddleware, (req, res) => {
+  const { filePath: fp } = req.body;
+  if (!fp) return res.status(400).json({ error: 'No file specified' });
+
+  const root = getUserFilesRoot(req.user.username);
+  const absPath = safePath(root, fp);
+  if (!absPath || !fs.existsSync(absPath)) return res.status(404).json({ error: 'File not found' });
+
+  const lower = absPath.toLowerCase();
+  try {
+    if (lower.endsWith('.zip')) {
+      const zip = new AdmZip(absPath);
+      const entries = zip.getEntries().map(e => ({
+        name: e.entryName,
+        size: e.header.size,
+        isDir: e.isDirectory
+      }));
+      res.json({ entries });
+    } else if (lower.endsWith('.gz') || lower.endsWith('.gzip')) {
+      // GZIP is a single-file format, show original name
+      const baseName = path.basename(absPath).replace(/\.gz(ip)?$/i, '');
+      const stat = fs.statSync(absPath);
+      res.json({ entries: [{ name: baseName || 'file', size: stat.size, isDir: false }] });
+    } else {
+      res.status(400).json({ error: 'Unsupported format' });
+    }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Extract archive
+app.post('/api/archiver/extract', authMiddleware, async (req, res) => {
+  const { filePath: fp, outputDir } = req.body;
+  if (!fp) return res.status(400).json({ error: 'No file specified' });
+
+  const root = getUserFilesRoot(req.user.username);
+  const absPath = safePath(root, fp);
+  if (!absPath || !fs.existsSync(absPath)) return res.status(404).json({ error: 'File not found' });
+
+  const lower = absPath.toLowerCase();
+  try {
+    if (lower.endsWith('.zip')) {
+      // Determine output directory
+      let destDir;
+      if (outputDir && outputDir.trim()) {
+        destDir = safePath(root, outputDir.trim());
+      } else {
+        const baseName = path.basename(absPath, '.zip');
+        destDir = safePath(root, path.join(path.relative(root, path.dirname(absPath)), baseName));
+      }
+      if (!destDir) return res.status(403).json({ error: 'Invalid output path' });
+      ensureDir(destDir);
+
+      const zip = new AdmZip(absPath);
+      zip.extractAllTo(destDir, true);
+
+      res.json({ ok: true, outputDir: path.relative(root, destDir).replace(/\\/g, '/') });
+    } else if (lower.endsWith('.gz') || lower.endsWith('.gzip')) {
+      let destDir;
+      if (outputDir && outputDir.trim()) {
+        destDir = safePath(root, outputDir.trim());
+      } else {
+        destDir = path.dirname(absPath);
+      }
+      if (!destDir) return res.status(403).json({ error: 'Invalid output path' });
+      ensureDir(destDir);
+
+      const baseName = path.basename(absPath).replace(/\.gz(ip)?$/i, '');
+      const outPath = path.join(destDir, baseName || 'extracted_file');
+
+      await new Promise((resolve, reject) => {
+        const input = fs.createReadStream(absPath);
+        const output = fs.createWriteStream(outPath);
+        const gunzip = zlib.createGunzip();
+        input.pipe(gunzip).pipe(output);
+        output.on('finish', resolve);
+        output.on('error', reject);
+        input.on('error', reject);
+        gunzip.on('error', reject);
+      });
+
+      res.json({ ok: true, outputDir: path.relative(root, destDir).replace(/\\/g, '/'), filename: baseName });
+    } else {
+      res.status(400).json({ error: 'Unsupported format' });
+    }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Audio Recorder API ──
+function getUserRecordingsDir(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe, 'recordings');
+  ensureDir(dir);
+  return dir;
+}
+
+function buildWavHeader(dataLength, sampleRate, channels) {
+  const bitsPerSample = 16;
+  const byteRate = sampleRate * channels * bitsPerSample / 8;
+  const blockAlign = channels * bitsPerSample / 8;
+  const buf = Buffer.alloc(44);
+  buf.write('RIFF', 0);                          // ChunkID
+  buf.writeUInt32LE(36 + dataLength, 4);          // ChunkSize
+  buf.write('WAVE', 8);                           // Format
+  buf.write('fmt ', 12);                          // Subchunk1ID
+  buf.writeUInt32LE(16, 16);                      // Subchunk1Size (PCM)
+  buf.writeUInt16LE(1, 20);                       // AudioFormat (PCM=1)
+  buf.writeUInt16LE(channels, 22);                // NumChannels
+  buf.writeUInt32LE(sampleRate, 24);              // SampleRate
+  buf.writeUInt32LE(byteRate, 28);                // ByteRate
+  buf.writeUInt16LE(blockAlign, 32);              // BlockAlign
+  buf.writeUInt16LE(bitsPerSample, 34);           // BitsPerSample
+  buf.write('data', 36);                          // Subchunk2ID
+  buf.writeUInt32LE(dataLength, 40);              // Subchunk2Size
+  return buf;
+}
+
+app.get('/api/audio-recorder/list', authMiddleware, (req, res) => {
+  const dir = getUserRecordingsDir(req.user.username);
+  try {
+    const files = fs.readdirSync(dir)
+      .filter(f => f.endsWith('.wav'))
+      .map(f => {
+        const stat = fs.statSync(path.join(dir, f));
+        return { filename: f, size: stat.size, created: stat.mtimeMs };
+      })
+      .sort((a, b) => b.created - a.created);
+    res.json(files);
+  } catch { res.json([]); }
+});
+
+app.get('/api/audio-recorder/stream/:filename', authMiddleware, (req, res) => {
+  const filename = req.params.filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const fp = path.join(getUserRecordingsDir(req.user.username), filename);
+  if (!fs.existsSync(fp)) return res.status(404).json({ error: 'Not found' });
+  const stat = fs.statSync(fp);
+  const range = req.headers.range;
+  if (range) {
+    const parts = range.replace(/bytes=/, '').split('-');
+    const start = parseInt(parts[0], 10);
+    const end = parts[1] ? parseInt(parts[1], 10) : stat.size - 1;
+    res.writeHead(206, {
+      'Content-Range': `bytes ${start}-${end}/${stat.size}`,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': end - start + 1,
+      'Content-Type': 'audio/wav'
+    });
+    fs.createReadStream(fp, { start, end }).pipe(res);
+  } else {
+    res.writeHead(200, { 'Content-Length': stat.size, 'Content-Type': 'audio/wav', 'Accept-Ranges': 'bytes' });
+    fs.createReadStream(fp).pipe(res);
+  }
+});
+
+app.get('/api/audio-recorder/download/:filename', authMiddleware, (req, res) => {
+  const filename = req.params.filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const fp = path.join(getUserRecordingsDir(req.user.username), filename);
+  if (!fs.existsSync(fp)) return res.status(404).json({ error: 'Not found' });
+  res.download(fp, filename);
+});
+
+app.delete('/api/audio-recorder/:filename', authMiddleware, (req, res) => {
+  const filename = req.params.filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const fp = path.join(getUserRecordingsDir(req.user.username), filename);
+  if (!fs.existsSync(fp)) return res.status(404).json({ error: 'Not found' });
+  fs.unlinkSync(fp);
+  res.json({ ok: true });
+});
+
+// ── Audio Editor API ──
+const audioEditorUpload = multer({
+  storage: multer.diskStorage({
+    destination(req, file, cb) { cb(null, req._audioEditorDest); },
+    filename(req, file, cb) { cb(null, Buffer.from(file.originalname, 'latin1').toString('utf8')); }
+  }),
+  limits: { fileSize: 100 * 1024 * 1024 }
+});
+
+app.post('/api/audio-editor/save-music', authMiddleware, (req, res, next) => {
+  req._audioEditorDest = getUserMusicDir(req.user.username);
+  next();
+}, audioEditorUpload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file' });
+  res.json({ ok: true, filename: req.file.filename, size: req.file.size });
+});
+
+app.post('/api/audio-editor/save-recording', authMiddleware, (req, res, next) => {
+  req._audioEditorDest = getUserRecordingsDir(req.user.username);
+  next();
+}, audioEditorUpload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file' });
+  res.json({ ok: true, filename: req.file.filename, size: req.file.size });
+});
+
+// ── Video Editor API ──
+const videoEditorUpload = multer({
+  storage: multer.diskStorage({
+    destination(req, file, cb) { cb(null, getUserVideoDir(req.user.username)); },
+    filename(req, file, cb) {
+      const name = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+      cb(null, name);
+    }
+  }),
+  limits: { fileSize: 500 * 1024 * 1024 }
+});
+
+app.post('/api/video-editor/save', authMiddleware, videoEditorUpload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file' });
+  res.json({ ok: true, filename: req.file.filename, size: req.file.size });
+});
+
+// ── WebTorrent Engine ──
+let torrentClient = null;
+const torrentPaused = new Set();
+let torrentDownloadPath = path.join(__dirname, 'data', 'downloads');
+ensureDir(torrentDownloadPath);
+
+(async () => {
+  try {
+    const { default: WebTorrent } = await import('webtorrent');
+    torrentClient = new WebTorrent();
+    torrentClient.on('error', (err) => console.error('WebTorrent error:', err.message));
+    console.log('WebTorrent engine initialized');
+  } catch (e) {
+    console.warn('WebTorrent not available — torrent features disabled.', e.message);
+  }
+})();
+
+function getTorrentList() {
+  if (!torrentClient) return [];
+  return torrentClient.torrents.map(t => serializeTorrent(t));
+}
+
+function serializeTorrent(t) {
+  const isPaused = torrentPaused.has(t.infoHash);
+  let status = 'downloading';
+  if (isPaused) status = 'paused';
+  else if (t.done) status = t.uploadSpeed > 0 ? 'seeding' : 'completed';
+
+  return {
+    infoHash: t.infoHash,
+    name: t.name || t.infoHash.slice(0, 16),
+    length: t.length || 0,
+    progress: t.progress || 0,
+    status: status,
+    downloadSpeed: isPaused ? 0 : (t.downloadSpeed || 0),
+    uploadSpeed: isPaused ? 0 : (t.uploadSpeed || 0),
+    downloaded: t.downloaded || 0,
+    uploaded: t.uploaded || 0,
+    numPeers: t.numPeers || 0,
+    ratio: t.ratio || 0,
+    timeRemaining: isPaused ? Infinity : (t.timeRemaining || Infinity),
+    path: t.path || torrentDownloadPath,
+    files: (t.files || []).map(f => ({
+      name: f.name,
+      length: f.length,
+      progress: f.progress || 0
+    })),
+    peers: (t.wires || []).slice(0, 50).map(w => ({
+      addr: w.remoteAddress ? (w.remoteAddress + ':' + w.remotePort) : 'unknown',
+      client: (w.peerExtendedHandshake && w.peerExtendedHandshake.v) ? w.peerExtendedHandshake.v.toString() : 'unknown',
+      downloadSpeed: w.downloadSpeed ? w.downloadSpeed() : 0,
+      uploadSpeed: w.uploadSpeed ? w.uploadSpeed() : 0
+    })),
+    announces: t.announce || []
+  };
+}
+
+function handleTorrentAdd(ws, data) {
+  if (!torrentClient) { ws.send(JSON.stringify({ type: 'torrent-not-installed', data: {} })); return; }
+  const opts = { path: path.resolve(torrentDownloadPath, data.path || '') };
+  try {
+    let source;
+    if (data.magnet) {
+      source = data.magnet;
+    } else if (data.torrentBase64) {
+      source = Buffer.from(data.torrentBase64, 'base64');
+    } else {
+      ws.send(JSON.stringify({ type: 'torrent-error', data: { error: 'No magnet or torrent file' } }));
+      return;
+    }
+    // Check if already added
+    const existing = torrentClient.get(source);
+    if (existing) {
+      ws.send(JSON.stringify({ type: 'torrent-error', data: { error: 'Torrent already added' } }));
+      return;
+    }
+    torrentClient.add(source, opts, (torrent) => {
+      ws.send(JSON.stringify({ type: 'torrent-added', data: { name: torrent.name, infoHash: torrent.infoHash } }));
+      broadcastTorrentProgress();
+    });
+  } catch (e) {
+    ws.send(JSON.stringify({ type: 'torrent-error', data: { error: e.message } }));
+  }
+}
+
+function handleTorrentPause(ws, data) {
+  if (!torrentClient || !data.infoHash) return;
+  const t = torrentClient.get(data.infoHash);
+  if (t) {
+    t.pause();
+    torrentPaused.add(data.infoHash);
+    broadcastTorrentProgress();
+  }
+}
+
+function handleTorrentResume(ws, data) {
+  if (!torrentClient || !data.infoHash) return;
+  const t = torrentClient.get(data.infoHash);
+  if (t) {
+    t.resume();
+    torrentPaused.delete(data.infoHash);
+    broadcastTorrentProgress();
+  }
+}
+
+function handleTorrentRemove(ws, data) {
+  if (!torrentClient || !data.infoHash) return;
+  const t = torrentClient.get(data.infoHash);
+  if (t) {
+    torrentPaused.delete(data.infoHash);
+    torrentClient.remove(data.infoHash, { destroyStore: !!data.deleteData }, () => {
+      broadcastTorrentProgress();
+    });
+  }
+}
+
+function handleTorrentStartAll() {
+  if (!torrentClient) return;
+  torrentClient.torrents.forEach(t => {
+    t.resume();
+    torrentPaused.delete(t.infoHash);
+  });
+  broadcastTorrentProgress();
+}
+
+function handleTorrentPauseAll() {
+  if (!torrentClient) return;
+  torrentClient.torrents.forEach(t => {
+    t.pause();
+    torrentPaused.add(t.infoHash);
+  });
+  broadcastTorrentProgress();
+}
+
+function handleTorrentSettings(ws, data) {
+  if (data.downloadPath) {
+    torrentDownloadPath = path.resolve(__dirname, 'data', data.downloadPath);
+    ensureDir(torrentDownloadPath);
+  }
+  if (torrentClient) {
+    if (data.maxDownloadSpeed) torrentClient.throttleDownload(data.maxDownloadSpeed * 1024);
+    else torrentClient.throttleDownload(-1);
+    if (data.maxUploadSpeed) torrentClient.throttleUpload(data.maxUploadSpeed * 1024);
+    else torrentClient.throttleUpload(-1);
+  }
+}
+
+function broadcastTorrentProgress() {
+  broadcastWS({ type: 'torrent-progress', data: getTorrentList() });
+}
+
+// Periodic progress broadcast
+setInterval(() => {
+  if (torrentClient && torrentClient.torrents.length > 0) {
+    broadcastTorrentProgress();
+  }
+}, 2000);
+
+// ── Book Reader API ──
+function getUserBookDataPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return { dir, progressFile: path.join(dir, 'book-progress.json'), libraryFile: path.join(dir, 'book-library.json') };
+}
+
+function readJsonFile(fp) {
+  if (!fs.existsSync(fp)) return null;
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return null; }
+}
+
+app.get('/api/book-reader/progress/:bookId', authMiddleware, (req, res) => {
+  const { progressFile } = getUserBookDataPath(req.user.username);
+  const all = readJsonFile(progressFile) || {};
+  res.json(all[req.params.bookId] || {});
+});
+
+app.post('/api/book-reader/progress', authMiddleware, (req, res) => {
+  const { bookId, bookmarks, page, progress, cfi } = req.body;
+  if (!bookId) return res.status(400).json({ error: 'bookId required' });
+  const { progressFile } = getUserBookDataPath(req.user.username);
+  const all = readJsonFile(progressFile) || {};
+  all[String(bookId).slice(0, 100)] = {
+    bookmarks: Array.isArray(bookmarks) ? bookmarks.slice(0, 200) : [],
+    page: Number(page) || 1,
+    progress: Number(progress) || 0,
+    cfi: cfi ? String(cfi).slice(0, 500) : null,
+    updatedAt: new Date().toISOString()
+  };
+  fs.writeFileSync(progressFile, JSON.stringify(all, null, 2));
+  res.json({ ok: true });
+});
+
+app.get('/api/book-reader/library', authMiddleware, (req, res) => {
+  const { libraryFile } = getUserBookDataPath(req.user.username);
+  res.json(readJsonFile(libraryFile) || []);
+});
+
+app.post('/api/book-reader/library', authMiddleware, (req, res) => {
+  const { libraryFile } = getUserBookDataPath(req.user.username);
+  const data = Array.isArray(req.body) ? req.body.slice(0, 500).map(b => ({
+    id: String(b.id || '').slice(0, 100),
+    title: String(b.title || '').slice(0, 300),
+    author: String(b.author || '').slice(0, 200),
+    format: String(b.format || '').slice(0, 10),
+    fileName: String(b.fileName || '').slice(0, 300),
+    progress: Number(b.progress) || 0,
+    lastRead: b.lastRead || new Date().toISOString()
+  })) : [];
+  fs.writeFileSync(libraryFile, JSON.stringify(data, null, 2));
+  res.json({ ok: true });
+});
+
+// ── Math Formula API ──
+function getUserFormulaPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'formulas.json');
+}
+
+function getUserFormulas(username) {
+  const fp = getUserFormulaPath(username);
+  if (!fs.existsSync(fp)) return [];
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return []; }
+}
+
+function saveUserFormulas(username, data) {
+  fs.writeFileSync(getUserFormulaPath(username), JSON.stringify(data, null, 2));
+}
+
+app.get('/api/math-formula/list', authMiddleware, (req, res) => {
+  res.json(getUserFormulas(req.user.username));
+});
+
+app.post('/api/math-formula/save', authMiddleware, (req, res) => {
+  const { id, name, latex, fontSize, fgColor, bgColor, bgTransparent, createdAt } = req.body;
+  if (!id || !name) return res.status(400).json({ error: 'id and name required' });
+  const formulas = getUserFormulas(req.user.username);
+  const formula = {
+    id: String(id).slice(0, 50),
+    name: String(name).slice(0, 200),
+    latex: String(latex || '').slice(0, 5000),
+    fontSize: Math.max(8, Math.min(200, Number(fontSize) || 32)),
+    fgColor: String(fgColor || '#ffffff').slice(0, 20),
+    bgColor: String(bgColor || '#1a1a2e').slice(0, 20),
+    bgTransparent: !!bgTransparent,
+    createdAt: createdAt || new Date().toISOString()
+  };
+  const idx = formulas.findIndex(f => f.id === id);
+  if (idx >= 0) formulas[idx] = formula;
+  else formulas.unshift(formula);
+  saveUserFormulas(req.user.username, formulas);
+  res.json(formula);
+});
+
+app.delete('/api/math-formula/:id', authMiddleware, (req, res) => {
+  const formulas = getUserFormulas(req.user.username);
+  const idx = formulas.findIndex(f => f.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ error: 'Not found' });
+  formulas.splice(idx, 1);
+  saveUserFormulas(req.user.username, formulas);
+  res.json({ ok: true });
+});
+
+const formulaImageUpload = multer({
+  storage: multer.diskStorage({
+    destination(req, file, cb) { cb(null, getUserPhotosDir(req.user.username)); },
+    filename(req, file, cb) {
+      const name = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+      cb(null, 'formula_' + Date.now() + '_' + name);
+    }
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
+
+app.post('/api/math-formula/save-image', authMiddleware, formulaImageUpload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file' });
+  res.json({ ok: true, filename: req.file.filename, size: req.file.size });
+});
+
+// ── PostIt Notes API ──
+function getUserPostitPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'postits.json');
+}
+
+function getUserPostits(username) {
+  const fp = getUserPostitPath(username);
+  if (!fs.existsSync(fp)) return [];
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return []; }
+}
+
+function saveUserPostits(username, data) {
+  fs.writeFileSync(getUserPostitPath(username), JSON.stringify(data, null, 2));
+}
+
+app.get('/api/postit/list', authMiddleware, (req, res) => {
+  res.json(getUserPostits(req.user.username));
+});
+
+app.post('/api/postit/save', authMiddleware, (req, res) => {
+  const { id, content, color, x, y, w, h, visible, createdAt, updatedAt } = req.body;
+  if (!id) return res.status(400).json({ error: 'id required' });
+  const postits = getUserPostits(req.user.username);
+  const idx = postits.findIndex(p => p.id === id);
+  const postit = {
+    id: String(id).slice(0, 50),
+    content: String(content || '').slice(0, 5000),
+    color: String(color || 'yellow').slice(0, 20),
+    x: Number(x) || 100,
+    y: Number(y) || 100,
+    w: Math.max(160, Number(w) || 220),
+    h: Math.max(140, Number(h) || 220),
+    visible: visible !== false,
+    createdAt: createdAt || new Date().toISOString(),
+    updatedAt: updatedAt || new Date().toISOString()
+  };
+  if (idx >= 0) postits[idx] = postit;
+  else postits.push(postit);
+  saveUserPostits(req.user.username, postits);
+  res.json(postit);
+});
+
+app.delete('/api/postit/:id', authMiddleware, (req, res) => {
+  const postits = getUserPostits(req.user.username);
+  const idx = postits.findIndex(p => p.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ error: 'Not found' });
+  postits.splice(idx, 1);
+  saveUserPostits(req.user.username, postits);
+  res.json({ ok: true });
+});
+
 server.listen(config.server.port, config.server.host, () => {
   console.log(`Desktop Server running at http://${config.server.host}:${config.server.port}`);
   console.log(`WebSocket endpoint: ws://${config.server.host}:${config.server.port}/ws`);
   startRssChecker();
   startReminderChecker();
+  startMailChecker();
 });

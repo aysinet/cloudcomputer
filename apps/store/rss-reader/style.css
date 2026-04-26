@@ -7,6 +7,7 @@
 .rss-tbtn{border:none;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;transition:.15s;white-space:nowrap}
 .rss-tbtn:hover{background:rgba(255,255,255,.14);color:#fff}
 .rss-tbtn:disabled{opacity:.4;cursor:default}
+.rss-tbtn-active{background:rgba(46,204,113,.2);color:#2ecc71}
 .rss-unread-badge{background:rgba(245,108,108,.2);color:#f56c6c;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px}
 .rss-loading{flex:1;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.4);font-size:13px}
 .rss-content{flex:1;overflow-y:auto;padding:10px 14px}
@@ -57,6 +58,10 @@
 .rss-item-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.9);margin-bottom:3px;line-height:1.3}
 .rss-item-desc{font-size:11px;color:rgba(255,255,255,.4);line-height:1.4;margin-bottom:3px}
 .rss-item-date{font-size:10px;color:rgba(167,139,250,.6)}
+.rss-item{position:relative}
+.rss-mark-read-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:24px;height:24px;border:none;border-radius:6px;background:rgba(102,126,234,.15);color:rgba(102,126,234,.8);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:.15s}
+.rss-item:hover .rss-mark-read-btn{opacity:1}
+.rss-mark-read-btn:hover{background:rgba(102,126,234,.35);color:#fff}
 
 /* Reader */
 .rss-reader{padding:16px 20px}
@@ -65,6 +70,8 @@
 .rss-reader-meta{display:flex;align-items:center;gap:12px;font-size:11px;color:rgba(255,255,255,.4)}
 .rss-reader-link{color:#a78bfa;text-decoration:none;cursor:pointer}
 .rss-reader-link:hover{text-decoration:underline;color:#c4b5fd}
+.rss-share-link{color:#60a5fa;margin-left:12px}
+.rss-share-link:hover{color:#93c5fd}
 .rss-reader-body{font-size:13px;line-height:1.7;color:rgba(255,255,255,.75)}
 .rss-reader-body img{max-width:100%;height:auto;border-radius:8px;margin:8px 0}
 .rss-reader-body a{color:#a78bfa}

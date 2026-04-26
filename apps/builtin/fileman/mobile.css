@@ -1,0 +1,8 @@
+/* File Manager: hide sidebar, show top-bar nav */
+.fm-toolbar{padding:8px 12px;gap:6px}
+.fm-tb-btn{height:36px;min-width:36px;font-size:14px}
+.fm-path{height:36px;font-size:13px}
+.fm-sidebar{display:none !important}
+.fm-files{padding:12px;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px}
+.fm-file .ico{font-size:36px}
+.fm-file .name{font-size:12px}

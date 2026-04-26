@@ -1,0 +1,7 @@
+/* Calendar: scale cells */
+.cal-root{font-size:13px}
+.cal-toolbar{padding:8px;flex-wrap:wrap;gap:6px}
+.cal-title{font-size:16px;font-weight:600}
+.cal-body td{height:54px !important;padding:2px !important}
+.cal-day-num{font-size:12px}
+.cal-event-dot{font-size:9px;padding:1px 3px}

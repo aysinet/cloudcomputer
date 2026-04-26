@@ -1,0 +1,33 @@
+.tetris-root{width:100%;height:100%;background:linear-gradient(135deg,#0a0a1a,#1a1a2e);color:#e0e0e0;font-family:'Segoe UI',sans-serif;display:flex;align-items:center;justify-content:center;outline:none;overflow:hidden}
+
+.tetris-layout{display:flex;gap:16px;padding:12px;align-items:flex-start}
+
+/* Board */
+.tetris-board-wrap{position:relative;border:2px solid rgba(255,255,255,.15);border-radius:4px;box-shadow:0 0 30px rgba(108,92,231,.2),inset 0 0 20px rgba(0,0,0,.3);background:#0a0a12;line-height:0}
+.tetris-board{display:block}
+
+/* Overlay */
+.tetris-overlay{position:absolute;inset:0;background:rgba(0,0,0,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:5;border-radius:2px}
+.tetris-overlay-title{font-size:24px;font-weight:800;letter-spacing:2px;color:#fff;text-shadow:0 0 20px rgba(108,92,231,.6)}
+.tetris-overlay-score{font-size:16px;color:rgba(255,255,255,.6)}
+.tetris-play-btn{padding:10px 28px;border:none;border-radius:8px;background:linear-gradient(135deg,#6c5ce7,#a29bfe);color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;letter-spacing:1px}
+.tetris-play-btn:hover{filter:brightness(1.2);transform:scale(1.05)}
+
+/* Side panel */
+.tetris-side{display:flex;flex-direction:column;gap:8px;min-width:120px}
+.tetris-panel{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 12px;text-align:center}
+.tetris-panel-title{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-bottom:4px}
+.tetris-next{display:block;margin:0 auto}
+.tetris-score{font-size:22px;font-weight:800;color:#f6d365;text-shadow:0 0 10px rgba(246,211,101,.3)}
+.tetris-level{font-size:18px;font-weight:700;color:#a29bfe}
+.tetris-lines{font-size:16px;font-weight:600;color:#2ecc71}
+.tetris-highscore{font-size:14px;font-weight:600;color:#f56c6c}
+
+/* Controls */
+.tetris-controls{display:flex;gap:6px;justify-content:center;padding:6px 12px}
+.tetris-ctrl-btn{width:36px;height:36px;border:none;border-radius:8px;background:rgba(255,255,255,.08);color:#fff;font-size:16px;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center}
+.tetris-ctrl-btn:hover{background:rgba(255,255,255,.16)}
+.tetris-ctrl-btn:disabled{opacity:.3;cursor:default}
+
+/* Hints */
+.tetris-hints{padding:6px 8px;font-size:9px;color:rgba(255,255,255,.2);line-height:1.7}

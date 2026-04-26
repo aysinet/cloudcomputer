@@ -1,0 +1,87 @@
+<div class="md-app">
+  <!-- Toolbar -->
+  <div class="md-toolbar">
+    <div class="md-toolbar-left">
+      <button class="md-tb-btn" @click="newFile" :title="t('newFile')">📄</button>
+      <button class="md-tb-btn" @click="openFile" :title="t('open')">📂</button>
+      <button class="md-tb-btn" @click="saveFile" :title="t('save')">💾</button>
+      <button class="md-tb-btn" @click="saveFileAs" :title="t('saveAs')">📥</button>
+      <span class="md-sep"></span>
+      <button class="md-tb-btn" @click="wrapSelection('**','**')" :title="t('bold')"><b>B</b></button>
+      <button class="md-tb-btn" @click="wrapSelection('_','_')" :title="t('italic')"><i>I</i></button>
+      <button class="md-tb-btn" @click="wrapSelection('~~','~~')" :title="t('strikethrough')"><s>S</s></button>
+      <span class="md-sep"></span>
+      <el-dropdown trigger="click" size="small">
+        <button class="md-tb-btn" :title="t('heading')">H▾</button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item v-for="n in 6" :key="n" @click="insertHeading(n)">
+              <span :style="{fontSize: (22-n*2)+'px', fontWeight:600}">H{{ n }}</span>
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <button class="md-tb-btn" @click="insertQuote" :title="t('quote')">❝</button>
+      <button class="md-tb-btn" @click="insertList" :title="t('list')">☰</button>
+      <button class="md-tb-btn" @click="insertOrderedList" :title="t('orderedList')">1.</button>
+      <button class="md-tb-btn" @click="insertCheckbox" :title="t('checkbox')">☑</button>
+      <span class="md-sep"></span>
+      <button class="md-tb-btn" @click="insertCodeBlock" :title="t('insertCode')">⟨/⟩</button>
+      <button class="md-tb-btn" @click="insertTable" :title="t('insertTable')">▦</button>
+      <button class="md-tb-btn" @click="insertLink" :title="t('insertLink')">🔗</button>
+      <button class="md-tb-btn" @click="insertImage" :title="t('insertImage')">🖼️</button>
+      <button class="md-tb-btn" @click="insertHr" :title="t('hr')">―</button>
+    </div>
+    <div class="md-toolbar-right">
+      <el-radio-group v-model="viewMode" size="small">
+        <el-radio-button value="edit">✏️ {{ t('edit') }}</el-radio-button>
+        <el-radio-button value="split">📐 {{ t('split') }}</el-radio-button>
+        <el-radio-button value="preview">👁️ {{ t('preview') }}</el-radio-button>
+      </el-radio-group>
+      <span class="md-sep"></span>
+      <button class="md-tb-btn" @click="exportHtml" :title="t('exportHtml')">📤</button>
+      <button class="md-tb-btn" @click="printPreview" :title="t('print')">🖨️</button>
+      <el-switch v-model="wordWrap" size="small" :active-text="t('wordWrap')" style="--el-switch-on-color:#409eff" />
+      <el-input-number v-model="fontSize" :min="10" :max="28" :step="1" size="small" style="width:90px" controls-position="right" />
+    </div>
+  </div>
+
+  <!-- File label -->
+  <div class="md-file-label" v-if="currentFilePath">
+    📄 {{ currentFilePath }}
+  </div>
+
+  <!-- Main content -->
+  <div class="md-main">
+    <!-- TOC Sidebar (split/edit mode) -->
+    <div class="md-toc" v-if="toc.length > 0 && viewMode !== 'preview'">
+      <div class="md-toc-title">{{ t('tocTitle') }}</div>
+      <div v-for="(item, idx) in toc" :key="idx" class="md-toc-item"
+        :style="{paddingLeft: (item.level * 12) + 'px'}"
+        @click="goToHeading(item)">
+        {{ item.text }}
+      </div>
+    </div>
+
+    <!-- Editor pane -->
+    <div class="md-editor-pane" v-show="viewMode === 'edit' || viewMode === 'split'"
+      :style="{flex: viewMode === 'split' ? '1' : '1'}">
+      <div ref="editorEl" class="md-editor-container"></div>
+    </div>
+
+    <!-- Preview pane -->
+    <div class="md-preview-pane" v-show="viewMode === 'preview' || viewMode === 'split'"
+      :style="{flex: viewMode === 'split' ? '1' : '1'}" ref="previewEl">
+      <div class="md-preview-content" v-html="htmlPreview"></div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="md-statusbar">
+    <span>Markdown</span>
+    <span>{{ stats.lines }} {{ t('lines') }}</span>
+    <span>{{ stats.words }} {{ t('words') }}</span>
+    <span>{{ stats.chars }} {{ t('chars') }}</span>
+    <span>UTF-8</span>
+  </div>
+</div>

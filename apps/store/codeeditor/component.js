@@ -20,7 +20,14 @@
         ruby: { monaco: 'ruby', name: 'Ruby', ext: '.rb', template: '# Ruby\nputs "Hello, World!"\n' },
         perl: { monaco: 'perl', name: 'Perl', ext: '.pl', template: '#!/usr/bin/perl\nprint "Hello, World!\\n";\n' },
         bash: { monaco: 'shell', name: 'Bash', ext: '.sh', template: '#!/bin/bash\necho "Hello, World!"\n' },
-        powershell: { monaco: 'powershell', name: 'PowerShell', ext: '.ps1', template: '# PowerShell\nWrite-Host "Hello, World!"\n' }
+        powershell: { monaco: 'powershell', name: 'PowerShell', ext: '.ps1', template: '# PowerShell\nWrite-Host "Hello, World!"\n' },
+        markdown: { monaco: 'markdown', name: 'Markdown', ext: '.md', template: '# Hello World\n\nThis is a **Markdown** document.\n\n## Features\n\n- Item 1\n- Item 2\n- Item 3\n\n```javascript\nconsole.log("Hello!");\n```\n' },
+        html: { monaco: 'html', name: 'HTML', ext: '.html', template: '<!DOCTYPE html>\n<html lang="en">\n<head>\n\t<meta charset="UTF-8">\n\t<title>Document</title>\n</head>\n<body>\n\t<h1>Hello, World!</h1>\n</body>\n</html>\n' },
+        css: { monaco: 'css', name: 'CSS', ext: '.css', template: '/* CSS */\nbody {\n\tfont-family: sans-serif;\n\tmargin: 0;\n\tpadding: 20px;\n\tbackground: #f5f5f5;\n}\n' },
+        json: { monaco: 'json', name: 'JSON', ext: '.json', template: '{\n\t"name": "example",\n\t"version": "1.0.0",\n\t"description": "Hello, World!"\n}\n' },
+        xml: { monaco: 'xml', name: 'XML', ext: '.xml', template: '<?xml version="1.0" encoding="UTF-8"?>\n<root>\n\t<greeting>Hello, World!</greeting>\n</root>\n' },
+        yaml: { monaco: 'yaml', name: 'YAML', ext: '.yaml', template: '# YAML\nname: example\nversion: 1.0.0\ndescription: Hello, World!\n' },
+        sql: { monaco: 'sql', name: 'SQL', ext: '.sql', template: '-- SQL\nSELECT * FROM users\nWHERE active = 1\nORDER BY name;\n' }
       };
 
       const language = ref('javascript');

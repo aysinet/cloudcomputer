@@ -1,0 +1,152 @@
+<div class="cp-root">
+  <!-- HEADER -->
+  <div class="cp-header">
+    <div class="cp-header-left">
+      <span class="cp-logo">🤖</span>
+      <span class="cp-title">{{ L('title') }}</span>
+      <span v-if="status.installed" class="cp-version">v{{ status.version }}</span>
+      <span v-else class="cp-version cp-version-bad">{{ L('notInstalled') }}</span>
+    </div>
+    <div class="cp-header-right">
+      <button class="cp-tab-btn" :class="{ active: view==='chat' }" @click="view='chat'">💬 {{ L('chat') }}</button>
+      <button class="cp-tab-btn" :class="{ active: view==='history' }" @click="view='history'; loadHistory()">📜 {{ L('history') }}</button>
+      <button class="cp-tab-btn" :class="{ active: view==='settings' }" @click="view='settings'">⚙️ {{ L('settings') }}</button>
+    </div>
+  </div>
+
+  <!-- INSTALL HINT -->
+  <div v-if="!status.installed" class="cp-install-banner">
+    <div class="cp-install-icon">⚠️</div>
+    <div class="cp-install-body">
+      <div class="cp-install-title">{{ L('installHint') }}</div>
+      <pre class="cp-install-cmd">npm install -g @github/copilot</pre>
+      <div class="cp-install-msg" v-if="status.message">{{ status.message }}</div>
+      <button class="cp-install-retry" @click="loadStatus">🔄 {{ L('checkAgain') }}</button>
+    </div>
+  </div>
+
+  <!-- CHAT VIEW -->
+  <div v-show="view==='chat'" class="cp-chat-wrap">
+    <div class="cp-messages" ref="messagesRef">
+      <div v-if="!messages.length" class="cp-empty">
+        <div class="cp-empty-icon">🤖</div>
+        <div class="cp-empty-title">{{ L('emptyTitle') }}</div>
+        <div class="cp-empty-sub">{{ L('emptySub') }}</div>
+        <div class="cp-suggestions">
+          <button class="cp-sug" v-for="s in suggestions" :key="s" @click="prompt = s; sendPrompt()">{{ s }}</button>
+        </div>
+      </div>
+      <div v-for="(m, i) in messages" :key="i" class="cp-msg" :class="'cp-msg-' + m.role">
+        <div class="cp-msg-head">
+          <span class="cp-msg-icon">{{ m.role === 'user' ? '🧑' : '🤖' }}</span>
+          <span class="cp-msg-role">{{ m.role === 'user' ? L('you') : 'Copilot' }}</span>
+          <span v-if="m.cwd" class="cp-msg-cwd" :title="m.cwd">📂 {{ truncatePath(m.cwd) }}</span>
+          <span v-if="m.exitCode != null" class="cp-msg-exit" :class="m.exitCode === 0 ? 'ok' : 'fail'">exit {{ m.exitCode }}</span>
+        </div>
+        <pre class="cp-msg-body" v-if="m.role === 'user'">{{ m.text }}</pre>
+        <pre class="cp-msg-body cp-msg-output" v-else>{{ m.text || (m.streaming ? L('thinking') : '') }}<span v-if="m.streaming" class="cp-cursor">▌</span></pre>
+        <div v-if="m.stderr" class="cp-msg-stderr">
+          <div class="cp-stderr-label">stderr</div>
+          <pre>{{ m.stderr }}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="cp-input-row">
+      <textarea
+        v-model="prompt"
+        :placeholder="L('promptPlaceholder')"
+        class="cp-prompt-input"
+        rows="2"
+        @keydown.ctrl.enter.prevent="sendPrompt"
+        @keydown.meta.enter.prevent="sendPrompt"
+        :disabled="busy"></textarea>
+      <div class="cp-input-actions">
+        <button class="cp-btn cp-btn-send" @click="sendPrompt" :disabled="busy || !prompt.trim() || !status.installed">
+          {{ busy ? '⏳' : '➤' }}
+        </button>
+        <button v-if="busy" class="cp-btn cp-btn-stop" @click="abortPrompt" :title="L('stop')">⏹</button>
+      </div>
+    </div>
+    <div class="cp-input-hint">{{ L('hintCtrlEnter') }} · {{ L('cwd') }}: <code>{{ settings.cwd || L('userRoot') }}</code></div>
+  </div>
+
+  <!-- HISTORY VIEW -->
+  <div v-show="view==='history'" class="cp-history-wrap">
+    <div class="cp-history-toolbar">
+      <h3>{{ L('history') }}</h3>
+      <button class="cp-btn cp-btn-danger" @click="clearHistory" :disabled="!history.length">🗑️ {{ L('clearAll') }}</button>
+    </div>
+    <div v-if="!history.length" class="cp-empty-small">{{ L('noHistory') }}</div>
+    <div v-for="(s, i) in history" :key="i" class="cp-hist-item" @click="replayFromHistory(s)">
+      <div class="cp-hist-head">
+        <span class="cp-hist-time">{{ formatTime(s.ts) }}</span>
+        <span class="cp-hist-cwd" :title="s.cwd">📂 {{ truncatePath(s.cwd) }}</span>
+        <span class="cp-hist-exit" :class="s.exitCode === 0 ? 'ok' : 'fail'">exit {{ s.exitCode }}</span>
+      </div>
+      <div class="cp-hist-prompt">{{ s.prompt }}</div>
+      <pre class="cp-hist-output">{{ s.output && s.output.length > 240 ? s.output.slice(0, 240) + '…' : s.output }}</pre>
+    </div>
+  </div>
+
+  <!-- SETTINGS VIEW -->
+  <div v-show="view==='settings'" class="cp-settings-wrap">
+    <h3>{{ L('settings') }}</h3>
+
+    <div class="cp-set-section">
+      <div class="cp-set-label">{{ L('githubToken') }}</div>
+      <div class="cp-set-help">{{ L('githubTokenHelp') }}</div>
+      <div class="cp-set-row">
+        <input
+          :type="showToken ? 'text' : 'password'"
+          v-model="settings.githubToken"
+          :placeholder="settings.githubTokenSet ? '••••••••' : L('tokenPlaceholder')"
+          class="cp-input" />
+        <button class="cp-btn cp-btn-ghost" @click="showToken = !showToken" :title="showToken ? L('hide') : L('show')">
+          {{ showToken ? '🙈' : '👁️' }}
+        </button>
+      </div>
+      <div class="cp-set-help cp-link-help">
+        <a href="https://github.com/settings/tokens?type=beta" target="_blank">{{ L('createToken') }}</a>
+      </div>
+    </div>
+
+    <div class="cp-set-section">
+      <div class="cp-set-label">{{ L('workingDir') }}</div>
+      <div class="cp-set-help">{{ L('workingDirHelp') }}</div>
+      <input v-model="settings.cwd" :placeholder="L('cwdPlaceholder')" class="cp-input" />
+    </div>
+
+    <div class="cp-set-section">
+      <div class="cp-set-label">{{ L('model') }}</div>
+      <div class="cp-set-help">{{ L('modelHelp') }}</div>
+      <input v-model="settings.model" placeholder="claude-sonnet-4.5" class="cp-input" />
+    </div>
+
+    <div class="cp-set-section cp-set-toggle-row">
+      <div>
+        <div class="cp-set-label">{{ L('allowAllTools') }}</div>
+        <div class="cp-set-help cp-warn">{{ L('allowAllToolsHelp') }}</div>
+      </div>
+      <label class="cp-switch">
+        <input type="checkbox" v-model="settings.allowAllTools" />
+        <span class="cp-slider"></span>
+      </label>
+    </div>
+
+    <div class="cp-set-actions">
+      <button class="cp-btn cp-btn-primary" @click="saveSettings" :disabled="savingSettings">
+        {{ savingSettings ? '⏳ ' + L('saving') : '💾 ' + L('save') }}
+      </button>
+      <span v-if="settingsMsg" class="cp-set-msg">{{ settingsMsg }}</span>
+    </div>
+
+    <div class="cp-set-section">
+      <div class="cp-set-label">{{ L('cliInfo') }}</div>
+      <div class="cp-set-help">
+        <div v-if="status.installed">✅ copilot v{{ status.version }}</div>
+        <div v-else>❌ {{ L('notInstalled') }}</div>
+      </div>
+    </div>
+  </div>
+</div>

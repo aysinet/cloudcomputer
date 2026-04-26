@@ -1,0 +1,13 @@
+.calc-root{width:100%;height:100%;background:#1e1e2e;display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',sans-serif}
+.calc-inner{width:100%;max-width:280px;padding:12px}
+.calc-disp{background:#16162a;border-radius:10px;padding:12px 16px;margin-bottom:10px}
+.calc-expr{color:rgba(255,255,255,.4);font-size:12px;min-height:18px;text-align:right}
+.calc-val{color:#fff;font-size:28px;font-weight:300;text-align:right;word-break:break-all}
+.calc-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.calc-btn{height:52px;border:none;border-radius:10px;font-size:16px;cursor:pointer;transition:.12s;font-weight:500}
+.calc-btn:active{transform:scale(.93)}
+.calc-btn.op{background:#6c63ff;color:#fff}
+.calc-btn.fn{background:#2a2a3e;color:rgba(255,255,255,.7)}
+.calc-btn.num{background:#252535;color:#fff}
+.calc-btn.eq{background:#6c63ff;color:#fff;grid-column:span 1}
+.calc-btn.zero{grid-column:span 2}

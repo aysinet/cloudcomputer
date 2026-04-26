@@ -1,0 +1,40 @@
+{
+  "id": "audio-editor",
+  "name": "Ses Düzenleyici",
+  "icon": "🎛️",
+  "color": "linear-gradient(135deg,#0f2027,#2c5364)",
+  "type": "internal",
+  "size": {
+    "w": 820,
+    "h": 600
+  },
+  "global": false,
+  "description": "Ses dosyalarını düzenleme — kesme, kopyalama, efektler ve WAV dışa aktarma",
+  "lang": {
+    "tr": {
+      "name": "Ses Düzenleyici",
+      "description": "Ses dosyalarını düzenleme — kesme, kopyalama, efektler ve WAV dışa aktarma"
+    },
+    "en": {
+      "name": "Audio Editor",
+      "description": "Edit audio files — cut, copy, effects and WAV export"
+    },
+    "de": {
+      "name": "Audio-Editor",
+      "description": "Audiodateien bearbeiten — Schneiden, Kopieren, Effekte und WAV-Export"
+    },
+    "fr": {
+      "name": "Éditeur Audio",
+      "description": "Éditer des fichiers audio — couper, copier, effets et export WAV"
+    },
+    "es": {
+      "name": "Editor de Audio",
+      "description": "Editar archivos de audio — cortar, copiar, efectos y exportación WAV"
+    },
+    "ru": {
+      "name": "Аудиоредактор",
+      "description": "Редактирование аудиофайлов — обрезка, копирование, эффекты и экспорт WAV"
+    }
+  },
+  "category": "tools"
+}

@@ -1,0 +1,151 @@
+.chess-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+/* Status screens (loading, error, idle) */
+.chess-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.chess-icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.chess-status-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.chess-sub-text {
+  font-size: 13px;
+  color: #888;
+  max-width: 360px;
+}
+
+.chess-error-msg {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+/* Spinner */
+.chess-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #4fc3f7;
+  border-radius: 50%;
+  animation: chess-spin 0.8s linear infinite;
+}
+
+@keyframes chess-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Buttons */
+.chess-btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: all 0.2s;
+  background: #2d2d44;
+  color: #e0e0e0;
+}
+
+.chess-btn:hover {
+  background: #3d3d5c;
+}
+
+.chess-btn-primary {
+  background: #4fc3f7;
+  color: #1a1a2e;
+  font-weight: 600;
+}
+
+.chess-btn-primary:hover {
+  background: #81d4fa;
+}
+
+.chess-btn-large {
+  padding: 12px 32px;
+  font-size: 16px;
+  border-radius: 12px;
+}
+
+.chess-btn-small {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.chess-btn-danger {
+  background: #c0392b;
+  color: #fff;
+}
+
+.chess-btn-danger:hover {
+  background: #e74c3c;
+}
+
+.chess-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Running state */
+.chess-running {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chess-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: #16213e;
+  border-bottom: 1px solid #2d2d44;
+  min-height: 32px;
+}
+
+.chess-info {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.chess-toolbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.chess-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}

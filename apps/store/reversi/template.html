@@ -1,0 +1,37 @@
+<div class="rv-root">
+  <div class="rv-header">
+    <div class="rv-score">
+      <span class="rv-disc black"></span> <span>{{blackCount}}</span>
+      <span style="margin:0 8px;opacity:.4">|</span>
+      <span class="rv-disc white"></span> <span>{{whiteCount}}</span>
+    </div>
+    <div class="rv-turn" :class="{ended: gameOver}">
+      <template v-if="!gameOver">
+        <span class="rv-disc" :class="turn"></span>
+        <span>{{turnLabel}}</span>
+      </template>
+      <template v-else>
+        <span>{{resultLabel}}</span>
+      </template>
+    </div>
+    <button class="rv-btn" @click="reset">{{t('newGame')}}</button>
+  </div>
+  <div class="rv-board">
+    <div v-for="(row, y) in board" :key="y" class="rv-row">
+      <button v-for="(cell, x) in row" :key="x"
+        class="rv-cell"
+        :class="{ valid: isValid(x, y), last: lastMove && lastMove[0]===x && lastMove[1]===y }"
+        @click="place(x, y)">
+        <span v-if="cell" class="rv-disc" :class="cell"></span>
+        <span v-else-if="isValid(x, y)" class="rv-hint"></span>
+      </button>
+    </div>
+  </div>
+  <div class="rv-footer">
+    <label class="rv-toggle">
+      <span>{{t('vsAI')}}</span>
+      <input type="checkbox" v-model="vsAI">
+      <span class="rv-switch"></span>
+    </label>
+  </div>
+</div>

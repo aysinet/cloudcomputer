@@ -150,6 +150,23 @@
   font-size: 13px;
 }
 
+/* Suggested Groups */
+.pm-suggest-groups { margin-top: 14px; }
+.pm-suggest-label { font-size: 11px; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+.pm-suggest-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pm-suggest-chip {
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.6);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.pm-suggest-chip:hover { background: rgba(92,107,192,.3); color: #fff; }
+.pm-suggest-all { background: rgba(92,107,192,.15); color: #7986cb; }
+.pm-suggest-all:hover { background: rgba(92,107,192,.4); color: #fff; }
+
 /* Copy Toast */
 .pm-toast {
   position: absolute;

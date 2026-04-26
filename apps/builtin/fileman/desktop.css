@@ -1,0 +1,17 @@
+.fm-root{width:100%;height:100%;background:#fff;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif}
+.fm-toolbar{background:#f8f8f8;border-bottom:1px solid #e0e0e0;padding:6px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.fm-path{flex:1;height:28px;border:1px solid #ddd;border-radius:4px;padding:0 10px;font-size:12px;background:#fff;color:#333;outline:none}
+.fm-tb-btn{height:28px;padding:0 10px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:12px}
+.fm-tb-btn:hover{background:#f0f0f0}
+.fm-sidebar{width:140px;background:#f5f5f7;border-right:1px solid #e0e0e0;padding:10px 0;flex-shrink:0}
+.fm-side-item{padding:7px 14px;cursor:pointer;font-size:13px;color:#444;display:flex;align-items:center;gap:8px;border-radius:0}
+.fm-side-item:hover{background:#e8e8ee}
+.fm-side-item.active{background:#e0e0f0;color:#5050cc;font-weight:500}
+.fm-main{display:flex;flex:1;overflow:hidden}
+.fm-files{flex:1;padding:12px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;align-content:start}
+.fm-file{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;transition:.12s}
+.fm-file:hover{background:#f0f0f8}
+.fm-file.sel{background:#dde8ff}
+.fm-file .ico{font-size:30px;line-height:1}
+.fm-file .name{font-size:11px;color:#333;text-align:center;word-break:break-word}
+.fm-status{background:#f8f8f8;border-top:1px solid #e0e0e0;padding:4px 12px;font-size:11px;color:#888;flex-shrink:0}

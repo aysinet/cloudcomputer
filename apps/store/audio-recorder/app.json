@@ -1,0 +1,40 @@
+{
+  "id": "audio-recorder",
+  "name": "Ses Kaydedici",
+  "icon": "🎙️",
+  "color": "linear-gradient(135deg,#e53935,#ff7043)",
+  "type": "internal",
+  "size": {
+    "w": 480,
+    "h": 520
+  },
+  "global": false,
+  "description": "Mikrofon ile ses kaydı — WAV formatında gerçek zamanlı sunucuya kayıt",
+  "lang": {
+    "tr": {
+      "name": "Ses Kaydedici",
+      "description": "Mikrofon ile ses kaydı — WAV formatında gerçek zamanlı sunucuya kayıt"
+    },
+    "en": {
+      "name": "Audio Recorder",
+      "description": "Microphone recording — real-time WAV recording to server"
+    },
+    "de": {
+      "name": "Audiorekorder",
+      "description": "Mikrofonaufnahme — Echtzeit-WAV-Aufnahme auf den Server"
+    },
+    "fr": {
+      "name": "Enregistreur Audio",
+      "description": "Enregistrement microphone — enregistrement WAV en temps réel sur le serveur"
+    },
+    "es": {
+      "name": "Grabadora de Audio",
+      "description": "Grabación de micrófono — grabación WAV en tiempo real al servidor"
+    },
+    "ru": {
+      "name": "Аудиорекордер",
+      "description": "Запись с микрофона — запись WAV в реальном времени на сервер"
+    }
+  },
+  "category": "tools"
+}

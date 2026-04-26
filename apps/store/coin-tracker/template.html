@@ -1,27 +1,31 @@
 <div class="ct-root">
   <div class="ct-header">
-    <h2>📈 Coin Tracker</h2>
+    <h2>📈 {{L('title')}}</h2>
     <div class="ct-tabs">
-      <button :class="{active:tab==='all'}" @click="tab='all'">Tümü ({{filteredCoins.length}})</button>
-      <button :class="{active:tab==='fav'}" @click="tab='fav'">⭐ Favoriler ({{favCoins.length}})</button>
+      <button :class="{active:tab==='all'}" @click="tab='all'">{{L('tabAll')}} ({{filteredCoins.length}})</button>
+      <button :class="{active:tab==='fav'}" @click="tab='fav'">⭐ {{L('tabFav')}} ({{favCoins.length}})</button>
+      <button :class="{active:tab==='portfolio'}" @click="tab='portfolio'">💰 {{L('tabPortfolio')}} ({{portfolio.length}})</button>
     </div>
   </div>
+
+  <!-- ALL / FAV tabs -->
+  <template v-if="tab!=='portfolio'">
   <div class="ct-search">
-    <input v-model="search" placeholder="Coin ara... (BTCUSDT)" class="ct-input">
-    <label class="ct-hide-toggle"><input type="checkbox" v-model="showHidden"> Gizlileri göster</label>
+    <input v-model="search" :placeholder="L('searchPlaceholder')" class="ct-input">
+    <label class="ct-hide-toggle"><input type="checkbox" v-model="showHidden"> {{L('showHidden')}}</label>
   </div>
   <div class="ct-status">
     <span :class="connected?'ct-on':'ct-off'">●</span>
-    <span>{{connected?'Canlı':'Bağlantı kesildi'}}</span>
-    <span class="ct-update" v-if="lastUpdate">Son: {{lastUpdate}}</span>
+    <span>{{connected ? L('live') : L('disconnected')}}</span>
+    <span class="ct-update" v-if="lastUpdate">{{L('lastUpdate')}}: {{lastUpdate}}</span>
   </div>
   <div class="ct-list">
     <div class="ct-list-header">
-      <span class="ct-col-sym">Sembol</span>
-      <span class="ct-col-price">Fiyat (USDT)</span>
-      <span class="ct-col-actions">İşlem</span>
+      <span class="ct-col-sym">{{L('colSymbol')}}</span>
+      <span class="ct-col-price">{{L('colPrice')}}</span>
+      <span class="ct-col-actions">{{L('colActions')}}</span>
     </div>
-    <div v-if="!displayCoins.length" class="ct-empty">{{search ? 'Sonuç bulunamadı' : 'Veri yükleniyor...'}}</div>
+    <div v-if="!displayCoins.length" class="ct-empty">{{search ? L('noResult') : L('loading')}}</div>
     <div v-for="coin in displayCoins" :key="coin.symbol" class="ct-item" :class="{fav: isFav(coin.symbol), hidden: isHidden(coin.symbol)}">
       <span class="ct-col-sym">
         <span class="ct-sym-name">{{coin.symbol.replace('USDT','')}}</span>
@@ -29,9 +33,112 @@
       </span>
       <span class="ct-col-price" :class="coin.dir">{{formatPrice(coin.price)}}</span>
       <span class="ct-col-actions">
-        <button class="ct-act" :class="{on:isFav(coin.symbol)}" @click="toggleFav(coin.symbol)" title="Favori">⭐</button>
-        <button class="ct-act" :class="{on:isHidden(coin.symbol)}" @click="toggleHidden(coin.symbol)" title="Gizle">👁</button>
+        <button class="ct-act" :class="{on:isFav(coin.symbol)}" @click="toggleFav(coin.symbol)" :title="L('favTooltip')">⭐</button>
+        <button class="ct-act" :class="{on:isHidden(coin.symbol)}" @click="toggleHidden(coin.symbol)" :title="L('hideTooltip')">👁</button>
       </span>
     </div>
   </div>
+  </template>
+
+  <!-- PORTFOLIO tab -->
+  <template v-if="tab==='portfolio'">
+  <div class="ct-pf-wrap">
+    <!-- Add / Edit form -->
+    <div class="ct-pf-form">
+      <div class="ct-pf-form-title">{{ pfEdit >= 0 ? '✏️ ' + L('editTitle') : '➕ ' + L('addTitle') }}</div>
+      <div class="ct-pf-fields">
+        <div class="ct-pf-field ct-pf-sym-wrap">
+          <label>{{L('lblSymbol')}}</label>
+          <input v-model="pfForm.symbol" placeholder="BTC" class="ct-input" @keydown.enter.prevent="addPortfolioEntry">
+          <div v-if="symbolSuggestions.length" class="ct-pf-suggest">
+            <div v-for="s in symbolSuggestions" :key="s" class="ct-pf-sug-item" @mousedown.prevent="pickSymbol(s)">{{ s }}</div>
+          </div>
+        </div>
+        <div class="ct-pf-field">
+          <label>{{L('lblAmount')}}</label>
+          <input v-model="pfForm.amount" type="number" step="any" placeholder="100" class="ct-input" @keydown.enter.prevent="addPortfolioEntry">
+        </div>
+        <div class="ct-pf-field">
+          <label>{{L('lblBuyPrice')}}</label>
+          <input v-model="pfForm.buyPrice" type="number" step="any" placeholder="3.00" class="ct-input" @keydown.enter.prevent="addPortfolioEntry">
+        </div>
+        <div class="ct-pf-field ct-pf-btns">
+          <button class="ct-pf-add" @click="addPortfolioEntry">{{ pfEdit >= 0 ? '💾 ' + L('btnSave') : '➕ ' + L('btnAdd') }}</button>
+          <button v-if="pfEdit >= 0" class="ct-pf-cancel" @click="cancelEdit">{{L('btnCancel')}}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- USDT Balance -->
+    <div class="ct-pf-form ct-pf-usdt">
+      <div class="ct-pf-fields">
+        <div class="ct-pf-field ct-usdt-inline">
+          <label>💵 {{L('usdtBalance')}}</label>
+          <div v-if="!editingUsdt" class="ct-usdt-view">
+            <span class="ct-usdt-value">${{ formatPrice(usdtBalance) }}</span>
+            <button class="ct-usdt-edit-btn" @click="startEditUsdt" title="Edit">✏️</button>
+          </div>
+          <div v-else class="ct-usdt-edit">
+            <input ref="usdtInput" type="text" inputmode="decimal" class="ct-input ct-usdt-input" v-model="usdtDraft" @keydown.enter="saveUsdt" @keydown.escape="cancelEditUsdt">
+            <button class="ct-usdt-save-btn" @click="saveUsdt">✓</button>
+            <button class="ct-usdt-cancel-btn" @click="cancelEditUsdt">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary bar -->
+    <div v-if="portfolio.length || usdtBalance > 0" class="ct-pf-summary">
+      <div class="ct-pf-sum-item">
+        <span class="ct-pf-sum-label">{{L('totalCost')}}</span>
+        <span class="ct-pf-sum-val">${{ portfolioTotal.cost.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) }}</span>
+      </div>
+      <div class="ct-pf-sum-item">
+        <span class="ct-pf-sum-label">{{L('currentValue')}}</span>
+        <span class="ct-pf-sum-val">${{ portfolioTotal.val.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) }}</span>
+      </div>
+      <div class="ct-pf-sum-item" :class="portfolioTotal.pnl >= 0 ? 'ct-pf-profit' : 'ct-pf-loss'">
+        <span class="ct-pf-sum-label">{{L('pnl')}}</span>
+        <span class="ct-pf-sum-val">{{ portfolioTotal.pnl >= 0 ? '+' : '' }}${{ portfolioTotal.pnl.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) }} ({{ portfolioTotal.pnlPct >= 0 ? '+' : '' }}{{ portfolioTotal.pnlPct.toFixed(2) }}%)</span>
+      </div>
+    </div>
+
+    <!-- Portfolio list -->
+    <div class="ct-pf-list">
+      <div class="ct-pf-list-header">
+        <span class="ct-pfc-sym">{{L('colCoin')}}</span>
+        <span class="ct-pfc-amt">{{L('colAmount')}}</span>
+        <span class="ct-pfc-buy">{{L('colBuy')}}</span>
+        <span class="ct-pfc-cur">{{L('colCurrent')}}</span>
+        <span class="ct-pfc-val">{{L('colValue')}}</span>
+        <span class="ct-pfc-pnl">{{L('colPnl')}}</span>
+        <span class="ct-pfc-act"></span>
+      </div>
+      <div v-if="!portfolioRows.length" class="ct-empty">{{L('emptyPortfolio')}}</div>
+      <div v-for="row in portfolioRows" :key="row.isUsdt ? 'usdt' : row.idx" class="ct-pf-row" :class="!row.isUsdt && pfEdit === row.idx ? 'editing' : ''">
+        <span class="ct-pfc-sym">
+          <span class="ct-sym-name">{{ row.symbol }}</span>
+          <span v-if="!row.isUsdt" class="ct-sym-pair">/USDT</span>
+        </span>
+        <span class="ct-pfc-amt">{{ row.amount }}</span>
+        <span class="ct-pfc-buy">{{ row.isUsdt ? '$1.00' : '$' + formatBuyPrice(row.buyPrice) }}</span>
+        <span class="ct-pfc-cur" :class="!row.isUsdt && row.curPrice > row.buyPrice ? 'up' : !row.isUsdt && row.curPrice < row.buyPrice ? 'down' : ''">${{ row.isUsdt ? '1.00' : (row.curPrice ? formatPrice(row.curPrice) : '—') }}</span>
+        <span class="ct-pfc-val">${{ row.val.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) }}</span>
+        <span class="ct-pfc-pnl" :class="row.pnl >= 0 ? 'up' : 'down'">
+          <template v-if="row.isUsdt">—</template>
+          <template v-else>
+            {{ row.pnl >= 0 ? '+' : '' }}{{ row.pnl.toFixed(2) }}
+            <small>({{ row.pnlPct >= 0 ? '+' : '' }}{{ row.pnlPct.toFixed(1) }}%)</small>
+          </template>
+        </span>
+        <span class="ct-pfc-act">
+          <template v-if="!row.isUsdt">
+            <button class="ct-act on" @click="editPortfolioEntry(row.idx)" :title="L('editTooltip')">✏️</button>
+            <button class="ct-act on" @click="removePortfolioEntry(row.idx)" :title="L('deleteTooltip')">🗑️</button>
+          </template>
+        </span>
+      </div>
+    </div>
+  </div>
+  </template>
 </div>

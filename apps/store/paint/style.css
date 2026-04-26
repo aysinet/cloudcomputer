@@ -1,0 +1,59 @@
+.paint-root{width:100%;height:100%;display:flex;flex-direction:column;background:#2b2b3a;color:#e0e0e0;font-family:'Segoe UI',sans-serif;overflow:hidden;user-select:none}
+
+/* Toolbar */
+.paint-toolbar{display:flex;align-items:center;gap:4px;padding:4px 8px;background:#1e1e2e;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;flex-wrap:wrap;min-height:36px}
+.paint-tb-group{display:flex;align-items:center;gap:2px}
+.paint-tb-sep{width:1px;height:22px;background:rgba(255,255,255,.1);margin:0 4px}
+.paint-tb-btn{height:28px;min-width:28px;padding:0 6px;border:1px solid transparent;border-radius:4px;background:none;color:#ccc;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
+.paint-tb-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.paint-tb-btn.active{background:rgba(108,92,231,.3);border-color:rgba(108,92,231,.6);color:#fff}
+.paint-tb-btn:disabled{opacity:.3;cursor:default}
+.paint-tb-sm{font-size:12px;height:24px;min-width:24px}
+.paint-tool-btn{font-size:16px;width:32px}
+
+/* Size slider */
+.paint-size-group{gap:6px}
+.paint-size-label{font-size:10px;color:rgba(255,255,255,.5);min-width:28px;text-align:center}
+.paint-size-slider{width:70px;height:4px;accent-color:#6c5ce7;cursor:pointer}
+
+/* Colors */
+.paint-color-group{gap:6px}
+.paint-color-pair{position:relative;width:32px;height:32px}
+.paint-color-fg{position:absolute;top:0;left:0;width:22px;height:22px;border:2px solid #fff;border-radius:3px;cursor:pointer;z-index:2;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.paint-color-bg{position:absolute;bottom:0;right:0;width:22px;height:22px;border:2px solid #999;border-radius:3px;cursor:pointer;z-index:1;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+
+/* Palette */
+.paint-palette{flex-wrap:wrap;max-width:220px;gap:1px}
+.paint-palette-swatch{width:14px;height:14px;border:1px solid rgba(255,255,255,.15);border-radius:2px;cursor:pointer;transition:.1s}
+.paint-palette-swatch:hover{transform:scale(1.3);z-index:2;border-color:#fff}
+
+/* Canvas size display */
+.paint-canvas-size{gap:4px}
+.paint-dim{font-size:10px;color:rgba(255,255,255,.4)}
+
+/* Fill label */
+.paint-fill-label{font-size:11px;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:4px;cursor:pointer}
+.paint-fill-label input{cursor:pointer}
+
+/* Resize popup */
+.paint-resize-popup{position:absolute;top:40px;right:10px;z-index:20;background:#1e1e2e;border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.paint-resize-popup label{font-size:11px;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:6px}
+.paint-resize-input{width:70px;height:24px;border:1px solid rgba(255,255,255,.15);border-radius:4px;background:rgba(255,255,255,.06);color:#fff;padding:0 6px;font-size:12px;outline:none}
+.paint-resize-input:focus{border-color:rgba(108,92,231,.5)}
+.paint-resize-actions{display:flex;gap:6px}
+.paint-btn-ok{height:26px;padding:0 14px;border:none;border-radius:4px;background:#6c5ce7;color:#fff;font-size:11px;font-weight:600;cursor:pointer}
+.paint-btn-ok:hover{filter:brightness(1.15)}
+.paint-btn-cancel{height:26px;padding:0 14px;border:none;border-radius:4px;background:rgba(255,255,255,.1);color:#ccc;font-size:11px;cursor:pointer}
+.paint-btn-cancel:hover{background:rgba(255,255,255,.18)}
+
+/* Text overlay */
+.paint-text-overlay{position:absolute;z-index:15}
+.paint-text-input{background:transparent;border:1px dashed rgba(108,92,231,.6);outline:none;padding:2px 4px;min-width:100px;font-family:'Segoe UI',sans-serif}
+
+/* Canvas area */
+.paint-canvas-wrap{flex:1;overflow:auto;position:relative;background:repeating-conic-gradient(#3a3a4a 0% 25%,#2e2e3e 0% 50%) 0 0/16px 16px;display:flex;align-items:flex-start;justify-content:flex-start}
+.paint-canvas-wrap canvas{display:block;image-rendering:pixelated}
+.paint-preview-canvas{position:absolute;top:0;left:0;pointer-events:none}
+
+/* Statusbar */
+.paint-statusbar{height:22px;background:#1e1e2e;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 12px;gap:20px;font-size:10px;color:rgba(255,255,255,.4);flex-shrink:0}

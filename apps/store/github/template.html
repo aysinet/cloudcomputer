@@ -1,0 +1,534 @@
+<div class="gh-root">
+  <!-- Top Bar -->
+  <div class="gh-topbar">
+    <div class="gh-topbar-left">
+      <span class="gh-logo">🐙</span>
+      <span class="gh-title">GitHub</span>
+    </div>
+    <div class="gh-topbar-center">
+      <button v-for="t in tabs" :key="t.key" :class="['gh-tab-btn', { active: tab === t.key }]" @click="tab = t.key">
+        <span class="gh-tab-icon">{{ t.icon }}</span>
+        <span class="gh-tab-label">{{ t.label }}</span>
+      </button>
+    </div>
+    <div class="gh-topbar-right">
+      <span v-if="ghUser" class="gh-user-badge" :title="ghUser.login">
+        <img v-if="ghUser.avatar_url" :src="ghUser.avatar_url" class="gh-avatar" />
+        <span>{{ ghUser.login }}</span>
+      </span>
+      <button class="gh-icon-btn" @click="tab='settings'" :title="L.settings">⚙️</button>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div v-if="busy" class="gh-loading-overlay">
+    <div class="gh-spinner"></div>
+    <span>{{ busyMsg || L.loading }}</span>
+  </div>
+
+  <!-- No Token Warning -->
+  <div v-if="!token && tab !== 'settings'" class="gh-empty-state">
+    <div class="gh-empty-icon">🔑</div>
+    <h3>{{ L.tokenRequired }}</h3>
+    <p>{{ L.tokenRequiredDesc }}</p>
+    <button class="gh-btn primary" @click="tab='settings'">{{ L.goSettings }}</button>
+  </div>
+
+  <!-- REPOS TAB -->
+  <div v-if="token && tab === 'repos'" class="gh-content">
+    <div class="gh-toolbar">
+      <div class="gh-search-box">
+        <input v-model="repoSearch" :placeholder="L.searchRepos" @keyup.enter="loadRepos" />
+        <button class="gh-icon-btn" @click="loadRepos" title="Refresh">🔄</button>
+      </div>
+      <div class="gh-toolbar-actions">
+        <select v-model="repoFilter" class="gh-select">
+          <option value="all">{{ L.all }}</option>
+          <option value="owner">{{ L.owned }}</option>
+          <option value="public">{{ L.public }}</option>
+          <option value="private">{{ L.private }}</option>
+          <option value="forks">{{ L.forks }}</option>
+        </select>
+        <button class="gh-btn primary" @click="showCreateRepo = true">+ {{ L.newRepo }}</button>
+      </div>
+    </div>
+
+    <!-- Repo List -->
+    <div class="gh-list">
+      <div v-for="r in filteredRepos" :key="r.full_name" class="gh-repo-item" @click="openRepo(r)">
+        <div class="gh-repo-info">
+          <div class="gh-repo-name">
+            <span class="gh-repo-icon">{{ r.private ? '🔒' : '📂' }}</span>
+            <span>{{ r.full_name }}</span>
+            <span v-if="r.fork" class="gh-badge fork">fork</span>
+          </div>
+          <div v-if="r.description" class="gh-repo-desc">{{ r.description }}</div>
+          <div class="gh-repo-meta">
+            <span v-if="r.language" class="gh-lang-badge">{{ r.language }}</span>
+            <span>⭐ {{ r.stargazers_count }}</span>
+            <span>🍴 {{ r.forks_count }}</span>
+            <span v-if="r.open_issues_count">🐛 {{ r.open_issues_count }}</span>
+            <span class="gh-date">{{ formatDate(r.updated_at) }}</span>
+          </div>
+        </div>
+        <div class="gh-repo-actions" @click.stop>
+          <button class="gh-icon-btn small" @click="cloneRepo(r)" :title="L.clone">📥</button>
+          <button class="gh-icon-btn small" @click="deleteRemoteRepo(r)" :title="L.delete">🗑️</button>
+        </div>
+      </div>
+      <div v-if="repos.length === 0 && !busy" class="gh-empty-list">{{ L.noRepos }}</div>
+    </div>
+  </div>
+
+  <!-- REPO DETAIL VIEW -->
+  <div v-if="token && tab === 'repoDetail'" class="gh-content">
+    <div class="gh-toolbar">
+      <button class="gh-btn" @click="tab='repos'">← {{ L.back }}</button>
+      <span class="gh-detail-title">{{ currentRepo?.full_name }}</span>
+      <div class="gh-toolbar-actions">
+        <select v-model="currentBranch" class="gh-select" @change="loadRepoContents('')">
+          <option v-for="b in branches" :key="b.name" :value="b.name">{{ b.name }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Sub-tabs -->
+    <div class="gh-subtabs">
+      <button v-for="st in detailTabs" :key="st.key" :class="['gh-subtab', { active: detailTab === st.key }]" @click="detailTab = st.key; if(st.load) st.load()">
+        {{ st.icon }} {{ st.label }}
+      </button>
+    </div>
+
+    <!-- Files -->
+    <div v-if="detailTab === 'code'" class="gh-file-browser">
+      <div class="gh-breadcrumb">
+        <span class="gh-crumb-link" @click="loadRepoContents('')">📁 root</span>
+        <template v-for="(p, i) in pathParts" :key="i">
+          <span class="gh-crumb-sep">/</span>
+          <span class="gh-crumb-link" @click="loadRepoContents(pathParts.slice(0, i+1).join('/'))">{{ p }}</span>
+        </template>
+      </div>
+      <div class="gh-file-list">
+        <div v-if="currentPath" class="gh-file-item" @click="goUp">
+          <span class="gh-file-icon">📁</span>
+          <span>..</span>
+        </div>
+        <div v-for="f in repoContents" :key="f.path" class="gh-file-item" @click="f.type === 'dir' ? loadRepoContents(f.path) : viewFile(f)">
+          <span class="gh-file-icon">{{ f.type === 'dir' ? '📁' : fileIcon(f.name) }}</span>
+          <span class="gh-file-name">{{ f.name }}</span>
+          <span v-if="f.size" class="gh-file-size">{{ formatSize(f.size) }}</span>
+        </div>
+      </div>
+      <!-- File Viewer -->
+      <div v-if="viewingFile" class="gh-file-viewer">
+        <div class="gh-file-viewer-header">
+          <span>{{ viewingFile.name }}</span>
+          <div>
+            <button class="gh-icon-btn small" @click="downloadFile(viewingFile)" title="Download">💾</button>
+            <button class="gh-icon-btn small" @click="viewingFile = null" title="Close">✖</button>
+          </div>
+        </div>
+        <pre class="gh-file-content"><code>{{ viewingFileContent }}</code></pre>
+      </div>
+    </div>
+
+    <!-- Commits -->
+    <div v-if="detailTab === 'commits'" class="gh-commits-list">
+      <div v-for="c in commits" :key="c.sha" class="gh-commit-item">
+        <div class="gh-commit-msg">{{ c.commit.message }}</div>
+        <div class="gh-commit-meta">
+          <span>{{ c.commit.author?.name || c.author?.login || 'unknown' }}</span>
+          <span>{{ formatDate(c.commit.author?.date) }}</span>
+          <span class="gh-sha" :title="c.sha">{{ c.sha.substring(0, 7) }}</span>
+        </div>
+      </div>
+      <div v-if="commits.length === 0 && !busy" class="gh-empty-list">{{ L.noCommits }}</div>
+    </div>
+
+    <!-- Branches -->
+    <div v-if="detailTab === 'branches'" class="gh-branch-list">
+      <div class="gh-toolbar-inline">
+        <button class="gh-btn primary small" @click="showCreateBranch = true">+ {{ L.newBranch }}</button>
+      </div>
+      <div v-for="b in branches" :key="b.name" class="gh-branch-item">
+        <span class="gh-branch-icon">🌿</span>
+        <span class="gh-branch-name">{{ b.name }}</span>
+        <span v-if="b.name === currentRepo?.default_branch" class="gh-badge default">default</span>
+        <button v-if="b.name !== currentRepo?.default_branch" class="gh-icon-btn small danger" @click="deleteBranch(b)" title="Delete">🗑️</button>
+      </div>
+    </div>
+
+    <!-- Issues -->
+    <div v-if="detailTab === 'issues'" class="gh-issues-list">
+      <div class="gh-toolbar-inline">
+        <select v-model="issueState" class="gh-select small" @change="loadIssues">
+          <option value="open">{{ L.open }}</option>
+          <option value="closed">{{ L.closed }}</option>
+          <option value="all">{{ L.all }}</option>
+        </select>
+        <button class="gh-btn primary small" @click="showCreateIssue = true">+ {{ L.newIssue }}</button>
+      </div>
+      <div v-for="issue in issues" :key="issue.number" class="gh-issue-item" @click="viewIssue(issue)">
+        <span :class="['gh-issue-icon', issue.state]">{{ issue.state === 'open' ? '🟢' : '🔴' }}</span>
+        <div class="gh-issue-info">
+          <div class="gh-issue-title">#{{ issue.number }} {{ issue.title }}</div>
+          <div class="gh-issue-meta">
+            <span>{{ issue.user?.login }}</span>
+            <span>{{ formatDate(issue.created_at) }}</span>
+            <span v-for="lbl in issue.labels" :key="lbl.id" class="gh-label" :style="{ background: '#' + lbl.color }">{{ lbl.name }}</span>
+          </div>
+        </div>
+      </div>
+      <div v-if="issues.length === 0 && !busy" class="gh-empty-list">{{ L.noIssues }}</div>
+    </div>
+
+    <!-- Pull Requests -->
+    <div v-if="detailTab === 'pulls'" class="gh-pulls-list">
+      <div class="gh-toolbar-inline">
+        <select v-model="prState" class="gh-select small" @change="loadPullRequests">
+          <option value="open">{{ L.open }}</option>
+          <option value="closed">{{ L.closed }}</option>
+          <option value="all">{{ L.all }}</option>
+        </select>
+      </div>
+      <div v-for="pr in pullRequests" :key="pr.number" class="gh-pr-item">
+        <span :class="['gh-pr-icon', pr.state]">{{ pr.state === 'open' ? '🟣' : (pr.merged_at ? '🟡' : '🔴') }}</span>
+        <div class="gh-pr-info">
+          <div class="gh-pr-title">#{{ pr.number }} {{ pr.title }}</div>
+          <div class="gh-pr-meta">
+            <span>{{ pr.user?.login }}</span>
+            <span>{{ pr.head?.ref }} → {{ pr.base?.ref }}</span>
+            <span>{{ formatDate(pr.created_at) }}</span>
+          </div>
+        </div>
+      </div>
+      <div v-if="pullRequests.length === 0 && !busy" class="gh-empty-list">{{ L.noPRs }}</div>
+    </div>
+  </div>
+
+  <!-- GIT (Local) TAB -->
+  <div v-if="tab === 'git'" class="gh-content">
+    <div class="gh-toolbar">
+      <span class="gh-section-title">{{ L.localGit }}</span>
+      <div class="gh-toolbar-actions">
+        <button class="gh-btn" @click="showInitRepo = true">{{ L.initRepo }}</button>
+        <button class="gh-btn" @click="showCloneDialog = true">📥 {{ L.clone }}</button>
+      </div>
+    </div>
+
+    <!-- Local repos list -->
+    <div class="gh-local-repos">
+      <div class="gh-toolbar-inline">
+        <button class="gh-btn small" @click="loadLocalRepos">🔄 {{ L.refresh }}</button>
+      </div>
+      <div v-for="lr in localRepos" :key="lr.path" :class="['gh-local-repo-item', { active: selectedLocalRepo?.path === lr.path }]" @click="selectLocalRepo(lr)">
+        <span class="gh-repo-icon">📂</span>
+        <div class="gh-local-repo-info">
+          <div class="gh-local-repo-name">{{ lr.name }}</div>
+          <div class="gh-local-repo-path">{{ lr.path }}</div>
+        </div>
+      </div>
+      <div v-if="localRepos.length === 0 && !busy" class="gh-empty-list">{{ L.noLocalRepos }}</div>
+    </div>
+
+    <!-- Selected local repo details -->
+    <div v-if="selectedLocalRepo" class="gh-local-detail">
+      <div class="gh-local-detail-header">
+        <h3>{{ selectedLocalRepo.name }}</h3>
+        <span class="gh-branch-current">🌿 {{ selectedLocalRepo.branch }}</span>
+      </div>
+
+      <!-- Git Status -->
+      <div class="gh-git-section">
+        <div class="gh-section-header">
+          <span>{{ L.status }}</span>
+          <button class="gh-icon-btn small" @click="gitStatus" title="Refresh">🔄</button>
+        </div>
+        <div v-if="gitStatusResult" class="gh-status-content">
+          <div v-if="gitStatusResult.staged?.length" class="gh-status-group">
+            <div class="gh-status-label staged">{{ L.staged }} ({{ gitStatusResult.staged.length }})</div>
+            <div v-for="f in gitStatusResult.staged" :key="'s-'+f" class="gh-status-file staged">✅ {{ f }}</div>
+          </div>
+          <div v-if="gitStatusResult.modified?.length" class="gh-status-group">
+            <div class="gh-status-label modified">{{ L.modified }} ({{ gitStatusResult.modified.length }})</div>
+            <div v-for="f in gitStatusResult.modified" :key="'m-'+f" class="gh-status-file modified">📝 {{ f }}</div>
+          </div>
+          <div v-if="gitStatusResult.untracked?.length" class="gh-status-group">
+            <div class="gh-status-label untracked">{{ L.untracked }} ({{ gitStatusResult.untracked.length }})</div>
+            <div v-for="f in gitStatusResult.untracked" :key="'u-'+f" class="gh-status-file untracked">❓ {{ f }}</div>
+          </div>
+          <div v-if="!gitStatusResult.staged?.length && !gitStatusResult.modified?.length && !gitStatusResult.untracked?.length" class="gh-clean-msg">
+            ✨ {{ L.workingClean }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Git Actions -->
+      <div class="gh-git-actions">
+        <div class="gh-action-row">
+          <input v-model="commitMsg" :placeholder="L.commitMsg" class="gh-commit-input" />
+          <button class="gh-btn primary small" @click="gitCommit" :disabled="!commitMsg.trim()">{{ L.commit }}</button>
+        </div>
+        <div class="gh-action-row">
+          <button class="gh-btn small" @click="gitAddAll">{{ L.addAll }}</button>
+          <button class="gh-btn small" @click="gitPull">⬇ {{ L.pull }}</button>
+          <button class="gh-btn small" @click="gitPush">⬆ {{ L.push }}</button>
+          <button class="gh-btn small" @click="gitLog">📋 {{ L.log }}</button>
+        </div>
+        <div class="gh-action-row">
+          <input v-model="remoteName" placeholder="origin" class="gh-input small" style="width:80px" />
+          <input v-model="remoteUrl" :placeholder="L.remoteUrl" class="gh-input small" style="flex:1" />
+          <button class="gh-btn small" @click="gitRemoteAdd">{{ L.addRemote }}</button>
+        </div>
+      </div>
+
+      <!-- Git Log -->
+      <div v-if="gitLogResult.length" class="gh-git-log">
+        <div class="gh-section-header">{{ L.log }}</div>
+        <div v-for="entry in gitLogResult" :key="entry.hash" class="gh-log-item">
+          <span class="gh-sha">{{ entry.hash.substring(0, 7) }}</span>
+          <span class="gh-log-msg">{{ entry.message }}</span>
+          <span class="gh-log-author">{{ entry.author }}</span>
+          <span class="gh-log-date">{{ entry.date }}</span>
+        </div>
+      </div>
+
+      <!-- Terminal Output -->
+      <div v-if="gitOutput" class="gh-git-output">
+        <div class="gh-section-header">
+          {{ L.output }}
+          <button class="gh-icon-btn small" @click="gitOutput=''" title="Clear">✖</button>
+        </div>
+        <pre class="gh-output-pre">{{ gitOutput }}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- GISTS TAB -->
+  <div v-if="token && tab === 'gists'" class="gh-content">
+    <div class="gh-toolbar">
+      <span class="gh-section-title">{{ L.gists }}</span>
+      <div class="gh-toolbar-actions">
+        <button class="gh-btn primary" @click="showCreateGist = true">+ {{ L.newGist }}</button>
+      </div>
+    </div>
+    <div class="gh-list">
+      <div v-for="g in gists" :key="g.id" class="gh-gist-item">
+        <div class="gh-gist-info" @click="viewGist(g)">
+          <div class="gh-gist-title">{{ getGistTitle(g) }}</div>
+          <div class="gh-gist-meta">
+            <span :class="['gh-badge', g.public ? 'public' : 'private']">{{ g.public ? L.public : L.private }}</span>
+            <span>{{ Object.keys(g.files).length }} {{ L.files }}</span>
+            <span>{{ formatDate(g.updated_at) }}</span>
+          </div>
+          <div v-if="g.description" class="gh-gist-desc">{{ g.description }}</div>
+        </div>
+        <div class="gh-gist-actions" @click.stop>
+          <button class="gh-icon-btn small danger" @click="deleteGist(g)" title="Delete">🗑️</button>
+        </div>
+      </div>
+      <div v-if="gists.length === 0 && !busy" class="gh-empty-list">{{ L.noGists }}</div>
+    </div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div v-if="tab === 'settings'" class="gh-content gh-settings">
+    <h3>{{ L.settings }}</h3>
+    <div class="gh-form-group">
+      <label>{{ L.githubToken }}</label>
+      <p class="gh-help">{{ L.tokenHelp }}</p>
+      <div class="gh-input-group">
+        <input v-model="settingsToken" :type="showToken ? 'text' : 'password'" :placeholder="L.tokenPlaceholder" class="gh-input" />
+        <button class="gh-btn small" @click="showToken = !showToken">{{ showToken ? L.hide : L.show }}</button>
+      </div>
+      <a class="gh-link" href="https://github.com/settings/tokens?type=beta" target="_blank">{{ L.createToken }}</a>
+    </div>
+    <div class="gh-form-group">
+      <label>{{ L.defaultClonePath }}</label>
+      <p class="gh-help">{{ L.clonePathHelp }}</p>
+      <input v-model="settingsClonePath" :placeholder="L.clonePathPlaceholder" class="gh-input" />
+    </div>
+    <div class="gh-form-actions">
+      <button class="gh-btn primary" @click="saveSettings" :disabled="savingSettings">
+        {{ savingSettings ? L.saving : L.save }}
+      </button>
+    </div>
+  </div>
+
+  <!-- CREATE REPO DIALOG -->
+  <div v-if="showCreateRepo" class="gh-dialog-overlay" @click.self="showCreateRepo = false">
+    <div class="gh-dialog">
+      <h3>{{ L.createRepo }}</h3>
+      <div class="gh-form-group">
+        <label>{{ L.repoName }}</label>
+        <input v-model="newRepo.name" :placeholder="L.repoNamePlaceholder" class="gh-input" />
+      </div>
+      <div class="gh-form-group">
+        <label>{{ L.description }}</label>
+        <input v-model="newRepo.description" class="gh-input" />
+      </div>
+      <div class="gh-form-group">
+        <label class="gh-checkbox-label">
+          <input type="checkbox" v-model="newRepo.private" />
+          {{ L.private }}
+        </label>
+      </div>
+      <div class="gh-form-group">
+        <label class="gh-checkbox-label">
+          <input type="checkbox" v-model="newRepo.auto_init" />
+          {{ L.initReadme }}
+        </label>
+      </div>
+      <div class="gh-dialog-actions">
+        <button class="gh-btn" @click="showCreateRepo = false">{{ L.cancel }}</button>
+        <button class="gh-btn primary" @click="createRepo" :disabled="!newRepo.name.trim()">{{ L.create }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE BRANCH DIALOG -->
+  <div v-if="showCreateBranch" class="gh-dialog-overlay" @click.self="showCreateBranch = false">
+    <div class="gh-dialog">
+      <h3>{{ L.createBranch }}</h3>
+      <div class="gh-form-group">
+        <label>{{ L.branchName }}</label>
+        <input v-model="newBranchName" :placeholder="L.branchNamePlaceholder" class="gh-input" />
+      </div>
+      <div class="gh-form-group">
+        <label>{{ L.from }}</label>
+        <select v-model="newBranchFrom" class="gh-select">
+          <option v-for="b in branches" :key="b.name" :value="b.name">{{ b.name }}</option>
+        </select>
+      </div>
+      <div class="gh-dialog-actions">
+        <button class="gh-btn" @click="showCreateBranch = false">{{ L.cancel }}</button>
+        <button class="gh-btn primary" @click="createBranch" :disabled="!newBranchName.trim()">{{ L.create }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE ISSUE DIALOG -->
+  <div v-if="showCreateIssue" class="gh-dialog-overlay" @click.self="showCreateIssue = false">
+    <div class="gh-dialog">
+      <h3>{{ L.createIssue }}</h3>
+      <div class="gh-form-group">
+        <label>{{ L.issueTitle }}</label>
+        <input v-model="newIssue.title" class="gh-input" />
+      </div>
+      <div class="gh-form-group">
+        <label>{{ L.issueBody }}</label>
+        <textarea v-model="newIssue.body" class="gh-textarea" rows="6"></textarea>
+      </div>
+      <div class="gh-dialog-actions">
+        <button class="gh-btn" @click="showCreateIssue = false">{{ L.cancel }}</button>
+        <button class="gh-btn primary" @click="createIssue" :disabled="!newIssue.title.trim()">{{ L.create }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ISSUE DETAIL DIALOG -->
+  <div v-if="currentIssue" class="gh-dialog-overlay" @click.self="currentIssue = null">
+    <div class="gh-dialog wide">
+      <div class="gh-issue-detail-header">
+        <h3>#{{ currentIssue.number }} {{ currentIssue.title }}</h3>
+        <span :class="['gh-badge', currentIssue.state]">{{ currentIssue.state }}</span>
+      </div>
+      <div class="gh-issue-detail-body" v-html="renderMarkdown(currentIssue.body)"></div>
+      <div class="gh-comments">
+        <div v-for="c in issueComments" :key="c.id" class="gh-comment">
+          <div class="gh-comment-header">
+            <strong>{{ c.user?.login }}</strong>
+            <span>{{ formatDate(c.created_at) }}</span>
+          </div>
+          <div class="gh-comment-body" v-html="renderMarkdown(c.body)"></div>
+        </div>
+      </div>
+      <div class="gh-comment-form">
+        <textarea v-model="newComment" :placeholder="L.addComment" class="gh-textarea" rows="3"></textarea>
+        <div class="gh-dialog-actions">
+          <button class="gh-btn" @click="toggleIssueState">
+            {{ currentIssue.state === 'open' ? L.closeIssue : L.reopenIssue }}
+          </button>
+          <button class="gh-btn primary" @click="addIssueComment" :disabled="!newComment.trim()">{{ L.comment }}</button>
+        </div>
+      </div>
+      <button class="gh-dialog-close" @click="currentIssue = null">✖</button>
+    </div>
+  </div>
+
+  <!-- GIST DETAIL DIALOG -->
+  <div v-if="currentGist" class="gh-dialog-overlay" @click.self="currentGist = null">
+    <div class="gh-dialog wide">
+      <h3>{{ getGistTitle(currentGist) }}</h3>
+      <div v-if="currentGist.description" class="gh-gist-detail-desc">{{ currentGist.description }}</div>
+      <div v-for="(file, fname) in currentGist.files" :key="fname" class="gh-gist-file">
+        <div class="gh-gist-file-header">{{ fname }} <span class="gh-file-size">({{ formatSize(file.size) }})</span></div>
+        <pre class="gh-file-content"><code>{{ file.content }}</code></pre>
+      </div>
+      <button class="gh-dialog-close" @click="currentGist = null">✖</button>
+    </div>
+  </div>
+
+  <!-- CREATE GIST DIALOG -->
+  <div v-if="showCreateGist" class="gh-dialog-overlay" @click.self="showCreateGist = false">
+    <div class="gh-dialog wide">
+      <h3>{{ L.createGist }}</h3>
+      <div class="gh-form-group">
+        <label>{{ L.description }}</label>
+        <input v-model="newGist.description" class="gh-input" />
+      </div>
+      <div class="gh-form-group">
+        <label class="gh-checkbox-label">
+          <input type="checkbox" v-model="newGist.public" />
+          {{ L.public }}
+        </label>
+      </div>
+      <div v-for="(file, i) in newGist.files" :key="i" class="gh-gist-file-edit">
+        <div class="gh-gist-file-edit-header">
+          <input v-model="file.name" placeholder="filename.ext" class="gh-input small" />
+          <button v-if="newGist.files.length > 1" class="gh-icon-btn small danger" @click="newGist.files.splice(i, 1)">✖</button>
+        </div>
+        <textarea v-model="file.content" :placeholder="L.fileContent" class="gh-textarea code" rows="8"></textarea>
+      </div>
+      <button class="gh-btn small" @click="newGist.files.push({ name: '', content: '' })">+ {{ L.addFile }}</button>
+      <div class="gh-dialog-actions">
+        <button class="gh-btn" @click="showCreateGist = false">{{ L.cancel }}</button>
+        <button class="gh-btn primary" @click="createGist" :disabled="!newGist.files[0]?.name">{{ L.create }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLONE DIALOG -->
+  <div v-if="showCloneDialog" class="gh-dialog-overlay" @click.self="showCloneDialog = false">
+    <div class="gh-dialog">
+      <h3>📥 {{ L.cloneRepo }}</h3>
+      <div class="gh-form-group">
+        <label>{{ L.repoUrl }}</label>
+        <input v-model="cloneUrl" placeholder="https://github.com/user/repo.git" class="gh-input" />
+      </div>
+      <div class="gh-form-group">
+        <label>{{ L.targetPath }}</label>
+        <input v-model="clonePath" :placeholder="L.clonePathPlaceholder" class="gh-input" />
+      </div>
+      <div class="gh-dialog-actions">
+        <button class="gh-btn" @click="showCloneDialog = false">{{ L.cancel }}</button>
+        <button class="gh-btn primary" @click="doClone" :disabled="!cloneUrl.trim()">{{ L.clone }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INIT REPO DIALOG -->
+  <div v-if="showInitRepo" class="gh-dialog-overlay" @click.self="showInitRepo = false">
+    <div class="gh-dialog">
+      <h3>{{ L.initRepo }}</h3>
+      <div class="gh-form-group">
+        <label>{{ L.targetPath }}</label>
+        <input v-model="initPath" :placeholder="L.initPathPlaceholder" class="gh-input" />
+      </div>
+      <div class="gh-dialog-actions">
+        <button class="gh-btn" @click="showInitRepo = false">{{ L.cancel }}</button>
+        <button class="gh-btn primary" @click="doInit" :disabled="!initPath.trim()">{{ L.init }}</button>
+      </div>
+    </div>
+  </div>
+</div>

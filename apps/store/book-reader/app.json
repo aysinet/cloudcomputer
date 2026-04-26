@@ -1,0 +1,40 @@
+{
+  "id": "book-reader",
+  "name": "Kitap Okuyucu",
+  "icon": "📖",
+  "color": "linear-gradient(135deg,#8d6e63,#4e342e)",
+  "type": "internal",
+  "size": {
+    "w": 900,
+    "h": 660
+  },
+  "global": false,
+  "description": "E-Kitap Okuyucu — EPUB, PDF, TXT, HTML, FB2 formatlarını destekler",
+  "lang": {
+    "tr": {
+      "name": "Kitap Okuyucu",
+      "description": "E-Kitap Okuyucu — EPUB, PDF, TXT, HTML, FB2 formatlarını destekler"
+    },
+    "en": {
+      "name": "Book Reader",
+      "description": "E-Book Reader — supports EPUB, PDF, TXT, HTML, FB2 formats"
+    },
+    "de": {
+      "name": "Buchleser",
+      "description": "E-Book-Reader — unterstützt EPUB, PDF, TXT, HTML, FB2 Formate"
+    },
+    "fr": {
+      "name": "Lecteur de Livres",
+      "description": "Lecteur d'e-books — supporte les formats EPUB, PDF, TXT, HTML, FB2"
+    },
+    "es": {
+      "name": "Lector de Libros",
+      "description": "Lector de e-books — soporta formatos EPUB, PDF, TXT, HTML, FB2"
+    },
+    "ru": {
+      "name": "Читалка",
+      "description": "Читалка электронных книг — поддержка форматов EPUB, PDF, TXT, HTML, FB2"
+    }
+  },
+  "category": "tools"
+}

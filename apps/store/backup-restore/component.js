@@ -1,6 +1,7 @@
 ({
   setup() {
     const { ref, computed, onMounted, onUnmounted } = Vue;
+    const ElMessageBox = (window.ElementPlus && window.ElementPlus.ElMessageBox) || { confirm: () => Promise.resolve() };
 
     const LANGS = {
       tr: {
@@ -228,7 +229,7 @@
     }
 
     async function deleteBackup(filename) {
-      if (!confirm(L('deleteConfirm'))) return;
+      try { await ElMessageBox.confirm(L('deleteConfirm'), { confirmButtonText: 'OK', cancelButtonText: L('cancel') || 'Cancel', type: 'warning' }); } catch { return; }
       try {
         await fetch('/api/backup/' + encodeURIComponent(filename), {
           method: 'DELETE', headers: authHeaders()
@@ -238,7 +239,7 @@
     }
 
     async function restoreFromBackup(filename) {
-      if (!confirm(L('restoreConfirm'))) return;
+      try { await ElMessageBox.confirm(L('restoreConfirm'), { confirmButtonText: 'OK', cancelButtonText: L('cancel') || 'Cancel', type: 'warning' }); } catch { return; }
       if (busy.value) return;
       busy.value = true;
       busyText.value = L('restoring');

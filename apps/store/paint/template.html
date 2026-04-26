@@ -1,0 +1,102 @@
+<div class="paint-root">
+  <!-- TOOLBAR -->
+  <div class="paint-toolbar">
+    <!-- File actions -->
+    <div class="paint-tb-group">
+      <button class="paint-tb-btn" @click="newCanvas" title="Yeni">📄</button>
+      <button class="paint-tb-btn" @click="openFile" title="Aç">📂</button>
+      <button class="paint-tb-btn" @click="saveFile" title="Kaydet (PNG)">💾</button>
+      <input type="file" ref="fileInput" accept="image/*" style="display:none" @change="onFileOpen" />
+    </div>
+    <div class="paint-tb-sep"></div>
+
+    <!-- Undo/Redo -->
+    <div class="paint-tb-group">
+      <button class="paint-tb-btn" @click="undo" :disabled="historyIdx<=0" title="Geri Al">↩️</button>
+      <button class="paint-tb-btn" @click="redo" :disabled="historyIdx>=historyStack.length-1" title="Yinele">↪️</button>
+    </div>
+    <div class="paint-tb-sep"></div>
+
+    <!-- Tools -->
+    <div class="paint-tb-group">
+      <button v-for="t in tools" :key="t.id" :class="['paint-tb-btn','paint-tool-btn', tool===t.id&&'active']"
+        @click="tool=t.id" :title="t.label">{{t.icon}}</button>
+    </div>
+    <div class="paint-tb-sep"></div>
+
+    <!-- Brush size -->
+    <div class="paint-tb-group paint-size-group">
+      <label class="paint-size-label">{{brushSize}}px</label>
+      <input type="range" class="paint-size-slider" v-model.number="brushSize" min="1" max="50" step="1" />
+    </div>
+    <div class="paint-tb-sep"></div>
+
+    <!-- Colors -->
+    <div class="paint-tb-group paint-color-group">
+      <div class="paint-color-pair">
+        <div class="paint-color-bg" :style="{background:bgColor}" @click="pickBgColor" title="Arka plan rengi"></div>
+        <div class="paint-color-fg" :style="{background:fgColor}" @click="pickFgColor" title="Ön plan rengi"></div>
+      </div>
+      <input type="color" ref="fgPicker" :value="fgColor" @input="fgColor=$event.target.value" style="display:none" />
+      <input type="color" ref="bgPicker" :value="bgColor" @input="bgColor=$event.target.value" style="display:none" />
+    </div>
+
+    <!-- Palette -->
+    <div class="paint-tb-group paint-palette">
+      <div v-for="c in palette" :key="c" class="paint-palette-swatch"
+        :style="{background:c}"
+        @click="fgColor=c" @contextmenu.prevent="bgColor=c"></div>
+    </div>
+    <div class="paint-tb-sep"></div>
+
+    <!-- Canvas size -->
+    <div class="paint-tb-group paint-canvas-size">
+      <span class="paint-dim">{{canvasW}}×{{canvasH}}</span>
+      <button class="paint-tb-btn paint-tb-sm" @click="showResize=!showResize" title="Boyutlandır">📐</button>
+    </div>
+
+    <!-- Fill checkbox for shapes -->
+    <div class="paint-tb-group" v-if="tool==='rect'||tool==='ellipse'">
+      <label class="paint-fill-label">
+        <input type="checkbox" v-model="shapeFill" /> Dolu
+      </label>
+    </div>
+  </div>
+
+  <!-- Resize popup -->
+  <div v-if="showResize" class="paint-resize-popup">
+    <label>Genişlik: <input type="number" v-model.number="resizeW" min="1" max="4000" class="paint-resize-input" /></label>
+    <label>Yükseklik: <input type="number" v-model.number="resizeH" min="1" max="4000" class="paint-resize-input" /></label>
+    <div class="paint-resize-actions">
+      <button class="paint-btn-ok" @click="applyResize">Uygula</button>
+      <button class="paint-btn-cancel" @click="showResize=false">İptal</button>
+    </div>
+  </div>
+
+  <!-- Text input overlay -->
+  <div v-if="textMode" class="paint-text-overlay" :style="{left:textPos.x+'px',top:textPos.y+'px'}">
+    <input ref="textInput" v-model="textValue" class="paint-text-input"
+      @keydown.enter="commitText" @keydown.esc="cancelText"
+      :style="{color:fgColor,fontSize:brushSize+10+'px'}" placeholder="Metin gir..." />
+  </div>
+
+  <!-- CANVAS AREA -->
+  <div class="paint-canvas-wrap" ref="canvasWrap">
+    <canvas ref="mainCanvas"
+      @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp" @mouseleave="onMouseUp"
+      @contextmenu.prevent
+      :style="{cursor:cursorStyle}">
+    </canvas>
+    <!-- Preview canvas for shapes while drawing -->
+    <canvas ref="previewCanvas" class="paint-preview-canvas"
+      :style="{cursor:cursorStyle}">
+    </canvas>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="paint-statusbar">
+    <span>{{mouseX}}, {{mouseY}} px</span>
+    <span>{{canvasW}} × {{canvasH}}</span>
+    <span>Araç: {{currentToolLabel}}</span>
+  </div>
+</div>

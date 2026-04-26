@@ -1,0 +1,69 @@
+<div class="arec-app">
+  <!-- STATUS BAR -->
+  <div class="arec-header">
+    <div class="arec-title">🎙️ {{L('title')}}</div>
+    <div :class="['arec-conn', wsConnected?'on':'off']">{{wsConnected ? L('connected') : L('disconnected')}}</div>
+  </div>
+
+  <!-- STATUS MESSAGE -->
+  <transition name="arec-fade">
+    <div v-if="statusMsg" :class="['arec-status', statusType]" @click="statusMsg=''">
+      <span>{{statusType==='success'?'✓':'✕'}}</span> {{statusMsg}}
+    </div>
+  </transition>
+
+  <!-- RECORDER -->
+  <div class="arec-recorder">
+    <div class="arec-visualizer-wrap">
+      <canvas ref="vizCanvas" class="arec-visualizer" width="400" height="80"></canvas>
+    </div>
+    <div class="arec-timer">{{formatTime(elapsed)}}</div>
+    <div class="arec-controls">
+      <button v-if="!recording" class="arec-btn record" @click="startRecording" :disabled="busy">
+        <span class="arec-btn-icon">⏺</span> {{L('record')}}
+      </button>
+      <button v-if="recording && !paused" class="arec-btn pause" @click="pauseRecording">
+        <span class="arec-btn-icon">⏸</span> {{L('pause')}}
+      </button>
+      <button v-if="recording && paused" class="arec-btn resume" @click="resumeRecording">
+        <span class="arec-btn-icon">▶</span> {{L('resume')}}
+      </button>
+      <button v-if="recording" class="arec-btn stop" @click="stopRecording">
+        <span class="arec-btn-icon">⏹</span> {{L('stop')}}
+      </button>
+    </div>
+    <div v-if="recording" class="arec-rec-indicator">
+      <span class="arec-rec-dot" :class="{paused}"></span> {{paused ? L('pausedState') : L('recordingState')}}
+    </div>
+  </div>
+
+  <!-- RECORDINGS LIST -->
+  <div class="arec-section">
+    <div class="arec-section-title">{{L('recordings')}} <span class="arec-count">{{recordings.length}}</span></div>
+    <div class="arec-list" v-if="recordings.length">
+      <div v-for="r in recordings" :key="r.filename" class="arec-item">
+        <div class="arec-item-icon" @click="playRecording(r)">
+          {{currentPlaying===r.filename ? '⏸' : '▶️'}}
+        </div>
+        <div class="arec-item-info">
+          <div class="arec-item-name">{{r.filename}}</div>
+          <div class="arec-item-meta">
+            <span>{{formatSize(r.size)}}</span>
+            <span>{{formatDate(r.created)}}</span>
+          </div>
+        </div>
+        <div class="arec-item-actions">
+          <button class="arec-icon-btn download" @click="downloadRecording(r.filename)" :title="L('download')">⬇️</button>
+          <button class="arec-icon-btn delete" @click="deleteRecording(r.filename)" :title="L('delete')">🗑️</button>
+        </div>
+      </div>
+    </div>
+    <div v-else class="arec-empty">
+      <div class="arec-empty-icon">🎙️</div>
+      <div>{{L('noRecordings')}}</div>
+    </div>
+  </div>
+
+  <!-- Hidden audio for playback -->
+  <audio ref="audioPlayer" @ended="currentPlaying=''"></audio>
+</div>

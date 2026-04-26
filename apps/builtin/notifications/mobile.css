@@ -1,0 +1,8 @@
+/* Notifications: full width items */
+.notif-root{font-size:14px}
+.notif-header{padding:14px}
+.notif-item{padding:14px}
+.ni-title{font-size:14px}
+.ni-text{font-size:13px}
+.notif-add-row input{height:42px;font-size:15px}
+.notif-add-row button{height:42px;padding:0 18px}

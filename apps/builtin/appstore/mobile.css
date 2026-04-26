@@ -1,0 +1,10 @@
+/* App Store: stack elements */
+.store-root{font-size:14px}
+.store-header{padding:14px}
+.store-header h2{font-size:18px}
+.store-item{padding:12px 6px;flex-wrap:wrap;gap:8px}
+.si-icon{width:48px;height:48px;font-size:24px}
+.si-name{font-size:14px}
+.si-desc{font-size:12px}
+.si-btn{padding:8px 14px;font-size:13px;min-height:36px}
+.el-collapse-item__header{height:auto !important;line-height:1.4 !important;padding:14px 12px !important}

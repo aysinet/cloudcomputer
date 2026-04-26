@@ -1,0 +1,40 @@
+{
+  "id": "stock-tracker",
+  "name": "Stock Tracker",
+  "icon": "📊",
+  "color": "linear-gradient(135deg,#1a73e8,#4fc3f7)",
+  "type": "internal",
+  "size": {
+    "w": 520,
+    "h": 560
+  },
+  "global": false,
+  "description": "NASDAQ hisse takip — canlı fiyatlar, favoriler, portföy",
+  "lang": {
+    "tr": {
+      "name": "Stock Tracker",
+      "description": "NASDAQ hisse takip — canlı fiyatlar, favoriler, portföy"
+    },
+    "en": {
+      "name": "Stock Tracker",
+      "description": "NASDAQ stock tracker — live prices, favorites, portfolio"
+    },
+    "de": {
+      "name": "Stock Tracker",
+      "description": "NASDAQ Aktientracker — Live-Kurse, Favoriten, Portfolio"
+    },
+    "fr": {
+      "name": "Stock Tracker",
+      "description": "Suivi actions NASDAQ — cours en direct, favoris, portefeuille"
+    },
+    "es": {
+      "name": "Stock Tracker",
+      "description": "Seguimiento NASDAQ — precios en vivo, favoritos, portafolio"
+    },
+    "ru": {
+      "name": "Stock Tracker",
+      "description": "Отслеживание акций NASDAQ — котировки в реальном времени, избранное, портфель"
+    }
+  },
+  "category": "finance"
+}

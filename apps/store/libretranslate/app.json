@@ -1,0 +1,32 @@
+{
+  "id": "libretranslate",
+  "name": "LibreTranslate",
+  "icon": "🌐",
+  "color": "linear-gradient(135deg,#1565c0,#42a5f5)",
+  "type": "internal",
+  "size": {
+    "w": 520,
+    "h": 560
+  },
+  "global": false,
+  "description": "Docker tabanlı çeviri servisi — açık kaynak makine çevirisi",
+  "lang": {
+    "tr": { "name": "LibreTranslate", "description": "Docker tabanlı çeviri — açık kaynak makine çevirisi" },
+    "en": { "name": "LibreTranslate", "description": "Docker-based translation — open source machine translation" },
+    "de": { "name": "LibreTranslate", "description": "Docker-basierte Übersetzung — Open-Source-Maschinenübersetzung" },
+    "fr": { "name": "LibreTranslate", "description": "Traduction Docker — traduction automatique open source" },
+    "es": { "name": "LibreTranslate", "description": "Traducción Docker — traducción automática de código abierto" },
+    "ru": { "name": "LibreTranslate", "description": "Docker-перевод — машинный перевод с открытым исходным кодом" }
+  },
+  "category": "utilities",
+  "docker": {
+    "image": "libretranslate/libretranslate:latest",
+    "containerPort": 5000,
+    "volumes": [
+      "${APP_VOLUME}:/home/libretranslate/.local"
+    ],
+    "env": [
+      "LT_HOST=0.0.0.0"
+    ]
+  }
+}

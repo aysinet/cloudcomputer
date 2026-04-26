@@ -1,0 +1,9 @@
+.notepad-root{width:100%;height:100%;background:#f9f9f9;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif}
+.notepad-toolbar{background:#fff;border-bottom:1px solid #e0e0e0;padding:6px 10px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.notepad-toolbar select,.notepad-toolbar input[type=number]{height:28px;border:1px solid #ddd;border-radius:4px;padding:0 6px;font-size:12px;outline:none}
+.notepad-toolbar input[type=number]{width:52px}
+.notepad-tb-btn{height:28px;padding:0 8px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:13px}
+.notepad-tb-btn:hover{background:#f0f0f0}
+.notepad-sep{width:1px;height:22px;background:#e0e0e0;margin:0 2px}
+.notepad-root textarea{flex:1;border:none;padding:14px;font-size:14px;line-height:1.7;outline:none;resize:none;background:#f9f9f9}
+.notepad-status{background:#e8e8e8;padding:3px 10px;font-size:11px;color:#666;border-top:1px solid #ddd}

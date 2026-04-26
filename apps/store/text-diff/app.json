@@ -1,0 +1,40 @@
+{
+  "id": "text-diff",
+  "name": "Metin Karşılaştırma",
+  "icon": "🔀",
+  "color": "linear-gradient(135deg,#26c6da,#00838f)",
+  "type": "internal",
+  "size": {
+    "w": 1000,
+    "h": 650
+  },
+  "global": false,
+  "description": "Metin & dosya karşılaştırma — yan yana diff, klasör karşılaştırma, WinMerge benzeri",
+  "lang": {
+    "tr": {
+      "name": "Metin Karşılaştırma",
+      "description": "Metin & dosya karşılaştırma — yan yana diff, klasör karşılaştırma"
+    },
+    "en": {
+      "name": "Text Diff",
+      "description": "Text & file comparison — side-by-side diff, folder comparison"
+    },
+    "de": {
+      "name": "Textvergleich",
+      "description": "Text- & Dateivergleich — Nebeneinander-Diff, Ordnervergleich"
+    },
+    "fr": {
+      "name": "Comparateur de Texte",
+      "description": "Comparaison de texte et fichiers — diff côte à côte, comparaison de dossiers"
+    },
+    "es": {
+      "name": "Comparador de Texto",
+      "description": "Comparación de texto y archivos — diff lado a lado, comparación de carpetas"
+    },
+    "ru": {
+      "name": "Сравнение Текста",
+      "description": "Сравнение текста и файлов — diff рядом, сравнение папок"
+    }
+  },
+  "category": "tools"
+}

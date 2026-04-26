@@ -1,0 +1,113 @@
+<div class="mfe-root">
+  <!-- Loading -->
+  <div v-if="!katexReady" class="mfe-loading">
+    <div v-if="katexError" class="mfe-error">{{katexError}}</div>
+    <div v-else>⏳ {{t('loading')}}</div>
+  </div>
+
+  <template v-else>
+    <!-- Toolbar -->
+    <div class="mfe-toolbar">
+      <el-button-group>
+        <el-button size="small" :type="activeTab==='editor'?'primary':''" @click="activeTab='editor'">✏️ {{t('latex')}}</el-button>
+        <el-button size="small" :type="activeTab==='symbols'?'primary':''" @click="activeTab='symbols'">∑ {{t('symbols')}}</el-button>
+        <el-button size="small" :type="activeTab==='library'?'primary':''" @click="activeTab='library'">📚 {{t('library')}}</el-button>
+        <el-button size="small" :type="activeTab==='formulas'?'primary':''" @click="activeTab='formulas'">💾 {{t('myFormulas')}}</el-button>
+      </el-button-group>
+
+      <div class="mfe-toolbar-right">
+        <el-dropdown trigger="click" @command="$event()" size="small">
+          <el-button size="small" type="success">📥 {{t('exportMenu')}}</el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item :command="exportPng">🖼 {{t('exportPng')}}</el-dropdown-item>
+              <el-dropdown-item :command="exportSvg">🎨 {{t('exportSvg')}}</el-dropdown-item>
+              <el-dropdown-item :command="exportLatex">📄 {{t('exportLatex')}}</el-dropdown-item>
+              <el-dropdown-item :command="exportMathml">🌐 {{t('exportMathml')}}</el-dropdown-item>
+              <el-dropdown-item divided :command="copyLatex">📋 {{t('copyLatex')}}</el-dropdown-item>
+              <el-dropdown-item :command="copyMathml">📋 {{t('copyMathml')}}</el-dropdown-item>
+              <el-dropdown-item divided :command="saveImageToServer">💾 {{t('saveToServer')}} (PNG)</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+    </div>
+
+    <!-- Editor Tab -->
+    <div v-show="activeTab==='editor'" class="mfe-editor-panel">
+      <div class="mfe-edit-area">
+        <div class="mfe-input-wrap">
+          <label class="mfe-label">{{t('latex')}}</label>
+          <textarea class="mfe-textarea" v-model="latex" :placeholder="t('placeholder')" spellcheck="false"></textarea>
+        </div>
+        <div class="mfe-preview-wrap">
+          <label class="mfe-label">{{t('preview')}}</label>
+          <div class="mfe-preview" :style="{background: bgTransparent ? 'repeating-conic-gradient(#333 0% 25%, #444 0% 50%) 50% / 16px 16px' : bgColor}">
+            <div ref="previewEl" class="mfe-preview-inner"></div>
+          </div>
+          <div v-if="renderError" class="mfe-render-error">{{renderError}}</div>
+        </div>
+      </div>
+      <div class="mfe-options">
+        <div class="mfe-opt-row">
+          <label>{{t('name')}}</label>
+          <el-input v-model="formulaName" size="small" :placeholder="t('namePlaceholder')" style="width:180px"></el-input>
+          <el-button size="small" type="primary" @click="saveFormula">💾 {{t('save')}}</el-button>
+        </div>
+        <div class="mfe-opt-row">
+          <label>{{t('fontSize')}}</label>
+          <el-slider v-model="fontSize" :min="12" :max="96" :step="2" style="width:120px" size="small"></el-slider>
+          <span class="mfe-opt-val">{{fontSize}}px</span>
+          <label>{{t('color')}}</label>
+          <el-color-picker v-model="fgColor" size="small"></el-color-picker>
+          <label>{{t('bgColor')}}</label>
+          <el-color-picker v-model="bgColor" size="small" :disabled="bgTransparent"></el-color-picker>
+          <el-checkbox v-model="bgTransparent" size="small">{{t('transparent')}}</el-checkbox>
+        </div>
+        <div class="mfe-opt-row">
+          <label>{{t('padding')}}</label>
+          <el-slider v-model="padding" :min="0" :max="60" :step="5" style="width:120px" size="small"></el-slider>
+          <span class="mfe-opt-val">{{padding}}px</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Symbols Tab -->
+    <div v-show="activeTab==='symbols'" class="mfe-symbols-panel">
+      <div class="mfe-sym-cats">
+        <el-button v-for="cat in symbolCats" :key="cat.id" size="small" :type="symbolCat===cat.id?'primary':''" @click="symbolCat=cat.id">{{cat.name}}</el-button>
+      </div>
+      <div class="mfe-sym-grid">
+        <button v-for="sym in currentSymbols" :key="sym.s" class="mfe-sym-btn" :title="sym.s" @click="insertSymbol(sym.s)">{{sym.d}}</button>
+      </div>
+    </div>
+
+    <!-- Library Tab -->
+    <div v-show="activeTab==='library'" class="mfe-lib-panel">
+      <div class="mfe-lib-cats">
+        <el-button v-for="cat in libCats" :key="cat.id" size="small" :type="libCat===cat.id?'primary':''" @click="libCat=cat.id">{{cat.name}}</el-button>
+      </div>
+      <div class="mfe-lib-list">
+        <div v-for="item in currentLib" :key="item.n" class="mfe-lib-item" @click="insertLibFormula(item)">
+          <div class="mfe-lib-name">{{item.n}}</div>
+          <div class="mfe-lib-code">{{item.l}}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Formulas Tab -->
+    <div v-show="activeTab==='formulas'" class="mfe-formulas-panel">
+      <div v-if="loadingFormulas" class="mfe-loading-sm">{{t('loading')}}</div>
+      <div v-else-if="formulas.length===0" class="mfe-empty">{{t('noFormulas')}}</div>
+      <div v-else class="mfe-formula-list">
+        <div v-for="f in formulas" :key="f.id" class="mfe-formula-item" @click="loadFormula(f)">
+          <div class="mfe-formula-info">
+            <div class="mfe-formula-name">{{f.name}}</div>
+            <div class="mfe-formula-latex">{{f.latex.slice(0,60)}}{{f.latex.length>60?'…':''}}</div>
+          </div>
+          <el-button size="small" type="danger" circle @click.stop="deleteFormula(f.id)">🗑</el-button>
+        </div>
+      </div>
+    </div>
+  </template>
+</div>

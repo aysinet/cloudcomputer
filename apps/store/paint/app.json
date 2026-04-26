@@ -1,0 +1,40 @@
+{
+  "id": "paint",
+  "name": "Paint",
+  "icon": "🎨",
+  "color": "linear-gradient(135deg,#e74c3c,#f39c12)",
+  "type": "internal",
+  "size": {
+    "w": 900,
+    "h": 640
+  },
+  "global": false,
+  "description": "Resim düzenleyici — çizim, şekiller, metin, renk paleti",
+  "lang": {
+    "tr": {
+      "name": "Paint",
+      "description": "Resim düzenleyici — çizim, şekiller, metin, renk paleti"
+    },
+    "en": {
+      "name": "Paint",
+      "description": "Image editor — drawing, shapes, text, color palette"
+    },
+    "de": {
+      "name": "Paint",
+      "description": "Bildbearbeitung — Zeichnen, Formen, Text, Farbpalette"
+    },
+    "fr": {
+      "name": "Paint",
+      "description": "Éditeur d'image — dessin, formes, texte, palette de couleurs"
+    },
+    "es": {
+      "name": "Paint",
+      "description": "Editor de imagen — dibujo, formas, texto, paleta de colores"
+    },
+    "ru": {
+      "name": "Paint",
+      "description": "Редактор изображений — рисование, фигуры, текст, палитра"
+    }
+  },
+  "category": "productivity"
+}

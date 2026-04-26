@@ -1,0 +1,40 @@
+{
+  "id": "math-formula",
+  "name": "Formül Editörü",
+  "icon": "📐",
+  "color": "linear-gradient(135deg,#4fc3f7,#1565c0)",
+  "type": "internal",
+  "size": {
+    "w": 820,
+    "h": 600
+  },
+  "global": false,
+  "description": "Matematik formül editörü — LaTeX ile formül yaz, PNG/SVG/LaTeX/MathML olarak kaydet",
+  "lang": {
+    "tr": {
+      "name": "Formül Editörü",
+      "description": "Matematik formül editörü — LaTeX ile formül yaz, PNG/SVG/LaTeX/MathML olarak kaydet"
+    },
+    "en": {
+      "name": "Formula Editor",
+      "description": "Math formula editor — write formulas in LaTeX, export as PNG/SVG/LaTeX/MathML"
+    },
+    "de": {
+      "name": "Formel-Editor",
+      "description": "Mathematischer Formeleditor — Formeln in LaTeX schreiben, als PNG/SVG/LaTeX/MathML exportieren"
+    },
+    "fr": {
+      "name": "Éditeur de Formules",
+      "description": "Éditeur de formules mathématiques — écrire en LaTeX, exporter en PNG/SVG/LaTeX/MathML"
+    },
+    "es": {
+      "name": "Editor de Fórmulas",
+      "description": "Editor de fórmulas matemáticas — escribe en LaTeX, exporta como PNG/SVG/LaTeX/MathML"
+    },
+    "ru": {
+      "name": "Редактор Формул",
+      "description": "Редактор математических формул — пишите в LaTeX, экспортируйте в PNG/SVG/LaTeX/MathML"
+    }
+  },
+  "category": "productivity"
+}

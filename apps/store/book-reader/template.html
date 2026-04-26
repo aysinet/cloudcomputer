@@ -1,0 +1,170 @@
+<div class="bkr-root" :class="'bkr-theme-'+rdTheme" @drop="handleDrop" @dragover="handleDragover">
+
+  <!-- Header toolbar -->
+  <div class="bkr-toolbar">
+    <div class="bkr-tb-left">
+      <el-button size="small" @click="openFromServer" title="">📂 {{t('open')}}</el-button>
+      <el-button size="small" @click="uploadFile">📤 {{t('upload')}}</el-button>
+      <template v-if="bookLoaded">
+        <div class="bkr-sep"></div>
+        <el-button size="small" :type="sidePanel==='toc'?'primary':''" @click="togglePanel('toc')">📑 {{t('toc')}}</el-button>
+        <el-button size="small" :type="sidePanel==='bookmarks'?'primary':''" @click="togglePanel('bookmarks')">🔖 {{t('bookmarks')}}</el-button>
+        <el-button size="small" :type="sidePanel==='library'?'primary':''" @click="togglePanel('library')">📚 {{t('library')}}</el-button>
+        <el-button size="small" :type="sidePanel==='settings'?'primary':''" @click="togglePanel('settings')">⚙️ {{t('settings')}}</el-button>
+      </template>
+      <template v-else>
+        <el-button size="small" :type="sidePanel==='library'?'primary':''" @click="togglePanel('library');loadLibrary()">📚 {{t('library')}}</el-button>
+      </template>
+    </div>
+    <div class="bkr-tb-right" v-if="bookLoaded">
+      <template v-if="bookFormat==='PDF'">
+        <el-button size="small" circle @click="pdfZoomOut" title="">➖</el-button>
+        <span class="bkr-zoom-val">{{Math.round(pdfZoom*100)}}%</span>
+        <el-button size="small" circle @click="pdfZoomIn" title="">➕</el-button>
+        <div class="bkr-sep"></div>
+      </template>
+      <el-button size="small" circle @click="prevPage" :disabled="currentPage<=1">◀</el-button>
+      <span class="bkr-page-info">{{currentPage}} {{t('of')}} {{totalPages || '?'}}</span>
+      <el-button size="small" circle @click="nextPage" :disabled="totalPages>0 && currentPage>=totalPages">▶</el-button>
+      <div class="bkr-sep"></div>
+      <span class="bkr-progress-txt">{{progressPct}}%</span>
+    </div>
+  </div>
+
+  <div class="bkr-body">
+    <!-- Side panel -->
+    <transition name="el-fade-in">
+      <div v-if="sidePanel" class="bkr-side">
+
+        <!-- TOC -->
+        <div v-if="sidePanel==='toc'" class="bkr-panel-content">
+          <div class="bkr-panel-title">📑 {{t('toc')}}</div>
+          <div v-if="tocItems.length===0" class="bkr-empty">{{t('noToc')}}</div>
+          <div v-else class="bkr-toc-list">
+            <div v-for="item in tocItems" :key="item.href" class="bkr-toc-item" @click="epubGoTo(item.href)">
+              {{item.label}}
+              <div v-if="item.sub && item.sub.length" class="bkr-toc-sub">
+                <div v-for="s in item.sub" :key="s.href" class="bkr-toc-item bkr-toc-sub-item" @click.stop="epubGoTo(s.href)">{{s.label}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bookmarks -->
+        <div v-if="sidePanel==='bookmarks'" class="bkr-panel-content">
+          <div class="bkr-panel-title">🔖 {{t('bookmarks')}}</div>
+          <div class="bkr-bm-add">
+            <el-input v-model="bookmarkLabel" size="small" :placeholder="t('bookmarkPlaceholder')" style="flex:1"></el-input>
+            <el-button size="small" type="primary" @click="addBookmark">➕</el-button>
+          </div>
+          <div v-if="bookmarks.length===0" class="bkr-empty">{{t('noBookmarks')}}</div>
+          <div v-else class="bkr-bm-list">
+            <div v-for="bm in bookmarks" :key="bm.id" class="bkr-bm-item">
+              <div class="bkr-bm-info" @click="goToBookmark(bm)">
+                <div class="bkr-bm-label">{{bm.label}}</div>
+                <div class="bkr-bm-meta">{{t('page')}} {{bm.page}} · {{bm.progress}}%</div>
+              </div>
+              <el-button size="small" type="danger" circle @click="removeBookmark(bm.id)">✕</el-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div v-if="sidePanel==='settings'" class="bkr-panel-content">
+          <div class="bkr-panel-title">⚙️ {{t('settings')}}</div>
+          <div class="bkr-setting-row">
+            <label>{{t('fontSize')}}</label>
+            <el-slider v-model="rdFontSize" :min="10" :max="40" :step="1" style="flex:1" size="small"></el-slider>
+            <span class="bkr-setting-val">{{rdFontSize}}px</span>
+          </div>
+          <div class="bkr-setting-row">
+            <label>{{t('lineHeight')}}</label>
+            <el-slider v-model="rdLineHeight" :min="1" :max="3" :step="0.1" style="flex:1" size="small"></el-slider>
+            <span class="bkr-setting-val">{{rdLineHeight}}</span>
+          </div>
+          <div class="bkr-setting-row">
+            <label>{{t('margins')}}</label>
+            <el-slider v-model="rdMargin" :min="0" :max="80" :step="5" style="flex:1" size="small"></el-slider>
+            <span class="bkr-setting-val">{{rdMargin}}px</span>
+          </div>
+          <div class="bkr-setting-row">
+            <label>{{t('theme')}}</label>
+            <el-radio-group v-model="rdTheme" size="small">
+              <el-radio-button value="dark">🌙 {{t('dark')}}</el-radio-button>
+              <el-radio-button value="light">☀️ {{t('light')}}</el-radio-button>
+              <el-radio-button value="sepia">📜 {{t('sepia')}}</el-radio-button>
+            </el-radio-group>
+          </div>
+          <div class="bkr-setting-row">
+            <label>{{t('fontFamily')}}</label>
+            <el-select v-model="rdFontFamily" size="small" style="width:160px">
+              <el-option value="serif" label="Serif"></el-option>
+              <el-option value="sans-serif" label="Sans-serif"></el-option>
+              <el-option value="Georgia" label="Georgia"></el-option>
+              <el-option value="Palatino" label="Palatino"></el-option>
+              <el-option value="Merriweather" label="Merriweather"></el-option>
+              <el-option value="monospace" label="Monospace"></el-option>
+            </el-select>
+          </div>
+        </div>
+
+        <!-- Library -->
+        <div v-if="sidePanel==='library'" class="bkr-panel-content">
+          <div class="bkr-panel-title">📚 {{t('library')}}</div>
+          <div v-if="loadingLib" class="bkr-empty">{{t('loading')}}</div>
+          <div v-else-if="libBooks.length===0" class="bkr-empty">{{t('noLibBooks')}}</div>
+          <div v-else class="bkr-lib-list">
+            <div v-for="book in libBooks" :key="book.id" class="bkr-lib-item">
+              <div class="bkr-lib-info">
+                <div class="bkr-lib-title">{{book.title}}</div>
+                <div class="bkr-lib-meta">
+                  <span v-if="book.author">{{book.author}} · </span>
+                  <span class="bkr-lib-fmt">{{book.format}}</span>
+                  <span v-if="book.progress"> · {{book.progress}}%</span>
+                </div>
+              </div>
+              <el-button size="small" type="danger" circle @click="removeFromLibrary(book.id)" :title="t('removeFromLib')">✕</el-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Main viewer -->
+    <div class="bkr-viewer-wrap" :style="{background: currentTheme.bg}">
+      <!-- Loading -->
+      <div v-if="loading" class="bkr-loading">
+        <div class="bkr-spinner"></div>
+        <div>{{t('loading')}}</div>
+      </div>
+
+      <!-- Welcome -->
+      <div v-else-if="!bookLoaded" class="bkr-welcome">
+        <div class="bkr-welcome-icon">📖</div>
+        <div class="bkr-welcome-title">{{t('noBook')}}</div>
+        <div class="bkr-welcome-btns">
+          <el-button type="primary" @click="openFromServer">📂 {{t('open')}}</el-button>
+          <el-button @click="uploadFile">📤 {{t('upload')}}</el-button>
+        </div>
+        <div class="bkr-welcome-drop">{{t('dropHere')}}</div>
+        <div class="bkr-welcome-formats">{{t('supported')}}: EPUB, PDF, TXT, HTML, FB2, MD</div>
+      </div>
+
+      <!-- Reader container -->
+      <div v-show="bookLoaded && !loading" ref="viewerEl" class="bkr-viewer" @scroll="onViewerScroll"></div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div v-if="bookLoaded" class="bkr-status">
+    <span class="bkr-status-title" :title="bookTitle">📖 {{bookTitle}}</span>
+    <span v-if="bookAuthor" class="bkr-status-author">— {{bookAuthor}}</span>
+    <span class="bkr-status-fmt">{{bookFormat}}</span>
+    <div class="bkr-status-right">
+      <div class="bkr-progress-bar">
+        <div class="bkr-progress-fill" :style="{width: progressPct+'%'}"></div>
+      </div>
+      <span class="bkr-status-pct">{{progressPct}}%</span>
+    </div>
+  </div>
+</div>

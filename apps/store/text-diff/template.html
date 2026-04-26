@@ -1,0 +1,181 @@
+<div class="text-diff-app">
+  <!-- Toolbar -->
+  <div class="td-toolbar">
+    <div class="td-toolbar-left">
+      <!-- Mode selector -->
+      <el-radio-group v-model="mode" size="small">
+        <el-radio-button value="text">
+          <el-icon><Edit /></el-icon> {{ t('textMode') }}
+        </el-radio-button>
+        <el-radio-button value="file">
+          <el-icon><Document /></el-icon> {{ t('fileMode') }}
+        </el-radio-button>
+        <el-radio-button value="folder">
+          <el-icon><FolderOpened /></el-icon> {{ t('folderMode') }}
+        </el-radio-button>
+      </el-radio-group>
+
+      <el-divider direction="vertical" />
+
+      <!-- Text / File mode buttons -->
+      <template v-if="mode === 'text'">
+        <el-button size="small" @click="pasteLeft" :title="t('pasteLeft')">
+          <el-icon><DocumentCopy /></el-icon> {{ t('pasteLeft') }}
+        </el-button>
+        <el-button size="small" @click="pasteRight" :title="t('pasteRight')">
+          <el-icon><DocumentCopy /></el-icon> {{ t('pasteRight') }}
+        </el-button>
+      </template>
+      <template v-if="mode === 'file' || mode === 'text'">
+        <el-button size="small" @click="openLeft" :title="t('openLeft')">
+          <el-icon><FolderOpened /></el-icon> {{ t('openLeft') }}
+        </el-button>
+        <el-button size="small" @click="openRight" :title="t('openRight')">
+          <el-icon><FolderOpened /></el-icon> {{ t('openRight') }}
+        </el-button>
+      </template>
+
+      <el-divider direction="vertical" v-if="mode !== 'folder'" />
+
+      <el-button size="small" @click="swapSides" :title="t('swap')" v-if="mode !== 'folder'">
+        <el-icon><Sort /></el-icon> {{ t('swap') }}
+      </el-button>
+      <el-button size="small" @click="clearAll" :title="t('clear')" v-if="mode !== 'folder'">
+        <el-icon><Delete /></el-icon> {{ t('clear') }}
+      </el-button>
+    </div>
+
+    <div class="td-toolbar-right">
+      <!-- Diff navigation -->
+      <template v-if="mode !== 'folder'">
+        <el-button size="small" @click="prevDiff" :title="t('prevDiff')">
+          <el-icon><ArrowUp /></el-icon>
+        </el-button>
+        <el-button size="small" @click="nextDiff" :title="t('nextDiff')">
+          <el-icon><ArrowDown /></el-icon>
+        </el-button>
+        <el-button size="small" @click="copyRightToLeft" :title="t('copyToLeft')">
+          <el-icon><Back /></el-icon>
+        </el-button>
+        <el-button size="small" @click="copyLeftToRight" :title="t('copyToRight')">
+          <el-icon><Right /></el-icon>
+        </el-button>
+
+        <el-divider direction="vertical" />
+
+        <el-switch v-model="renderSideBySide" size="small"
+          :active-text="t('sideBySide')" :inactive-text="t('inline')"
+          style="--el-switch-on-color: #409eff;" />
+
+        <el-switch v-model="wordWrap" size="small"
+          :active-text="t('wordWrap')" style="--el-switch-on-color: #67c23a;" />
+
+        <el-input-number v-model="fontSize" :min="10" :max="30" :step="1"
+          size="small" style="width:100px" controls-position="right" />
+      </template>
+    </div>
+  </div>
+
+  <!-- File labels -->
+  <div class="td-file-labels" v-if="(leftFile || rightFile) && mode !== 'folder'">
+    <div class="td-file-label left">
+      <el-icon><Document /></el-icon>
+      <span>{{ leftFile || t('original') }}</span>
+    </div>
+    <div class="td-file-label right">
+      <el-icon><Document /></el-icon>
+      <span>{{ rightFile || t('modified') }}</span>
+    </div>
+  </div>
+
+  <!-- Folder mode -->
+  <div v-if="mode === 'folder'" class="td-folder-panel">
+    <div class="td-folder-inputs">
+      <div class="td-folder-row">
+        <span class="td-folder-label">{{ t('leftFolder') }}:</span>
+        <el-input v-model="leftFolder" size="small" :placeholder="t('leftPath')" style="flex:1" />
+        <el-button size="small" @click="browseFolderLeft">
+          <el-icon><FolderOpened /></el-icon>
+        </el-button>
+      </div>
+      <div class="td-folder-row">
+        <span class="td-folder-label">{{ t('rightFolder') }}:</span>
+        <el-input v-model="rightFolder" size="small" :placeholder="t('rightPath')" style="flex:1" />
+        <el-button size="small" @click="browseFolderRight">
+          <el-icon><FolderOpened /></el-icon>
+        </el-button>
+      </div>
+      <el-button type="primary" size="small" @click="compareFolders" :loading="folderLoading"
+        :disabled="!leftFolder || !rightFolder" style="align-self:flex-end">
+        <el-icon><Refresh /></el-icon> {{ t('compareFolders') }}
+      </el-button>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="td-folder-filters" v-if="folderResults.length">
+      <el-radio-group v-model="folderFilter" size="small">
+        <el-radio-button value="all">{{ t('compare') }} ({{ folderCounts.all }})</el-radio-button>
+        <el-radio-button value="onlyLeft">{{ t('onlyLeft') }} ({{ folderCounts.onlyLeft }})</el-radio-button>
+        <el-radio-button value="onlyRight">{{ t('onlyRight') }} ({{ folderCounts.onlyRight }})</el-radio-button>
+        <el-radio-button value="different">{{ t('different') }} ({{ folderCounts.different }})</el-radio-button>
+        <el-radio-button value="identical">{{ t('identical') }} ({{ folderCounts.identical }})</el-radio-button>
+      </el-radio-group>
+    </div>
+
+    <!-- Results table -->
+    <div class="td-folder-results" v-if="folderResults.length">
+      <el-table :data="filteredFolderResults" size="small" stripe
+        :empty-text="t('noResults')" height="100%" style="width:100%"
+        @row-dblclick="openFolderFile" highlight-current-row>
+        <el-table-column prop="name" :label="t('fileName')" min-width="200" sortable />
+        <el-table-column :label="t('status')" width="120" sortable prop="status">
+          <template #default="{row}">
+            <el-tag size="small" :type="statusTag(row.status)" effect="dark">
+              {{ t(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="Left" width="100" align="right">
+          <template #default="{row}">
+            <span style="font-size:12px;color:#aaa">{{ row.leftPath ? formatBytes(row.leftSize) : '—' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="Right" width="100" align="right">
+          <template #default="{row}">
+            <span style="font-size:12px;color:#aaa">{{ row.rightPath ? formatBytes(row.rightSize) : '—' }}</span>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <div v-if="!folderResults.length && !folderLoading" class="td-folder-empty">
+      <el-icon size="48" color="#555"><FolderOpened /></el-icon>
+      <p>{{ t('noResults') }}</p>
+    </div>
+  </div>
+
+  <!-- Diff editor -->
+  <div v-show="mode !== 'folder'" class="td-editor-container" ref="diffEditorEl"></div>
+
+  <!-- Status bar -->
+  <div class="td-statusbar" v-if="mode !== 'folder'">
+    <div class="td-stat">
+      <span class="td-stat-label">{{ t('original') }}:</span>
+      {{ diffStats.leftLines }} {{ t('lines') }} · {{ diffStats.leftChars }} {{ t('chars') }}
+    </div>
+    <div class="td-stat">
+      <span class="td-stat-label">{{ t('modified') }}:</span>
+      {{ diffStats.rightLines }} {{ t('lines') }} · {{ diffStats.rightChars }} {{ t('chars') }}
+    </div>
+    <div class="td-stat-divider"></div>
+    <div class="td-stat">
+      <span class="td-change-count">{{ diffStats.changes }}</span> {{ t('differences') }}
+    </div>
+    <div class="td-stat" style="color:#81c784">
+      +{{ diffStats.added }} {{ t('added') }}
+    </div>
+    <div class="td-stat" style="color:#e57373">
+      −{{ diffStats.removed }} {{ t('removed') }}
+    </div>
+  </div>
+</div>

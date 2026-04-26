@@ -1,0 +1,200 @@
+<div class="ved-app" tabindex="0" @keydown="onKeydown">
+  <!-- TOP: Toolbar -->
+  <div class="ved-toolbar">
+    <div class="ved-toolbar-group">
+      <el-button size="small" @click="openFilePicker">📂 {{L('addMedia')}}</el-button>
+      <el-button size="small" @click="exportVideo" :disabled="!clips.length || busy" type="success">💾 {{L('export')}}</el-button>
+    </div>
+    <div class="ved-toolbar-group">
+      <el-button size="small" @click="undo" :disabled="!canUndo" circle>↩</el-button>
+      <el-button size="small" @click="redo" :disabled="!canRedo" circle>↪</el-button>
+    </div>
+    <div class="ved-toolbar-group">
+      <el-button size="small" @click="splitClip" :disabled="!activeClip">✂ {{L('split')}}</el-button>
+      <el-button size="small" @click="deleteClip" :disabled="!activeClip" type="danger">🗑 {{L('delete')}}</el-button>
+      <el-button size="small" @click="addTextOverlay" :disabled="!activeClip">📝 {{L('addText')}}</el-button>
+    </div>
+  </div>
+
+  <!-- BUSY OVERLAY -->
+  <div v-if="busy" class="ved-busy-overlay">
+    <div class="ved-spinner"></div>
+    <div class="ved-busy-text">{{busyText}}</div>
+    <div v-if="exportProgress > 0" class="ved-progress-bar">
+      <div class="ved-progress-fill" :style="{width: exportProgress+'%'}"></div>
+      <span class="ved-progress-text">{{exportProgress}}%</span>
+    </div>
+  </div>
+
+  <!-- STATUS -->
+  <transition name="ved-fade">
+    <div v-if="statusMsg" :class="['ved-status', statusType]" @click="statusMsg=''">
+      <span>{{statusType==='success'?'✓':'✕'}}</span> {{statusMsg}}
+    </div>
+  </transition>
+
+  <!-- MIDDLE: Preview + Properties -->
+  <div class="ved-middle">
+    <!-- Preview -->
+    <div class="ved-preview-area">
+      <div class="ved-preview-container" ref="previewContainer">
+        <video ref="previewVideo" class="ved-preview-video" @timeupdate="onPreviewTime" @loadedmetadata="onPreviewMeta" @ended="onPreviewEnded"></video>
+        <!-- Text overlays on preview -->
+        <div v-for="t in activeTextOverlays" :key="t.id" class="ved-text-overlay" :style="t.style">
+          {{t.text}}
+        </div>
+        <div v-if="!clips.length" class="ved-preview-placeholder" @click="openFilePicker">
+          <div class="ved-ph-icon">🎬</div>
+          <div>{{L('addMediaHint')}}</div>
+        </div>
+      </div>
+      <!-- Preview controls -->
+      <div class="ved-preview-controls">
+        <el-button circle size="small" @click="skipToStart" :disabled="!clips.length">⏮</el-button>
+        <el-button circle :type="isPlaying?'danger':'primary'" @click="togglePlay" :disabled="!clips.length">
+          {{isPlaying ? '⏸' : '▶'}}
+        </el-button>
+        <el-button circle size="small" @click="skipToEnd" :disabled="!clips.length">⏭</el-button>
+        <span class="ved-time-display">{{formatTime(currentTime)}} / {{formatTime(totalDuration)}}</span>
+      </div>
+    </div>
+
+    <!-- Properties panel -->
+    <div class="ved-properties" v-if="activeClip">
+      <div class="ved-prop-title">⚙ {{L('properties')}}</div>
+      <el-form label-position="top" size="small">
+        <el-form-item :label="L('clipName')">
+          <el-input v-model="activeClip.name" size="small" />
+        </el-form-item>
+        <el-form-item :label="L('trimStart')">
+          <el-slider v-model="activeClip.trimStart" :min="0" :max="activeClip.originalDuration" :step="0.1" :show-tooltip="true" @change="onTrimChange" />
+        </el-form-item>
+        <el-form-item :label="L('trimEnd')">
+          <el-slider v-model="activeClip.trimEnd" :min="0" :max="activeClip.originalDuration" :step="0.1" :show-tooltip="true" @change="onTrimChange" />
+        </el-form-item>
+        <el-form-item :label="L('speed')">
+          <el-slider v-model="activeClip.speed" :min="0.25" :max="4" :step="0.25" :show-tooltip="true" />
+        </el-form-item>
+        <el-form-item :label="L('volume')">
+          <el-slider v-model="activeClip.volume" :min="0" :max="200" :show-tooltip="true" />
+        </el-form-item>
+        <!-- Text overlays for this clip -->
+        <div v-if="activeClip.texts && activeClip.texts.length" class="ved-texts-list">
+          <div class="ved-prop-subtitle">📝 {{L('textOverlays')}}</div>
+          <div v-for="(t, ti) in activeClip.texts" :key="t.id" class="ved-text-item">
+            <el-input v-model="t.text" size="small" :placeholder="L('enterText')" />
+            <el-select v-model="t.position" size="small" style="width:100px">
+              <el-option value="top" :label="L('posTop')" />
+              <el-option value="center" :label="L('posCenter')" />
+              <el-option value="bottom" :label="L('posBottom')" />
+            </el-select>
+            <el-input-number v-model="t.fontSize" :min="12" :max="72" size="small" style="width:90px" />
+            <el-button size="small" type="danger" circle @click="removeText(ti)">✕</el-button>
+          </div>
+        </div>
+      </el-form>
+    </div>
+  </div>
+
+  <!-- BOTTOM: Timeline -->
+  <div class="ved-timeline-area">
+    <div class="ved-timeline-header">
+      <span class="ved-tl-label">🎞 {{L('timeline')}}</span>
+      <span class="ved-tl-info">{{clips.length}} {{L('clips')}}</span>
+    </div>
+    <!-- Playhead ruler -->
+    <div class="ved-ruler" ref="rulerEl" @click="seekOnRuler($event)">
+      <div class="ved-playhead" :style="{left: playheadPercent + '%'}"></div>
+      <div v-for="m in rulerMarks" :key="m.sec" class="ved-ruler-mark" :style="{left: m.pct + '%'}">
+        <span class="ved-ruler-label">{{formatTime(m.sec)}}</span>
+      </div>
+    </div>
+    <!-- Clips track -->
+    <div class="ved-track" ref="trackEl">
+      <div v-for="(c, ci) in clips" :key="c.id"
+           :class="['ved-clip', activeClipIndex===ci && 'active']"
+           :style="{width: clipWidth(c) + 'px'}"
+           @click="selectClip(ci)"
+           draggable="true" @dragstart="onDragStart(ci, $event)" @dragover.prevent @drop="onDrop(ci, $event)">
+        <div class="ved-clip-thumb">🎬</div>
+        <div class="ved-clip-info">
+          <div class="ved-clip-name">{{c.name}}</div>
+          <div class="ved-clip-dur">{{formatTime(clipDuration(c))}}</div>
+        </div>
+        <div v-if="c.speed !== 1" class="ved-clip-badge speed">{{c.speed}}x</div>
+        <div v-if="c.texts && c.texts.length" class="ved-clip-badge text">📝{{c.texts.length}}</div>
+      </div>
+      <div v-if="!clips.length" class="ved-track-empty">{{L('emptyTimeline')}}</div>
+    </div>
+  </div>
+
+  <!-- FILE PICKER DIALOG -->
+  <el-dialog v-model="showFilePicker" :title="L('addMedia')" width="520px" append-to-body>
+    <div class="ved-filepicker">
+      <div class="ved-fp-tabs">
+        <el-button :type="fpTab==='videos'?'primary':''" size="small" @click="fpTab='videos'; loadVideoFiles()">🎬 {{L('videos')}}</el-button>
+        <el-button :type="fpTab==='browse'?'primary':''" size="small" @click="fpTab='browse'; loadFsBrowse()">📁 {{L('browse')}}</el-button>
+      </div>
+      <div class="ved-fp-list">
+        <div v-for="f in fpFiles" :key="f.url" class="ved-fp-item" @click="addClipFromFile(f)">
+          <span class="ved-fp-icon">{{f.icon||'🎬'}}</span>
+          <span class="ved-fp-name">{{f.filename||f.name}}</span>
+          <span class="ved-fp-size">{{formatSize(f.size)}}</span>
+        </div>
+        <div v-if="!fpFiles.length" class="ved-fp-empty">{{L('noFiles')}}</div>
+      </div>
+    </div>
+  </el-dialog>
+
+  <!-- EXPORT DIALOG -->
+  <el-dialog v-model="showExportDialog" :title="L('exportTitle')" width="420px" append-to-body>
+    <el-form label-position="top" size="default">
+      <el-form-item :label="L('filename')">
+        <el-input v-model="exportFilename" placeholder="edited_video.webm" />
+      </el-form-item>
+      <el-form-item :label="L('resolution')">
+        <el-select v-model="exportResolution" style="width:100%">
+          <el-option value="720" label="720p (1280×720)" />
+          <el-option value="1080" label="1080p (1920×1080)" />
+          <el-option value="480" label="480p (854×480)" />
+        </el-select>
+      </el-form-item>
+      <el-form-item :label="L('saveLocation')">
+        <el-select v-model="exportLocation" style="width:100%">
+          <el-option value="server" :label="L('videoFolder')" />
+          <el-option value="download" :label="L('downloadLocal')" />
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="showExportDialog=false">{{L('cancel')}}</el-button>
+      <el-button type="primary" @click="confirmExport" :loading="busy">💾 {{L('export')}}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- TEXT OVERLAY DIALOG -->
+  <el-dialog v-model="showTextDialog" :title="L('addText')" width="380px" append-to-body>
+    <el-form label-position="top" size="default">
+      <el-form-item :label="L('enterText')">
+        <el-input v-model="newTextOverlay.text" :placeholder="L('enterText')" />
+      </el-form-item>
+      <el-form-item :label="L('position')">
+        <el-select v-model="newTextOverlay.position" style="width:100%">
+          <el-option value="top" :label="L('posTop')" />
+          <el-option value="center" :label="L('posCenter')" />
+          <el-option value="bottom" :label="L('posBottom')" />
+        </el-select>
+      </el-form-item>
+      <el-form-item :label="L('fontSize')">
+        <el-slider v-model="newTextOverlay.fontSize" :min="12" :max="72" :show-tooltip="true" />
+      </el-form-item>
+      <el-form-item :label="L('textColor')">
+        <el-input v-model="newTextOverlay.color" placeholder="#ffffff" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="showTextDialog=false">{{L('cancel')}}</el-button>
+      <el-button type="primary" @click="confirmAddText">{{L('add')}}</el-button>
+    </template>
+  </el-dialog>
+</div>

@@ -1,0 +1,26 @@
+{
+  "id": "chess",
+  "name": "Chess",
+  "icon": "♟️",
+  "color": "linear-gradient(135deg,#1a1a2e,#16213e)",
+  "type": "internal",
+  "size": {
+    "w": 900,
+    "h": 700
+  },
+  "global": false,
+  "description": "Docker tabanlı satranç oyunu (rmeira/chess)",
+  "lang": {
+    "tr": { "name": "Satranç", "description": "Docker tabanlı satranç oyunu" },
+    "en": { "name": "Chess", "description": "Docker-based chess game" },
+    "de": { "name": "Schach", "description": "Docker-basiertes Schachspiel" },
+    "fr": { "name": "Échecs", "description": "Jeu d'échecs basé sur Docker" },
+    "es": { "name": "Ajedrez", "description": "Juego de ajedrez basado en Docker" },
+    "ru": { "name": "Шахматы", "description": "Шахматы на базе Docker" }
+  },
+  "category": "games",
+  "docker": {
+    "image": "rmeira/chess",
+    "containerPort": 80
+  }
+}

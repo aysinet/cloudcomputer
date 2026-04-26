@@ -1,0 +1,48 @@
+<div class="navidrome-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="nd-status-screen">
+    <div class="nd-spinner"></div>
+    <div class="nd-icon-large">🎵</div>
+    <div class="nd-status-text">{{ pullProgress }}</div>
+    <div class="nd-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="nd-status-screen">
+    <div class="nd-spinner"></div>
+    <div class="nd-icon-large">🎵</div>
+    <div class="nd-status-text">Navidrome başlatılıyor...</div>
+    <div class="nd-sub-text">Müzik sunucusu hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="nd-status-screen nd-error">
+    <div class="nd-icon-large">⚠️</div>
+    <div class="nd-status-text">Bir hata oluştu</div>
+    <div class="nd-error-msg">{{ errorMsg }}</div>
+    <div class="nd-actions">
+      <button class="nd-btn nd-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="nd-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="nd-running">
+    <div class="nd-toolbar">
+      <span class="nd-info">🎵 Navidrome — Port: {{ port }}</span>
+      <div class="nd-toolbar-actions">
+        <button class="nd-btn nd-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="nd-btn nd-btn-small nd-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="nd-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="nd-status-screen">
+    <div class="nd-icon-large">🎵</div>
+    <div class="nd-status-text">Navidrome</div>
+    <div class="nd-sub-text">Kendi müzik sunucunuz — Spotify alternatifi</div>
+    <button class="nd-btn nd-btn-primary nd-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

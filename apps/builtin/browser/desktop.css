@@ -1,0 +1,48 @@
+.browser-root{height:100%;display:flex;flex-direction:column;background:#1a1d2e;color:#e1e4ea;font-family:'Segoe UI',sans-serif;overflow:hidden}
+.browser-toolbar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#252840;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.browser-nav-btns{display:flex;gap:2px}
+.browser-nav-btn{width:30px;height:30px;border:none;border-radius:6px;background:transparent;color:#aab0c6;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.browser-nav-btn:hover{background:rgba(255,255,255,.08);color:#fff}
+.browser-nav-btn:disabled{opacity:.3;cursor:default}
+.browser-nav-btn:disabled:hover{background:transparent}
+.browser-url-bar{flex:1;display:flex;align-items:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:0 12px;height:32px;transition:border-color .2s}
+.browser-url-bar:focus-within{border-color:rgba(74,144,217,.5);background:rgba(255,255,255,.08)}
+.browser-url-icon{font-size:12px;margin-right:6px;flex-shrink:0}
+.browser-url-input{flex:1;background:none;border:none;outline:none;color:#e1e4ea;font-size:13px;font-family:inherit}
+.browser-url-input::placeholder{color:#5a5e72}
+.browser-bookmarks-bar{display:flex;align-items:center;padding:4px 10px;background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.04);flex-shrink:0;overflow-x:auto}
+.browser-bm-list{display:flex;gap:6px;align-items:center}
+.browser-bm-chip{font-size:11px;padding:3px 10px;background:rgba(255,255,255,.06);border-radius:12px;cursor:pointer;white-space:nowrap;color:#aab0c6;display:flex;align-items:center;gap:4px;transition:.15s;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.browser-bm-chip:hover{background:rgba(255,255,255,.1);color:#fff}
+.browser-bm-del{font-size:13px;opacity:.4;cursor:pointer;line-height:1}
+.browser-bm-del:hover{opacity:1;color:#f56c6c}
+.browser-bm-add{font-size:11px;padding:3px 10px;background:rgba(74,144,217,.15);border:none;border-radius:12px;color:#6aabf7;cursor:pointer}
+.browser-bm-add:hover{background:rgba(74,144,217,.25)}
+.browser-loading-bar{height:2px;background:rgba(255,255,255,.04);flex-shrink:0;overflow:hidden}
+.browser-loading-progress{height:100%;width:30%;background:linear-gradient(90deg,#4a90d9,#00b894);border-radius:2px;animation:browserLoad 1.2s ease-in-out infinite}
+@keyframes browserLoad{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+.browser-tabs{display:flex;background:#1e2035;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;overflow-x:auto}
+.browser-tab{display:flex;align-items:center;gap:6px;padding:6px 14px;font-size:12px;color:#8b8fa3;cursor:pointer;border-right:1px solid rgba(255,255,255,.04);max-width:180px;min-width:80px;transition:.15s}
+.browser-tab:hover{background:rgba(255,255,255,.04)}
+.browser-tab.active{background:#1a1d2e;color:#e1e4ea;border-bottom:2px solid #4a90d9}
+.browser-tab-title{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.browser-tab-close{font-size:14px;opacity:.4;line-height:1;width:16px;text-align:center}
+.browser-tab-close:hover{opacity:1;color:#f56c6c}
+.browser-tab-add{border:none;background:transparent;color:#5a5e72;font-size:16px;padding:0 10px;cursor:pointer}
+.browser-tab-add:hover{color:#aab0c6}
+.browser-content{flex:1;overflow:hidden;position:relative;background:#fff}
+.browser-iframe{width:100%;height:100%;border:none}
+.browser-home{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:linear-gradient(180deg,#1a1d2e,#0f1118);color:#e1e4ea}
+.browser-home-logo{font-size:64px;margin-bottom:12px;filter:drop-shadow(0 0 20px rgba(74,144,217,.4))}
+.browser-home h2{font-weight:300;color:#8b8fa3;margin:0 0 30px}
+.browser-quick-links{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.browser-quick-link{display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;cursor:pointer;transition:.2s;min-width:150px;color:#c5cde8;font-size:13px}
+.browser-quick-link:hover{background:rgba(255,255,255,.08);border-color:rgba(74,144,217,.3);transform:translateY(-1px)}
+.bql-icon{font-size:20px}
+.browser-error{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#1a1d2e;color:#e1e4ea;text-align:center;padding:40px}
+.browser-error-icon{font-size:48px;margin-bottom:12px}
+.browser-error h3{margin:0 0 8px;font-weight:500}
+.browser-error-url{color:#5a5e72;font-size:12px;word-break:break-all;margin:0 0 16px}
+.browser-retry-btn{padding:8px 24px;border:none;border-radius:8px;background:#4a90d9;color:#fff;cursor:pointer;font-size:13px}
+.browser-retry-btn:hover{background:#3a7bc8}
+.browser-status-bar{padding:2px 10px;font-size:10px;color:#5a5e72;background:#1e2035;border-top:1px solid rgba(255,255,255,.04);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

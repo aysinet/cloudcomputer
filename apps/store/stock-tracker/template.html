@@ -1,0 +1,155 @@
+<div class="st-root">
+  <div class="st-header">
+    <div class="st-title-row">
+      <h2>📊 {{L('title')}}</h2>
+      <div class="st-market-badge" :class="marketClass">
+        <span class="st-market-dot">●</span>
+        <span>{{marketLabel}}</span>
+      </div>
+    </div>
+    <div class="st-tabs">
+      <button :class="{active:tab==='all'}" @click="tab='all'">{{L('tabAll')}} ({{filteredStocks.length}})</button>
+      <button :class="{active:tab==='fav'}" @click="tab='fav'">⭐ {{L('tabFav')}} ({{favStocks.length}})</button>
+      <button :class="{active:tab==='portfolio'}" @click="tab='portfolio'">💰 {{L('tabPortfolio')}} ({{portfolio.length}})</button>
+    </div>
+  </div>
+
+  <!-- ALL / FAV tabs -->
+  <template v-if="tab!=='portfolio'">
+  <div class="st-search">
+    <input v-model="search" :placeholder="L('searchPlaceholder')" class="st-input">
+    <label class="st-hide-toggle"><input type="checkbox" v-model="showHidden"> {{L('showHidden')}}</label>
+  </div>
+  <div class="st-status">
+    <span :class="connected?'st-on':'st-off'">●</span>
+    <span>{{connected ? L('live') : L('disconnected')}}</span>
+    <span class="st-update" v-if="lastUpdate">{{L('lastUpdate')}}: {{lastUpdate}}</span>
+  </div>
+  <div class="st-list">
+    <div class="st-list-header">
+      <span class="st-col-sym">{{L('colSymbol')}}</span>
+      <span class="st-col-price">{{L('colPrice')}}</span>
+      <span class="st-col-change">{{L('colChange')}}</span>
+      <span class="st-col-actions">{{L('colActions')}}</span>
+    </div>
+    <div v-if="!displayStocks.length" class="st-empty">{{search ? L('noResult') : L('loading')}}</div>
+    <div v-for="stock in displayStocks" :key="stock.symbol" class="st-item" :class="{fav: isFav(stock.symbol), hidden: isHidden(stock.symbol)}">
+      <span class="st-col-sym">
+        <span class="st-sym-name">{{stock.symbol}}</span>
+      </span>
+      <span class="st-col-price" :class="stock.dir">${{formatPrice(stock.price)}}</span>
+      <span class="st-col-change" :class="stock.changePercent >= 0 ? 'up' : 'down'">
+        {{formatChange(stock)}}
+      </span>
+      <span class="st-col-actions">
+        <button class="st-act" :class="{on:isFav(stock.symbol)}" @click="toggleFav(stock.symbol)" :title="L('favTooltip')">⭐</button>
+        <button class="st-act" :class="{on:isHidden(stock.symbol)}" @click="toggleHidden(stock.symbol)" :title="L('hideTooltip')">👁</button>
+      </span>
+    </div>
+  </div>
+  </template>
+
+  <!-- PORTFOLIO tab -->
+  <template v-if="tab==='portfolio'">
+  <div class="st-pf-wrap">
+    <!-- Add / Edit form -->
+    <div class="st-pf-form">
+      <div class="st-pf-form-title">{{ pfEdit >= 0 ? '✏️ ' + L('editTitle') : '➕ ' + L('addTitle') }}</div>
+      <div class="st-pf-fields">
+        <div class="st-pf-field st-pf-sym-wrap">
+          <label>{{L('lblSymbol')}}</label>
+          <input v-model="pfForm.symbol" placeholder="AAPL" class="st-input" @keydown.enter.prevent="addPortfolioEntry">
+          <div v-if="symbolSuggestions.length" class="st-pf-suggest">
+            <div v-for="s in symbolSuggestions" :key="s.symbol" class="st-pf-sug-item" @mousedown.prevent="pickSymbol(s.symbol)">
+              <strong>{{ s.symbol }}</strong>
+              <small v-if="s.description"> {{ s.description }}</small>
+            </div>
+          </div>
+        </div>
+        <div class="st-pf-field">
+          <label>{{L('lblAmount')}}</label>
+          <input v-model="pfForm.amount" type="number" step="any" placeholder="10" class="st-input" @keydown.enter.prevent="addPortfolioEntry">
+        </div>
+        <div class="st-pf-field">
+          <label>{{L('lblBuyPrice')}}</label>
+          <input v-model="pfForm.buyPrice" type="number" step="any" placeholder="150.00" class="st-input" @keydown.enter.prevent="addPortfolioEntry">
+        </div>
+        <div class="st-pf-field st-pf-btns">
+          <button class="st-pf-add" @click="addPortfolioEntry">{{ pfEdit >= 0 ? '💾 ' + L('btnSave') : '➕ ' + L('btnAdd') }}</button>
+          <button v-if="pfEdit >= 0" class="st-pf-cancel" @click="cancelEdit">{{L('btnCancel')}}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- USD Balance -->
+    <div class="st-pf-form st-pf-usd">
+      <div class="st-pf-fields">
+        <div class="st-pf-field st-usd-inline">
+          <label>💵 {{L('usdBalance')}}</label>
+          <div v-if="!editingUsd" class="st-usd-view">
+            <span class="st-usd-value">${{ formatPrice(usdBalance) }}</span>
+            <button class="st-usd-edit-btn" @click="startEditUsd" title="Edit">✏️</button>
+          </div>
+          <div v-else class="st-usd-edit">
+            <input ref="usdInput" type="text" inputmode="decimal" class="st-input st-usd-input" v-model="usdDraft" @keydown.enter="saveUsd" @keydown.escape="cancelEditUsd">
+            <button class="st-usd-save-btn" @click="saveUsd">✓</button>
+            <button class="st-usd-cancel-btn" @click="cancelEditUsd">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary bar -->
+    <div v-if="portfolio.length || usdBalance > 0" class="st-pf-summary">
+      <div class="st-pf-sum-item">
+        <span class="st-pf-sum-label">{{L('totalCost')}}</span>
+        <span class="st-pf-sum-val">${{ portfolioTotal.cost.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) }}</span>
+      </div>
+      <div class="st-pf-sum-item">
+        <span class="st-pf-sum-label">{{L('currentValue')}}</span>
+        <span class="st-pf-sum-val">${{ portfolioTotal.val.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) }}</span>
+      </div>
+      <div class="st-pf-sum-item" :class="portfolioTotal.pnl >= 0 ? 'st-pf-profit' : 'st-pf-loss'">
+        <span class="st-pf-sum-label">{{L('pnl')}}</span>
+        <span class="st-pf-sum-val">{{ portfolioTotal.pnl >= 0 ? '+' : '' }}${{ portfolioTotal.pnl.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) }} ({{ portfolioTotal.pnlPct >= 0 ? '+' : '' }}{{ portfolioTotal.pnlPct.toFixed(2) }}%)</span>
+      </div>
+    </div>
+
+    <!-- Portfolio list -->
+    <div class="st-pf-list">
+      <div class="st-pf-list-header">
+        <span class="st-pfc-sym">{{L('colStock')}}</span>
+        <span class="st-pfc-amt">{{L('colAmount')}}</span>
+        <span class="st-pfc-buy">{{L('colBuy')}}</span>
+        <span class="st-pfc-cur">{{L('colCurrent')}}</span>
+        <span class="st-pfc-val">{{L('colValue')}}</span>
+        <span class="st-pfc-pnl">{{L('colPnl')}}</span>
+        <span class="st-pfc-act"></span>
+      </div>
+      <div v-if="!portfolioRows.length" class="st-empty">{{L('emptyPortfolio')}}</div>
+      <div v-for="row in portfolioRows" :key="row.isUsd ? 'usd' : row.idx" class="st-pf-row" :class="!row.isUsd && pfEdit === row.idx ? 'editing' : ''">
+        <span class="st-pfc-sym">
+          <span class="st-sym-name">{{ row.symbol }}</span>
+        </span>
+        <span class="st-pfc-amt">{{ row.amount }}</span>
+        <span class="st-pfc-buy">{{ row.isUsd ? '$1.00' : '$' + formatPrice(row.buyPrice) }}</span>
+        <span class="st-pfc-cur" :class="!row.isUsd && row.curPrice > row.buyPrice ? 'up' : !row.isUsd && row.curPrice < row.buyPrice ? 'down' : ''">${{ row.isUsd ? '1.00' : (row.curPrice ? formatPrice(row.curPrice) : '—') }}</span>
+        <span class="st-pfc-val">${{ row.val.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) }}</span>
+        <span class="st-pfc-pnl" :class="row.pnl >= 0 ? 'up' : 'down'">
+          <template v-if="row.isUsd">—</template>
+          <template v-else>
+            {{ row.pnl >= 0 ? '+' : '' }}{{ row.pnl.toFixed(2) }}
+            <small>({{ row.pnlPct >= 0 ? '+' : '' }}{{ row.pnlPct.toFixed(1) }}%)</small>
+          </template>
+        </span>
+        <span class="st-pfc-act">
+          <template v-if="!row.isUsd">
+            <button class="st-act on" @click="editPortfolioEntry(row.idx)" :title="L('editTooltip')">✏️</button>
+            <button class="st-act on" @click="removePortfolioEntry(row.idx)" :title="L('deleteTooltip')">🗑️</button>
+          </template>
+        </span>
+      </div>
+    </div>
+  </div>
+  </template>
+</div>

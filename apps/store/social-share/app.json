@@ -1,0 +1,40 @@
+{
+  "id": "social-share",
+  "name": "Sosyal Paylaşım",
+  "icon": "📤",
+  "color": "linear-gradient(135deg,#667eea,#764ba2)",
+  "type": "internal",
+  "size": {
+    "w": 520,
+    "h": 560
+  },
+  "global": false,
+  "description": "Sosyal medya paylaşım — Twitter, Facebook, WhatsApp, Telegram ve daha fazlası",
+  "lang": {
+    "tr": {
+      "name": "Sosyal Paylaşım",
+      "description": "Sosyal medya paylaşım — Twitter, Facebook, WhatsApp, Telegram ve daha fazlası"
+    },
+    "en": {
+      "name": "Social Share",
+      "description": "Social media sharing — Twitter, Facebook, WhatsApp, Telegram and more"
+    },
+    "de": {
+      "name": "Soziales Teilen",
+      "description": "Social-Media-Teilen — Twitter, Facebook, WhatsApp, Telegram und mehr"
+    },
+    "fr": {
+      "name": "Partage Social",
+      "description": "Partage réseaux sociaux — Twitter, Facebook, WhatsApp, Telegram et plus"
+    },
+    "es": {
+      "name": "Compartir Social",
+      "description": "Compartir en redes sociales — Twitter, Facebook, WhatsApp, Telegram y más"
+    },
+    "ru": {
+      "name": "Соцсети",
+      "description": "Поделиться в соцсетях — Twitter, Facebook, WhatsApp, Telegram и др."
+    }
+  },
+  "category": "social"
+}

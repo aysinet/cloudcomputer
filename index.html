@@ -15,10 +15,17 @@
 <script src="https://unpkg.com/ol@10.5.0/dist/ol.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/simple-mind-map@0.12.1/dist/simpleMindMap.esm.min.css">
 <script src="https://unpkg.com/simple-mind-map@0.12.1/dist/simpleMindMap.umd.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+*{scrollbar-width:thin;scrollbar-color:#2a2d35 transparent}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#2a2d35;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#3a3f4b}
+::-webkit-scrollbar-corner{background:transparent}
 html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif}
 #app{width:100vw;height:100vh;display:flex;flex-direction:column;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%)}
 .desktop{flex:1;position:relative;overflow:hidden}
@@ -42,6 +49,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .task-btn .t-icon{font-size:15px}
 .task-btn .t-title{overflow:hidden;text-overflow:ellipsis}
 .taskbar-right{display:flex;align-items:center;gap:8px;padding-left:8px}
+.fs-btn{opacity:.5;transition:.15s;padding:4px!important}
+.fs-btn:hover{opacity:1}
 .clock{color:#fff;font-size:12px;text-align:center;line-height:1.4;cursor:default}
 .system-tray{display:flex;gap:4px}
 .tray-btn{width:32px;height:32px;border-radius:6px;border:none;background:transparent;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:.15s}
@@ -96,140 +105,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .winbox .wb-control .wb-close,.winbox .wb-control .wb-min,.winbox .wb-control .wb-max,.winbox .wb-control .wb-full{width:28px!important;height:28px!important;background-size:12px!important}
 .winbox.min{display:none!important}
 
-/* ── CalcApp ── */
-.calc-root{width:100%;height:100%;background:#1e1e2e;display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',sans-serif}
-.calc-inner{width:100%;max-width:280px;padding:12px}
-.calc-disp{background:#16162a;border-radius:10px;padding:12px 16px;margin-bottom:10px}
-.calc-expr{color:rgba(255,255,255,.4);font-size:12px;min-height:18px;text-align:right}
-.calc-val{color:#fff;font-size:28px;font-weight:300;text-align:right;word-break:break-all}
-.calc-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.calc-btn{height:52px;border:none;border-radius:10px;font-size:16px;cursor:pointer;transition:.12s;font-weight:500}
-.calc-btn:active{transform:scale(.93)}
-.calc-btn.op{background:#6c63ff;color:#fff}
-.calc-btn.fn{background:#2a2a3e;color:rgba(255,255,255,.7)}
-.calc-btn.num{background:#252535;color:#fff}
-.calc-btn.eq{background:#6c63ff;color:#fff;grid-column:span 1}
-.calc-btn.zero{grid-column:span 2}
-
-/* ── NotepadApp ── */
-.notepad-root{width:100%;height:100%;background:#f9f9f9;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif}
-.notepad-toolbar{background:#fff;border-bottom:1px solid #e0e0e0;padding:6px 10px;display:flex;align-items:center;gap:8px;flex-shrink:0}
-.notepad-toolbar select,.notepad-toolbar input[type=number]{height:28px;border:1px solid #ddd;border-radius:4px;padding:0 6px;font-size:12px;outline:none}
-.notepad-toolbar input[type=number]{width:52px}
-.notepad-tb-btn{height:28px;padding:0 8px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:13px}
-.notepad-tb-btn:hover{background:#f0f0f0}
-.notepad-sep{width:1px;height:22px;background:#e0e0e0;margin:0 2px}
-.notepad-root textarea{flex:1;border:none;padding:14px;font-size:14px;line-height:1.7;outline:none;resize:none;background:#f9f9f9}
-.notepad-status{background:#e8e8e8;padding:3px 10px;font-size:11px;color:#666;border-top:1px solid #ddd}
-
-/* ── TodoApp ── */
-.todo-root{width:100%;height:100%;background:#f0f4ff;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif}
-.todo-header{background:linear-gradient(135deg,#667eea,#764ba2);padding:16px;color:#fff;flex-shrink:0}
-.todo-header h2{font-size:18px;font-weight:600}
-.todo-header .sub{font-size:12px;opacity:.8;margin-top:2px}
-.todo-add-row{display:flex;gap:8px;padding:12px;background:#fff;border-bottom:1px solid #e8e8f0;flex-shrink:0}
-.todo-add-row input{flex:1;height:36px;border:1px solid #dde;border-radius:8px;padding:0 12px;font-size:13px;outline:none}
-.todo-add-row input:focus{border-color:#667eea}
-.todo-add-row button{height:36px;padding:0 16px;background:#667eea;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px}
-.todo-add-row button:hover{background:#764ba2}
-.todo-list{flex:1;overflow-y:auto;padding:10px}
-.todo-item{display:flex;align-items:center;gap:10px;background:#fff;border-radius:10px;padding:10px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.todo-item.done span{text-decoration:line-through;color:#aaa}
-.todo-item input[type=checkbox]{width:18px;height:18px;accent-color:#667eea;cursor:pointer;flex-shrink:0}
-.todo-item span{flex:1;font-size:14px;color:#333}
-.todo-item .del{width:28px;height:28px;border:none;background:transparent;cursor:pointer;color:#ccc;font-size:16px;border-radius:6px;display:flex;align-items:center;justify-content:center}
-.todo-item .del:hover{background:#ffe0e0;color:#f55}
-.todo-empty{text-align:center;color:#aaa;font-size:13px;padding:32px;margin-top:20px}
-
-/* ── FilemanApp ── */
-.fm-root{width:100%;height:100%;background:#fff;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif}
-.fm-toolbar{background:#f8f8f8;border-bottom:1px solid #e0e0e0;padding:6px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0}
-.fm-path{flex:1;height:28px;border:1px solid #ddd;border-radius:4px;padding:0 10px;font-size:12px;background:#fff;color:#333;outline:none}
-.fm-tb-btn{height:28px;padding:0 10px;border:1px solid #ddd;border-radius:4px;background:#fff;cursor:pointer;font-size:12px}
-.fm-tb-btn:hover{background:#f0f0f0}
-.fm-sidebar{width:140px;background:#f5f5f7;border-right:1px solid #e0e0e0;padding:10px 0;flex-shrink:0}
-.fm-side-item{padding:7px 14px;cursor:pointer;font-size:13px;color:#444;display:flex;align-items:center;gap:8px;border-radius:0}
-.fm-side-item:hover{background:#e8e8ee}
-.fm-side-item.active{background:#e0e0f0;color:#5050cc;font-weight:500}
-.fm-main{display:flex;flex:1;overflow:hidden}
-.fm-files{flex:1;padding:12px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;align-content:start}
-.fm-file{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border-radius:8px;cursor:pointer;transition:.12s}
-.fm-file:hover{background:#f0f0f8}
-.fm-file.sel{background:#dde8ff}
-.fm-file .ico{font-size:30px;line-height:1}
-.fm-file .name{font-size:11px;color:#333;text-align:center;word-break:break-word}
-.fm-status{background:#f8f8f8;border-top:1px solid #e0e0e0;padding:4px 12px;font-size:11px;color:#888;flex-shrink:0}
-
-/* ── WeatherApp ── */
-.weather-root{width:100%;height:100%;background:linear-gradient(160deg,#1a1a4e,#2d4a8a,#4a7fce);color:#fff;font-family:'Segoe UI',sans-serif;overflow-y:auto}
-.weather-city{padding:20px 20px 8px;font-size:22px;font-weight:600}
-.weather-sub{padding:0 20px 4px;font-size:13px;opacity:.7}
-.weather-main-temp{padding:16px 20px;display:flex;align-items:center;gap:16px}
-.weather-big-icon{font-size:64px;line-height:1}
-.weather-temp-val{font-size:56px;font-weight:200}
-.weather-desc{font-size:15px;opacity:.8;margin-top:4px}
-.weather-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.1);margin:0 16px;border-radius:12px;overflow:hidden}
-.weather-stat{background:rgba(255,255,255,.08);padding:12px;text-align:center}
-.weather-stat .lbl{font-size:11px;opacity:.6;margin-bottom:4px}
-.weather-stat .val{font-size:16px;font-weight:500}
-.weather-forecast{padding:16px}
-.weather-fc-title{font-size:12px;opacity:.6;letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px}
-.weather-fc-list{display:flex;flex-direction:column;gap:6px}
-.weather-fc-item{display:flex;align-items:center;padding:8px 12px;background:rgba(255,255,255,.08);border-radius:10px}
-.weather-fc-day{width:80px;font-size:13px;opacity:.8}
-.weather-fc-icon{font-size:20px;flex:1;text-align:center}
-.weather-fc-temp{font-size:13px;opacity:.7;width:70px;text-align:right}
-
-/* ── SettingsApp ── */
-.settings-root{width:100%;height:100%;display:flex;background:#f6f6fb;font-family:'Segoe UI',sans-serif}
-.settings-sidebar{width:170px;background:#fff;border-right:1px solid #e0e0ee;padding:16px 0;flex-shrink:0}
-.settings-s-section{font-size:11px;font-weight:600;color:#aaa;letter-spacing:.06em;padding:10px 16px 4px;text-transform:uppercase}
-.settings-s-item{padding:8px 16px;cursor:pointer;font-size:13px;color:#444;display:flex;align-items:center;gap:8px;transition:.12s}
-.settings-s-item:hover{background:#f0f0f8}
-.settings-s-item.active{background:#eeeeff;color:#5050cc;font-weight:500}
-.settings-content{flex:1;padding:20px;overflow-y:auto}
-.settings-content h3{font-size:16px;font-weight:600;color:#222;margin-bottom:16px}
-.settings-row{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #eee}
-.settings-row .lbl{flex:1;font-size:14px;color:#333}
-.settings-row .sub{font-size:12px;color:#999;margin-top:2px}
-.settings-row .ctrl{flex-shrink:0}
-.settings-root input[type=range]{width:120px;accent-color:#667eea}
-.settings-toggle{position:relative;width:44px;height:24px;display:inline-block}
-.settings-toggle input{opacity:0;width:0;height:0}
-.settings-slider{position:absolute;inset:0;background:#ccc;border-radius:24px;cursor:pointer;transition:.3s}
-.settings-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
-.settings-toggle input:checked+.settings-slider{background:#667eea}
-.settings-toggle input:checked+.settings-slider:before{transform:translateX(20px)}
-.settings-root select{height:30px;border:1px solid #ddd;border-radius:6px;padding:0 8px;font-size:13px;outline:none;background:#fff}
-.lang-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px 0}
-.lang-card{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;border:2px solid #eee;cursor:pointer;transition:.15s;position:relative}
-.lang-card:hover{border-color:#c5cae9;background:#f8f9ff}
-.lang-card.selected{border-color:#667eea;background:#ecf0ff}
-.lang-flag{font-size:22px}
-.lang-label{font-size:13px;font-weight:500;color:#303133}
-.lang-check{position:absolute;right:8px;color:#667eea;font-weight:700;font-size:14px}
-
-/* ── TerminalApp ── */
-.term-root{width:100%;height:100%;background:#1a1a2e;display:flex;flex-direction:column;font-family:'Courier New',monospace}
-.term-bar{background:#16162a;padding:6px 12px;font-size:12px;color:rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;display:flex;align-items:center;gap:8px}
-.term-dot{width:10px;height:10px;border-radius:50%}
-.term-output{flex:1;padding:12px;overflow-y:auto;font-size:13px;line-height:1.7}
-.term-line{margin-bottom:1px}
-.term-prompt{color:#50fa7b}
-.term-cmd{color:#f8f8f2}
-.term-res{color:#aaa}
-.term-err{color:#ff5555}
-.term-input-row{display:flex;align-items:center;padding:8px 12px;background:#16162a;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0;gap:6px}
-.term-ps{color:#50fa7b;font-size:13px;flex-shrink:0}
-.term-input-row input{flex:1;background:transparent;border:none;outline:none;color:#f8f8f2;font-family:'Courier New',monospace;font-size:13px;caret-color:#50fa7b}
-
-/* ── ClockApp ── */
-.clock-root{width:100%;height:100%;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Segoe UI',sans-serif;color:#fff}
-.clock-root canvas{margin-bottom:20px}
-.clock-digital{font-size:36px;font-weight:200;letter-spacing:.1em;text-shadow:0 0 20px rgba(150,120,255,.5)}
-.clock-date-str{font-size:14px;opacity:.6;margin-top:8px;letter-spacing:.04em}
-.clock-tz-label{font-size:12px;opacity:.4;margin-top:4px;letter-spacing:.02em}
-
 /* ── Fullscreen Toggle ── */
 /* ── Desktop Switcher ── */
 .desktop-switcher{display:flex;gap:2px;margin-left:8px}
@@ -244,107 +119,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .notif-bell{position:relative;width:32px;height:32px;border-radius:6px;border:none;background:transparent;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:.15s}
 .notif-bell:hover{background:rgba(255,255,255,.12);color:#fff}
 .notif-badge{position:absolute;top:2px;right:2px;min-width:14px;height:14px;border-radius:7px;background:#f56c6c;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px;line-height:1}
-
-/* ── NotificationsApp ── */
-.notif-root{width:100%;height:100%;background:#f5f7fa;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif}
-.notif-header{background:linear-gradient(135deg,#ff6b6b,#ee5a24);padding:16px;color:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
-.notif-header h2{font-size:18px;font-weight:600}
-.notif-header .notif-clear{border:none;background:rgba(255,255,255,.2);color:#fff;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px}
-.notif-header .notif-clear:hover{background:rgba(255,255,255,.35)}
-.notif-list{flex:1;overflow-y:auto;padding:10px}
-.notif-item{display:flex;gap:10px;background:#fff;border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06);transition:.15s}
-.notif-item.unread{border-left:3px solid #409eff}
-.notif-item .ni-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.notif-item .ni-body{flex:1;min-width:0}
-.notif-item .ni-title{font-size:13px;font-weight:600;color:#303133;margin-bottom:2px}
-.notif-item .ni-text{font-size:12px;color:#606266;line-height:1.4}
-.notif-item .ni-time{font-size:10px;color:#c0c4cc;margin-top:4px}
-.notif-item .ni-action{border:none;background:#ecf5ff;color:#409eff;padding:3px 10px;border-radius:5px;font-size:11px;cursor:pointer;margin-top:5px;transition:.15s}
-.notif-item .ni-action:hover{background:#409eff;color:#fff}
-.notif-item .ni-del{border:none;background:transparent;cursor:pointer;color:#c0c4cc;font-size:14px;border-radius:4px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;align-self:flex-start}
-.notif-item .ni-del:hover{background:#fee;color:#f56c6c}
-.notif-empty{text-align:center;color:#aaa;font-size:13px;padding:40px;margin-top:20px}
-.notif-add-row{display:flex;gap:8px;padding:10px 12px;background:#fff;border-top:1px solid #e8e8f0;flex-shrink:0}
-.notif-add-row input{flex:1;height:32px;border:1px solid #dde;border-radius:6px;padding:0 10px;font-size:12px;outline:none}
-.notif-add-row input:focus{border-color:#409eff}
-.notif-add-row button{height:32px;padding:0 14px;background:#409eff;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px}
-.notif-add-row button:hover{background:#66b1ff}
-
-/* ── AppStoreApp ── */
-.store-root{width:100%;height:100%;background:#f5f7fa;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif;overflow:hidden}
-.store-header{background:linear-gradient(135deg,#6c5ce7,#a29bfe);padding:16px;color:#fff;flex-shrink:0}
-.store-header h2{font-size:18px;font-weight:600}
-.store-header .sub{font-size:12px;opacity:.8;margin-top:2px}
-.store-list{flex:1;overflow-y:auto;padding:10px}
-.store-item{display:flex;align-items:center;gap:12px;background:#fff;border-radius:10px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.store-item .si-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
-.store-item .si-body{flex:1;min-width:0}
-.store-item .si-name{font-size:14px;font-weight:600;color:#303133}
-.store-item .si-desc{font-size:11px;color:#909399;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.store-item .si-type{font-size:10px;padding:2px 6px;border-radius:4px;flex-shrink:0}
-.store-item .si-type.internal{background:#ecf5ff;color:#409eff}
-.store-item .si-type.external{background:#fdf6ec;color:#e6a23c}
-.store-item .si-btn{height:30px;padding:0 14px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;transition:.15s;flex-shrink:0}
-.store-item .si-btn.install{background:#67c23a;color:#fff}
-.store-item .si-btn.install:hover{background:#529b2e}
-.store-item .si-btn.uninstall{background:#f56c6c;color:#fff}
-.store-item .si-btn.uninstall:hover{background:#c45656}
-.store-item .si-btn.global{background:#ddd;color:#999;cursor:default}
-.store-loading{text-align:center;color:#aaa;font-size:13px;padding:40px}
-.store-list .el-collapse{border:none}
-.store-list .el-collapse-item__header{background:#f5f7fa;border-bottom:1px solid #ebeef5;padding:0 10px;font-size:14px}
-.store-list .el-collapse-item__wrap{background:#f5f7fa}
-.store-list .el-collapse-item__content{padding:0 6px 6px}
-
-/* ── Browser App ── */
-.browser-root{height:100%;display:flex;flex-direction:column;background:#1a1d2e;color:#e1e4ea;font-family:'Segoe UI',sans-serif;overflow:hidden}
-.browser-toolbar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#252840;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
-.browser-nav-btns{display:flex;gap:2px}
-.browser-nav-btn{width:30px;height:30px;border:none;border-radius:6px;background:transparent;color:#aab0c6;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
-.browser-nav-btn:hover{background:rgba(255,255,255,.08);color:#fff}
-.browser-nav-btn:disabled{opacity:.3;cursor:default}
-.browser-nav-btn:disabled:hover{background:transparent}
-.browser-url-bar{flex:1;display:flex;align-items:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:0 12px;height:32px;transition:border-color .2s}
-.browser-url-bar:focus-within{border-color:rgba(74,144,217,.5);background:rgba(255,255,255,.08)}
-.browser-url-icon{font-size:12px;margin-right:6px;flex-shrink:0}
-.browser-url-input{flex:1;background:none;border:none;outline:none;color:#e1e4ea;font-size:13px;font-family:inherit}
-.browser-url-input::placeholder{color:#5a5e72}
-.browser-bookmarks-bar{display:flex;align-items:center;padding:4px 10px;background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.04);flex-shrink:0;overflow-x:auto}
-.browser-bm-list{display:flex;gap:6px;align-items:center}
-.browser-bm-chip{font-size:11px;padding:3px 10px;background:rgba(255,255,255,.06);border-radius:12px;cursor:pointer;white-space:nowrap;color:#aab0c6;display:flex;align-items:center;gap:4px;transition:.15s;max-width:150px;overflow:hidden;text-overflow:ellipsis}
-.browser-bm-chip:hover{background:rgba(255,255,255,.1);color:#fff}
-.browser-bm-del{font-size:13px;opacity:.4;cursor:pointer;line-height:1}
-.browser-bm-del:hover{opacity:1;color:#f56c6c}
-.browser-bm-add{font-size:11px;padding:3px 10px;background:rgba(74,144,217,.15);border:none;border-radius:12px;color:#6aabf7;cursor:pointer}
-.browser-bm-add:hover{background:rgba(74,144,217,.25)}
-.browser-loading-bar{height:2px;background:rgba(255,255,255,.04);flex-shrink:0;overflow:hidden}
-.browser-loading-progress{height:100%;width:30%;background:linear-gradient(90deg,#4a90d9,#00b894);border-radius:2px;animation:browserLoad 1.2s ease-in-out infinite}
-@keyframes browserLoad{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
-.browser-tabs{display:flex;background:#1e2035;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;overflow-x:auto}
-.browser-tab{display:flex;align-items:center;gap:6px;padding:6px 14px;font-size:12px;color:#8b8fa3;cursor:pointer;border-right:1px solid rgba(255,255,255,.04);max-width:180px;min-width:80px;transition:.15s}
-.browser-tab:hover{background:rgba(255,255,255,.04)}
-.browser-tab.active{background:#1a1d2e;color:#e1e4ea;border-bottom:2px solid #4a90d9}
-.browser-tab-title{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.browser-tab-close{font-size:14px;opacity:.4;line-height:1;width:16px;text-align:center}
-.browser-tab-close:hover{opacity:1;color:#f56c6c}
-.browser-tab-add{border:none;background:transparent;color:#5a5e72;font-size:16px;padding:0 10px;cursor:pointer}
-.browser-tab-add:hover{color:#aab0c6}
-.browser-content{flex:1;overflow:hidden;position:relative;background:#fff}
-.browser-iframe{width:100%;height:100%;border:none}
-.browser-home{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:linear-gradient(180deg,#1a1d2e,#0f1118);color:#e1e4ea}
-.browser-home-logo{font-size:64px;margin-bottom:12px;filter:drop-shadow(0 0 20px rgba(74,144,217,.4))}
-.browser-home h2{font-weight:300;color:#8b8fa3;margin:0 0 30px}
-.browser-quick-links{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.browser-quick-link{display:flex;align-items:center;gap:10px;padding:14px 20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;cursor:pointer;transition:.2s;min-width:150px;color:#c5cde8;font-size:13px}
-.browser-quick-link:hover{background:rgba(255,255,255,.08);border-color:rgba(74,144,217,.3);transform:translateY(-1px)}
-.bql-icon{font-size:20px}
-.browser-error{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#1a1d2e;color:#e1e4ea;text-align:center;padding:40px}
-.browser-error-icon{font-size:48px;margin-bottom:12px}
-.browser-error h3{margin:0 0 8px;font-weight:500}
-.browser-error-url{color:#5a5e72;font-size:12px;word-break:break-all;margin:0 0 16px}
-.browser-retry-btn{padding:8px 24px;border:none;border-radius:8px;background:#4a90d9;color:#fff;cursor:pointer;font-size:13px}
-.browser-retry-btn:hover{background:#3a7bc8}
-.browser-status-bar{padding:2px 10px;font-size:10px;color:#5a5e72;background:#1e2035;border-top:1px solid rgba(255,255,255,.04);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ── Code App ── */
 /* ── File Dialog ── */
@@ -394,27 +168,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .fs-toggle svg{width:14px;height:14px;color:#fff;pointer-events:none;opacity:0;transition:opacity .3s ease}
 .fs-toggle:hover svg{opacity:1}
 
-/* ── CalendarApp ── */
-.cal-root{width:100%;height:100%;background:#f5f7fa;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif;overflow:hidden}
-.cal-toolbar{background:#fff;border-bottom:1px solid #e4e7ed;padding:8px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0}
-.cal-toolbar .cal-title{font-size:16px;font-weight:600;color:#303133;min-width:140px;text-align:center}
-.cal-body{flex:1;overflow-y:auto;padding:8px}
-.cal-body .el-calendar{--el-calendar-border:1px solid #e4e7ed;border:none}
-.cal-body .el-calendar__header{display:none}
-.cal-body .el-calendar-table thead th{font-size:12px;font-weight:600;color:#909399;padding:6px 0}
-.cal-body .el-calendar-table .el-calendar-day{height:64px;padding:4px;font-size:12px;position:relative;cursor:pointer;transition:background .15s}
-.cal-body .el-calendar-table .el-calendar-day:hover{background:#ecf5ff}
-.cal-day-num{font-weight:600;font-size:13px;color:#303133;margin-bottom:2px}
-.cal-day-num.today{background:#409eff;color:#fff;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
-.cal-events{display:flex;flex-direction:column;gap:1px}
-.cal-event-dot{font-size:10px;color:#fff;background:#409eff;border-radius:3px;padding:0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.5}
-.cal-event-dot.green{background:#67c23a}
-.cal-event-dot.orange{background:#e6a23c}
-.cal-event-dot.red{background:#f56c6c}
-.cal-event-dot.purple{background:#6f5ef7}
-.cal-dialog-events{margin-top:8px;display:flex;flex-direction:column;gap:6px}
-.cal-ev-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f5f7fa;border-radius:6px}
-
 /* ── Reminder Alert Overlay ── */
 .reminder-alert-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);animation:remFadeIn .3s}
 @keyframes remFadeIn{from{opacity:0}to{opacity:1}}
@@ -439,7 +192,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 </style>
 </head>
 <body>
-<div id="app" @click="closeMenu();hideIconCtx()">
+<div id="app">
   <div class="desktop" :style="desktopStyle" @contextmenu.self.prevent="hideIconCtx()">
     <div class="wallpaper-grid"></div>
     <div class="desktop-icons">
@@ -510,13 +263,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
           </transition>
         </div>
         <button class="tray-btn">📶</button>
+        <button class="tray-btn ss-tray-btn" @click.stop="startScreenshot" :title="t('screenshot')">📷</button>
       </div>
       <div class="taskbar-sep"></div>
       <button class="notif-bell" @click="openApp(apps.find(a=>a.id==='notifications'))" :title="t('notifications')">
         🔔
         <span v-if="notifCount>0" class="notif-badge">{{notifCount>9?'9+':notifCount}}</span>
       </button>
-      <div class="clock">
+      <div class="clock" @click="openApp(apps.find(a=>a.id==='calendar'))" style="cursor:pointer">
         <div style="font-weight:600">{{time}}</div>
         <div style="opacity:.6">{{date}}</div>
       </div>
@@ -527,14 +281,22 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
           <span v-if="desktopHasWindows(d)" class="ds-dot"></span>
         </button>
       </div>
+      <!-- Screenshot selection overlay -->
+      <div v-if="ssActive" class="ss-overlay" @mousedown="ssMouseDown" @mousemove="ssMouseMove" @mouseup="ssMouseUp" @keydown.esc="ssCancelCapture">
+        <canvas ref="ssCanvas"></canvas>
+        <div v-if="ssSelecting" class="ss-info" :style="{left: ssInfoX+'px', top: ssInfoY+'px'}">{{ssWidth}} × {{ssHeight}}</div>
+      </div>
+      <button class="tray-btn fs-btn" @click="toggleFullscreen" :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'">
+        <svg v-if="!isFullscreen" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M1 1h5v2H3v3H1V1zm9 0h5v5h-2V3h-3V1zM1 10h2v3h3v2H1v-5zm12 3h-3v2h5v-5h-2v3z"/></svg>
+        <svg v-else viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M4 1v3H1v2h5V1H4zm7 0v5h5V4h-3V1h-2zM1 11h3v3h2v-5H1v2zm10 0v5h2v-3h3v-2h-5z"/></svg>
+      </button>
     </div>
   </div>
   <transition name="menu">
     <div v-if="menuOpen" class="start-menu" @click.stop>
-      <div class="sm-header">{{t('apps')}}</div>
       <div class="sm-cats">
         <div v-for="cat in menuCategories" :key="cat.id" class="sm-cat">
-          <button class="sm-cat-btn" :class="{open: openCats[cat.id]}" @click="openCats[cat.id]=!openCats[cat.id]">
+          <button class="sm-cat-btn" :class="{open: openCats[cat.id]}" @click="toggleCat(cat.id)">
             <span>{{cat.icon}} {{cat.name}}</span>
             <span class="sm-cat-arrow" :class="{rotated: openCats[cat.id]}">▸</span>
           </button>
@@ -925,7 +687,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         <div class="ni-body">
           <div class="ni-title">{{n.title}}</div>
           <div class="ni-text">{{n.text}}</div>
-          <div class="ni-time">{{n.time}}</div>
+          <div class="ni-time">{{formatTime(n.time)}}</div>
           <button v-if="n.action && n.action.app" class="ni-action" @click.stop="openAction(n)">📂 {{t('openApp')}}</button>
         </div>
         <button class="ni-del" @click.stop="remove(i)">✕</button>
@@ -950,7 +712,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         <el-collapse-item v-for="cat in storeCategories" :key="cat.id" :name="cat.id">
           <template #title>
             <span style="font-size:14px;font-weight:600">{{cat.icon}} {{cat.name}}</span>
-            <span style="font-size:11px;color:#909399;margin-left:8px">({{cat.apps.length}})</span>
+            <span style="font-size:11px;color:#909399;margin-left:8px">({{cat.apps.filter(a=>a.installed||a.global).length}}/{{cat.apps.length}})</span>
           </template>
           <div v-for="app in cat.apps" :key="app.id" class="store-item">
             <div class="si-icon" :style="{background:app.color}">{{app.icon}}</div>
@@ -973,17 +735,17 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
   <div class="browser-root">
     <div class="browser-toolbar">
       <div class="browser-nav-btns">
-        <button class="browser-nav-btn" @click="goBack" :disabled="historyIndex<=0" title="Back">◀</button>
-        <button class="browser-nav-btn" @click="goForward" :disabled="historyIndex>=history.length-1" title="Forward">▶</button>
-        <button class="browser-nav-btn" @click="reload" title="Reload">🔄</button>
+        <button class="browser-nav-btn" @click="goBack" :disabled="historyIndex<=0" :title="t('brBack')">◀</button>
+        <button class="browser-nav-btn" @click="goForward" :disabled="historyIndex>=history.length-1" :title="t('brForward')">▶</button>
+        <button class="browser-nav-btn" @click="reload" :title="t('brReload')">🔄</button>
       </div>
       <div class="browser-url-bar">
         <span class="browser-url-icon">{{ isSecure ? '🔒' : '🌐' }}</span>
         <input class="browser-url-input" v-model="urlInput" @keydown.enter="navigate"
-          placeholder="URL veya arama yazın..." spellcheck="false" />
+          :placeholder="t('brUrlPlaceholder')" spellcheck="false" />
       </div>
-      <button class="browser-nav-btn" @click="goHome" title="Home">🏠</button>
-      <button class="browser-nav-btn" @click="toggleBookmarks" title="Bookmarks">{{ showBookmarks ? '⭐' : '☆' }}</button>
+      <button class="browser-nav-btn" @click="goHome" :title="t('brHome')">🏠</button>
+      <button class="browser-nav-btn" @click="toggleBookmarks" :title="t('brBookmarks')">{{ showBookmarks ? '⭐' : '☆' }}</button>
     </div>
 
     <div v-if="showBookmarks" class="browser-bookmarks-bar">
@@ -992,7 +754,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
           {{ bm.title || bm.url }}
           <span class="browser-bm-del" @click.stop="removeBookmark(i)">×</span>
         </div>
-        <button class="browser-bm-add" @click="addBookmark" v-if="currentUrl">+ Ekle</button>
+        <button class="browser-bm-add" @click="addBookmark" v-if="currentUrl">+ {{t('brAdd')}}</button>
       </div>
     </div>
 
@@ -1004,7 +766,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       <div v-for="(tab, i) in tabs" :key="tab.id"
         :class="['browser-tab', { active: activeTab === i }]"
         @click="switchTab(i)">
-        <span class="browser-tab-title">{{ tab.title || 'New Tab' }}</span>
+        <span class="browser-tab-title">{{ tab.title || t('brNewTab') }}</span>
         <span class="browser-tab-close" @click.stop="closeTab(i)">×</span>
       </div>
       <button class="browser-tab-add" @click="newTab">+</button>
@@ -1015,7 +777,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         <div class="browser-error-icon">⚠️</div>
         <h3>{{ error }}</h3>
         <p class="browser-error-url">{{ currentUrl }}</p>
-        <button class="browser-retry-btn" @click="reload">Tekrar Dene</button>
+        <button class="browser-retry-btn" @click="reload">{{t('brRetry')}}</button>
       </div>
       <div v-else-if="!currentUrl && !loading" class="browser-home">
         <div class="browser-home-logo">🌐</div>
@@ -1587,6 +1349,14 @@ Object.assign(I18N.fr, { reminderDismiss:'Fermer' });
 Object.assign(I18N.es, { reminderDismiss:'Cerrar' });
 Object.assign(I18N.ru, { reminderDismiss:'Закрыть' });
 
+// ── Screenshot i18n keys ──
+Object.assign(I18N.tr, { screenshot:'Ekran Görüntüsü', ssSelectRegion:'Bölge seçin', ssCopied:'Panoya kopyalandı', ssOpenPaint:'Paint\'te açıldı', ssCancelled:'İptal edildi' });
+Object.assign(I18N.en, { screenshot:'Screenshot', ssSelectRegion:'Select region', ssCopied:'Copied to clipboard', ssOpenPaint:'Opened in Paint', ssCancelled:'Cancelled' });
+Object.assign(I18N.de, { screenshot:'Bildschirmfoto', ssSelectRegion:'Bereich auswählen', ssCopied:'In Zwischenablage kopiert', ssOpenPaint:'In Paint geöffnet', ssCancelled:'Abgebrochen' });
+Object.assign(I18N.fr, { screenshot:'Capture d\'écran', ssSelectRegion:'Sélectionner la zone', ssCopied:'Copié dans le presse-papiers', ssOpenPaint:'Ouvert dans Paint', ssCancelled:'Annulé' });
+Object.assign(I18N.es, { screenshot:'Captura de pantalla', ssSelectRegion:'Seleccionar región', ssCopied:'Copiado al portapapeles', ssOpenPaint:'Abierto en Paint', ssCancelled:'Cancelado' });
+Object.assign(I18N.ru, { screenshot:'Снимок экрана', ssSelectRegion:'Выберите область', ssCopied:'Скопировано в буфер', ssOpenPaint:'Открыто в Paint', ssCancelled:'Отменено' });
+
 const LANG_OPTIONS = [
   { code: 'tr', label: 'Türkçe', flag: '🇹🇷' },
   { code: 'en', label: 'English', flag: '🇬🇧' },
@@ -1617,7 +1387,10 @@ Object.assign(I18N.tr, {
   notifCalTitle:'Takvim', notifCalText:'Yarın saat 10:00\'da toplantı var.', notifTaskTitle:'Görevler', notifTaskText:'3 görev tamamlanmayı bekliyor.',
   notifSysTitle:'Sistem', notifSysText:'Güncelleme mevcut: v1.1', notifTermTitle:'Terminal', notifTermText:'Arka plan işlemi tamamlandı.',
   notifTime2h:'2 saat önce', notifTime4h:'4 saat önce', notifYesterday:'Dün', notifNow:'Şimdi', notifLabel:'Bildirim',
-  mediaPrev:'Önceki', mediaNext:'Sonraki'
+  mediaPrev:'Önceki', mediaNext:'Sonraki',
+    // Browser
+    brUrlPlaceholder:'URL veya arama yazın...', brAdd:'Ekle', brRetry:'Tekrar Dene', brNewTab:'Yeni Sekme',
+    brBack:'Geri', brForward:'İleri', brReload:'Yenile', brHome:'Ana Sayfa', brBookmarks:'Yer İmleri'
 });
 Object.assign(I18N.en, {
   ctxOpen:'Open', ctxMove:'Move', ctxCopy:'Copy', ctxDesktop:'Desktop',
@@ -1636,7 +1409,9 @@ Object.assign(I18N.en, {
   notifCalTitle:'Calendar', notifCalText:'Meeting tomorrow at 10:00 AM.', notifTaskTitle:'Tasks', notifTaskText:'3 tasks waiting to be completed.',
   notifSysTitle:'System', notifSysText:'Update available: v1.1', notifTermTitle:'Terminal', notifTermText:'Background process completed.',
   notifTime2h:'2 hours ago', notifTime4h:'4 hours ago', notifYesterday:'Yesterday', notifNow:'Now', notifLabel:'Notification',
-  mediaPrev:'Previous', mediaNext:'Next'
+  mediaPrev:'Previous', mediaNext:'Next',
+    brUrlPlaceholder:'Type a URL or search...', brAdd:'Add', brRetry:'Retry', brNewTab:'New Tab',
+    brBack:'Back', brForward:'Forward', brReload:'Reload', brHome:'Home', brBookmarks:'Bookmarks'
 });
 Object.assign(I18N.de, {
   ctxOpen:'Öffnen', ctxMove:'Verschieben', ctxCopy:'Kopieren', ctxDesktop:'Desktop',
@@ -1655,7 +1430,9 @@ Object.assign(I18N.de, {
   notifCalTitle:'Kalender', notifCalText:'Morgen um 10:00 Uhr Besprechung.', notifTaskTitle:'Aufgaben', notifTaskText:'3 Aufgaben warten auf Erledigung.',
   notifSysTitle:'System', notifSysText:'Update verfügbar: v1.1', notifTermTitle:'Terminal', notifTermText:'Hintergrundprozess abgeschlossen.',
   notifTime2h:'Vor 2 Stunden', notifTime4h:'Vor 4 Stunden', notifYesterday:'Gestern', notifNow:'Jetzt', notifLabel:'Benachrichtigung',
-  mediaPrev:'Zurück', mediaNext:'Weiter'
+  mediaPrev:'Zurück', mediaNext:'Weiter',
+    brUrlPlaceholder:'URL oder Suche eingeben...', brAdd:'Hinzufügen', brRetry:'Erneut versuchen', brNewTab:'Neuer Tab',
+    brBack:'Zurück', brForward:'Vorwärts', brReload:'Neu laden', brHome:'Startseite', brBookmarks:'Lesezeichen'
 });
 Object.assign(I18N.fr, {
   ctxOpen:'Ouvrir', ctxMove:'Déplacer', ctxCopy:'Copier', ctxDesktop:'Bureau',
@@ -1674,7 +1451,9 @@ Object.assign(I18N.fr, {
   notifCalTitle:'Calendrier', notifCalText:'Réunion demain à 10h00.', notifTaskTitle:'Tâches', notifTaskText:'3 tâches en attente.',
   notifSysTitle:'Système', notifSysText:'Mise à jour disponible: v1.1', notifTermTitle:'Terminal', notifTermText:'Processus terminé.',
   notifTime2h:'Il y a 2 heures', notifTime4h:'Il y a 4 heures', notifYesterday:'Hier', notifNow:'Maintenant', notifLabel:'Notification',
-  mediaPrev:'Précédent', mediaNext:'Suivant'
+  mediaPrev:'Précédent', mediaNext:'Suivant',
+    brUrlPlaceholder:'Saisissez une URL ou recherchez...', brAdd:'Ajouter', brRetry:'Réessayer', brNewTab:'Nouvel onglet',
+    brBack:'Retour', brForward:'Avancer', brReload:'Recharger', brHome:'Accueil', brBookmarks:'Favoris'
 });
 Object.assign(I18N.es, {
   ctxOpen:'Abrir', ctxMove:'Mover', ctxCopy:'Copiar', ctxDesktop:'Escritorio',
@@ -1693,7 +1472,9 @@ Object.assign(I18N.es, {
   notifCalTitle:'Calendario', notifCalText:'Reunión mañana a las 10:00.', notifTaskTitle:'Tareas', notifTaskText:'3 tareas pendientes.',
   notifSysTitle:'Sistema', notifSysText:'Actualización disponible: v1.1', notifTermTitle:'Terminal', notifTermText:'Proceso completado.',
   notifTime2h:'Hace 2 horas', notifTime4h:'Hace 4 horas', notifYesterday:'Ayer', notifNow:'Ahora', notifLabel:'Notificación',
-  mediaPrev:'Anterior', mediaNext:'Siguiente'
+  mediaPrev:'Anterior', mediaNext:'Siguiente',
+    brUrlPlaceholder:'Escriba una URL o busque...', brAdd:'Añadir', brRetry:'Reintentar', brNewTab:'Nueva pestaña',
+    brBack:'Atrás', brForward:'Adelante', brReload:'Recargar', brHome:'Inicio', brBookmarks:'Marcadores'
 });
 Object.assign(I18N.ru, {
   ctxOpen:'Открыть', ctxMove:'Переместить', ctxCopy:'Копировать', ctxDesktop:'Рабочий стол',
@@ -1712,7 +1493,9 @@ Object.assign(I18N.ru, {
   notifCalTitle:'Календарь', notifCalText:'Встреча завтра в 10:00.', notifTaskTitle:'Задачи', notifTaskText:'3 задачи ожидают выполнения.',
   notifSysTitle:'Система', notifSysText:'Доступно обновление: v1.1', notifTermTitle:'Терминал', notifTermText:'Фоновый процесс завершён.',
   notifTime2h:'2 часа назад', notifTime4h:'4 часа назад', notifYesterday:'Вчера', notifNow:'Сейчас', notifLabel:'Уведомление',
-  mediaPrev:'Назад', mediaNext:'Далее'
+  mediaPrev:'Назад', mediaNext:'Далее',
+    brUrlPlaceholder:'Введите URL или поиск...', brAdd:'Добавить', brRetry:'Повторить', brNewTab:'Новая вкладка',
+    brBack:'Назад', brForward:'Вперёд', brReload:'Обновить', brHome:'Домой', brBookmarks:'Закладки'
 });
 
 // ── WMO Weather Descriptions (per locale) ──
@@ -1898,7 +1681,7 @@ const FilemanApp = {
     const currentLocName = computed(() => { const l = LOC_KEYS.find(x => x.id === currentLoc.value); return l ? t(l.key) : currentLoc.value; });
     const currentPath = computed(() => t('fmPathPrefix') + currentLocName.value);
     function navigate(loc) { currentLoc.value = loc.id; selected.value = null }
-    function open(f) { alert(f.name + ' ' + t('fmOpening')) }
+    function open(f) { if (window.ElementPlus) window.ElementPlus.ElMessage.info(f.name + ' ' + t('fmOpening')); }
     return { currentLoc, locations, files, selected, currentPath, navigate, open, t };
   }
 };
@@ -2429,7 +2212,17 @@ const NotificationsApp = {
         window.dispatchEvent(new CustomEvent('open-app-action', { detail: n.action }));
       }
     }
-    return { notifications, newText, unreadCount, markAllRead, remove, addNotif, save, openAction, t };
+    function formatTime(t) {
+      if (!t) return '';
+      try {
+        const d = new Date(t);
+        if (isNaN(d.getTime())) return t;
+        const now = new Date();
+        if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      } catch { return t; }
+    }
+    return { notifications, newText, unreadCount, markAllRead, remove, addNotif, save, openAction, formatTime, t };
   }
 };
 
@@ -2450,7 +2243,7 @@ const BrowserApp = {
     const iframeRef = ref(null);
 
     // Tabs
-    const tabs = ref([{ id: 1, url: '', title: 'New Tab', iframeSrc: '' }]);
+    const tabs = ref([{ id: 1, url: '', title: '', iframeSrc: '' }]);
     const activeTab = ref(0);
     let tabIdCounter = 2;
 
@@ -2548,12 +2341,12 @@ const BrowserApp = {
       error.value = '';
       statusText.value = '';
       tabs.value[activeTab.value].url = '';
-      tabs.value[activeTab.value].title = 'New Tab';
+      tabs.value[activeTab.value].title = '';
     }
 
     // Tabs
     function newTab() {
-      tabs.value.push({ id: tabIdCounter++, url: '', title: 'New Tab', iframeSrc: '' });
+      tabs.value.push({ id: tabIdCounter++, url: '', title: '', iframeSrc: '' });
       activeTab.value = tabs.value.length - 1;
       currentUrl.value = '';
       urlInput.value = '';
@@ -2591,7 +2384,13 @@ const BrowserApp = {
       try { bookmarks.value = JSON.parse(localStorage.getItem('browser_bookmarks') || '[]'); } catch { bookmarks.value = []; }
     }
 
-    onMounted(() => { loadBookmarks(); });
+    onMounted(() => { loadBookmarks(); window.addEventListener('browser-open-url', onBrowserOpenUrl); });
+    onUnmounted(() => { window.removeEventListener('browser-open-url', onBrowserOpenUrl); });
+
+    function onBrowserOpenUrl(e) {
+      const url = e.detail;
+      if (url) loadUrl(url);
+    }
 
     return {
       urlInput, currentUrl, iframeSrc, loading, error, statusText,
@@ -2599,10 +2398,42 @@ const BrowserApp = {
       tabs, activeTab,
       navigate, loadUrl, onIframeLoad, goBack, goForward, reload, goHome,
       newTab, switchTab, closeTab,
-      toggleBookmarks, addBookmark, removeBookmark
+      toggleBookmarks, addBookmark, removeBookmark, t
     };
   }
 };
+
+/* ── Shared Category Constants ── */
+const APP_CATEGORY_META = {
+  system: { icon: '🖥️', order: 1 },
+  utilities: { icon: '🔧', order: 2 },
+  development: { icon: '👨‍💻', order: 3 },
+  productivity: { icon: '📋', order: 4 },
+  tools: { icon: '🛠️', order: 5 },
+  media: { icon: '🎬', order: 6 },
+  games: { icon: '🎮', order: 7 },
+  internet: { icon: '🌐', order: 8 },
+  social: { icon: '📱', order: 9 },
+  finance: { icon: '💰', order: 10 },
+  other: { icon: '📦', order: 99 }
+};
+const APP_CATEGORY_NAMES = {
+  system: { tr: 'Sistem', en: 'System', de: 'System', fr: 'Système', es: 'Sistema', ru: 'Система' },
+  utilities: { tr: 'Yardımcılar', en: 'Utilities', de: 'Dienstprogramme', fr: 'Utilitaires', es: 'Utilidades', ru: 'Утилиты' },
+  development: { tr: 'Geliştirme', en: 'Development', de: 'Entwicklung', fr: 'Développement', es: 'Desarrollo', ru: 'Разработка' },
+  productivity: { tr: 'Verimlilik', en: 'Productivity', de: 'Produktivität', fr: 'Productivité', es: 'Productividad', ru: 'Продуктивность' },
+  tools: { tr: 'Araçlar', en: 'Tools', de: 'Werkzeuge', fr: 'Outils', es: 'Herramientas', ru: 'Инструменты' },
+  media: { tr: 'Medya', en: 'Media', de: 'Medien', fr: 'Médias', es: 'Medios', ru: 'Медиа' },
+  games: { tr: 'Oyunlar', en: 'Games', de: 'Spiele', fr: 'Jeux', es: 'Juegos', ru: 'Игры' },
+  internet: { tr: 'İnternet', en: 'Internet', de: 'Internet', fr: 'Internet', es: 'Internet', ru: 'Интернет' },
+  social: { tr: 'Sosyal', en: 'Social', de: 'Sozial', fr: 'Social', es: 'Social', ru: 'Социальные' },
+  finance: { tr: 'Finans', en: 'Finance', de: 'Finanzen', fr: 'Finance', es: 'Finanzas', ru: 'Финансы' },
+  other: { tr: 'Diğer', en: 'Other', de: 'Sonstige', fr: 'Autres', es: 'Otros', ru: 'Другое' }
+};
+function getAppCatName(catId, locale) {
+  const names = APP_CATEGORY_NAMES[catId];
+  return names ? (names[locale] || names.tr) : catId;
+}
 
 /* ── AppStoreApp ── */
 const AppStoreApp = {
@@ -2655,24 +2486,8 @@ const AppStoreApp = {
 
     onMounted(() => loadStore());
 
-    const STORE_CAT_META = {
-      productivity: { icon: '📋', order: 1 },
-      tools: { icon: '🛠️', order: 2 },
-      media: { icon: '🎬', order: 3 },
-      games: { icon: '🎮', order: 4 },
-      internet: { icon: '🌐', order: 5 },
-      finance: { icon: '💰', order: 6 },
-      other: { icon: '📦', order: 7 }
-    };
-    const STORE_CAT_NAMES = {
-      productivity: { tr: 'Verimlilik', en: 'Productivity', de: 'Produktivität', fr: 'Productivité', es: 'Productividad', ru: 'Продуктивность' },
-      tools: { tr: 'Araçlar', en: 'Tools', de: 'Werkzeuge', fr: 'Outils', es: 'Herramientas', ru: 'Инструменты' },
-      media: { tr: 'Medya', en: 'Media', de: 'Medien', fr: 'Médias', es: 'Medios', ru: 'Медиа' },
-      games: { tr: 'Oyunlar', en: 'Games', de: 'Spiele', fr: 'Jeux', es: 'Juegos', ru: 'Игры' },
-      internet: { tr: 'İnternet', en: 'Internet', de: 'Internet', fr: 'Internet', es: 'Internet', ru: 'Интернет' },
-      finance: { tr: 'Finans', en: 'Finance', de: 'Finanzen', fr: 'Finance', es: 'Finanzas', ru: 'Финансы' },
-      other: { tr: 'Diğer', en: 'Other', de: 'Sonstige', fr: 'Autres', es: 'Otros', ru: 'Другое' }
-    };
+    const STORE_CAT_META = APP_CATEGORY_META;
+    const STORE_CAT_NAMES = APP_CATEGORY_NAMES;
 
     const activeCategory = ref('');
 
@@ -2722,36 +2537,19 @@ createApp({
     const settingsStore = useSettingsStore();
     const apps = ref(APPS);
 
-    const CATEGORY_META = {
-      system: { icon: '🖥️', order: 1 },
-      productivity: { icon: '📋', order: 2 },
-      internet: { icon: '🌐', order: 3 },
-      utilities: { icon: '🔧', order: 4 },
-      media: { icon: '🎬', order: 5 },
-      games: { icon: '🎮', order: 6 },
-      tools: { icon: '🛠️', order: 7 },
-      finance: { icon: '💰', order: 8 },
-      other: { icon: '📦', order: 9 }
-    };
-
-    const CATEGORY_NAMES = {
-      system: { tr: 'Sistem', en: 'System', de: 'System', fr: 'Système', es: 'Sistema', ru: 'Система' },
-      productivity: { tr: 'Verimlilik', en: 'Productivity', de: 'Produktivität', fr: 'Productivité', es: 'Productividad', ru: 'Продуктивность' },
-      internet: { tr: 'İnternet', en: 'Internet', de: 'Internet', fr: 'Internet', es: 'Internet', ru: 'Интернет' },
-      utilities: { tr: 'Araçlar', en: 'Utilities', de: 'Dienstprogramme', fr: 'Utilitaires', es: 'Utilidades', ru: 'Утилиты' },
-      media: { tr: 'Medya', en: 'Media', de: 'Medien', fr: 'Médias', es: 'Medios', ru: 'Медиа' },
-      games: { tr: 'Oyunlar', en: 'Games', de: 'Spiele', fr: 'Jeux', es: 'Juegos', ru: 'Игры' },
-      tools: { tr: 'Araçlar', en: 'Tools', de: 'Werkzeuge', fr: 'Outils', es: 'Herramientas', ru: 'Инструменты' },
-      finance: { tr: 'Finans', en: 'Finance', de: 'Finanzen', fr: 'Finance', es: 'Finanzas', ru: 'Финансы' },
-      other: { tr: 'Diğer', en: 'Other', de: 'Sonstige', fr: 'Autres', es: 'Otros', ru: 'Другое' }
-    };
+    const CATEGORY_META = APP_CATEGORY_META;
 
     function getCatName(catId) {
-      const names = CATEGORY_NAMES[catId];
-      return names ? (names[settingsStore.locale] || names.tr) : catId;
+      return getAppCatName(catId, settingsStore.locale);
     }
 
-    const openCats = reactive({ system: true, productivity: true, internet: true, utilities: false, media: false, games: false, tools: false, finance: false, other: false });
+    const openCats = reactive({});
+
+    function toggleCat(catId) {
+      const isOpen = openCats[catId];
+      Object.keys(openCats).forEach(k => openCats[k] = false);
+      openCats[catId] = !isOpen;
+    }
 
     const menuCategories = computed(() => {
       const cats = {};
@@ -2764,6 +2562,8 @@ createApp({
         .sort((a, b) => (CATEGORY_META[a]?.order || 99) - (CATEGORY_META[b]?.order || 99))
         .map(c => ({ id: c, icon: CATEGORY_META[c]?.icon || '📦', name: getCatName(c), apps: cats[c] }));
     });
+    // Open the first category by default (accordion: only one open at a time)
+    watch(menuCategories, (cats) => { if (cats.length && !Object.values(openCats).some(v => v)) openCats[cats[0].id] = true; }, { immediate: true });
     function appName(app) {
       // Built-in apps: use i18n key matching app.id
       const key = app.id;
@@ -2807,7 +2607,14 @@ createApp({
       return getIconDesktops(appId).includes(d);
     }
 
-    const desktopApps = computed(() => apps.value.filter(a => isIconOnDesktop(a.id, currentDesktop.value)));
+    const desktopPriority = ['appstore', 'browser', 'settings'];
+    const desktopApps = computed(() => apps.value.filter(a => isIconOnDesktop(a.id, currentDesktop.value)).sort((a, b) => {
+      const ai = desktopPriority.indexOf(a.id), bi = desktopPriority.indexOf(b.id);
+      if (ai !== -1 && bi !== -1) return ai - bi;
+      if (ai !== -1) return -1;
+      if (bi !== -1) return 1;
+      return 0;
+    }));
 
     function showIconCtx(e, app) {
       const x = Math.min(e.clientX, window.innerWidth - 200);
@@ -2849,9 +2656,26 @@ createApp({
       date.value = now.toLocaleDateString(loc, { day: '2-digit', month: '2-digit', year: 'numeric', ...opts });
     }
 
+    // Lazy-load per-app CSS (built-in apps only). Store apps load their own style.css elsewhere.
+    const _loadedAppCss = new Set();
+    function loadAppCss(appId) {
+      if (!appId || _loadedAppCss.has(appId)) return;
+      // Only load for built-in apps (those defined in componentMap statically)
+      const builtinIds = ['calc','notepad','todo','fileman','weather','settings','terminal','clock','calendar','notifications','appstore','browser','screenshot'];
+      if (!builtinIds.includes(appId)) return;
+      _loadedAppCss.add(appId);
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/apps/builtin/' + appId + '/desktop.css';
+      link.dataset.builtinAppCss = appId;
+      document.head.appendChild(link);
+    }
+
     function openApp(app) {
       const existing = openWindows.value.find(w => w.id === app.id);
       if (existing) { focusWindow(existing); return; }
+
+      loadAppCss(app.id);
 
       const sz = SIZES[app.id] || { w: 480, h: 380 };
       const saved = JSON.parse(localStorage.getItem('wb_' + app.id) || 'null');
@@ -2929,7 +2753,8 @@ createApp({
         SIZES[manifest.id] = manifest.size || { w: 800, h: 600 };
         apps.value.push({
           id: manifest.id, name: manifest.name, icon: manifest.icon,
-          color: manifest.color, type: 'external', lang: manifest.lang
+          color: manifest.color, type: 'external', lang: manifest.lang,
+          category: manifest.category || 'other'
         });
         return;
       }
@@ -2938,7 +2763,7 @@ createApp({
         const [tplRes, compRes, styleRes] = await Promise.all([
           fetch('/api/apps/' + manifest.id + '/template'),
           fetch('/api/apps/' + manifest.id + '/component'),
-          fetch('/api/apps/' + manifest.id + '/style').catch(() => null)
+          manifest.hasStyle ? fetch('/api/apps/' + manifest.id + '/style').catch(() => null) : Promise.resolve(null)
         ]);
         if (!tplRes.ok || !compRes.ok) return;
         const templateHtml = await tplRes.text();
@@ -2957,7 +2782,8 @@ createApp({
         SIZES[manifest.id] = manifest.size || { w: 480, h: 380 };
         apps.value.push({
           id: manifest.id, name: manifest.name, icon: manifest.icon,
-          color: manifest.color, type: 'internal', lang: manifest.lang
+          color: manifest.color, type: 'internal', lang: manifest.lang,
+          category: manifest.category || 'other'
         });
       } catch (e) { console.error('Failed to load dynamic app:', manifest.id, e); }
     }
@@ -3085,6 +2911,19 @@ createApp({
 
     function toggleMenu() { menuOpen.value = !menuOpen.value; }
     function closeMenu() { menuOpen.value = false; volOpen.value = false; }
+
+    function onDocClick(e) {
+      const t = e.target;
+      if (menuOpen.value && !t.closest('.start-menu') && !t.closest('.start-btn')) {
+        menuOpen.value = false;
+      }
+      if (volOpen.value && !t.closest('.vol-popover') && !t.closest('.vol-wrap')) {
+        volOpen.value = false;
+      }
+      if (iconCtx.value.show && !t.closest('.icon-ctx')) {
+        iconCtx.value.show = false;
+      }
+    }
 
     function closeAllWindows() {
       const ids = openWindows.value.map(w => w.id);
@@ -3220,11 +3059,19 @@ createApp({
       if (appId === 'rss-reader') {
         window.__rssNavigate = action.data || {};
       }
+      if (appId === 'social-share') {
+        window.__socialShareData = action.data || {};
+      }
       openApp(target);
       // Also dispatch specific navigate event if app is already open
       if (appId === 'rss-reader') {
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('rss-navigate', { detail: action.data || {} }));
+        }, 300);
+      }
+      if (appId === 'social-share') {
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('social-share-content', { detail: action.data || {} }));
         }, 300);
       }
     }
@@ -3234,6 +3081,7 @@ createApp({
       updateNotifCount();
       clockTimer = setInterval(() => { updateClock(); updateNotifCount(); }, 1000);
       document.addEventListener('fullscreenchange', onFsChange);
+      document.addEventListener('click', onDocClick, true);
       window.addEventListener('app-installed', onAppInstalled);
       window.addEventListener('app-uninstalled', onAppUninstalled);
       window.addEventListener('open-app-action', onOpenAppAction);
@@ -3243,13 +3091,155 @@ createApp({
     onUnmounted(() => {
       clearInterval(clockTimer);
       document.removeEventListener('fullscreenchange', onFsChange);
+      document.removeEventListener('click', onDocClick, true);
       window.removeEventListener('app-installed', onAppInstalled);
       window.removeEventListener('app-uninstalled', onAppUninstalled);
       window.removeEventListener('open-app-action', onOpenAppAction);
       if (wsConn) wsConn.close();
     });
 
-    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats };
+    // ── Screenshot feature ──
+    const ssActive = ref(false);
+    const ssSelecting = ref(false);
+    const ssCanvas = ref(null);
+    const ssWidth = ref(0);
+    const ssHeight = ref(0);
+    const ssInfoX = ref(0);
+    const ssInfoY = ref(0);
+    let ssCapturedCanvas = null;
+    let ssStartX = 0, ssStartY = 0, ssCurX = 0, ssCurY = 0;
+    let ssDrawing = false;
+
+    async function startScreenshot() {
+      if (ssActive.value) return;
+      // Load CSS
+      loadAppCss('screenshot');
+      try {
+        // Capture current screen with html2canvas
+        ssCapturedCanvas = await html2canvas(document.getElementById('app'), {
+          useCORS: true, allowTaint: true, scale: 1,
+          ignoreElements: function(el) { return el.classList && el.classList.contains('ss-overlay'); }
+        });
+        ssActive.value = true;
+        await nextTick();
+        // Draw captured image on overlay canvas
+        const c = ssCanvas.value;
+        if (!c) return;
+        c.width = window.innerWidth;
+        c.height = window.innerHeight;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(ssCapturedCanvas, 0, 0, c.width, c.height);
+        // Darken overlay
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.fillRect(0, 0, c.width, c.height);
+        // Focus for ESC key
+        c.parentElement.setAttribute('tabindex', '-1');
+        c.parentElement.focus();
+      } catch (e) {
+        console.error('Screenshot capture failed:', e);
+        ssActive.value = false;
+      }
+    }
+
+    function ssMouseDown(e) {
+      if (e.button !== 0) { ssCancelCapture(); return; }
+      ssDrawing = true;
+      ssSelecting.value = true;
+      ssStartX = e.clientX;
+      ssStartY = e.clientY;
+      ssCurX = e.clientX;
+      ssCurY = e.clientY;
+    }
+
+    function ssMouseMove(e) {
+      if (!ssDrawing) return;
+      ssCurX = e.clientX;
+      ssCurY = e.clientY;
+      const x1 = Math.min(ssStartX, ssCurX), y1 = Math.min(ssStartY, ssCurY);
+      const x2 = Math.max(ssStartX, ssCurX), y2 = Math.max(ssStartY, ssCurY);
+      const w = x2 - x1, h = y2 - y1;
+      ssWidth.value = w;
+      ssHeight.value = h;
+      ssInfoX.value = Math.min(x2 + 10, window.innerWidth - 100);
+      ssInfoY.value = Math.min(y1 - 30, window.innerHeight - 30);
+      if (ssInfoY.value < 0) ssInfoY.value = y2 + 10;
+      // Redraw
+      const c = ssCanvas.value;
+      if (!c || !ssCapturedCanvas) return;
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, c.width, c.height);
+      ctx.drawImage(ssCapturedCanvas, 0, 0, c.width, c.height);
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.fillRect(0, 0, c.width, c.height);
+      // Clear selection area to show original
+      if (w > 0 && h > 0) {
+        ctx.clearRect(x1, y1, w, h);
+        ctx.drawImage(ssCapturedCanvas, x1, y1, w, h, x1, y1, w, h);
+        // Border
+        ctx.strokeStyle = '#409eff';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        ctx.strokeRect(x1, y1, w, h);
+        ctx.setLineDash([]);
+      }
+    }
+
+    async function ssMouseUp(e) {
+      if (!ssDrawing) return;
+      ssDrawing = false;
+      ssSelecting.value = false;
+      const x1 = Math.min(ssStartX, ssCurX), y1 = Math.min(ssStartY, ssCurY);
+      const w = Math.max(ssStartX, ssCurX) - x1;
+      const h = Math.max(ssStartY, ssCurY) - y1;
+      ssActive.value = false;
+
+      if (w < 5 || h < 5) { ssCancelCapture(); return; }
+
+      // Crop selection from captured canvas
+      const cropCanvas = document.createElement('canvas');
+      cropCanvas.width = w;
+      cropCanvas.height = h;
+      const cropCtx = cropCanvas.getContext('2d');
+      cropCtx.drawImage(ssCapturedCanvas, x1, y1, w, h, 0, 0, w, h);
+
+      // Check if Paint is installed
+      const paintApp = apps.value.find(function(a) { return a.id === 'paint'; });
+      const paintInstalled = paintApp && componentMap['paint'];
+
+      if (paintInstalled) {
+        // Open Paint and send image
+        const dataUrl = cropCanvas.toDataURL('image/png');
+        window.__screenshotImage = { dataUrl: dataUrl, width: w, height: h };
+        openApp(paintApp);
+        setTimeout(function() {
+          window.dispatchEvent(new CustomEvent('paint-open-image', { detail: { dataUrl: dataUrl, width: w, height: h } }));
+        }, 500);
+        window.ElementPlus.ElMessage.success(t('ssOpenPaint'));
+      } else {
+        // Copy to clipboard
+        try {
+          const blob = await new Promise(function(resolve) { cropCanvas.toBlob(resolve, 'image/png'); });
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+          window.ElementPlus.ElMessage.success(t('ssCopied'));
+        } catch (err) {
+          // Fallback: download
+          const link = document.createElement('a');
+          link.download = 'screenshot-' + Date.now() + '.png';
+          link.href = cropCanvas.toDataURL('image/png');
+          link.click();
+        }
+      }
+      ssCapturedCanvas = null;
+    }
+
+    function ssCancelCapture() {
+      ssActive.value = false;
+      ssSelecting.value = false;
+      ssDrawing = false;
+      ssCapturedCanvas = null;
+    }
+
+    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture };
   }
 }).use(pinia).use(ElementPlus, EP_LOCALES[localStorage.getItem('sys_locale') || 'tr'] || EP_LOCALES.en).mount('#app');
 

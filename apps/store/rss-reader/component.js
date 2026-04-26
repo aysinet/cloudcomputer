@@ -1,8 +1,88 @@
 (function(Vue) {
   const { ref, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
 
+  const LANGS = {
+    tr: {
+      title:'RSS Okuyucu', back:'Geri', article:'Makale', unread:'okunmamış',
+      hideRead:'Okunanları gizle', showRead:'Okunanları göster',
+      markAllRead:'Tümünü okundu işaretle', markAllBtn:'✓ Tümü',
+      refresh:'Yenile', refreshAll:'Tümünü yenile', loading:'Yükleniyor...',
+      urlPlaceholder:'RSS URL yapıştırın...', namePlaceholder:'İsim (opsiyonel)',
+      emptyTitle:'Henüz RSS beslemesi eklenmemiş', emptyHint:'Yukarıdan bir RSS URL\'si ekleyin',
+      articles:'makale', remove:'Kaldır', noContent:'Bu beslemede içerik bulunamadı',
+      untitled:'Başlıksız', markRead:'Okundu işaretle',
+      goToSource:'Kaynağa Git', share:'Paylaş', noArticleContent:'İçerik yok',
+      addError:'Eklenemedi', connError:'Bağlantı hatası'
+    },
+    en: {
+      title:'RSS Reader', back:'Back', article:'Article', unread:'unread',
+      hideRead:'Hide read', showRead:'Show read',
+      markAllRead:'Mark all as read', markAllBtn:'✓ All',
+      refresh:'Refresh', refreshAll:'Refresh all', loading:'Loading...',
+      urlPlaceholder:'Paste RSS URL...', namePlaceholder:'Name (optional)',
+      emptyTitle:'No RSS feeds added yet', emptyHint:'Add an RSS URL above',
+      articles:'articles', remove:'Remove', noContent:'No content found in this feed',
+      untitled:'Untitled', markRead:'Mark as read',
+      goToSource:'Go to Source', share:'Share', noArticleContent:'No content',
+      addError:'Could not add', connError:'Connection error'
+    },
+    de: {
+      title:'RSS-Leser', back:'Zurück', article:'Artikel', unread:'ungelesen',
+      hideRead:'Gelesene ausblenden', showRead:'Gelesene anzeigen',
+      markAllRead:'Alle als gelesen markieren', markAllBtn:'✓ Alle',
+      refresh:'Aktualisieren', refreshAll:'Alle aktualisieren', loading:'Laden...',
+      urlPlaceholder:'RSS-URL einfügen...', namePlaceholder:'Name (optional)',
+      emptyTitle:'Noch keine RSS-Feeds hinzugefügt', emptyHint:'Fügen Sie oben eine RSS-URL hinzu',
+      articles:'Artikel', remove:'Entfernen', noContent:'Kein Inhalt in diesem Feed gefunden',
+      untitled:'Ohne Titel', markRead:'Als gelesen markieren',
+      goToSource:'Zur Quelle', share:'Teilen', noArticleContent:'Kein Inhalt',
+      addError:'Konnte nicht hinzugefügt werden', connError:'Verbindungsfehler'
+    },
+    fr: {
+      title:'Lecteur RSS', back:'Retour', article:'Article', unread:'non lus',
+      hideRead:'Masquer les lus', showRead:'Afficher les lus',
+      markAllRead:'Tout marquer comme lu', markAllBtn:'✓ Tous',
+      refresh:'Actualiser', refreshAll:'Tout actualiser', loading:'Chargement...',
+      urlPlaceholder:'Collez l\'URL RSS...', namePlaceholder:'Nom (optionnel)',
+      emptyTitle:'Aucun flux RSS ajouté', emptyHint:'Ajoutez une URL RSS ci-dessus',
+      articles:'articles', remove:'Supprimer', noContent:'Aucun contenu trouvé dans ce flux',
+      untitled:'Sans titre', markRead:'Marquer comme lu',
+      goToSource:'Aller à la source', share:'Partager', noArticleContent:'Pas de contenu',
+      addError:'Impossible d\'ajouter', connError:'Erreur de connexion'
+    },
+    es: {
+      title:'Lector RSS', back:'Atrás', article:'Artículo', unread:'no leídos',
+      hideRead:'Ocultar leídos', showRead:'Mostrar leídos',
+      markAllRead:'Marcar todo como leído', markAllBtn:'✓ Todos',
+      refresh:'Actualizar', refreshAll:'Actualizar todo', loading:'Cargando...',
+      urlPlaceholder:'Pegue la URL RSS...', namePlaceholder:'Nombre (opcional)',
+      emptyTitle:'No se han añadido feeds RSS', emptyHint:'Añada una URL RSS arriba',
+      articles:'artículos', remove:'Eliminar', noContent:'No se encontró contenido en este feed',
+      untitled:'Sin título', markRead:'Marcar como leído',
+      goToSource:'Ir a la fuente', share:'Compartir', noArticleContent:'Sin contenido',
+      addError:'No se pudo añadir', connError:'Error de conexión'
+    },
+    ru: {
+      title:'RSS Читалка', back:'Назад', article:'Статья', unread:'непрочитанных',
+      hideRead:'Скрыть прочитанные', showRead:'Показать прочитанные',
+      markAllRead:'Отметить все как прочитанные', markAllBtn:'✓ Все',
+      refresh:'Обновить', refreshAll:'Обновить все', loading:'Загрузка...',
+      urlPlaceholder:'Вставьте URL RSS...', namePlaceholder:'Имя (необязательно)',
+      emptyTitle:'RSS-каналы ещё не добавлены', emptyHint:'Добавьте URL RSS-канала выше',
+      articles:'статей', remove:'Удалить', noContent:'В этом канале нет содержимого',
+      untitled:'Без названия', markRead:'Отметить как прочитанное',
+      goToSource:'Перейти к источнику', share:'Поделиться', noArticleContent:'Нет содержимого',
+      addError:'Не удалось добавить', connError:'Ошибка подключения'
+    }
+  };
+
+  function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
+
   return {
     setup() {
+      const locale = ref(getLocale());
+      function L(k) { return (LANGS[locale.value] || LANGS.tr)[k] || LANGS.tr[k] || k; }
+
       const feeds = ref([]);
       const readItems = ref([]);
       const loading = ref(true);
@@ -11,6 +91,7 @@
       const newUrl = ref('');
       const newName = ref('');
       const addError = ref('');
+      const showRead = ref(localStorage.getItem('rss_showRead') !== 'false');
 
       // Views: 'feeds' | 'items' | 'reader'
       const view = ref('feeds');
@@ -18,7 +99,11 @@
       const selectedItem = ref(null);
 
       const selectedFeed = computed(() => feeds.value.find(f => f.id === selectedFeedId.value) || null);
-      const feedItems = computed(() => selectedFeed.value ? (selectedFeed.value.items || []) : []);
+      const feedItems = computed(() => {
+        const items = selectedFeed.value ? (selectedFeed.value.items || []) : [];
+        if (showRead.value) return items;
+        return items.filter(i => !readItems.value.includes(i.guid));
+      });
 
       const totalUnread = computed(() => {
         let count = 0;
@@ -72,10 +157,10 @@
             newName.value = '';
           } else {
             const err = await res.json().catch(() => ({}));
-            addError.value = err.error || 'Eklenemedi';
+            addError.value = err.error || L('addError');
           }
         } catch (e) {
-          addError.value = 'Bağlantı hatası';
+          addError.value = L('connError');
         }
         adding.value = false;
       }
@@ -126,6 +211,10 @@
       async function openItem(item) {
         selectedItem.value = item;
         view.value = 'reader';
+        await markItemRead(item);
+      }
+
+      async function markItemRead(item) {
         if (!readItems.value.includes(item.guid)) {
           readItems.value.push(item.guid);
           try {
@@ -161,7 +250,29 @@
       }
 
       function openExternal(url) {
-        if (url) window.open(url, '_blank', 'noopener');
+        if (!url) return;
+        window.dispatchEvent(new CustomEvent('open-app-action', { detail: { app: 'browser' } }));
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('browser-open-url', { detail: url }));
+        }, 300);
+      }
+
+      function shareItem(item) {
+        if (!item) return;
+        const title = decodeEntities(item.title) || '';
+        const url = item.link || '';
+        window.__socialShareData = { text: title, url };
+        window.dispatchEvent(new CustomEvent('open-app-action', { detail: { app: 'social-share' } }));
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('social-share-content', { detail: { text: title, url } }));
+        }, 300);
+      }
+
+      function decodeEntities(str) {
+        if (!str) return '';
+        const el = document.createElement('textarea');
+        el.innerHTML = str;
+        return el.value;
       }
 
       function stripHtml(html) {
@@ -182,7 +293,8 @@
         try {
           const d = new Date(dateStr);
           if (isNaN(d.getTime())) return dateStr;
-          return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+          const loc = locale.value === 'tr' ? 'tr-TR' : locale.value === 'de' ? 'de-DE' : locale.value === 'fr' ? 'fr-FR' : locale.value === 'es' ? 'es-ES' : locale.value === 'ru' ? 'ru-RU' : 'en-US';
+          return d.toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         } catch { return dateStr; }
       }
 
@@ -195,7 +307,11 @@
         }
       }
 
+      watch(showRead, (val) => { localStorage.setItem('rss_showRead', val ? 'true' : 'false'); });
+
+      let localeTimer = null;
       onMounted(async () => {
+        localeTimer = setInterval(() => { locale.value = getLocale(); }, 1000);
         await loadData();
         loading.value = false;
         window.addEventListener('rss-navigate', onRssNavigate);
@@ -213,15 +329,16 @@
 
       onUnmounted(() => {
         window.removeEventListener('rss-navigate', onRssNavigate);
+        if (localeTimer) clearInterval(localeTimer);
       });
 
       return {
-        feeds, readItems, loading, refreshing, adding, newUrl, newName, addError,
+        L, feeds, readItems, loading, refreshing, adding, newUrl, newName, addError, showRead,
         view, selectedFeed, selectedItem, feedItems, totalUnread,
         feedUnread, isRead,
         addFeed, removeFeed, refreshFeed, refreshAll,
-        openFeed, openItem, markAllRead, goBack, openExternal,
-        stripHtml, truncate, formatDate
+        openFeed, openItem, markItemRead, markAllRead, goBack, openExternal, shareItem,
+        decodeEntities, stripHtml, truncate, formatDate
       };
     }
   };

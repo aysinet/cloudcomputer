@@ -1,0 +1,26 @@
+{
+  "id": "doom",
+  "name": "Doom",
+  "icon": "👹",
+  "color": "linear-gradient(135deg,#8b0000,#2d0000)",
+  "type": "internal",
+  "size": {
+    "w": 960,
+    "h": 720
+  },
+  "global": false,
+  "description": "Klasik Doom oyunu — Docker tabanlı WASM sürümü",
+  "lang": {
+    "tr": { "name": "Doom", "description": "Klasik Doom oyunu — tarayıcıda oyna" },
+    "en": { "name": "Doom", "description": "Classic Doom game — play in browser" },
+    "de": { "name": "Doom", "description": "Klassisches Doom-Spiel — im Browser spielen" },
+    "fr": { "name": "Doom", "description": "Jeu Doom classique — jouez dans le navigateur" },
+    "es": { "name": "Doom", "description": "Juego clásico Doom — juega en el navegador" },
+    "ru": { "name": "Doom", "description": "Классический Doom — играйте в браузере" }
+  },
+  "category": "games",
+  "docker": {
+    "image": "elliottking/doom-wasm:0.1.1",
+    "containerPort": 8000
+  }
+}

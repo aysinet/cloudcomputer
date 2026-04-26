@@ -1,0 +1,42 @@
+/* Screenshot overlay */
+.ss-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999999;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ss-overlay canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Selection info tooltip */
+.ss-info {
+  position: fixed;
+  padding: 4px 10px;
+  background: rgba(0,0,0,.82);
+  color: #fff;
+  font-size: 12px;
+  font-family: 'Segoe UI', sans-serif;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 999999;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,.15);
+}
+
+/* Tray icon */
+.ss-tray-btn {
+  color: rgba(255,255,255,.85) !important;
+  font-size: 15px !important;
+}
