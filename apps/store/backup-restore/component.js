@@ -318,7 +318,7 @@
       await loadBackups();
       window.addEventListener('locale-changed', onLocaleChanged);
     });
-    onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged));
+    onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged); });
 
     return {
       L, tab, format, backups, busy, busyText, statusMsg, statusType,

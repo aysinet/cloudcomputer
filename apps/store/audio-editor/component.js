@@ -855,7 +855,8 @@
     });
 
     onUnmounted(() => {
-      window.removeEventListener('locale-changed', onLocaleChanged)if (isPlaying.value) stopPlay();
+      window.removeEventListener('locale-changed', onLocaleChanged);
+      if (isPlaying.value) stopPlay();
       if (audioCtx) { audioCtx.close(); audioCtx = null; }
       window.removeEventListener('resize', onResize);
       if (animFrame) cancelAnimationFrame(animFrame);

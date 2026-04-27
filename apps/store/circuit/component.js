@@ -1143,7 +1143,8 @@
       });
 
       onUnmounted(function() {
-        window.removeEventListener('locale-changed', onLocaleChanged)if (resizeObs) resizeObs.disconnect();
+        window.removeEventListener('locale-changed', onLocaleChanged);
+        if (resizeObs) resizeObs.disconnect();
         window.removeEventListener('keydown', onKeyDown);
       });
 

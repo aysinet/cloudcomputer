@@ -640,7 +640,8 @@
       onUnmounted(() => {
         window.removeEventListener('keydown', onKeyDown);
         window.removeEventListener('paint-open-image', onPaintOpenImage);
-        window.removeEventListener('locale-changed', onLocaleChanged));
+        window.removeEventListener('locale-changed', onLocaleChanged);
+      });
 
       watch(showResize, (v) => {
         if (v) { resizeW.value = canvasW.value; resizeH.value = canvasH.value; }

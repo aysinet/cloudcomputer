@@ -246,6 +246,11 @@ app.post('/api/apps/install', authMiddleware, (req, res) => {
     saveUserInstalled(req.user.username, userData);
   }
 
+  // Services use /api/services/install instead
+  if (appManifest.type === 'service') {
+    return res.status(400).json({ error: 'Use /api/services/install for service type apps' });
+  }
+
   // If app has docker config, pull the image asynchronously via DockerManager
   if (appManifest.docker && appManifest.docker.image) {
     const img = appManifest.docker.image;
@@ -257,7 +262,7 @@ app.post('/api/apps/install', authMiddleware, (req, res) => {
   res.json({ ok: true, app: appManifest });
 });
 
-app.post('/api/apps/uninstall', authMiddleware, (req, res) => {
+app.post('/api/apps/uninstall', authMiddleware, async (req, res) => {
   const { appId } = req.body;
   if (!appId) return res.status(400).json({ error: 'appId required' });
   const storeApps = getStoreApps();
@@ -273,6 +278,15 @@ app.post('/api/apps/uninstall', authMiddleware, (req, res) => {
     dmFetch('/stop', { method: 'POST', body: JSON.stringify({ appId }) }).catch(() => {});
     delete dockerContainers[appId];
     delete proxyCache[appId];
+  }
+
+  // Clean up service config
+  if (appManifest && appManifest.type === 'service') {
+    // Stop the service container (may not be in dockerContainers if server restarted)
+    dmFetch('/stop', { method: 'POST', body: JSON.stringify({ appId }) }).catch(() => {});
+    const serviceConfigs = getServiceConfigs(req.user.username);
+    delete serviceConfigs[appId];
+    saveServiceConfigs(req.user.username, serviceConfigs);
   }
 
   res.json({ ok: true });
@@ -304,6 +318,150 @@ app.get('/api/apps/:id/mobile-style', authMiddleware, (req, res) => {
   const filePath = path.join(STORE_DIR, appId, 'mobile.css');
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Mobile style not found' });
   res.type('text/css').send(fs.readFileSync(filePath, 'utf-8'));
+});
+
+// ── Service install page (install.html) ──
+app.get('/api/apps/:id/install-page', authMiddleware, (req, res) => {
+  const appId = req.params.id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const filePath = path.join(STORE_DIR, appId, 'install.html');
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Install page not found' });
+  res.type('text/html').send(fs.readFileSync(filePath, 'utf-8'));
+});
+
+// ── Service Config Storage ──
+function getServiceConfigPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'services.json');
+}
+
+function getServiceConfigs(username) {
+  const filePath = getServiceConfigPath(username);
+  if (!fs.existsSync(filePath)) return {};
+  try { return JSON.parse(fs.readFileSync(filePath, 'utf-8')); } catch { return {}; }
+}
+
+function saveServiceConfigs(username, data) {
+  const filePath = getServiceConfigPath(username);
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+}
+
+// ── Service Install (with config from install.html form) ──
+app.post('/api/services/install', authMiddleware, async (req, res) => {
+  const { appId, installConfig } = req.body;
+  if (!appId) return res.status(400).json({ error: 'appId required' });
+  const storeApps = getStoreApps();
+  const appManifest = storeApps.find(a => a.id === appId && a.type === 'service');
+  if (!appManifest) return res.status(404).json({ error: 'Service not found in store' });
+  if (!appManifest.docker || !appManifest.docker.image) return res.status(400).json({ error: 'Service has no docker config' });
+
+  // Save to installed list
+  const userData = getUserInstalled(req.user.username);
+  if (!userData.installed.includes(appId)) {
+    userData.installed.push(appId);
+    userData.installedAt[appId] = new Date().toISOString();
+    saveUserInstalled(req.user.username, userData);
+  }
+
+  // Save service config (install form values)
+  const serviceConfigs = getServiceConfigs(req.user.username);
+  serviceConfigs[appId] = { installConfig: installConfig || {}, installedAt: new Date().toISOString() };
+  saveServiceConfigs(req.user.username, serviceConfigs);
+
+  // Build env variables - merge manifest defaults with install config
+  const env = [...(appManifest.docker.env || [])];
+  if (installConfig) {
+    for (const [key, val] of Object.entries(installConfig)) {
+      if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) {
+        env.push(`${key}=${val}`);
+      }
+    }
+  }
+
+  // Build volumes - use user-specific directory for data
+  const volumes = resolveVolumes(appManifest.docker.volumes || [], appId);
+
+  const dockerConfig = appManifest.docker;
+  try {
+    // Pull image first
+    await dmFetch('/pull', { method: 'POST', body: JSON.stringify({ image: dockerConfig.image }) });
+
+    // Run container with restart always for services
+    const runData = await dmFetch('/run', {
+      method: 'POST',
+      body: JSON.stringify({
+        image: dockerConfig.image,
+        appId,
+        containerPort: dockerConfig.containerPort || 5432,
+        volumes,
+        env,
+        restart: 'always'
+      })
+    });
+
+    // Track container
+    const proxyTarget = IS_DOCKER ? runData.internalUrl : `http://localhost:${runData.hostPort}`;
+    dockerContainers[appId] = {
+      containerId: runData.containerId,
+      containerName: runData.containerName,
+      hostPort: runData.hostPort,
+      internalUrl: runData.internalUrl
+    };
+
+    // Save port info to service config
+    serviceConfigs[appId].port = runData.hostPort;
+    serviceConfigs[appId].containerName = runData.containerName;
+    serviceConfigs[appId].internalUrl = runData.internalUrl;
+    saveServiceConfigs(req.user.username, serviceConfigs);
+
+    res.json({ ok: true, app: appManifest, port: runData.hostPort, containerId: runData.containerId });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── List running services (for other apps to query ports) ──
+app.get('/api/services', authMiddleware, (req, res) => {
+  const serviceConfigs = getServiceConfigs(req.user.username);
+  const storeApps = getStoreApps();
+  const services = [];
+  for (const [id, cfg] of Object.entries(serviceConfigs)) {
+    const manifest = storeApps.find(a => a.id === id && a.type === 'service');
+    if (!manifest) continue;
+    services.push({
+      id,
+      name: manifest.name,
+      icon: manifest.icon,
+      port: cfg.port,
+      containerName: cfg.containerName,
+      internalUrl: cfg.internalUrl,
+      installedAt: cfg.installedAt
+    });
+  }
+  res.json(services);
+});
+
+// ── Get specific service info (port, connection info) ──
+app.get('/api/services/:id', authMiddleware, async (req, res) => {
+  const serviceId = req.params.id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const serviceConfigs = getServiceConfigs(req.user.username);
+  const cfg = serviceConfigs[serviceId];
+  if (!cfg) return res.status(404).json({ error: 'Service not found' });
+
+  // Check if container is actually running
+  let running = false;
+  try {
+    const status = await dmFetch('/status/' + serviceId);
+    running = status.running;
+    if (running && status.hostPort) {
+      cfg.port = status.hostPort;
+      cfg.internalUrl = status.internalUrl;
+      saveServiceConfigs(req.user.username, serviceConfigs);
+    }
+  } catch {}
+
+  res.json({ ...cfg, id: serviceId, running });
 });
 
 // ── User File System API (for FileDialog) ──
@@ -622,7 +780,7 @@ app.post('/api/docker/pull', authMiddleware, async (req, res) => {
 });
 
 app.post('/api/docker/run', authMiddleware, async (req, res) => {
-  const { image, appId, containerPort, volumes, env } = req.body;
+  const { image, appId, containerPort, volumes, env, restart } = req.body;
   if (!image || !appId) return res.status(400).json({ error: 'image and appId required' });
   if (!/^[a-zA-Z0-9_\-./]+:[a-zA-Z0-9_.\-]*$|^[a-zA-Z0-9_\-./]+$/.test(image)) return res.status(400).json({ error: 'Invalid image name' });
   if (!/^[a-zA-Z0-9_-]+$/.test(appId)) return res.status(400).json({ error: 'Invalid appId' });
@@ -631,9 +789,11 @@ app.post('/api/docker/run', authMiddleware, async (req, res) => {
   const resolvedVolumes = resolveVolumes(volumes, appId);
 
   try {
+    const body = { image, appId, containerPort: containerPort || 80, volumes: resolvedVolumes, env };
+    if (restart) body.restart = restart;
     const data = await dmFetch('/run', {
       method: 'POST',
-      body: JSON.stringify({ image, appId, containerPort: containerPort || 80, volumes: resolvedVolumes, env })
+      body: JSON.stringify(body)
     });
 
     // Determine proxy target: inside Docker use container name, outside use host port
@@ -766,6 +926,122 @@ app.post('/api/settings', authMiddleware, (req, res) => {
   const updated = { ...current, ...req.body };
   saveUserSettings(req.user.username, updated);
   res.json({ ok: true, settings: updated });
+});
+
+// ── AppData SQLite (per-user) ──
+const APPDATA_DIR = path.join(__dirname, 'data', 'appdata');
+ensureDir(APPDATA_DIR);
+const userDbCache = {};
+
+function getUserDb(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  if (userDbCache[safe]) return userDbCache[safe];
+  const dbPath = path.join(APPDATA_DIR, safe + '.db');
+  const db = new Database(dbPath);
+  db.pragma('journal_mode = WAL');
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS calendar_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL,
+      title TEXT NOT NULL,
+      color TEXT DEFAULT '',
+      holiday INTEGER DEFAULT 0
+    );
+    CREATE INDEX IF NOT EXISTS idx_cal_date ON calendar_events(date);
+
+    CREATE TABLE IF NOT EXISTS todos (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      text TEXT NOT NULL,
+      done INTEGER DEFAULT 0,
+      sort_order INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+  `);
+  userDbCache[safe] = db;
+  return db;
+}
+
+// ── Calendar API ──
+app.get('/api/calendar/events', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  const rows = db.prepare('SELECT id, date, title, color, holiday FROM calendar_events ORDER BY date, id').all();
+  const events = {};
+  for (const r of rows) {
+    if (!events[r.date]) events[r.date] = [];
+    events[r.date].push({ id: r.id, title: r.title, color: r.color || '', holiday: !!r.holiday });
+  }
+  res.json(events);
+});
+
+app.post('/api/calendar/events', authMiddleware, (req, res) => {
+  const { date, title, color, holiday } = req.body;
+  if (!date || !title) return res.status(400).json({ error: 'date and title required' });
+  const db = getUserDb(req.user.username);
+  const info = db.prepare('INSERT INTO calendar_events (date, title, color, holiday) VALUES (?, ?, ?, ?)').run(date, title.trim(), color || '', holiday ? 1 : 0);
+  res.json({ ok: true, id: info.lastInsertRowid });
+});
+
+app.delete('/api/calendar/events/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM calendar_events WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+app.post('/api/calendar/holidays', authMiddleware, (req, res) => {
+  const { holidays, year } = req.body;
+  if (!Array.isArray(holidays) || !year) return res.status(400).json({ error: 'holidays array and year required' });
+  const db = getUserDb(req.user.username);
+  const insert = db.prepare('INSERT INTO calendar_events (date, title, color, holiday) VALUES (?, ?, ?, 1)');
+  const check = db.prepare('SELECT id FROM calendar_events WHERE date = ? AND title = ? AND holiday = 1');
+  let added = 0;
+  const tx = db.transaction(() => {
+    for (const h of holidays) {
+      const dateStr = year + '-' + h.mmdd;
+      if (!check.get(dateStr, h.title)) {
+        insert.run(dateStr, h.title, 'red');
+        added++;
+      }
+    }
+  });
+  tx();
+  res.json({ ok: true, added });
+});
+
+app.delete('/api/calendar/holidays', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM calendar_events WHERE holiday = 1').run();
+  res.json({ ok: true });
+});
+
+// ── Todos API ──
+app.get('/api/todos', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  const rows = db.prepare('SELECT id, text, done, sort_order FROM todos ORDER BY sort_order ASC, id DESC').all();
+  res.json(rows.map(r => ({ id: r.id, text: r.text, done: !!r.done, sort_order: r.sort_order })));
+});
+
+app.post('/api/todos', authMiddleware, (req, res) => {
+  const { text } = req.body;
+  if (!text || !text.trim()) return res.status(400).json({ error: 'text required' });
+  const db = getUserDb(req.user.username);
+  const minOrder = db.prepare('SELECT MIN(sort_order) as m FROM todos').get();
+  const order = (minOrder && minOrder.m != null) ? minOrder.m - 1 : 0;
+  const info = db.prepare('INSERT INTO todos (text, done, sort_order) VALUES (?, 0, ?)').run(text.trim(), order);
+  res.json({ ok: true, id: info.lastInsertRowid, sort_order: order });
+});
+
+app.put('/api/todos/:id', authMiddleware, (req, res) => {
+  const { text, done } = req.body;
+  const db = getUserDb(req.user.username);
+  if (text !== undefined) db.prepare('UPDATE todos SET text = ? WHERE id = ?').run(text, req.params.id);
+  if (done !== undefined) db.prepare('UPDATE todos SET done = ? WHERE id = ?').run(done ? 1 : 0, req.params.id);
+  res.json({ ok: true });
+});
+
+app.delete('/api/todos/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM todos WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
 });
 
 // ── Wallpaper API ──
@@ -1015,6 +1291,9 @@ wss.on('connection', (ws, req) => {
 
   ws.on('close', () => {
     wsClients.delete(ws);
+    if (ws.coinSubscribed) stopCoinPollingIfIdle();
+    if (ws.stockSubscribed) stopStockPollingIfIdle();
+    if (ws.torrentSubscribed) destroyTorrentIfIdle();
   });
 });
 
@@ -1064,17 +1343,21 @@ function handleWSMessage(ws, msg) {
       break;
     case 'coin-subscribe':
       ws.coinSubscribed = true;
+      startCoinPolling();
       ws.send(JSON.stringify({ type: 'coin-prices', data: coinPrices }));
       break;
     case 'coin-unsubscribe':
       ws.coinSubscribed = false;
+      stopCoinPollingIfIdle();
       break;
     case 'stock-subscribe':
       ws.stockSubscribed = true;
+      startStockPolling();
       ws.send(JSON.stringify({ type: 'stock-prices', data: stockPrices }));
       break;
     case 'stock-unsubscribe':
       ws.stockSubscribed = false;
+      stopStockPollingIfIdle();
       break;
     case 'audio-rec-start': {
       const { sessionId, sampleRate, channels } = msg.data || {};
@@ -1111,10 +1394,13 @@ function handleWSMessage(ws, msg) {
     }
     case 'torrent-subscribe':
       ws.torrentSubscribed = true;
-      ws.send(JSON.stringify({ type: torrentClient ? 'torrent-list' : 'torrent-not-installed', data: torrentClient ? getTorrentList() : {} }));
+      initTorrentEngine().then(() => {
+        ws.send(JSON.stringify({ type: torrentClient ? 'torrent-list' : 'torrent-not-installed', data: torrentClient ? getTorrentList() : {} }));
+      });
       break;
     case 'torrent-unsubscribe':
       ws.torrentSubscribed = false;
+      destroyTorrentIfIdle();
       break;
     case 'torrent-add':
       handleTorrentAdd(ws, msg.data || {});
@@ -1196,9 +1482,25 @@ function getUserCoinPrefs(username) {
   try { return JSON.parse(fs.readFileSync(filePath, 'utf-8')); } catch { return { favorites: [], hidden: [] }; }
 }
 
-// Start polling Binance every 5 seconds
-fetchBinancePrices();
-coinFetchInterval = setInterval(fetchBinancePrices, 5000);
+function hasCoinSubscribers() {
+  for (const c of wsClients) {
+    if (c.readyState === 1 && c.coinSubscribed) return true;
+  }
+  return false;
+}
+
+function startCoinPolling() {
+  if (coinFetchInterval) return;
+  fetchBinancePrices();
+  coinFetchInterval = setInterval(fetchBinancePrices, 5000);
+}
+
+function stopCoinPollingIfIdle() {
+  if (!coinFetchInterval) return;
+  if (hasCoinSubscribers()) return;
+  clearInterval(coinFetchInterval);
+  coinFetchInterval = null;
+}
 
 // ── Stock Tracker (Finnhub) ──
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || 'd7mmd5pr01qngrvonql0d7mmd5pr01qngrvonqlg';
@@ -1366,14 +1668,33 @@ function getUserStockPrefs(username) {
 }
 
 // Start polling Finnhub every 60 seconds (rotating batches of 55)
-if (FINNHUB_API_KEY) {
-  loadStockSymbols().then(() => {
-    console.log(`[Stock Tracker] Starting price polling (batch=55, interval=60s, total symbols=${allStockSymbols.length})`);
-    fetchStockPrices();
-    stockFetchInterval = setInterval(fetchStockPrices, 60000);
-  });
-} else {
-  console.warn('[Stock Tracker] FINNHUB_API_KEY not set — stock polling disabled');
+let stockSymbolsLoaded = false;
+
+function hasStockSubscribers() {
+  for (const c of wsClients) {
+    if (c.readyState === 1 && c.stockSubscribed) return true;
+  }
+  return false;
+}
+
+async function startStockPolling() {
+  if (stockFetchInterval) return;
+  if (!FINNHUB_API_KEY) return;
+  if (!stockSymbolsLoaded) {
+    await loadStockSymbols();
+    stockSymbolsLoaded = true;
+  }
+  console.log(`[Stock Tracker] Starting price polling (batch=55, interval=60s, total symbols=${allStockSymbols.length})`);
+  fetchStockPrices();
+  stockFetchInterval = setInterval(fetchStockPrices, 60000);
+}
+
+function stopStockPollingIfIdle() {
+  if (!stockFetchInterval) return;
+  if (hasStockSubscribers()) return;
+  clearInterval(stockFetchInterval);
+  stockFetchInterval = null;
+  console.log('[Stock Tracker] No subscribers — polling stopped');
 }
 
 // ── Password Vault (AES-256-GCM encrypted storage) ──
@@ -3964,8 +4285,11 @@ let torrentClient = null;
 const torrentPaused = new Set();
 let torrentDownloadPath = path.join(__dirname, 'data', 'downloads');
 ensureDir(torrentDownloadPath);
+let torrentInitializing = false;
 
-(async () => {
+async function initTorrentEngine() {
+  if (torrentClient || torrentInitializing) return;
+  torrentInitializing = true;
   try {
     const { default: WebTorrent } = await import('webtorrent');
     torrentClient = new WebTorrent();
@@ -3973,8 +4297,26 @@ ensureDir(torrentDownloadPath);
     console.log('WebTorrent engine initialized');
   } catch (e) {
     console.warn('WebTorrent not available — torrent features disabled.', e.message);
+  } finally {
+    torrentInitializing = false;
   }
-})();
+}
+
+function hasTorrentSubscribers() {
+  for (const c of wsClients) {
+    if (c.readyState === 1 && c.torrentSubscribed) return true;
+  }
+  return false;
+}
+
+function destroyTorrentIfIdle() {
+  if (!torrentClient) return;
+  if (hasTorrentSubscribers()) return;
+  if (torrentClient.torrents && torrentClient.torrents.length > 0) return;
+  try { torrentClient.destroy(); } catch {}
+  torrentClient = null;
+  console.log('WebTorrent engine destroyed (no subscribers)');
+}
 
 function getTorrentList() {
   if (!torrentClient) return [];

@@ -390,7 +390,8 @@
     }
 
     onUnmounted(function() {
-      window.removeEventListener('locale-changed', onLocaleChanged)if (editor) { editor.dispose(); editor = null; }
+      window.removeEventListener('locale-changed', onLocaleChanged);
+if (editor) { editor.dispose(); editor = null; }
       window.removeEventListener('open-markdown-file', onExternalOpen);
     });
 

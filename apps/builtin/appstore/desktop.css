@@ -11,6 +11,7 @@
 .store-item .si-type{font-size:10px;padding:2px 6px;border-radius:4px;flex-shrink:0}
 .store-item .si-type.internal{background:#ecf5ff;color:#409eff}
 .store-item .si-type.external{background:#fdf6ec;color:#e6a23c}
+.store-item .si-type.service{background:#f0f9eb;color:#336791}
 .store-item .si-btn{height:30px;padding:0 14px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;transition:.15s;flex-shrink:0}
 .store-item .si-btn.install{background:#67c23a;color:#fff}
 .store-item .si-btn.install:hover{background:#529b2e}
@@ -22,3 +23,9 @@
 .store-list .el-collapse-item__header{background:#f5f7fa;border-bottom:1px solid #ebeef5;padding:0 10px;font-size:14px}
 .store-list .el-collapse-item__wrap{background:#f5f7fa}
 .store-list .el-collapse-item__content{padding:0 6px 6px}
+.service-install-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center}
+.service-install-dialog{background:#1e1e2e;border-radius:12px;min-width:380px;max-width:460px;box-shadow:0 8px 32px rgba(0,0,0,.4);overflow:hidden}
+.service-install-content{max-height:80vh;overflow-y:auto}
+.service-install-loading{padding:40px;text-align:center;color:#aaa}
+.sil-spinner{width:32px;height:32px;border:3px solid #333;border-top-color:#4a90c4;border-radius:50%;animation:sil-spin .8s linear infinite;margin:0 auto 12px}
+@keyframes sil-spin{to{transform:rotate(360deg)}}

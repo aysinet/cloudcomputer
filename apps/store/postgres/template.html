@@ -1,0 +1,27 @@
+<div class="pg-service-root">
+  <div class="pg-service-header">
+    <span class="pg-service-icon">🐘</span>
+    <h3>PostgreSQL</h3>
+    <span :class="['pg-status-badge', status]">
+      {{ status === 'running' ? '● Çalışıyor' : status === 'stopped' ? '○ Durdu' : status === 'loading' ? '◌ Yükleniyor...' : status === 'restarting' ? '◌ Yeniden başlatılıyor...' : '⚠ Hata' }}
+    </span>
+  </div>
+
+  <div v-if="status === 'error'" class="pg-error">
+    <p>{{ errorMsg }}</p>
+    <button @click="loadStatus">Tekrar Dene</button>
+  </div>
+
+  <div v-if="connInfo && status === 'running'" class="pg-conn-info">
+    <h4>Bağlantı Bilgileri</h4>
+    <div class="pg-conn-row"><span class="pg-conn-label">Host (harici):</span><code>localhost</code></div>
+    <div class="pg-conn-row"><span class="pg-conn-label">Host (dahili):</span><code>{{ connInfo.internalHost }}</code></div>
+    <div class="pg-conn-row"><span class="pg-conn-label">Port:</span><code>{{ connInfo.port }}</code></div>
+    <div class="pg-conn-row"><span class="pg-conn-label">Kullanıcı:</span><code>postgres</code></div>
+  </div>
+
+  <div v-if="status === 'running' || status === 'stopped'" class="pg-actions">
+    <button class="pg-restart-btn" @click="restart" :disabled="status === 'restarting'">🔄 Yeniden Başlat</button>
+    <button class="pg-refresh-btn" @click="loadStatus">↻ Yenile</button>
+  </div>
+</div>

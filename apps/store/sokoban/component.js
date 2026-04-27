@@ -499,7 +499,8 @@
 
       onUnmounted(function() {
         window.removeEventListener('keydown', onKeyDown);
-        window.removeEventListener('locale-changed', onLocaleChanged));
+        window.removeEventListener('locale-changed', onLocaleChanged);
+});
 
       return {
         t, canvasEl,

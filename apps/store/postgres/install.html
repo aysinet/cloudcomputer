@@ -1,0 +1,95 @@
+<div class="pg-install-form">
+  <div class="pg-install-header">
+    <span class="pg-install-icon">🐘</span>
+    <h3>PostgreSQL 16</h3>
+    <p class="pg-install-subtitle" data-i18n="subtitle">Veritabanı şifresini belirleyin</p>
+  </div>
+  <div class="pg-install-body">
+    <label data-i18n="passwordLabel">PostgreSQL Şifresi</label>
+    <div class="pg-password-wrap">
+      <input type="password" id="pg-password" placeholder="Güçlü bir şifre girin" autocomplete="new-password" minlength="4" />
+      <button type="button" class="pg-eye-btn" onclick="togglePgPass()">👁</button>
+    </div>
+    <p class="pg-install-hint" data-i18n="hint">Bu şifre PostgreSQL yönetici (postgres) kullanıcısı için kullanılacaktır.</p>
+    <div class="pg-install-error" id="pg-install-error" style="display:none"></div>
+  </div>
+  <div class="pg-install-footer">
+    <button class="pg-cancel-btn" onclick="cancelServiceInstall()" data-i18n="cancel">İptal</button>
+    <button class="pg-install-btn" onclick="confirmServiceInstall()" data-i18n="installBtn">Kur ve Başlat</button>
+  </div>
+</div>
+
+<script>
+  // i18n for install page
+  const PG_I18N = {
+    tr: { subtitle: 'Veritabanı şifresini belirleyin', passwordLabel: 'PostgreSQL Şifresi', hint: 'Bu şifre PostgreSQL yönetici (postgres) kullanıcısı için kullanılacaktır.', cancel: 'İptal', installBtn: 'Kur ve Başlat', errorEmpty: 'Şifre boş olamaz', errorShort: 'Şifre en az 4 karakter olmalı' },
+    en: { subtitle: 'Set the database password', passwordLabel: 'PostgreSQL Password', hint: 'This password will be used for the PostgreSQL admin (postgres) user.', cancel: 'Cancel', installBtn: 'Install & Start', errorEmpty: 'Password cannot be empty', errorShort: 'Password must be at least 4 characters' },
+    de: { subtitle: 'Datenbankpasswort festlegen', passwordLabel: 'PostgreSQL-Passwort', hint: 'Dieses Passwort wird für den PostgreSQL-Admin (postgres) verwendet.', cancel: 'Abbrechen', installBtn: 'Installieren & Starten', errorEmpty: 'Passwort darf nicht leer sein', errorShort: 'Passwort muss mindestens 4 Zeichen lang sein' },
+    fr: { subtitle: 'Définir le mot de passe', passwordLabel: 'Mot de passe PostgreSQL', hint: 'Ce mot de passe sera utilisé pour l\'utilisateur admin PostgreSQL.', cancel: 'Annuler', installBtn: 'Installer & Démarrer', errorEmpty: 'Le mot de passe ne peut pas être vide', errorShort: 'Le mot de passe doit comporter au moins 4 caractères' },
+    es: { subtitle: 'Establecer la contraseña', passwordLabel: 'Contraseña PostgreSQL', hint: 'Esta contraseña se usará para el usuario admin de PostgreSQL.', cancel: 'Cancelar', installBtn: 'Instalar e Iniciar', errorEmpty: 'La contraseña no puede estar vacía', errorShort: 'La contraseña debe tener al menos 4 caracteres' }
+  };
+
+  function getPgLocale() {
+    try { return window.__serviceInstallLocale || 'tr'; } catch { return 'tr'; }
+  }
+
+  function getPgI18n(key) {
+    const loc = getPgLocale();
+    return (PG_I18N[loc] || PG_I18N.tr)[key] || (PG_I18N.tr)[key] || key;
+  }
+
+  function togglePgPass() {
+    const inp = document.getElementById('pg-password');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  function getInstallConfig() {
+    const password = (document.getElementById('pg-password').value || '').trim();
+    const errEl = document.getElementById('pg-install-error');
+    if (!password) {
+      errEl.textContent = getPgI18n('errorEmpty');
+      errEl.style.display = 'block';
+      return null;
+    }
+    if (password.length < 4) {
+      errEl.textContent = getPgI18n('errorShort');
+      errEl.style.display = 'block';
+      return null;
+    }
+    errEl.style.display = 'none';
+    return { POSTGRES_PASSWORD: password };
+  }
+</script>
+
+<style>
+  .pg-install-form { padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; }
+  .pg-install-header { text-align: center; margin-bottom: 20px; }
+  .pg-install-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+  .pg-install-header h3 { margin: 0 0 4px; font-size: 20px; color: #fff; }
+  .pg-install-subtitle { margin: 0; font-size: 13px; color: #aaa; }
+  .pg-install-body label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #ccc; }
+  .pg-password-wrap { display: flex; gap: 6px; margin-bottom: 8px; }
+  .pg-password-wrap input {
+    flex: 1; padding: 10px 12px; border: 1px solid #444; border-radius: 6px;
+    background: #1e1e2e; color: #fff; font-size: 14px; outline: none;
+  }
+  .pg-password-wrap input:focus { border-color: #336791; }
+  .pg-eye-btn {
+    background: #2a2a3a; border: 1px solid #444; border-radius: 6px; padding: 0 12px;
+    cursor: pointer; font-size: 16px;
+  }
+  .pg-install-hint { font-size: 11px; color: #888; margin: 4px 0 0; }
+  .pg-install-error { color: #ff6b6b; font-size: 12px; margin-top: 8px; padding: 6px 10px; background: rgba(255,0,0,0.1); border-radius: 4px; }
+  .pg-install-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .pg-cancel-btn {
+    padding: 8px 20px; border: 1px solid #555; border-radius: 6px; background: transparent;
+    color: #ccc; cursor: pointer; font-size: 13px;
+  }
+  .pg-cancel-btn:hover { background: #333; }
+  .pg-install-btn {
+    padding: 8px 24px; border: none; border-radius: 6px;
+    background: linear-gradient(135deg, #336791, #4a90c4); color: #fff;
+    cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  .pg-install-btn:hover { opacity: 0.9; }
+</style>

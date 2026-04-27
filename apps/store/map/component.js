@@ -420,7 +420,8 @@
     });
 
     onUnmounted(() => {
-      window.removeEventListener('locale-changed', onLocaleChanged)if (map) { map.setTarget(null); map = null; }
+      window.removeEventListener('locale-changed', onLocaleChanged);
+      if (map) { map.setTarget(null); map = null; }
     });
 
     return {

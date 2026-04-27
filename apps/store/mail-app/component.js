@@ -432,7 +432,8 @@
       checkPendingCompose();
     });
     onUnmounted(() => {
-      window.removeEventListener('locale-changed', onLocaleChanged)window.removeEventListener('mail-compose', onMailCompose);
+      window.removeEventListener('locale-changed', onLocaleChanged);
+      window.removeEventListener('mail-compose', onMailCompose);
     });
 
     return {

@@ -749,7 +749,8 @@
     });
 
     onUnmounted(function() {
-      window.removeEventListener('locale-changed', onLocaleChanged)document.removeEventListener('keydown', handleKeydown);
+      window.removeEventListener('locale-changed', onLocaleChanged);
+      document.removeEventListener('keydown', handleKeydown);
       if (bookLoaded.value) saveBookData();
       cleanupCurrent();
     });

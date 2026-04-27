@@ -1,0 +1,32 @@
+.skb-root{width:100%;height:100%;background:#1e1e2e;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif;overflow:hidden;user-select:none}
+.skb-toolbar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#16162a;flex-shrink:0}
+.skb-toolbar select{background:#252535;color:#ccc;border:1px solid #333;border-radius:4px;padding:3px 8px;font-size:12px;outline:none;cursor:pointer}
+.skb-toolbar select:focus{border-color:#6c63ff}
+.skb-toolbar .skb-layout-btns{display:flex;gap:4px;margin-left:auto}
+.skb-toolbar .skb-layout-btn{background:#252535;color:#aaa;border:1px solid #333;border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;transition:.15s}
+.skb-toolbar .skb-layout-btn:hover{background:#333}
+.skb-toolbar .skb-layout-btn.active{background:#6c63ff;color:#fff;border-color:#6c63ff}
+.skb-preview{background:#16162a;border-bottom:1px solid #2a2a3e;padding:6px 12px;min-height:28px;display:flex;align-items:center}
+.skb-preview-text{color:#fff;font-size:14px;flex:1;word-break:break-all;max-height:48px;overflow-y:auto;white-space:pre-wrap}
+.skb-preview-actions{display:flex;gap:4px;flex-shrink:0;margin-left:8px}
+.skb-preview-btn{background:#252535;color:#aaa;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer}
+.skb-preview-btn:hover{background:#6c63ff;color:#fff}
+.skb-keys{flex:1;display:flex;flex-direction:column;gap:4px;padding:6px;overflow:hidden}
+.skb-row{display:flex;gap:4px;justify-content:center}
+.skb-key{height:42px;min-width:36px;border:none;border-radius:6px;background:#252535;color:#e0e0e0;font-size:15px;cursor:pointer;transition:.1s;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 4px;position:relative}
+.skb-key:active{transform:scale(.93);background:#6c63ff}
+.skb-key:hover{background:#333}
+.skb-key.special{background:#2a2a3e;color:#aaa;font-size:11px;font-weight:600}
+.skb-key.special:hover{background:#3a3a4e}
+.skb-key.shift{min-width:64px}
+.skb-key.shift.active{background:#6c63ff;color:#fff}
+.skb-key.caps{min-width:68px}
+.skb-key.caps.active{background:#6c63ff;color:#fff}
+.skb-key.tab{min-width:56px}
+.skb-key.backspace{min-width:72px}
+.skb-key.enter{min-width:80px;background:#6c63ff;color:#fff}
+.skb-key.enter:hover{background:#7b73ff}
+.skb-key.space{flex:1;min-width:180px}
+.skb-key .skb-sub{position:absolute;top:3px;right:5px;font-size:9px;color:#666}
+/* tray keyboard icon */
+.skb-tray-btn{font-size:14px !important}

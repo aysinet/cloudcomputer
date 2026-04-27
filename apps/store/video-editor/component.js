@@ -703,7 +703,8 @@
     });
 
     onUnmounted(() => {
-      window.removeEventListener('locale-changed', onLocaleChanged)if (isPlaying.value && previewVideo.value) previewVideo.value.pause();
+      window.removeEventListener('locale-changed', onLocaleChanged);
+        if (isPlaying.value && previewVideo.value) previewVideo.value.pause();
     });
 
     return {

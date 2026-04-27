@@ -1,0 +1,22 @@
+{
+  "id": "magnifier",
+  "name": "Büyüteç",
+  "icon": "🔍",
+  "color": "linear-gradient(135deg,#4a90d9,#357abd)",
+  "type": "internal",
+  "size": { "w": 420, "h": 340 },
+  "global": false,
+  "description": "Ekran büyüteci — fare imlecini takip ederek ekran içeriğini büyütür",
+  "lang": {
+    "tr": { "name": "Büyüteç", "description": "Ekran büyüteci — fare imlecini takip ederek ekran içeriğini büyütür" },
+    "en": { "name": "Magnifier", "description": "Screen magnifier — follows cursor and zooms in on screen content" },
+    "de": { "name": "Bildschirmlupe", "description": "Bildschirmlupe — vergrößert Bildschirminhalt um den Mauszeiger" },
+    "fr": { "name": "Loupe", "description": "Loupe d'écran — agrandit le contenu de l'écran autour du curseur" },
+    "es": { "name": "Lupa", "description": "Lupa de pantalla — amplía el contenido alrededor del cursor" },
+    "ru": { "name": "Лупа", "description": "Экранная лупа — увеличивает содержимое экрана вокруг курсора" },
+    "zh": { "name": "放大镜", "description": "屏幕放大镜 — 跟随光标放大屏幕内容" },
+    "ja": { "name": "拡大鏡", "description": "画面拡大鏡 — カーソル周辺の画面を拡大表示" },
+    "it": { "name": "Lente", "description": "Lente d'ingrandimento — ingrandisce il contenuto dello schermo intorno al cursore" }
+  },
+  "category": "utilities"
+}

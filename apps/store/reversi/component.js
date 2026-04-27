@@ -165,7 +165,7 @@
 
       function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
       onMounted(() => { window.addEventListener('locale-changed', onLocaleChanged); });
-      onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged));
+      onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged); });
 
       reset();
 

@@ -627,7 +627,8 @@
       });
 
       onUnmounted(function() {
-        window.removeEventListener('locale-changed', onLocaleChanged)if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
+        window.removeEventListener('locale-changed', onLocaleChanged);
+        if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
       });
 
       return {

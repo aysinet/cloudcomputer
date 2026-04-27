@@ -1,0 +1,15 @@
+/* Screen Keyboard: mobile optimizations */
+.skb-root{background:#1e1e2e}
+.skb-toolbar{padding:8px 12px}
+.skb-toolbar select{font-size:14px;padding:6px 10px}
+.skb-preview{padding:8px 12px;min-height:36px}
+.skb-preview-text{font-size:16px}
+.skb-keys{padding:4px;gap:3px}
+.skb-row{gap:3px}
+.skb-key{height:48px;min-width:28px;font-size:16px;border-radius:5px}
+.skb-key.shift{min-width:48px}
+.skb-key.caps{min-width:52px}
+.skb-key.tab{min-width:42px}
+.skb-key.backspace{min-width:52px}
+.skb-key.enter{min-width:56px}
+.skb-key.space{min-width:120px}

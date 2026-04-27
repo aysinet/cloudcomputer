@@ -627,7 +627,8 @@
     });
 
     onUnmounted(function() {
-      window.removeEventListener('locale-changed', onLocaleChanged));
+      window.removeEventListener('locale-changed', onLocaleChanged);
+    });
 
     return {
       locale, t, katexReady, katexError, latex, formulaName, fontSize, fgColor, bgColor,

@@ -506,7 +506,8 @@
       onUnmounted(() => {
         if (autoLockTimer) clearTimeout(autoLockTimer);
         if (toastTimer) clearTimeout(toastTimer);
-        window.removeEventListener('locale-changed', onLocaleChanged));
+        window.removeEventListener('locale-changed', onLocaleChanged);
+      });
 
       return {
         L,

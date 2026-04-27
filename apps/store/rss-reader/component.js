@@ -332,7 +332,8 @@
 
       onUnmounted(() => {
         window.removeEventListener('rss-navigate', onRssNavigate);
-        window.removeEventListener('locale-changed', onLocaleChanged));
+        window.removeEventListener('locale-changed', onLocaleChanged);
+});
 
       return {
         L, feeds, readItems, loading, refreshing, adding, newUrl, newName, addError, showRead,

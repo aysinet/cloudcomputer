@@ -281,7 +281,8 @@
       refreshTimer = setInterval(loadReminders, 30000);
     });
     onUnmounted(() => {
-      window.removeEventListener('locale-changed', onLocaleChanged)if (refreshTimer) clearInterval(refreshTimer);
+      window.removeEventListener('locale-changed', onLocaleChanged);
+      if (refreshTimer) clearInterval(refreshTimer);
     });
 
     return {

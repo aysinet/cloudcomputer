@@ -98,7 +98,7 @@
       // Reactive locale (poll for changes from settings)
       function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
       onMounted(() => { window.addEventListener('locale-changed', onLocaleChanged); });
-      onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged));
+      onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged); });
 
       // ── State ──
       const library = ref([]);        // [{id, name, url, filename, source, ext, size, tags, category, rotation}]

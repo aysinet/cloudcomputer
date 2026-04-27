@@ -367,7 +367,8 @@
       onUnmounted(() => {
         window.removeEventListener('social-share-content', onShareIncoming);
         if (toastTimer) clearTimeout(toastTimer);
-        window.removeEventListener('locale-changed', onLocaleChanged));
+        window.removeEventListener('locale-changed', onLocaleChanged);
+});
 
       return {
         L, tab, contentType, message, linkUrl, imageUrl, imagePreview,

@@ -133,7 +133,7 @@ app.post('/pull', authCheck, async (req, res) => {
 
 // ── Run container ──
 app.post('/run', authCheck, async (req, res) => {
-  const { image, appId, containerPort, network, volumes, env } = req.body;
+  const { image, appId, containerPort, network, volumes, env, restart } = req.body;
   console.log(`[RUN] Request: appId=${appId} image=${image} containerPort=${containerPort}`);
   console.log(`[RUN] Volumes:`, volumes || '(none)');
   console.log(`[RUN] Env:`, env || '(none)');
@@ -175,6 +175,13 @@ app.post('/run', authCheck, async (req, res) => {
       '--network', netName,
       '-p', `${hostPort}:${cPort}`
     ];
+
+    // Add restart policy
+    const validRestart = ['no', 'always', 'unless-stopped', 'on-failure'];
+    if (restart && validRestart.includes(restart)) {
+      args.push('--restart', restart);
+      console.log(`[RUN] Restart policy: ${restart}`);
+    }
 
     // Add volume mounts (validated: only allow absolute paths, no '..')
     if (Array.isArray(volumes)) {

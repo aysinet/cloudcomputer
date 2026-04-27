@@ -282,7 +282,7 @@
       loadExtractDir();
       window.addEventListener('locale-changed', onLocaleChanged);
     });
-    onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged));
+    onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged); });
 
     return {
       tab, format, busy, busyText, statusMsg, statusType, L,

@@ -339,7 +339,8 @@
       });
 
       onBeforeUnmount(() => {
-        window.removeEventListener('locale-changed', onLocaleChanged)if (apiCheckTimer) { clearInterval(apiCheckTimer); apiCheckTimer = null; }
+        window.removeEventListener('locale-changed', onLocaleChanged);
+        if (apiCheckTimer) { clearInterval(apiCheckTimer); apiCheckTimer = null; }
       });
 
       return {

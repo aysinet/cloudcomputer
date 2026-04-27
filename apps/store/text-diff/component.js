@@ -484,7 +484,8 @@
     });
 
     onUnmounted(function() {
-      window.removeEventListener('locale-changed', onLocaleChanged)if (originalModel) { originalModel.dispose(); originalModel = null; }
+      window.removeEventListener('locale-changed', onLocaleChanged);
+      if (originalModel) { originalModel.dispose(); originalModel = null; }
       if (modifiedModel) { modifiedModel.dispose(); modifiedModel = null; }
       if (diffEditor) { diffEditor.dispose(); diffEditor = null; }
     });

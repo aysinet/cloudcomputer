@@ -408,7 +408,7 @@
       onCategoryChange();
       window.addEventListener('locale-changed', onLocaleChanged);
     });
-    onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged));
+    onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged); });
 
     return {
       category, fromUnit, toUnit, fromValue, toValue, categories, units,

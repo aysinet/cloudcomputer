@@ -1,0 +1,41 @@
+<div class="mag-root">
+  <div class="mag-toolbar">
+    <div class="mag-zoom-ctrl">
+      <button class="mag-btn" @click="zoomOut" :disabled="zoom <= 1.5">−</button>
+      <span class="mag-zoom-val">{{zoom.toFixed(1)}}×</span>
+      <button class="mag-btn" @click="zoomIn" :disabled="zoom >= 10">+</button>
+    </div>
+    <div class="mag-size-ctrl">
+      <label class="mag-label">{{L.size}}</label>
+      <select v-model="lensSize" class="mag-select">
+        <option :value="150">S</option>
+        <option :value="220">M</option>
+        <option :value="300">L</option>
+        <option :value="400">XL</option>
+      </select>
+    </div>
+    <div class="mag-shape-ctrl">
+      <button class="mag-btn" :class="{active: shape==='circle'}" @click="shape='circle'" title="⬤">⬤</button>
+      <button class="mag-btn" :class="{active: shape==='square'}" @click="shape='square'" title="⬜">⬜</button>
+    </div>
+    <label class="mag-toggle-wrap">
+      <input type="checkbox" v-model="freeze" />
+      <span class="mag-toggle-label">{{L.freeze}}</span>
+    </label>
+  </div>
+
+  <div class="mag-status">
+    <span v-if="!active" class="mag-hint">{{L.hint}}</span>
+    <span v-else class="mag-active-hint">{{L.activeHint}} <span class="mag-coords">{{cursorX}}, {{cursorY}}</span></span>
+  </div>
+
+  <div class="mag-actions">
+    <button class="mag-start-btn" v-if="!active" @click="startMagnifier">{{L.start}}</button>
+    <button class="mag-stop-btn" v-else @click="stopMagnifier">{{L.stop}}</button>
+  </div>
+
+  <div class="mag-preview">
+    <canvas ref="previewCanvas" :width="lensSize" :height="lensSize"
+      :class="['mag-canvas', shape]"></canvas>
+  </div>
+</div>

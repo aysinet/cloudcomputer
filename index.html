@@ -264,6 +264,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         </div>
         <button class="tray-btn">📶</button>
         <button class="tray-btn ss-tray-btn" @click.stop="startScreenshot" :title="t('screenshot')">📷</button>
+        <button v-if="showKeyboardTray" class="tray-btn skb-tray-btn" @click="openApp(apps.find(a=>a.id==='screenkeyboard'))" :title="t('skbTrayShow')">⌨️</button>
+        <button v-if="showMagnifierTray" class="tray-btn" @click="openApp(apps.find(a=>a.id==='magnifier'))" :title="t('magTrayShow')">🔍</button>
       </div>
       <div class="taskbar-sep"></div>
       <button class="notif-bell" @click="openApp(apps.find(a=>a.id==='notifications'))" :title="t('notifications')">
@@ -402,10 +404,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
     </div>
     <div class="todo-list">
       <div v-if="!todos.length" class="todo-empty">{{t('todoEmpty')}}</div>
-      <div v-for="(td,i) in todos" :key="i" class="todo-item" :class="{done:td.done}">
-        <input type="checkbox" v-model="td.done">
+      <div v-for="(td,i) in todos" :key="td.id" class="todo-item" :class="{done:td.done}">
+        <input type="checkbox" :checked="td.done" @change="toggleDone(td)">
         <span>{{td.text}}</span>
-        <button class="del" @click="todos.splice(i,1)">✕</button>
+        <button class="del" @click="remove(i)">✕</button>
       </div>
     </div>
   </div>
@@ -570,6 +572,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
           <div><div class="lbl">{{t('restoreApps')}}</div><div class="sub">{{t('restoreAppsDesc')}}</div></div>
           <div class="ctrl"><label class="settings-toggle"><input type="checkbox" :checked="restoreSession" @change="toggleRestoreSession"><span class="settings-slider"></span></label></div>
         </div>
+        <div class="settings-row">
+          <div><div class="lbl">{{t('skbTrayToggle')}}</div><div class="sub">{{t('skbTrayToggleDesc')}}</div></div>
+          <div class="ctrl"><label class="settings-toggle"><input type="checkbox" :checked="showKeyboardTray" @change="toggleKeyboardTray"><span class="settings-slider"></span></label></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="lbl">{{t('magTrayToggle')}}</div><div class="sub">{{t('magTrayToggleDesc')}}</div></div>
+          <div class="ctrl"><label class="settings-toggle"><input type="checkbox" :checked="showMagnifierTray" @change="toggleMagnifierTray"><span class="settings-slider"></span></label></div>
+        </div>
       </template>
       <template v-else>
         <template v-for="row in currentRows">
@@ -643,7 +653,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
                 <span :class="{'cal-day-num':true, today:cell.isToday}" :style="{color:cell.isCurrentMonth?'#303133':'#c0c4cc'}">{{cell.day}}</span>
               </div>
               <div class="cal-events">
-                <div v-for="ev in getEvents(cell.date).slice(0,2)" class="cal-event-dot" :class="ev.color">{{ev.title}}</div>
+                <div v-for="ev in getEvents(cell.date).slice(0,2)" class="cal-event-dot" :class="ev.color" :title="ev.title">{{ev.title}}</div>
                 <div v-if="getEvents(cell.date).length>2" style="font-size:9px;color:#909399">+{{getEvents(cell.date).length-2}} {{t('calMore')}}</div>
               </div>
             </td>
@@ -674,17 +684,17 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         </div>
       </div>
     </el-dialog>
-    <el-dialog v-model="showHolidayDialog" title="🏖️ Holidays" width="420px" :close-on-click-modal="true">
+    <el-dialog v-model="showHolidayDialog" :title="'🏖️ ' + t('calHolidays')" width="420px" :close-on-click-modal="true">
       <div style="max-height:380px;overflow-y:auto">
         <div v-for="c in holidayCountries" :key="c.code" style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .15s" @mouseenter="$event.target.style.background='#ecf5ff'" @mouseleave="$event.target.style.background=''" @click="addHolidays(c.code)">
           <span style="font-size:22px">{{c.flag}}</span>
           <span style="flex:1;font-size:14px">{{c.name}}</span>
-          <span style="font-size:11px;color:#909399">{{Object.keys(c.holidays).length}} days</span>
-          <el-button size="small" type="primary" plain>+ Add</el-button>
+          <span style="font-size:11px;color:#909399">{{Object.keys(c.holidays).length}} {{t('calDays')}}</span>
+          <el-button size="small" type="primary" plain>+ {{t('calAddHoliday')}}</el-button>
         </div>
       </div>
       <template #footer>
-        <el-button size="small" type="danger" plain @click="clearHolidays">🗑 Clear all holidays</el-button>
+        <el-button size="small" type="danger" plain @click="clearHolidays">🗑 {{t('calClearHolidays')}}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -740,13 +750,74 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
               <div class="si-name">{{appName(app)}}</div>
               <div class="si-desc">{{appDesc(app)}}</div>
             </div>
-            <span class="si-type" :class="app.type">{{app.type==='internal'?t('internal'):t('external')}}</span>
+            <span class="si-type" :class="app.type">{{app.type==='internal'?t('internal'):app.type==='service'?t('service'):t('external')}}</span>
             <button v-if="app.global" class="si-btn global">Global</button>
             <button v-else-if="app.installed" class="si-btn uninstall" @click="uninstall(app)">{{t('uninstall')}}</button>
+            <button v-else-if="app.type==='service'" class="si-btn install" @click="installService(app)">{{t('install')}}</button>
             <button v-else class="si-btn install" @click="install(app)">{{t('install')}}</button>
           </div>
         </el-collapse-item>
       </el-collapse>
+    </div>
+
+    <!-- Service Install Dialog -->
+    <div v-if="serviceInstallDialog.show" class="service-install-overlay" @click.self="closeServiceInstall">
+      <div class="service-install-dialog">
+        <div v-if="serviceInstallDialog.loading" class="service-install-loading">
+          <div class="sil-spinner"></div>
+          <p>{{serviceInstallDialog.loadingMsg || t('loading')}}</p>
+        </div>
+        <div v-else ref="installPageContainer" class="service-install-content"></div>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="ScreenKeyboardApp">
+  <div class="skb-root">
+    <div class="skb-toolbar">
+      <select v-model="layout" @change="onLayoutChange">
+        <option v-for="l in layouts" :key="l.id" :value="l.id">{{l.flag}} {{l.name}}</option>
+      </select>
+      <div class="skb-layout-btns">
+        <button class="skb-layout-btn" :class="{active:!numpad}" @click="numpad=false">ABC</button>
+        <button class="skb-layout-btn" :class="{active:numpad}" @click="numpad=true">123</button>
+      </div>
+    </div>
+    <div class="skb-preview">
+      <div class="skb-preview-text">{{typedText || '&#8203;'}}</div>
+      <div class="skb-preview-actions">
+        <button class="skb-preview-btn" @click="copyText" :title="t('skbCopy')">📋</button>
+        <button class="skb-preview-btn" @click="clearText" :title="t('skbClear')">✕</button>
+      </div>
+    </div>
+    <div class="skb-keys" v-if="!numpad">
+      <div class="skb-row" v-for="(row,ri) in currentKeys" :key="ri">
+        <button v-if="ri===2" class="skb-key special shift" :class="{active:shifted}" @click="toggleShift">⇧</button>
+        <button v-if="ri===1" class="skb-key special caps" :class="{active:capsOn}" @click="toggleCaps">⇪</button>
+        <button v-for="(k,ki) in row" :key="ki" class="skb-key" @click="typeKey(k)">
+          {{displayKey(k)}}
+          <span v-if="k.sub" class="skb-sub">{{k.sub}}</span>
+        </button>
+        <button v-if="ri===1" class="skb-key special backspace" @click="backspace">⌫</button>
+        <button v-if="ri===2" class="skb-key special enter" @click="typeEnter">↵</button>
+      </div>
+      <div class="skb-row">
+        <button class="skb-key special tab" @click="typeTab">⇥</button>
+        <button class="skb-key space" @click="typeSpace"> </button>
+        <button class="skb-key special" style="min-width:48px" @click="typeKey({char:'.'})">.</button>
+        <button class="skb-key special" style="min-width:48px" @click="typeKey({char:','})">,</button>
+      </div>
+    </div>
+    <div class="skb-keys" v-else>
+      <div class="skb-row" v-for="(row,ri) in numpadKeys" :key="ri">
+        <button v-for="(k,ki) in row" :key="ki" class="skb-key" @click="typeKey(k)">{{k.char}}</button>
+      </div>
+      <div class="skb-row">
+        <button class="skb-key special backspace" @click="backspace">⌫</button>
+        <button class="skb-key space" @click="typeSpace"> </button>
+        <button class="skb-key special enter" @click="typeEnter">↵</button>
+      </div>
     </div>
   </div>
 </script>
@@ -846,7 +917,9 @@ const useSettingsStore = defineStore('settings', {
     wallpaperAll: '',
     wallpapers: { 1: '', 2: '', 3: '', 4: '' },
     wallpaperMode: 'all',
-    restoreSession: false
+    restoreSession: false,
+    showKeyboardTray: false,
+    showMagnifierTray: false
   }),
   actions: {
     async load() {
@@ -865,6 +938,8 @@ const useSettingsStore = defineStore('settings', {
         if (s.wallpapers) this.wallpapers = { ...this.wallpapers, ...s.wallpapers };
         if (s.wallpaperMode) this.wallpaperMode = s.wallpaperMode;
         if (s.restoreSession !== undefined) this.restoreSession = s.restoreSession;
+        if (s.showKeyboardTray !== undefined) this.showKeyboardTray = s.showKeyboardTray;
+        if (s.showMagnifierTray !== undefined) this.showMagnifierTray = s.showMagnifierTray;
       } catch {}
     },
     async save(data) {
@@ -1182,6 +1257,7 @@ const I18N = {
     todo: 'Görev Listesi', weather: 'Hava Durumu', settings: 'Ayarlar',
     terminal: 'Terminal', clock: 'Saat', calendar: 'Takvim',
     notifications: 'Bildirimler', appstore: 'Uygulama Mağazası', browser: 'Tarayıcı',
+    screenkeyboard: 'Ekran Klavyesi', skbCopy: 'Kopyala', skbClear: 'Temizle', skbTrayShow: 'Ekran Klavyesini Göster',
     mute: 'Sessiz', unmute: 'Sesi Aç',
     // Settings
     settingsDisplay: 'Ekran', settingsLocation: 'Konum', settingsSound: 'Ses',
@@ -1202,7 +1278,7 @@ const I18N = {
     send: 'Gönder', openApp: 'Uygulamayı Aç',
     // App Store
     storeTitle: 'Uygulama Mağazası', appsAvailable: 'uygulama mevcut',
-    internal: 'Dahili', external: 'Harici', install: 'Kur', uninstall: 'Kaldır',
+    internal: 'Dahili', external: 'Harici', service: 'Servis', install: 'Kur', uninstall: 'Kaldır',
     // Volume
     volMute: '🔇 Sessiz', volUnmute: '🔈 Sesi Aç',
     // Wallpaper
@@ -1210,7 +1286,9 @@ const I18N = {
     wpAll: 'Tümüne Aynı', wpPer: 'Ayrı Ayrı', wpDesktopSelect: 'Masaüstü Seç',
     wpUpload: 'Resim Yükle', wpUploadBtn: 'Yükle', wpGallery: 'Duvar Kağıtları',
     wpUploading: 'Yükleniyor...', wpDefault: 'Varsayılan',
-    settingsSession: 'Oturum', restoreApps: 'Uygulamaları Geri Yükle', restoreAppsDesc: 'Sayfa yenilendiğinde açık uygulamalar tekrar açılsın'
+    settingsSession: 'Oturum', restoreApps: 'Uygulamaları Geri Yükle', restoreAppsDesc: 'Sayfa yenilendiğinde açık uygulamalar tekrar açılsın',
+    skbTrayToggle: 'Ekran Klavyesi Simgesi', skbTrayToggleDesc: 'Görev çubuğunda ekran klavyesi simgesini göster',
+    magTrayShow: 'Büyüteci Göster', magTrayToggle: 'Büyüteç Simgesi', magTrayToggleDesc: 'Görev çubuğunda büyüteç simgesini göster'
   },
   en: {
     apps: 'Applications', user: 'User', loading: 'Loading...', search: 'Search...',
@@ -1218,6 +1296,7 @@ const I18N = {
     todo: 'To-Do List', weather: 'Weather', settings: 'Settings',
     terminal: 'Terminal', clock: 'Clock', calendar: 'Calendar',
     notifications: 'Notifications', appstore: 'App Store', browser: 'Browser',
+    screenkeyboard: 'Screen Keyboard', skbCopy: 'Copy', skbClear: 'Clear', skbTrayShow: 'Show Screen Keyboard',
     mute: 'Mute', unmute: 'Unmute',
     settingsDisplay: 'Display', settingsLocation: 'Location', settingsSound: 'Sound',
     settingsNetwork: 'Network', settingsAbout: 'About', settingsLanguage: 'Language',
@@ -1235,13 +1314,15 @@ const I18N = {
     markAllRead: 'Mark All as Read', testNotifPlaceholder: 'Add test notification...',
     send: 'Send', openApp: 'Open App',
     storeTitle: 'App Store', appsAvailable: 'apps available',
-    internal: 'Internal', external: 'External', install: 'Install', uninstall: 'Uninstall',
+    internal: 'Internal', external: 'External', service: 'Service', install: 'Install', uninstall: 'Uninstall',
     volMute: '🔇 Mute', volUnmute: '🔈 Unmute',
     settingsWallpaper: 'Wallpaper', wpMode: 'Mode', wpModeDesc: 'Same wallpaper for all desktops or different for each',
     wpAll: 'Same for All', wpPer: 'Per Desktop', wpDesktopSelect: 'Select Desktop',
     wpUpload: 'Upload Image', wpUploadBtn: 'Upload', wpGallery: 'Wallpapers',
     wpUploading: 'Uploading...', wpDefault: 'Default',
-    settingsSession: 'Session', restoreApps: 'Restore Apps', restoreAppsDesc: 'Reopen apps after page refresh'
+    settingsSession: 'Session', restoreApps: 'Restore Apps', restoreAppsDesc: 'Reopen apps after page refresh',
+    skbTrayToggle: 'Screen Keyboard Icon', skbTrayToggleDesc: 'Show screen keyboard icon in taskbar',
+    magTrayShow: 'Show Magnifier', magTrayToggle: 'Magnifier Icon', magTrayToggleDesc: 'Show magnifier icon in taskbar'
   },
   de: {
     apps: 'Anwendungen', user: 'Benutzer', loading: 'Laden...', search: 'Suchen...',
@@ -1249,6 +1330,7 @@ const I18N = {
     todo: 'Aufgabenliste', weather: 'Wetter', settings: 'Einstellungen',
     terminal: 'Terminal', clock: 'Uhr', calendar: 'Kalender',
     notifications: 'Benachrichtigungen', appstore: 'App Store', browser: 'Browser',
+    screenkeyboard: 'Bildschirmtastatur', skbCopy: 'Kopieren', skbClear: 'Löschen', skbTrayShow: 'Bildschirmtastatur anzeigen',
     mute: 'Stumm', unmute: 'Ton an',
     settingsDisplay: 'Anzeige', settingsLocation: 'Standort', settingsSound: 'Ton',
     settingsNetwork: 'Netzwerk', settingsAbout: 'Über', settingsLanguage: 'Sprache',
@@ -1266,13 +1348,15 @@ const I18N = {
     markAllRead: 'Alle als gelesen markieren', testNotifPlaceholder: 'Testbenachrichtigung hinzufügen...',
     send: 'Senden', openApp: 'App öffnen',
     storeTitle: 'App Store', appsAvailable: 'Apps verfügbar',
-    internal: 'Intern', external: 'Extern', install: 'Installieren', uninstall: 'Deinstallieren',
+    internal: 'Intern', external: 'Extern', service: 'Dienst', install: 'Installieren', uninstall: 'Deinstallieren',
     volMute: '🔇 Stumm', volUnmute: '🔈 Ton an',
     settingsWallpaper: 'Hintergrundbild', wpMode: 'Modus', wpModeDesc: 'Gleiches oder verschiedenes Hintergrundbild für alle Desktops',
     wpAll: 'Für alle gleich', wpPer: 'Pro Desktop', wpDesktopSelect: 'Desktop auswählen',
     wpUpload: 'Bild hochladen', wpUploadBtn: 'Hochladen', wpGallery: 'Hintergrundbilder',
     wpUploading: 'Wird hochgeladen...', wpDefault: 'Standard',
-    settingsSession: 'Sitzung', restoreApps: 'Apps wiederherstellen', restoreAppsDesc: 'Offene Apps nach Seitenaktualisierung erneut öffnen'
+    settingsSession: 'Sitzung', restoreApps: 'Apps wiederherstellen', restoreAppsDesc: 'Offene Apps nach Seitenaktualisierung erneut öffnen',
+    skbTrayToggle: 'Bildschirmtastatur-Symbol', skbTrayToggleDesc: 'Bildschirmtastatur-Symbol in der Taskleiste anzeigen',
+    magTrayShow: 'Lupe anzeigen', magTrayToggle: 'Lupen-Symbol', magTrayToggleDesc: 'Lupen-Symbol in der Taskleiste anzeigen'
   },
   fr: {
     apps: 'Applications', user: 'Utilisateur', loading: 'Chargement...', search: 'Rechercher...',
@@ -1280,6 +1364,7 @@ const I18N = {
     todo: 'Liste de tâches', weather: 'Météo', settings: 'Paramètres',
     terminal: 'Terminal', clock: 'Horloge', calendar: 'Calendrier',
     notifications: 'Notifications', appstore: 'Boutique d\'apps', browser: 'Navigateur',
+    screenkeyboard: 'Clavier virtuel', skbCopy: 'Copier', skbClear: 'Effacer', skbTrayShow: 'Afficher le clavier virtuel',
     mute: 'Muet', unmute: 'Son activé',
     settingsDisplay: 'Affichage', settingsLocation: 'Localisation', settingsSound: 'Son',
     settingsNetwork: 'Réseau', settingsAbout: 'À propos', settingsLanguage: 'Langue',
@@ -1297,13 +1382,15 @@ const I18N = {
     markAllRead: 'Tout marquer comme lu', testNotifPlaceholder: 'Ajouter une notification test...',
     send: 'Envoyer', openApp: 'Ouvrir l\'app',
     storeTitle: 'Boutique d\'apps', appsAvailable: 'apps disponibles',
-    internal: 'Interne', external: 'Externe', install: 'Installer', uninstall: 'Désinstaller',
+    internal: 'Interne', external: 'Externe', service: 'Service', install: 'Installer', uninstall: 'Désinstaller',
     volMute: '🔇 Muet', volUnmute: '🔈 Son activé',
     settingsWallpaper: 'Fond d\'écran', wpMode: 'Mode', wpModeDesc: 'Même fond d\'écran pour tous les bureaux ou différent pour chacun',
     wpAll: 'Identique pour tous', wpPer: 'Par bureau', wpDesktopSelect: 'Sélectionner le bureau',
     wpUpload: 'Charger une image', wpUploadBtn: 'Charger', wpGallery: 'Fonds d\'écran',
     wpUploading: 'Chargement...', wpDefault: 'Par défaut',
-    settingsSession: 'Session', restoreApps: 'Restaurer les applications', restoreAppsDesc: 'Rouvrir les applications après actualisation de la page'
+    settingsSession: 'Session', restoreApps: 'Restaurer les applications', restoreAppsDesc: 'Rouvrir les applications après actualisation de la page',
+    skbTrayToggle: 'Icône clavier virtuel', skbTrayToggleDesc: 'Afficher l\'icône du clavier virtuel dans la barre des tâches',
+    magTrayShow: 'Afficher la loupe', magTrayToggle: 'Icône loupe', magTrayToggleDesc: 'Afficher l\'icône de la loupe dans la barre des tâches'
   },
   es: {
     apps: 'Aplicaciones', user: 'Usuario', loading: 'Cargando...', search: 'Buscar...',
@@ -1311,6 +1398,7 @@ const I18N = {
     todo: 'Lista de tareas', weather: 'Tiempo', settings: 'Ajustes',
     terminal: 'Terminal', clock: 'Reloj', calendar: 'Calendario',
     notifications: 'Notificaciones', appstore: 'Tienda de apps', browser: 'Navegador',
+    screenkeyboard: 'Teclado en pantalla', skbCopy: 'Copiar', skbClear: 'Borrar', skbTrayShow: 'Mostrar teclado en pantalla',
     mute: 'Silenciar', unmute: 'Activar sonido',
     settingsDisplay: 'Pantalla', settingsLocation: 'Ubicación', settingsSound: 'Sonido',
     settingsNetwork: 'Red', settingsAbout: 'Acerca de', settingsLanguage: 'Idioma',
@@ -1328,13 +1416,15 @@ const I18N = {
     markAllRead: 'Marcar todo como leído', testNotifPlaceholder: 'Añadir notificación de prueba...',
     send: 'Enviar', openApp: 'Abrir app',
     storeTitle: 'Tienda de apps', appsAvailable: 'apps disponibles',
-    internal: 'Interna', external: 'Externa', install: 'Instalar', uninstall: 'Desinstalar',
+    internal: 'Interna', external: 'Externa', service: 'Servicio', install: 'Instalar', uninstall: 'Desinstalar',
     volMute: '🔇 Silenciar', volUnmute: '🔈 Activar sonido',
     settingsWallpaper: 'Fondo de pantalla', wpMode: 'Modo', wpModeDesc: 'Mismo fondo para todos los escritorios o diferente para cada uno',
     wpAll: 'Igual para todos', wpPer: 'Por escritorio', wpDesktopSelect: 'Seleccionar escritorio',
     wpUpload: 'Subir imagen', wpUploadBtn: 'Subir', wpGallery: 'Fondos de pantalla',
     wpUploading: 'Subiendo...', wpDefault: 'Predeterminado',
-    settingsSession: 'Sesión', restoreApps: 'Restaurar aplicaciones', restoreAppsDesc: 'Reabrir aplicaciones tras actualizar la página'
+    settingsSession: 'Sesión', restoreApps: 'Restaurar aplicaciones', restoreAppsDesc: 'Reabrir aplicaciones tras actualizar la página',
+    skbTrayToggle: 'Icono de teclado', skbTrayToggleDesc: 'Mostrar icono de teclado en pantalla en la barra de tareas',
+    magTrayShow: 'Mostrar lupa', magTrayToggle: 'Icono de lupa', magTrayToggleDesc: 'Mostrar icono de lupa en la barra de tareas'
   },
   ru: {
     apps: 'Приложения', user: 'Пользователь', loading: 'Загрузка...', search: 'Поиск...',
@@ -1342,6 +1432,7 @@ const I18N = {
     todo: 'Список задач', weather: 'Погода', settings: 'Настройки',
     terminal: 'Терминал', clock: 'Часы', calendar: 'Календарь',
     notifications: 'Уведомления', appstore: 'Магазин приложений', browser: 'Браузер',
+    screenkeyboard: 'Экранная клавиатура', skbCopy: 'Копировать', skbClear: 'Очистить', skbTrayShow: 'Показать экранную клавиатуру',
     mute: 'Отключить звук', unmute: 'Включить звук',
     settingsDisplay: 'Экран', settingsLocation: 'Местоположение', settingsSound: 'Звук',
     settingsNetwork: 'Сеть', settingsAbout: 'О системе', settingsLanguage: 'Язык',
@@ -1359,13 +1450,15 @@ const I18N = {
     markAllRead: 'Отметить все как прочитанные', testNotifPlaceholder: 'Добавить тестовое уведомление...',
     send: 'Отправить', openApp: 'Открыть',
     storeTitle: 'Магазин приложений', appsAvailable: 'приложений доступно',
-    internal: 'Встроенное', external: 'Внешнее', install: 'Установить', uninstall: 'Удалить',
+    internal: 'Встроенное', external: 'Внешнее', service: 'Сервис', install: 'Установить', uninstall: 'Удалить',
     volMute: '🔇 Без звука', volUnmute: '🔈 Включить звук',
     settingsWallpaper: 'Обои', wpMode: 'Режим', wpModeDesc: 'Одинаковые обои для всех рабочих столов или разные',
     wpAll: 'Одинаковые для всех', wpPer: 'Для каждого стола', wpDesktopSelect: 'Выбрать рабочий стол',
     wpUpload: 'Загрузить изображение', wpUploadBtn: 'Загрузить', wpGallery: 'Обои',
     wpUploading: 'Загрузка...', wpDefault: 'По умолчанию',
-    settingsSession: 'Сессия', restoreApps: 'Восстановить приложения', restoreAppsDesc: 'Открывать приложения заново после обновления страницы'
+    settingsSession: 'Сессия', restoreApps: 'Восстановить приложения', restoreAppsDesc: 'Открывать приложения заново после обновления страницы',
+    skbTrayToggle: 'Значок клавиатуры', skbTrayToggleDesc: 'Показать значок экранной клавиатуры на панели задач',
+    magTrayShow: 'Показать лупу', magTrayToggle: 'Значок лупы', magTrayToggleDesc: 'Показать значок лупы на панели задач'
   },
   zh: {
     apps: '应用程序', user: '用户', loading: '加载中...', search: '搜索...',
@@ -1373,6 +1466,7 @@ const I18N = {
     todo: '待办事项', weather: '天气', settings: '设置',
     terminal: '终端', clock: '时钟', calendar: '日历',
     notifications: '通知', appstore: '应用商店', browser: '浏览器',
+    screenkeyboard: '屏幕键盘', skbCopy: '复制', skbClear: '清除', skbTrayShow: '显示屏幕键盘',
     mute: '静音', unmute: '取消静音',
     settingsDisplay: '显示', settingsLocation: '位置', settingsSound: '声音',
     settingsNetwork: '网络', settingsAbout: '关于', settingsLanguage: '语言',
@@ -1390,13 +1484,15 @@ const I18N = {
     markAllRead: '全部标记为已读', testNotifPlaceholder: '添加测试通知...',
     send: '发送', openApp: '打开应用',
     storeTitle: '应用商店', appsAvailable: '个可用应用',
-    internal: '内置', external: '外部', install: '安装', uninstall: '卸载',
+    internal: '内置', external: '外部', service: '服务', install: '安装', uninstall: '卸载',
     volMute: '🔇 静音', volUnmute: '🔈 取消静音',
     settingsWallpaper: '壁纸', wpMode: '模式', wpModeDesc: '为所有桌面设置相同或不同的壁纸',
     wpAll: '全部相同', wpPer: '各自不同', wpDesktopSelect: '选择桌面',
     wpUpload: '上传图片', wpUploadBtn: '上传', wpGallery: '壁纸库',
     wpUploading: '上传中...', wpDefault: '默认',
-    settingsSession: '会话', restoreApps: '恢复应用', restoreAppsDesc: '页面刷新后重新打开应用'
+    settingsSession: '会话', restoreApps: '恢复应用', restoreAppsDesc: '页面刷新后重新打开应用',
+    skbTrayToggle: '键盘图标', skbTrayToggleDesc: '在任务栏显示屏幕键盘图标',
+    magTrayShow: '显示放大镜', magTrayToggle: '放大镜图标', magTrayToggleDesc: '在任务栏显示放大镜图标'
   },
   ja: {
     apps: 'アプリケーション', user: 'ユーザー', loading: '読み込み中...', search: '検索...',
@@ -1404,6 +1500,7 @@ const I18N = {
     todo: 'ToDoリスト', weather: '天気', settings: '設定',
     terminal: 'ターミナル', clock: '時計', calendar: 'カレンダー',
     notifications: '通知', appstore: 'アプリストア', browser: 'ブラウザ',
+    screenkeyboard: 'スクリーンキーボード', skbCopy: 'コピー', skbClear: 'クリア', skbTrayShow: 'スクリーンキーボードを表示',
     mute: 'ミュート', unmute: 'ミュート解除',
     settingsDisplay: 'ディスプレイ', settingsLocation: '場所', settingsSound: 'サウンド',
     settingsNetwork: 'ネットワーク', settingsAbout: '情報', settingsLanguage: '言語',
@@ -1421,13 +1518,15 @@ const I18N = {
     markAllRead: 'すべて既読にする', testNotifPlaceholder: 'テスト通知を追加...',
     send: '送信', openApp: 'アプリを開く',
     storeTitle: 'アプリストア', appsAvailable: '個のアプリが利用可能',
-    internal: '内蔵', external: '外部', install: 'インストール', uninstall: 'アンインストール',
+    internal: '内蔵', external: '外部', service: 'サービス', install: 'インストール', uninstall: 'アンインストール',
     volMute: '🔇 ミュート', volUnmute: '🔈 ミュート解除',
     settingsWallpaper: '壁紙', wpMode: 'モード', wpModeDesc: 'すべてのデスクトップに同じ壁紙または個別に設定',
     wpAll: 'すべて同じ', wpPer: 'デスクトップごと', wpDesktopSelect: 'デスクトップを選択',
     wpUpload: '画像をアップロード', wpUploadBtn: 'アップロード', wpGallery: '壁紙ギャラリー',
     wpUploading: 'アップロード中...', wpDefault: 'デフォルト',
-    settingsSession: 'セッション', restoreApps: 'アプリを復元', restoreAppsDesc: 'ページ更新後にアプリを再度開く'
+    settingsSession: 'セッション', restoreApps: 'アプリを復元', restoreAppsDesc: 'ページ更新後にアプリを再度開く',
+    skbTrayToggle: 'キーボードアイコン', skbTrayToggleDesc: 'タスクバーにスクリーンキーボードアイコンを表示',
+    magTrayShow: '拡大鏡を表示', magTrayToggle: '拡大鏡アイコン', magTrayToggleDesc: 'タスクバーに拡大鏡アイコンを表示'
   },
   it: {
     apps: 'Applicazioni', user: 'Utente', loading: 'Caricamento...', search: 'Cerca...',
@@ -1435,6 +1534,7 @@ const I18N = {
     todo: 'Lista attività', weather: 'Meteo', settings: 'Impostazioni',
     terminal: 'Terminale', clock: 'Orologio', calendar: 'Calendario',
     notifications: 'Notifiche', appstore: 'App Store', browser: 'Browser',
+    screenkeyboard: 'Tastiera su schermo', skbCopy: 'Copia', skbClear: 'Cancella', skbTrayShow: 'Mostra tastiera su schermo',
     mute: 'Muto', unmute: 'Riattiva audio',
     settingsDisplay: 'Schermo', settingsLocation: 'Posizione', settingsSound: 'Audio',
     settingsNetwork: 'Rete', settingsAbout: 'Informazioni', settingsLanguage: 'Lingua',
@@ -1452,13 +1552,15 @@ const I18N = {
     markAllRead: 'Segna tutto come letto', testNotifPlaceholder: 'Aggiungi notifica di test...',
     send: 'Invia', openApp: 'Apri app',
     storeTitle: 'App Store', appsAvailable: 'app disponibili',
-    internal: 'Interna', external: 'Esterna', install: 'Installa', uninstall: 'Disinstalla',
+    internal: 'Interna', external: 'Esterna', service: 'Servizio', install: 'Installa', uninstall: 'Disinstalla',
     volMute: '🔇 Muto', volUnmute: '🔈 Riattiva audio',
     settingsWallpaper: 'Sfondo', wpMode: 'Modalità', wpModeDesc: 'Stesso sfondo per tutti i desktop o diverso per ciascuno',
     wpAll: 'Uguale per tutti', wpPer: 'Per desktop', wpDesktopSelect: 'Seleziona desktop',
     wpUpload: 'Carica immagine', wpUploadBtn: 'Carica', wpGallery: 'Sfondi',
     wpUploading: 'Caricamento...', wpDefault: 'Predefinito',
-    settingsSession: 'Sessione', restoreApps: 'Ripristina app', restoreAppsDesc: 'Riapri le app dopo l\'aggiornamento della pagina'
+    settingsSession: 'Sessione', restoreApps: 'Ripristina app', restoreAppsDesc: 'Riapri le app dopo l\'aggiornamento della pagina',
+    skbTrayToggle: 'Icona tastiera', skbTrayToggleDesc: 'Mostra icona della tastiera su schermo nella barra delle applicazioni',
+    magTrayShow: 'Mostra lente', magTrayToggle: 'Icona lente', magTrayToggleDesc: 'Mostra icona della lente di ingrandimento nella barra delle applicazioni'
   }
 };
 
@@ -1505,18 +1607,16 @@ Object.assign(I18N.tr, {
   start:'Başlat', fullscreen:'Tam Ekran', fullscreenExit:'Tam Ekrandan Çık',
   notepadClear:'Temizle', notepadCopy:'Kopyala', notepadPlaceholder:'Yazmaya başlayın...', notepadChars:'karakter', notepadWords:'kelime',
   todoTitle:'Görev Listesi', todoCompleted:'tamamlandı', todoPlaceholder:'Yeni görev ekle...', todoAdd:'Ekle', todoEmpty:'Henüz görev yok 🎉',
-  todoDefault1:'Vue Desktop denemesi', todoDefault2:'Yeni uygulamalar ekle',
   fmDesktop:'Masaüstü', fmDocuments:'Belgeler', fmDownloads:'İndirmeler', fmPictures:'Resimler', fmMusic:'Müzik', fmTrash:'Çöp Kutusu',
   fmItems:'öğe', fmSelected:'seçili', fmOpening:'açılıyor...', fmPathPrefix:'C:\\Kullanıcılar\\Kullanıcı\\',
   weatherNow:'Şu an', weatherHumidity:'Nem', weatherWind:'Rüzgar', weatherFeelsLike:'Hissedilen', weatherHourly:'Saatlik Tahmin', weatherUnknown:'Bilinmiyor',
   calToday:'Bugün', calAddEvent:'+ Etkinlik', calEventPlaceholder:'Etkinlik adı...', calAdd:'Ekle', calNoEvents:'Bu tarihte etkinlik yok', calMore:'daha',
   calBlue:'Mavi', calGreen:'Yeşil', calOrange:'Turuncu', calRed:'Kırmızı', calPurple:'Mor',
+  calHolidays:'Tatiller', calDays:'gün', calAddHoliday:'Ekle', calClearHolidays:'Tüm tatilleri temizle', calHolidaysAdded:'tatil eklendi',
   termBarTitle:'bash - kullanıcı@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Komutlar: help, ls, date, clear, echo [metin]',
   termHelpText:'Komutlar: help, ls, date, clear, echo [metin], whoami, pwd', termNotFound:'Komut bulunamadı', termHelpHint:'"help" yazın.',
   termPlaceholder:'komut girin...', termUser:'kullanıcı', termPwd:'/home/kullanıcı',
-  notifCalTitle:'Takvim', notifCalText:'Yarın saat 10:00\'da toplantı var.', notifTaskTitle:'Görevler', notifTaskText:'3 görev tamamlanmayı bekliyor.',
-  notifSysTitle:'Sistem', notifSysText:'Güncelleme mevcut: v1.1', notifTermTitle:'Terminal', notifTermText:'Arka plan işlemi tamamlandı.',
-  notifTime2h:'2 saat önce', notifTime4h:'4 saat önce', notifYesterday:'Dün', notifNow:'Şimdi', notifLabel:'Bildirim',
+  notifNow:'Şimdi', notifLabel:'Bildirim',
   mediaPrev:'Önceki', mediaNext:'Sonraki',
     // Browser
     brUrlPlaceholder:'URL veya arama yazın...', brAdd:'Ekle', brRetry:'Tekrar Dene', brNewTab:'Yeni Sekme',
@@ -1527,18 +1627,16 @@ Object.assign(I18N.en, {
   start:'Start', fullscreen:'Fullscreen', fullscreenExit:'Exit Fullscreen',
   notepadClear:'Clear', notepadCopy:'Copy', notepadPlaceholder:'Start typing...', notepadChars:'characters', notepadWords:'words',
   todoTitle:'To-Do List', todoCompleted:'completed', todoPlaceholder:'Add new task...', todoAdd:'Add', todoEmpty:'No tasks yet 🎉',
-  todoDefault1:'Try Vue Desktop', todoDefault2:'Add new apps',
   fmDesktop:'Desktop', fmDocuments:'Documents', fmDownloads:'Downloads', fmPictures:'Pictures', fmMusic:'Music', fmTrash:'Trash',
   fmItems:'items', fmSelected:'selected', fmOpening:'opening...', fmPathPrefix:'C:\\Users\\User\\',
   weatherNow:'Now', weatherHumidity:'Humidity', weatherWind:'Wind', weatherFeelsLike:'Feels Like', weatherHourly:'Hourly Forecast', weatherUnknown:'Unknown',
   calToday:'Today', calAddEvent:'+ Event', calEventPlaceholder:'Event name...', calAdd:'Add', calNoEvents:'No events on this date', calMore:'more',
   calBlue:'Blue', calGreen:'Green', calOrange:'Orange', calRed:'Red', calPurple:'Purple',
+  calHolidays:'Holidays', calDays:'days', calAddHoliday:'Add', calClearHolidays:'Clear all holidays', calHolidaysAdded:'holidays added',
   termBarTitle:'bash - user@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Commands: help, ls, date, clear, echo [text]',
   termHelpText:'Commands: help, ls, date, clear, echo [text], whoami, pwd', termNotFound:'Command not found', termHelpHint:'Type "help".',
   termPlaceholder:'enter command...', termUser:'user', termPwd:'/home/user',
-  notifCalTitle:'Calendar', notifCalText:'Meeting tomorrow at 10:00 AM.', notifTaskTitle:'Tasks', notifTaskText:'3 tasks waiting to be completed.',
-  notifSysTitle:'System', notifSysText:'Update available: v1.1', notifTermTitle:'Terminal', notifTermText:'Background process completed.',
-  notifTime2h:'2 hours ago', notifTime4h:'4 hours ago', notifYesterday:'Yesterday', notifNow:'Now', notifLabel:'Notification',
+  notifNow:'Now', notifLabel:'Notification',
   mediaPrev:'Previous', mediaNext:'Next',
     brUrlPlaceholder:'Type a URL or search...', brAdd:'Add', brRetry:'Retry', brNewTab:'New Tab',
     brBack:'Back', brForward:'Forward', brReload:'Reload', brHome:'Home', brBookmarks:'Bookmarks'
@@ -1548,18 +1646,16 @@ Object.assign(I18N.de, {
   start:'Start', fullscreen:'Vollbild', fullscreenExit:'Vollbild beenden',
   notepadClear:'Löschen', notepadCopy:'Kopieren', notepadPlaceholder:'Schreiben Sie...', notepadChars:'Zeichen', notepadWords:'Wörter',
   todoTitle:'Aufgabenliste', todoCompleted:'erledigt', todoPlaceholder:'Neue Aufgabe...', todoAdd:'Hinzufügen', todoEmpty:'Noch keine Aufgaben 🎉',
-  todoDefault1:'Vue Desktop ausprobieren', todoDefault2:'Neue Apps hinzufügen',
   fmDesktop:'Desktop', fmDocuments:'Dokumente', fmDownloads:'Downloads', fmPictures:'Bilder', fmMusic:'Musik', fmTrash:'Papierkorb',
   fmItems:'Elemente', fmSelected:'ausgewählt', fmOpening:'wird geöffnet...', fmPathPrefix:'C:\\Benutzer\\Benutzer\\',
   weatherNow:'Jetzt', weatherHumidity:'Feuchtigkeit', weatherWind:'Wind', weatherFeelsLike:'Gefühlt', weatherHourly:'Stündliche Vorhersage', weatherUnknown:'Unbekannt',
   calToday:'Heute', calAddEvent:'+ Ereignis', calEventPlaceholder:'Ereignisname...', calAdd:'Hinzufügen', calNoEvents:'Keine Ereignisse', calMore:'mehr',
   calBlue:'Blau', calGreen:'Grün', calOrange:'Orange', calRed:'Rot', calPurple:'Lila',
+  calHolidays:'Feiertage', calDays:'Tage', calAddHoliday:'Hinzufügen', calClearHolidays:'Alle Feiertage löschen', calHolidaysAdded:'Feiertage hinzugefügt',
   termBarTitle:'bash - benutzer@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Befehle: help, ls, date, clear, echo [text]',
   termHelpText:'Befehle: help, ls, date, clear, echo [text], whoami, pwd', termNotFound:'Befehl nicht gefunden', termHelpHint:'"help" eingeben.',
   termPlaceholder:'Befehl eingeben...', termUser:'benutzer', termPwd:'/home/benutzer',
-  notifCalTitle:'Kalender', notifCalText:'Morgen um 10:00 Uhr Besprechung.', notifTaskTitle:'Aufgaben', notifTaskText:'3 Aufgaben warten auf Erledigung.',
-  notifSysTitle:'System', notifSysText:'Update verfügbar: v1.1', notifTermTitle:'Terminal', notifTermText:'Hintergrundprozess abgeschlossen.',
-  notifTime2h:'Vor 2 Stunden', notifTime4h:'Vor 4 Stunden', notifYesterday:'Gestern', notifNow:'Jetzt', notifLabel:'Benachrichtigung',
+  notifNow:'Jetzt', notifLabel:'Benachrichtigung',
   mediaPrev:'Zurück', mediaNext:'Weiter',
     brUrlPlaceholder:'URL oder Suche eingeben...', brAdd:'Hinzufügen', brRetry:'Erneut versuchen', brNewTab:'Neuer Tab',
     brBack:'Zurück', brForward:'Vorwärts', brReload:'Neu laden', brHome:'Startseite', brBookmarks:'Lesezeichen'
@@ -1569,18 +1665,16 @@ Object.assign(I18N.fr, {
   start:'Démarrer', fullscreen:'Plein écran', fullscreenExit:'Quitter le plein écran',
   notepadClear:'Effacer', notepadCopy:'Copier', notepadPlaceholder:'Commencez à écrire...', notepadChars:'caractères', notepadWords:'mots',
   todoTitle:'Liste de tâches', todoCompleted:'terminées', todoPlaceholder:'Ajouter une tâche...', todoAdd:'Ajouter', todoEmpty:'Aucune tâche 🎉',
-  todoDefault1:'Essayer Vue Desktop', todoDefault2:'Ajouter de nouvelles apps',
   fmDesktop:'Bureau', fmDocuments:'Documents', fmDownloads:'Téléchargements', fmPictures:'Images', fmMusic:'Musique', fmTrash:'Corbeille',
   fmItems:'éléments', fmSelected:'sélectionné', fmOpening:'ouverture...', fmPathPrefix:'C:\\Utilisateurs\\Utilisateur\\',
   weatherNow:'Maintenant', weatherHumidity:'Humidité', weatherWind:'Vent', weatherFeelsLike:'Ressenti', weatherHourly:'Prévisions horaires', weatherUnknown:'Inconnu',
   calToday:'Aujourd\'hui', calAddEvent:'+ Événement', calEventPlaceholder:'Nom de l\'événement...', calAdd:'Ajouter', calNoEvents:'Aucun événement', calMore:'de plus',
   calBlue:'Bleu', calGreen:'Vert', calOrange:'Orange', calRed:'Rouge', calPurple:'Violet',
+  calHolidays:'Jours fériés', calDays:'jours', calAddHoliday:'Ajouter', calClearHolidays:'Effacer tous les jours fériés', calHolidaysAdded:'jours fériés ajoutés',
   termBarTitle:'bash - utilisateur@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Commandes: help, ls, date, clear, echo [texte]',
   termHelpText:'Commandes: help, ls, date, clear, echo [texte], whoami, pwd', termNotFound:'Commande introuvable', termHelpHint:'Tapez "help".',
   termPlaceholder:'entrer commande...', termUser:'utilisateur', termPwd:'/home/utilisateur',
-  notifCalTitle:'Calendrier', notifCalText:'Réunion demain à 10h00.', notifTaskTitle:'Tâches', notifTaskText:'3 tâches en attente.',
-  notifSysTitle:'Système', notifSysText:'Mise à jour disponible: v1.1', notifTermTitle:'Terminal', notifTermText:'Processus terminé.',
-  notifTime2h:'Il y a 2 heures', notifTime4h:'Il y a 4 heures', notifYesterday:'Hier', notifNow:'Maintenant', notifLabel:'Notification',
+  notifNow:'Maintenant', notifLabel:'Notification',
   mediaPrev:'Précédent', mediaNext:'Suivant',
     brUrlPlaceholder:'Saisissez une URL ou recherchez...', brAdd:'Ajouter', brRetry:'Réessayer', brNewTab:'Nouvel onglet',
     brBack:'Retour', brForward:'Avancer', brReload:'Recharger', brHome:'Accueil', brBookmarks:'Favoris'
@@ -1590,18 +1684,16 @@ Object.assign(I18N.es, {
   start:'Inicio', fullscreen:'Pantalla completa', fullscreenExit:'Salir de pantalla completa',
   notepadClear:'Limpiar', notepadCopy:'Copiar', notepadPlaceholder:'Empiece a escribir...', notepadChars:'caracteres', notepadWords:'palabras',
   todoTitle:'Lista de tareas', todoCompleted:'completadas', todoPlaceholder:'Añadir tarea...', todoAdd:'Añadir', todoEmpty:'Sin tareas aún 🎉',
-  todoDefault1:'Probar Vue Desktop', todoDefault2:'Añadir nuevas apps',
   fmDesktop:'Escritorio', fmDocuments:'Documentos', fmDownloads:'Descargas', fmPictures:'Imágenes', fmMusic:'Música', fmTrash:'Papelera',
   fmItems:'elementos', fmSelected:'seleccionado', fmOpening:'abriendo...', fmPathPrefix:'C:\\Usuarios\\Usuario\\',
   weatherNow:'Ahora', weatherHumidity:'Humedad', weatherWind:'Viento', weatherFeelsLike:'Sensación', weatherHourly:'Pronóstico por hora', weatherUnknown:'Desconocido',
   calToday:'Hoy', calAddEvent:'+ Evento', calEventPlaceholder:'Nombre del evento...', calAdd:'Añadir', calNoEvents:'Sin eventos en esta fecha', calMore:'más',
   calBlue:'Azul', calGreen:'Verde', calOrange:'Naranja', calRed:'Rojo', calPurple:'Morado',
+  calHolidays:'Festivos', calDays:'días', calAddHoliday:'Agregar', calClearHolidays:'Borrar todos los festivos', calHolidaysAdded:'festivos añadidos',
   termBarTitle:'bash - usuario@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Comandos: help, ls, date, clear, echo [texto]',
   termHelpText:'Comandos: help, ls, date, clear, echo [texto], whoami, pwd', termNotFound:'Comando no encontrado', termHelpHint:'Escriba "help".',
   termPlaceholder:'ingrese comando...', termUser:'usuario', termPwd:'/home/usuario',
-  notifCalTitle:'Calendario', notifCalText:'Reunión mañana a las 10:00.', notifTaskTitle:'Tareas', notifTaskText:'3 tareas pendientes.',
-  notifSysTitle:'Sistema', notifSysText:'Actualización disponible: v1.1', notifTermTitle:'Terminal', notifTermText:'Proceso completado.',
-  notifTime2h:'Hace 2 horas', notifTime4h:'Hace 4 horas', notifYesterday:'Ayer', notifNow:'Ahora', notifLabel:'Notificación',
+  notifNow:'Ahora', notifLabel:'Notificación',
   mediaPrev:'Anterior', mediaNext:'Siguiente',
     brUrlPlaceholder:'Escriba una URL o busque...', brAdd:'Añadir', brRetry:'Reintentar', brNewTab:'Nueva pestaña',
     brBack:'Atrás', brForward:'Adelante', brReload:'Recargar', brHome:'Inicio', brBookmarks:'Marcadores'
@@ -1611,18 +1703,16 @@ Object.assign(I18N.ru, {
   start:'Пуск', fullscreen:'Полный экран', fullscreenExit:'Выйти из полного экрана',
   notepadClear:'Очистить', notepadCopy:'Копировать', notepadPlaceholder:'Начните вводить...', notepadChars:'символов', notepadWords:'слов',
   todoTitle:'Список задач', todoCompleted:'выполнено', todoPlaceholder:'Добавить задачу...', todoAdd:'Добавить', todoEmpty:'Задач пока нет 🎉',
-  todoDefault1:'Попробовать Vue Desktop', todoDefault2:'Добавить приложения',
   fmDesktop:'Рабочий стол', fmDocuments:'Документы', fmDownloads:'Загрузки', fmPictures:'Изображения', fmMusic:'Музыка', fmTrash:'Корзина',
   fmItems:'элементов', fmSelected:'выбрано', fmOpening:'открывается...', fmPathPrefix:'C:\\Пользователи\\Пользователь\\',
   weatherNow:'Сейчас', weatherHumidity:'Влажность', weatherWind:'Ветер', weatherFeelsLike:'Ощущается', weatherHourly:'Почасовой прогноз', weatherUnknown:'Неизвестно',
   calToday:'Сегодня', calAddEvent:'+ Событие', calEventPlaceholder:'Название события...', calAdd:'Добавить', calNoEvents:'Нет событий на дату', calMore:'ещё',
   calBlue:'Синий', calGreen:'Зелёный', calOrange:'Оранжевый', calRed:'Красный', calPurple:'Фиолетовый',
+  calHolidays:'Праздники', calDays:'дней', calAddHoliday:'Добавить', calClearHolidays:'Удалить все праздники', calHolidaysAdded:'праздников добавлено',
   termBarTitle:'bash - пользователь@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Команды: help, ls, date, clear, echo [текст]',
   termHelpText:'Команды: help, ls, date, clear, echo [текст], whoami, pwd', termNotFound:'Команда не найдена', termHelpHint:'Введите "help".',
   termPlaceholder:'введите команду...', termUser:'пользователь', termPwd:'/home/пользователь',
-  notifCalTitle:'Календарь', notifCalText:'Встреча завтра в 10:00.', notifTaskTitle:'Задачи', notifTaskText:'3 задачи ожидают выполнения.',
-  notifSysTitle:'Система', notifSysText:'Доступно обновление: v1.1', notifTermTitle:'Терминал', notifTermText:'Фоновый процесс завершён.',
-  notifTime2h:'2 часа назад', notifTime4h:'4 часа назад', notifYesterday:'Вчера', notifNow:'Сейчас', notifLabel:'Уведомление',
+  notifNow:'Сейчас', notifLabel:'Уведомление',
   mediaPrev:'Назад', mediaNext:'Далее',
     brUrlPlaceholder:'Введите URL или поиск...', brAdd:'Добавить', brRetry:'Повторить', brNewTab:'Новая вкладка',
     brBack:'Назад', brForward:'Вперёд', brReload:'Обновить', brHome:'Домой', brBookmarks:'Закладки'
@@ -1632,18 +1722,16 @@ Object.assign(I18N.zh, {
   start:'开始', fullscreen:'全屏', fullscreenExit:'退出全屏',
   notepadClear:'清除', notepadCopy:'复制', notepadPlaceholder:'开始输入...', notepadChars:'字符', notepadWords:'字',
   todoTitle:'待办事项', todoCompleted:'已完成', todoPlaceholder:'添加新任务...', todoAdd:'添加', todoEmpty:'暂无任务 🎉',
-  todoDefault1:'试用 Vue Desktop', todoDefault2:'添加新应用',
   fmDesktop:'桌面', fmDocuments:'文档', fmDownloads:'下载', fmPictures:'图片', fmMusic:'音乐', fmTrash:'回收站',
   fmItems:'项', fmSelected:'已选', fmOpening:'正在打开...', fmPathPrefix:'C:\\用户\\用户\\',
   weatherNow:'现在', weatherHumidity:'湿度', weatherWind:'风', weatherFeelsLike:'体感', weatherHourly:'逐时预报', weatherUnknown:'未知',
   calToday:'今天', calAddEvent:'+ 事件', calEventPlaceholder:'事件名称...', calAdd:'添加', calNoEvents:'此日期无事件', calMore:'更多',
   calBlue:'蓝色', calGreen:'绿色', calOrange:'橙色', calRed:'红色', calPurple:'紫色',
+  calHolidays:'节假日', calDays:'天', calAddHoliday:'添加', calClearHolidays:'清除所有节假日', calHolidaysAdded:'个节假日已添加',
   termBarTitle:'bash - 用户@vuedesktop', termWelcome:'Vue Desktop 终端 v1.0 — 命令: help, ls, date, clear, echo [文本]',
   termHelpText:'命令: help, ls, date, clear, echo [文本], whoami, pwd', termNotFound:'未找到命令', termHelpHint:'输入 "help"。',
   termPlaceholder:'输入命令...', termUser:'用户', termPwd:'/home/用户',
-  notifCalTitle:'日历', notifCalText:'明天上午10:00有会议。', notifTaskTitle:'任务', notifTaskText:'3个任务待完成。',
-  notifSysTitle:'系统', notifSysText:'可用更新: v1.1', notifTermTitle:'终端', notifTermText:'后台进程已完成。',
-  notifTime2h:'2小时前', notifTime4h:'4小时前', notifYesterday:'昨天', notifNow:'现在', notifLabel:'通知',
+  notifNow:'现在', notifLabel:'通知',
   mediaPrev:'上一首', mediaNext:'下一首',
     brUrlPlaceholder:'输入URL或搜索...', brAdd:'添加', brRetry:'重试', brNewTab:'新标签页',
     brBack:'后退', brForward:'前进', brReload:'刷新', brHome:'主页', brBookmarks:'书签'
@@ -1653,18 +1741,16 @@ Object.assign(I18N.ja, {
   start:'スタート', fullscreen:'全画面', fullscreenExit:'全画面終了',
   notepadClear:'クリア', notepadCopy:'コピー', notepadPlaceholder:'入力を開始...', notepadChars:'文字', notepadWords:'語',
   todoTitle:'ToDoリスト', todoCompleted:'完了', todoPlaceholder:'新しいタスクを追加...', todoAdd:'追加', todoEmpty:'タスクはまだありません 🎉',
-  todoDefault1:'Vue Desktopを試す', todoDefault2:'新しいアプリを追加',
   fmDesktop:'デスクトップ', fmDocuments:'ドキュメント', fmDownloads:'ダウンロード', fmPictures:'画像', fmMusic:'ミュージック', fmTrash:'ゴミ箱',
   fmItems:'項目', fmSelected:'選択中', fmOpening:'開いています...', fmPathPrefix:'C:\\ユーザー\\ユーザー\\',
   weatherNow:'現在', weatherHumidity:'湿度', weatherWind:'風', weatherFeelsLike:'体感', weatherHourly:'時間ごとの予報', weatherUnknown:'不明',
   calToday:'今日', calAddEvent:'+ イベント', calEventPlaceholder:'イベント名...', calAdd:'追加', calNoEvents:'この日にイベントはありません', calMore:'他',
   calBlue:'青', calGreen:'緑', calOrange:'オレンジ', calRed:'赤', calPurple:'紫',
+  calHolidays:'祝日', calDays:'日', calAddHoliday:'追加', calClearHolidays:'すべての祝日を削除', calHolidaysAdded:'件の祝日を追加',
   termBarTitle:'bash - ユーザー@vuedesktop', termWelcome:'Vue Desktop ターミナル v1.0 — コマンド: help, ls, date, clear, echo [テキスト]',
   termHelpText:'コマンド: help, ls, date, clear, echo [テキスト], whoami, pwd', termNotFound:'コマンドが見つかりません', termHelpHint:'"help"と入力してください。',
   termPlaceholder:'コマンドを入力...', termUser:'ユーザー', termPwd:'/home/ユーザー',
-  notifCalTitle:'カレンダー', notifCalText:'明日10:00に会議があります。', notifTaskTitle:'タスク', notifTaskText:'3件のタスクが完了待ちです。',
-  notifSysTitle:'システム', notifSysText:'アップデート利用可能: v1.1', notifTermTitle:'ターミナル', notifTermText:'バックグラウンドプロセスが完了しました。',
-  notifTime2h:'2時間前', notifTime4h:'4時間前', notifYesterday:'昨日', notifNow:'今', notifLabel:'通知',
+  notifNow:'今', notifLabel:'通知',
   mediaPrev:'前へ', mediaNext:'次へ',
     brUrlPlaceholder:'URLまたは検索を入力...', brAdd:'追加', brRetry:'再試行', brNewTab:'新しいタブ',
     brBack:'戻る', brForward:'進む', brReload:'再読み込み', brHome:'ホーム', brBookmarks:'ブックマーク'
@@ -1674,18 +1760,16 @@ Object.assign(I18N.it, {
   start:'Avvia', fullscreen:'Schermo intero', fullscreenExit:'Esci da schermo intero',
   notepadClear:'Cancella', notepadCopy:'Copia', notepadPlaceholder:'Inizia a scrivere...', notepadChars:'caratteri', notepadWords:'parole',
   todoTitle:'Lista attività', todoCompleted:'completate', todoPlaceholder:'Aggiungi attività...', todoAdd:'Aggiungi', todoEmpty:'Nessuna attività 🎉',
-  todoDefault1:'Prova Vue Desktop', todoDefault2:'Aggiungi nuove app',
   fmDesktop:'Scrivania', fmDocuments:'Documenti', fmDownloads:'Download', fmPictures:'Immagini', fmMusic:'Musica', fmTrash:'Cestino',
   fmItems:'elementi', fmSelected:'selezionati', fmOpening:'apertura...', fmPathPrefix:'C:\\Utenti\\Utente\\',
   weatherNow:'Ora', weatherHumidity:'Umidità', weatherWind:'Vento', weatherFeelsLike:'Percepita', weatherHourly:'Previsioni orarie', weatherUnknown:'Sconosciuto',
   calToday:'Oggi', calAddEvent:'+ Evento', calEventPlaceholder:'Nome evento...', calAdd:'Aggiungi', calNoEvents:'Nessun evento in questa data', calMore:'altri',
   calBlue:'Blu', calGreen:'Verde', calOrange:'Arancione', calRed:'Rosso', calPurple:'Viola',
+  calHolidays:'Festività', calDays:'giorni', calAddHoliday:'Aggiungi', calClearHolidays:'Cancella tutte le festività', calHolidaysAdded:'festività aggiunte',
   termBarTitle:'bash - utente@vuedesktop', termWelcome:'Vue Desktop Terminale v1.0 — Comandi: help, ls, date, clear, echo [testo]',
   termHelpText:'Comandi: help, ls, date, clear, echo [testo], whoami, pwd', termNotFound:'Comando non trovato', termHelpHint:'Digita "help".',
   termPlaceholder:'inserisci comando...', termUser:'utente', termPwd:'/home/utente',
-  notifCalTitle:'Calendario', notifCalText:'Riunione domani alle 10:00.', notifTaskTitle:'Attività', notifTaskText:'3 attività in attesa.',
-  notifSysTitle:'Sistema', notifSysText:'Aggiornamento disponibile: v1.1', notifTermTitle:'Terminale', notifTermText:'Processo in background completato.',
-  notifTime2h:'2 ore fa', notifTime4h:'4 ore fa', notifYesterday:'Ieri', notifNow:'Ora', notifLabel:'Notifica',
+  notifNow:'Ora', notifLabel:'Notifica',
   mediaPrev:'Precedente', mediaNext:'Successivo',
     brUrlPlaceholder:'Digita un URL o cerca...', brAdd:'Aggiungi', brRetry:'Riprova', brNewTab:'Nuova scheda',
     brBack:'Indietro', brForward:'Avanti', brReload:'Ricarica', brHome:'Home', brBookmarks:'Segnalibri'
@@ -1790,6 +1874,7 @@ const APPS = [
   {id:'notifications',name:'Bildirimler',icon:'🔔',color:'linear-gradient(135deg,#ff6b6b,#ee5a24)',category:'system'},
   {id:'appstore',name:'Uygulama Mağazası',icon:'🛒',color:'linear-gradient(135deg,#6c5ce7,#a29bfe)',category:'internet'},
   {id:'browser',name:'Tarayıcı',icon:'🌐',color:'linear-gradient(135deg,#4a90d9,#00b894)',category:'internet'},
+  {id:'screenkeyboard',name:'Ekran Klavyesi',icon:'⌨️',color:'linear-gradient(135deg,#6c63ff,#3f3d56)',category:'utilities'},
 ];
 
 const SIZES = {
@@ -1799,7 +1884,8 @@ const SIZES = {
   calendar:{w:560,h:480},
   notifications:{w:380,h:440},
   appstore:{w:440,h:460},
-  browser:{w:900,h:620}
+  browser:{w:900,h:620},
+  screenkeyboard:{w:640,h:360}
 };
 
 /* ── CalcApp ── */
@@ -1847,11 +1933,44 @@ const TodoApp = {
   props: [],
   emits: [],
   setup(props, { emit }) {
-    const todos = ref([{ text: t('todoDefault1'), done: true }, { text: t('todoDefault2'), done: false }]);
+    const todos = ref([]);
     const input = ref('');
     const done = computed(() => todos.value.filter(td => td.done).length);
-    function add() { if (input.value.trim()) { todos.value.unshift({ text: input.value.trim(), done: false }); input.value = '' } }
-    return { todos, input, done, add, t };
+
+    async function loadTodos() {
+      try {
+        const res = await fetch('/api/todos', { headers: authHeaders() });
+        if (res.ok) todos.value = await res.json();
+      } catch {}
+    }
+
+    async function add() {
+      if (!input.value.trim()) return;
+      try {
+        const res = await fetch('/api/todos', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ text: input.value.trim() }) });
+        if (res.ok) {
+          const { id, sort_order } = await res.json();
+          todos.value.unshift({ id, text: input.value.trim(), done: false, sort_order });
+          input.value = '';
+        }
+      } catch {}
+    }
+
+    async function toggleDone(td) {
+      td.done = !td.done;
+      try { await fetch('/api/todos/' + td.id, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ done: td.done }) }); } catch {}
+    }
+
+    async function remove(i) {
+      const td = todos.value[i];
+      if (!td) return;
+      try { await fetch('/api/todos/' + td.id, { method: 'DELETE', headers: authHeaders() }); } catch {}
+      todos.value.splice(i, 1);
+    }
+
+    onMounted(() => loadTodos());
+
+    return { todos, input, done, add, toggleDone, remove, t };
   }
 };
 
@@ -1869,11 +1988,11 @@ const FilemanApp = {
     const currentLoc = ref('desktop'), selected = ref(null);
     const locations = computed(() => LOC_KEYS.map(l => ({ id: l.id, name: t(l.key), icon: l.icon })));
     const allFiles = {
-      desktop: [{ name: 'Projects', icon: '📁' }, { name: 'Notes.txt', icon: '📄' }, { name: 'Budget.xlsx', icon: '📊' }, { name: 'Photo.jpg', icon: '🖼️' }],
-      documents: [{ name: 'CV.docx', icon: '📄' }, { name: 'Contract.pdf', icon: '📋' }, { name: 'Report', icon: '📁' }, { name: 'Slides.pptx', icon: '📊' }],
-      downloads: [{ name: 'setup.exe', icon: '⚙️' }, { name: 'archive.zip', icon: '🗜️' }, { name: 'video.mp4', icon: '🎬' }],
-      pictures: [{ name: 'Vacation', icon: '📁' }, { name: 'img001.jpg', icon: '🖼️' }, { name: 'avatar.png', icon: '🖼️' }],
-      music: [{ name: 'playlist', icon: '📁' }, { name: 'song1.mp3', icon: '🎵' }, { name: 'song2.mp3', icon: '🎵' }],
+      desktop: [],
+      documents: [],
+      downloads: [],
+      pictures: [],
+      music: [],
       trash: []
     };
     const files = computed(() => allFiles[currentLoc.value] || []);
@@ -2192,7 +2311,23 @@ const SettingsApp = {
       settingsStore.save({ restoreSession: e.target.checked });
     }
 
-    return { active, tabs, currentRows, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession };
+    // ── Keyboard tray toggle ──
+    const showKeyboardTray = ref(settingsStore.showKeyboardTray || false);
+
+    function toggleKeyboardTray(e) {
+      showKeyboardTray.value = e.target.checked;
+      settingsStore.save({ showKeyboardTray: e.target.checked });
+    }
+
+    // ── Magnifier tray toggle ──
+    const showMagnifierTray = ref(settingsStore.showMagnifierTray || false);
+
+    function toggleMagnifierTray(e) {
+      showMagnifierTray.value = e.target.checked;
+      settingsStore.save({ showMagnifierTray: e.target.checked });
+    }
+
+    return { active, tabs, currentRows, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray };
   }
 };
 
@@ -2355,14 +2490,13 @@ const HOLIDAY_TEMPLATES = {
 const CalendarApp = {
   template: '#CalendarApp',
   setup() {
-    const STORAGE_KEY = 'calendarEvents';
     const year = ref(new Date().getFullYear());
     const month = ref(new Date().getMonth());
     const showDialog = ref(false);
     const selectedDate = ref('');
     const newTitle = ref('');
     const newColor = ref('');
-    const events = ref(JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'));
+    const events = ref({});
     const colorMap = { '': '#409eff', green: '#67c23a', orange: '#e6a23c', red: '#f56c6c', purple: '#6f5ef7' };
     const dayNames = computed(() => {
       const loc = getIntlLocale();
@@ -2373,7 +2507,12 @@ const CalendarApp = {
       return Array.from({length:12}, (_,i) => new Intl.DateTimeFormat(loc, {month:'long'}).format(new Date(2024,i,1)));
     });
 
-    function saveEvents() { localStorage.setItem(STORAGE_KEY, JSON.stringify(events.value)); }
+    async function loadEvents() {
+      try {
+        const res = await fetch('/api/calendar/events', { headers: authHeaders() });
+        if (res.ok) events.value = await res.json();
+      } catch {}
+    }
 
     const monthLabel = computed(() => monthNames.value[month.value] + ' ' + year.value);
 
@@ -2430,19 +2569,28 @@ const CalendarApp = {
       showDialog.value = true;
     }
 
-    function addEvent() {
+    async function addEvent() {
       if (!newTitle.value.trim()) return;
-      if (!events.value[selectedDate.value]) events.value[selectedDate.value] = [];
-      events.value[selectedDate.value].push({ title: newTitle.value.trim(), color: newColor.value });
-      newTitle.value = '';
-      newColor.value = '';
-      saveEvents();
+      try {
+        const res = await fetch('/api/calendar/events', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ date: selectedDate.value, title: newTitle.value.trim(), color: newColor.value }) });
+        if (res.ok) {
+          const { id } = await res.json();
+          if (!events.value[selectedDate.value]) events.value[selectedDate.value] = [];
+          events.value[selectedDate.value].push({ id, title: newTitle.value.trim(), color: newColor.value, holiday: false });
+          newTitle.value = '';
+          newColor.value = '';
+        }
+      } catch {}
     }
 
-    function removeEvent(index) {
-      events.value[selectedDate.value].splice(index, 1);
-      if (events.value[selectedDate.value].length === 0) delete events.value[selectedDate.value];
-      saveEvents();
+    async function removeEvent(index) {
+      const ev = events.value[selectedDate.value][index];
+      if (!ev) return;
+      try {
+        await fetch('/api/calendar/events/' + ev.id, { method: 'DELETE', headers: authHeaders() });
+        events.value[selectedDate.value].splice(index, 1);
+        if (events.value[selectedDate.value].length === 0) delete events.value[selectedDate.value];
+      } catch {}
     }
 
     function prevMonth() { if (month.value === 0) { month.value = 11; year.value--; } else { month.value--; } }
@@ -2453,34 +2601,32 @@ const CalendarApp = {
     const showHolidayDialog = ref(false);
     const holidayCountries = Object.entries(HOLIDAY_TEMPLATES).map(([code, v]) => ({ code, ...v }));
 
-    function addHolidays(countryCode) {
+    async function addHolidays(countryCode) {
       const tmpl = HOLIDAY_TEMPLATES[countryCode];
       if (!tmpl) return;
-      let added = 0;
-      Object.entries(tmpl.holidays).forEach(([mmdd, title]) => {
-        const dateStr = year.value + '-' + mmdd;
-        if (!events.value[dateStr]) events.value[dateStr] = [];
-        const exists = events.value[dateStr].some(e => e.title === title && e.holiday);
-        if (!exists) {
-          events.value[dateStr].push({ title, color: 'red', holiday: true });
-          added++;
+      const holidays = Object.entries(tmpl.holidays).map(([mmdd, title]) => ({ mmdd, title }));
+      try {
+        const res = await fetch('/api/calendar/holidays', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ holidays, year: year.value }) });
+        if (res.ok) {
+          const { added } = await res.json();
+          await loadEvents();
+          showHolidayDialog.value = false;
+          if (added > 0 && window.ElementPlus && window.ElementPlus.ElMessage) {
+            window.ElementPlus.ElMessage.success(tmpl.flag + ' ' + added + ' ' + t('calHolidaysAdded'));
+          }
         }
-      });
-      saveEvents();
-      showHolidayDialog.value = false;
-      if (added > 0 && window.ElementPlus && window.ElementPlus.ElMessage) {
-        window.ElementPlus.ElMessage.success(tmpl.flag + ' ' + added + ' holidays added');
-      }
+      } catch {}
     }
 
-    function clearHolidays() {
-      Object.keys(events.value).forEach(dateStr => {
-        events.value[dateStr] = events.value[dateStr].filter(e => !e.holiday);
-        if (events.value[dateStr].length === 0) delete events.value[dateStr];
-      });
-      saveEvents();
-      showHolidayDialog.value = false;
+    async function clearHolidays() {
+      try {
+        await fetch('/api/calendar/holidays', { method: 'DELETE', headers: authHeaders() });
+        await loadEvents();
+        showHolidayDialog.value = false;
+      } catch {}
     }
+
+    onMounted(() => loadEvents());
 
     return { year, month, showDialog, selectedDate, newTitle, newColor, events, colorMap, dayNames, monthLabel, calendarGrid, getEvents, dialogDate, selectedEvents, selectDate, openAdd, addEvent, removeEvent, prevMonth, nextMonth, goToday, showHolidayDialog, holidayCountries, addHolidays, clearHolidays, t };
   }
@@ -2491,12 +2637,7 @@ const NOTIF_STORAGE_KEY = 'desktopNotifications';
 function loadNotifications() {
   const d = JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY) || 'null');
   if (d) return d;
-  return [
-    {icon:'📅',bg:'#ecf5ff',title:t('notifCalTitle'),text:t('notifCalText'),time:t('notifTime2h'),read:false},
-    {icon:'✅',bg:'#f0f9eb',title:t('notifTaskTitle'),text:t('notifTaskText'),time:t('notifTime4h'),read:false},
-    {icon:'⚙️',bg:'#fdf6ec',title:t('notifSysTitle'),text:t('notifSysText'),time:t('notifYesterday'),read:true},
-    {icon:'💻',bg:'#f4ecfb',title:t('notifTermTitle'),text:t('notifTermText'),time:t('notifYesterday'),read:true}
-  ];
+  return [];
 }
 
 const NotificationsApp = {
@@ -2532,6 +2673,191 @@ const NotificationsApp = {
       } catch { return t; }
     }
     return { notifications, newText, unreadCount, markAllRead, remove, addNotif, save, openAction, formatTime, t };
+  }
+};
+
+/* ── ScreenKeyboardApp ── */
+const ScreenKeyboardApp = {
+  template: '#ScreenKeyboardApp',
+  setup() {
+    const settingsStore = useSettingsStore();
+    const KBD_LAYOUTS = {
+      tr: {
+        id:'tr', name:'Türkçe', flag:'🇹🇷',
+        rows: [
+          [{char:'q'},{char:'w'},{char:'e',sub:'é'},{char:'r'},{char:'t'},{char:'y'},{char:'u',sub:'ü'},{char:'ı',sub:'i'},{char:'o',sub:'ö'},{char:'p'},{char:'ğ'},{char:'ü'}],
+          [{char:'a',sub:'â'},{char:'s',sub:'ş'},{char:'d'},{char:'f'},{char:'g'},{char:'h'},{char:'j'},{char:'k'},{char:'l'},{char:'ş'},{char:'i',sub:'î'}],
+          [{char:'z'},{char:'x'},{char:'c',sub:'ç'},{char:'v'},{char:'b'},{char:'n'},{char:'m'},{char:'ö'},{char:'ç'}]
+        ],
+        shift: [
+          [{char:'Q'},{char:'W'},{char:'E'},{char:'R'},{char:'T'},{char:'Y'},{char:'U'},{char:'I'},{char:'O'},{char:'P'},{char:'Ğ'},{char:'Ü'}],
+          [{char:'A'},{char:'S'},{char:'D'},{char:'F'},{char:'G'},{char:'H'},{char:'J'},{char:'K'},{char:'L'},{char:'Ş'},{char:'İ'}],
+          [{char:'Z'},{char:'X'},{char:'C'},{char:'V'},{char:'B'},{char:'N'},{char:'M'},{char:'Ö'},{char:'Ç'}]
+        ]
+      },
+      en: {
+        id:'en', name:'English', flag:'🇬🇧',
+        rows: [
+          [{char:'q'},{char:'w'},{char:'e'},{char:'r'},{char:'t'},{char:'y'},{char:'u'},{char:'i'},{char:'o'},{char:'p'}],
+          [{char:'a'},{char:'s'},{char:'d'},{char:'f'},{char:'g'},{char:'h'},{char:'j'},{char:'k'},{char:'l'}],
+          [{char:'z'},{char:'x'},{char:'c'},{char:'v'},{char:'b'},{char:'n'},{char:'m'}]
+        ],
+        shift: [
+          [{char:'Q'},{char:'W'},{char:'E'},{char:'R'},{char:'T'},{char:'Y'},{char:'U'},{char:'I'},{char:'O'},{char:'P'}],
+          [{char:'A'},{char:'S'},{char:'D'},{char:'F'},{char:'G'},{char:'H'},{char:'J'},{char:'K'},{char:'L'}],
+          [{char:'Z'},{char:'X'},{char:'C'},{char:'V'},{char:'B'},{char:'N'},{char:'M'}]
+        ]
+      },
+      de: {
+        id:'de', name:'Deutsch', flag:'🇩🇪',
+        rows: [
+          [{char:'q'},{char:'w'},{char:'e'},{char:'r'},{char:'t'},{char:'z'},{char:'u'},{char:'i'},{char:'o'},{char:'p'},{char:'ü'}],
+          [{char:'a'},{char:'s'},{char:'d'},{char:'f'},{char:'g'},{char:'h'},{char:'j'},{char:'k'},{char:'l'},{char:'ö'},{char:'ä'}],
+          [{char:'y'},{char:'x'},{char:'c'},{char:'v'},{char:'b'},{char:'n'},{char:'m'},{char:'ß'}]
+        ],
+        shift: [
+          [{char:'Q'},{char:'W'},{char:'E'},{char:'R'},{char:'T'},{char:'Z'},{char:'U'},{char:'I'},{char:'O'},{char:'P'},{char:'Ü'}],
+          [{char:'A'},{char:'S'},{char:'D'},{char:'F'},{char:'G'},{char:'H'},{char:'J'},{char:'K'},{char:'L'},{char:'Ö'},{char:'Ä'}],
+          [{char:'Y'},{char:'X'},{char:'C'},{char:'V'},{char:'B'},{char:'N'},{char:'M'},{char:'ẞ'}]
+        ]
+      },
+      fr: {
+        id:'fr', name:'Français', flag:'🇫🇷',
+        rows: [
+          [{char:'a',sub:'à'},{char:'z'},{char:'e',sub:'é'},{char:'r'},{char:'t'},{char:'y'},{char:'u',sub:'ù'},{char:'i',sub:'î'},{char:'o',sub:'ô'},{char:'p'}],
+          [{char:'q'},{char:'s'},{char:'d'},{char:'f'},{char:'g'},{char:'h'},{char:'j'},{char:'k'},{char:'l'},{char:'m'}],
+          [{char:'w'},{char:'x'},{char:'c',sub:'ç'},{char:'v'},{char:'b'},{char:'n'},{char:'ê'},{char:'ë'}]
+        ],
+        shift: [
+          [{char:'A'},{char:'Z'},{char:'E'},{char:'R'},{char:'T'},{char:'Y'},{char:'U'},{char:'I'},{char:'O'},{char:'P'}],
+          [{char:'Q'},{char:'S'},{char:'D'},{char:'F'},{char:'G'},{char:'H'},{char:'J'},{char:'K'},{char:'L'},{char:'M'}],
+          [{char:'W'},{char:'X'},{char:'C'},{char:'V'},{char:'B'},{char:'N'},{char:'Ê'},{char:'Ë'}]
+        ]
+      },
+      es: {
+        id:'es', name:'Español', flag:'🇪🇸',
+        rows: [
+          [{char:'q'},{char:'w'},{char:'e',sub:'é'},{char:'r'},{char:'t'},{char:'y'},{char:'u',sub:'ú'},{char:'i',sub:'í'},{char:'o',sub:'ó'},{char:'p'}],
+          [{char:'a',sub:'á'},{char:'s'},{char:'d'},{char:'f'},{char:'g'},{char:'h'},{char:'j'},{char:'k'},{char:'l'},{char:'ñ'}],
+          [{char:'z'},{char:'x'},{char:'c'},{char:'v'},{char:'b'},{char:'n'},{char:'m'},{char:'¿'},{char:'¡'}]
+        ],
+        shift: [
+          [{char:'Q'},{char:'W'},{char:'E'},{char:'R'},{char:'T'},{char:'Y'},{char:'U'},{char:'I'},{char:'O'},{char:'P'}],
+          [{char:'A'},{char:'S'},{char:'D'},{char:'F'},{char:'G'},{char:'H'},{char:'J'},{char:'K'},{char:'L'},{char:'Ñ'}],
+          [{char:'Z'},{char:'X'},{char:'C'},{char:'V'},{char:'B'},{char:'N'},{char:'M'},{char:'?'},{char:'!'}]
+        ]
+      },
+      ru: {
+        id:'ru', name:'Русский', flag:'🇷🇺',
+        rows: [
+          [{char:'й'},{char:'ц'},{char:'у'},{char:'к'},{char:'е'},{char:'н'},{char:'г'},{char:'ш'},{char:'щ'},{char:'з'},{char:'х'},{char:'ъ'}],
+          [{char:'ф'},{char:'ы'},{char:'в'},{char:'а'},{char:'п'},{char:'р'},{char:'о'},{char:'л'},{char:'д'},{char:'ж'},{char:'э'}],
+          [{char:'я'},{char:'ч'},{char:'с'},{char:'м'},{char:'и'},{char:'т'},{char:'ь'},{char:'б'},{char:'ю'}]
+        ],
+        shift: [
+          [{char:'Й'},{char:'Ц'},{char:'У'},{char:'К'},{char:'Е'},{char:'Н'},{char:'Г'},{char:'Ш'},{char:'Щ'},{char:'З'},{char:'Х'},{char:'Ъ'}],
+          [{char:'Ф'},{char:'Ы'},{char:'В'},{char:'А'},{char:'П'},{char:'Р'},{char:'О'},{char:'Л'},{char:'Д'},{char:'Ж'},{char:'Э'}],
+          [{char:'Я'},{char:'Ч'},{char:'С'},{char:'М'},{char:'И'},{char:'Т'},{char:'Ь'},{char:'Б'},{char:'Ю'}]
+        ]
+      },
+      ar: {
+        id:'ar', name:'العربية', flag:'🇸🇦',
+        rows: [
+          [{char:'ض'},{char:'ص'},{char:'ث'},{char:'ق'},{char:'ف'},{char:'غ'},{char:'ع'},{char:'ه'},{char:'خ'},{char:'ح'},{char:'ج'}],
+          [{char:'ش'},{char:'س'},{char:'ي'},{char:'ب'},{char:'ل'},{char:'ا'},{char:'ت'},{char:'ن'},{char:'م'},{char:'ك'},{char:'ة'}],
+          [{char:'ئ'},{char:'ء'},{char:'ؤ'},{char:'ر'},{char:'لا'},{char:'ى'},{char:'ة'},{char:'و'},{char:'ز'},{char:'ظ'}]
+        ],
+        shift: [
+          [{char:'َ'},{char:'ً'},{char:'ُ'},{char:'ٌ'},{char:'لإ'},{char:'إ'},{char:'\''},{char:'÷'},{char:'×'},{char:'؛'},{char:'<'}],
+          [{char:'ِ'},{char:'ٍ'},{char:'\]'},{char:'\['},{char:'لأ'},{char:'أ'},{char:'ـ'},{char:'،'},{char:'/'},{char:':'},{char:'\"'}],
+          [{char:'~'},{char:'ْ'},{char:'}'},{char:'{'},{char:'لآ'},{char:'آ'},{char:'\''},{char:','},{char:'.'},{char:'؟'}]
+        ]
+      },
+      ja: {
+        id:'ja', name:'日本語', flag:'🇯🇵',
+        rows: [
+          [{char:'あ'},{char:'い'},{char:'う'},{char:'え'},{char:'お'},{char:'か'},{char:'き'},{char:'く'},{char:'け'},{char:'こ'}],
+          [{char:'さ'},{char:'し'},{char:'す'},{char:'せ'},{char:'そ'},{char:'た'},{char:'ち'},{char:'つ'},{char:'て'},{char:'と'}],
+          [{char:'な'},{char:'に'},{char:'ぬ'},{char:'ね'},{char:'の'},{char:'は'},{char:'ひ'},{char:'ふ'},{char:'へ'},{char:'ほ'}]
+        ],
+        shift: [
+          [{char:'ま'},{char:'み'},{char:'む'},{char:'め'},{char:'も'},{char:'や'},{char:'ゆ'},{char:'よ'},{char:'ら'},{char:'り'}],
+          [{char:'る'},{char:'れ'},{char:'ろ'},{char:'わ'},{char:'を'},{char:'ん'},{char:'が'},{char:'ぎ'},{char:'ぐ'},{char:'げ'}],
+          [{char:'ご'},{char:'ざ'},{char:'じ'},{char:'ず'},{char:'ぜ'},{char:'ぞ'},{char:'だ'},{char:'ぢ'},{char:'づ'},{char:'で'}]
+        ]
+      },
+      zh: {
+        id:'zh', name:'拼音', flag:'🇨🇳',
+        rows: [
+          [{char:'q'},{char:'w'},{char:'e'},{char:'r'},{char:'t'},{char:'y'},{char:'u'},{char:'i'},{char:'o'},{char:'p'}],
+          [{char:'a'},{char:'s'},{char:'d'},{char:'f'},{char:'g'},{char:'h'},{char:'j'},{char:'k'},{char:'l'}],
+          [{char:'z'},{char:'x'},{char:'c'},{char:'v'},{char:'b'},{char:'n'},{char:'m'}]
+        ],
+        shift: [
+          [{char:'Q'},{char:'W'},{char:'E'},{char:'R'},{char:'T'},{char:'Y'},{char:'U'},{char:'I'},{char:'O'},{char:'P'}],
+          [{char:'A'},{char:'S'},{char:'D'},{char:'F'},{char:'G'},{char:'H'},{char:'J'},{char:'K'},{char:'L'}],
+          [{char:'Z'},{char:'X'},{char:'C'},{char:'V'},{char:'B'},{char:'N'},{char:'M'}]
+        ]
+      }
+    };
+
+    const NUMPAD_KEYS = [
+      [{char:'1'},{char:'2'},{char:'3'},{char:'+'},{char:'-'}],
+      [{char:'4'},{char:'5'},{char:'6'},{char:'*'},{char:'/'}],
+      [{char:'7'},{char:'8'},{char:'9'},{char:'('},{char:')'}],
+      [{char:'0'},{char:'.'},{char:','},{char:'='},{char:'%'}],
+      [{char:'!'},{char:'@'},{char:'#'},{char:'$'},{char:'&'}],
+      [{char:'\''},{char:'\"'},{char:';'},{char:':'},{char:'?'}]
+    ];
+
+    const layout = ref(settingsStore.locale || 'tr');
+    const shifted = ref(false);
+    const capsOn = ref(false);
+    const numpad = ref(false);
+    const typedText = ref('');
+
+    const layouts = computed(() => Object.values(KBD_LAYOUTS));
+
+    const currentKeys = computed(() => {
+      const l = KBD_LAYOUTS[layout.value] || KBD_LAYOUTS.en;
+      const useUpper = shifted.value || capsOn.value;
+      return useUpper ? l.shift : l.rows;
+    });
+
+    const numpadKeys = computed(() => NUMPAD_KEYS);
+
+    function displayKey(k) { return k.char; }
+
+    function typeKey(k) {
+      typedText.value += k.char;
+      if (shifted.value && !capsOn.value) shifted.value = false;
+    }
+    function typeSpace() { typedText.value += ' '; }
+    function typeEnter() { typedText.value += '\n'; }
+    function typeTab() { typedText.value += '\t'; }
+    function backspace() { typedText.value = typedText.value.slice(0, -1); }
+    function toggleShift() { shifted.value = !shifted.value; }
+    function toggleCaps() { capsOn.value = !capsOn.value; shifted.value = false; }
+    function clearText() { typedText.value = ''; }
+
+    async function copyText() {
+      if (!typedText.value) return;
+      try { await navigator.clipboard.writeText(typedText.value); } catch {}
+    }
+
+    function onLayoutChange() { shifted.value = false; capsOn.value = false; }
+
+    // Sync keyboard layout with system locale change
+    window.addEventListener('locale-changed', (e) => {
+      if (KBD_LAYOUTS[e.detail]) layout.value = e.detail;
+    });
+
+    return {
+      layout, layouts, shifted, capsOn, numpad, typedText,
+      currentKeys, numpadKeys, displayKey,
+      typeKey, typeSpace, typeEnter, typeTab, backspace,
+      toggleShift, toggleCaps, clearText, copyText, onLayoutChange, t
+    };
   }
 };
 
@@ -2820,7 +3146,81 @@ const AppStoreApp = {
 
     function sAppName(app) { const loc = useSettingsStore().locale; const l = (app.lang||{})[loc] || (app.lang||{}).tr; return l && l.name ? l.name : app.name; }
     function sAppDesc(app) { const loc = useSettingsStore().locale; const l = (app.lang||{})[loc] || (app.lang||{}).tr; return l && l.description ? l.description : (app.description||''); }
-    return { storeApps, storeCategories, activeCategory, loading, install, uninstall, t, appName: sAppName, appDesc: sAppDesc };
+
+    // ── Service install dialog ──
+    const serviceInstallDialog = reactive({ show: false, app: null, loading: false, loadingMsg: '' });
+    const installPageContainer = ref(null);
+
+    async function installService(app) {
+      serviceInstallDialog.show = true;
+      serviceInstallDialog.app = app;
+      serviceInstallDialog.loading = true;
+      serviceInstallDialog.loadingMsg = '';
+
+      try {
+        const res = await fetch('/api/apps/' + app.id + '/install-page', { headers: await getAuthHeaders() });
+        if (!res.ok) throw new Error('Install page not found');
+        const html = await res.text();
+        serviceInstallDialog.loading = false;
+
+        await nextTick();
+        if (installPageContainer.value) {
+          installPageContainer.value.innerHTML = html;
+          // Execute scripts in the install page
+          const scripts = installPageContainer.value.querySelectorAll('script');
+          scripts.forEach(s => {
+            const ns = document.createElement('script');
+            ns.textContent = s.textContent;
+            s.replaceWith(ns);
+          });
+          // Set locale for install page i18n
+          window.__serviceInstallLocale = useSettingsStore().locale;
+        }
+      } catch (e) {
+        console.error('Install page error', e);
+        serviceInstallDialog.show = false;
+      }
+
+      // Expose global functions for install.html
+      window.cancelServiceInstall = () => { serviceInstallDialog.show = false; serviceInstallDialog.app = null; };
+      window.confirmServiceInstall = async () => {
+        // Call getInstallConfig() defined in the install.html
+        if (typeof window.getInstallConfig !== 'function') return;
+        const config = window.getInstallConfig();
+        if (!config) return; // validation failed
+
+        serviceInstallDialog.loading = true;
+        serviceInstallDialog.loadingMsg = 'Docker image indiriliyor ve servis başlatılıyor...';
+
+        try {
+          const res = await fetch('/api/services/install', {
+            method: 'POST',
+            headers: await getAuthHeaders(),
+            body: JSON.stringify({ appId: serviceInstallDialog.app.id, installConfig: config })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Install failed');
+
+          serviceInstallDialog.app.installed = true;
+          window.dispatchEvent(new CustomEvent('app-installed', { detail: serviceInstallDialog.app }));
+          serviceInstallDialog.show = false;
+          serviceInstallDialog.app = null;
+        } catch (e) {
+          console.error('Service install error', e);
+          serviceInstallDialog.loading = false;
+          serviceInstallDialog.loadingMsg = '';
+          const errEl = document.getElementById('pg-install-error');
+          if (errEl) { errEl.textContent = e.message; errEl.style.display = 'block'; }
+        }
+      };
+    }
+
+    function closeServiceInstall() {
+      serviceInstallDialog.show = false;
+      serviceInstallDialog.app = null;
+    }
+
+    return { storeApps, storeCategories, activeCategory, loading, install, uninstall, installService, serviceInstallDialog, installPageContainer, closeServiceInstall, t, appName: sAppName, appDesc: sAppDesc };
   }
 };
 
@@ -2837,7 +3237,8 @@ const componentMap = {
   calendar: CalendarApp,
   notifications: NotificationsApp,
   appstore: AppStoreApp,
-  browser: BrowserApp
+  browser: BrowserApp,
+  screenkeyboard: ScreenKeyboardApp
 };
 
 /* ── Main App ── */
@@ -2970,7 +3371,7 @@ createApp({
     function loadAppCss(appId) {
       if (!appId || _loadedAppCss.has(appId)) return;
       // Only load for built-in apps (those defined in componentMap statically)
-      const builtinIds = ['calc','notepad','todo','fileman','weather','settings','terminal','clock','calendar','notifications','appstore','browser','screenshot'];
+      const builtinIds = ['calc','notepad','todo','fileman','weather','settings','terminal','clock','calendar','notifications','appstore','browser','screenshot','screenkeyboard'];
       if (!builtinIds.includes(appId)) return;
       _loadedAppCss.add(appId);
       const link = document.createElement('link');
@@ -3130,6 +3531,9 @@ createApp({
 
     // ── Dynamic app install/uninstall ──
     async function loadDynamicApp(manifest) {
+      // Services don't add desktop icons
+      if (manifest.type === 'service') return;
+
       if (manifest.type === 'external') {
         SIZES[manifest.id] = manifest.size || { w: 800, h: 600 };
         apps.value.push({
@@ -3639,7 +4043,7 @@ createApp({
       ssCapturedCanvas = null;
     }
 
-    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture };
+    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture, showKeyboardTray: computed(() => settingsStore.showKeyboardTray), showMagnifierTray: computed(() => settingsStore.showMagnifierTray) };
   }
 }).use(pinia).use(ElementPlus, EP_LOCALES[localStorage.getItem('sys_locale') || 'tr'] || EP_LOCALES.en).mount('#app');
 
