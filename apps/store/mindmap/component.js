@@ -64,10 +64,23 @@
         });
         function loadScript() {
           return new Promise(function(resolve, reject) {
+            // Load CSS if not already loaded
+            if (!document.querySelector('link[href*="simpleMindMap"]')) {
+              var link = document.createElement('link');
+              link.rel = 'stylesheet';
+              link.href = 'https://unpkg.com/simple-mind-map@0.12.1/dist/simpleMindMap.esm.min.css';
+              document.head.appendChild(link);
+            }
+            // Temporarily hide AMD define to prevent UMD conflict with RequireJS/Monaco
+            var origDefine = window.define;
+            window.define = undefined;
             var s = document.createElement('script');
             s.src = 'https://unpkg.com/simple-mind-map@0.12.1/dist/simpleMindMap.umd.min.js';
-            s.onload = function() { resolve(window.simpleMindMap.default || window.simpleMindMap); };
-            s.onerror = reject;
+            s.onload = function() {
+              window.define = origDefine;
+              resolve(window.simpleMindMap.default || window.simpleMindMap);
+            };
+            s.onerror = function(e) { window.define = origDefine; reject(e); };
             document.head.appendChild(s);
           });
         }

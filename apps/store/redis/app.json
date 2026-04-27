@@ -1,0 +1,31 @@
+{
+  "id": "redis",
+  "name": "Redis",
+  "icon": "🔴",
+  "color": "linear-gradient(135deg,#dc382d,#8b0000)",
+  "type": "service",
+  "size": { "w": 500, "h": 400 },
+  "global": false,
+  "description": "Redis önbellek ve veri yapısı servisi — hızlı anahtar-değer deposu",
+  "lang": {
+    "tr": { "name": "Redis", "description": "Redis önbellek ve veri yapısı servisi — hızlı anahtar-değer deposu" },
+    "en": { "name": "Redis", "description": "Redis cache and data structure service — fast key-value store" },
+    "de": { "name": "Redis", "description": "Redis-Cache- und Datenstrukturdienst — schneller Schlüssel-Wert-Speicher" },
+    "fr": { "name": "Redis", "description": "Service Redis de cache et structures de données — magasin clé-valeur rapide" },
+    "es": { "name": "Redis", "description": "Servicio Redis de caché y estructuras de datos — almacén clave-valor rápido" },
+    "ru": { "name": "Redis", "description": "Сервис кэширования Redis — быстрое хранилище ключ-значение" },
+    "zh": { "name": "Redis", "description": "Redis 缓存与数据结构服务 — 快速键值存储" },
+    "ja": { "name": "Redis", "description": "Redisキャッシュ・データ構造サービス — 高速キーバリューストア" },
+    "it": { "name": "Redis", "description": "Servizio Redis di cache e strutture dati — archivio chiave-valore veloce" }
+  },
+  "category": "development",
+  "docker": {
+    "image": "redis:latest",
+    "containerPort": 6379,
+    "volumes": [
+      "${APP_VOLUME}:/data"
+    ],
+    "env": [],
+    "cmd": ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+  }
+}

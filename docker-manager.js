@@ -133,7 +133,7 @@ app.post('/pull', authCheck, async (req, res) => {
 
 // ── Run container ──
 app.post('/run', authCheck, async (req, res) => {
-  const { image, appId, containerPort, network, volumes, env, restart } = req.body;
+  const { image, appId, containerPort, network, volumes, env, restart, cmd } = req.body;
   console.log(`[RUN] Request: appId=${appId} image=${image} containerPort=${containerPort}`);
   console.log(`[RUN] Volumes:`, volumes || '(none)');
   console.log(`[RUN] Env:`, env || '(none)');
@@ -207,6 +207,14 @@ app.post('/run', authCheck, async (req, res) => {
     }
 
     args.push(image);
+
+    // Add command arguments after image (e.g. redis-server --requirepass)
+    if (Array.isArray(cmd)) {
+      for (const c of cmd) {
+        if (typeof c === 'string' && c.length > 0) args.push(c);
+      }
+    }
+
     console.log(`[RUN] docker ${args.join(' ')}`);
 
     const containerId = await dockerExec(args);

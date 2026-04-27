@@ -16,8 +16,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/simple-mind-map@0.12.1/dist/simpleMindMap.esm.min.css">
-<script src="https://unpkg.com/simple-mind-map@0.12.1/dist/simpleMindMap.umd.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 *{scrollbar-width:thin;scrollbar-color:#2a2d35 transparent}
@@ -84,6 +82,21 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .sm-power{width:32px;height:32px;border-radius:6px;border:none;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);cursor:pointer;font-size:16px;transition:.15s}
 .sm-power:hover{background:rgba(255,80,80,.3);color:#ff5555}
 .sm-settings-btn:hover{background:rgba(100,130,255,.3) !important;color:#88aaff !important}
+.sm-finder{position:relative;margin-bottom:10px}
+.sm-finder-input{width:100%;padding:8px 12px 8px 32px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:rgba(255,255,255,.06);color:#fff;font-size:13px;outline:none;box-sizing:border-box}
+.sm-finder-input:focus{border-color:rgba(102,126,234,.6);background:rgba(255,255,255,.1)}
+.sm-finder-input::placeholder{color:rgba(255,255,255,.35)}
+.sm-finder-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:rgba(255,255,255,.35);pointer-events:none}
+.sm-finder-results{position:absolute;left:0;right:0;top:calc(100% + 4px);background:rgba(20,20,40,.98);border:1px solid rgba(255,255,255,.12);border-radius:8px;max-height:260px;overflow-y:auto;z-index:10;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+.sm-finder-item{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:.12s}
+.sm-finder-item:first-child{border-radius:8px 8px 0 0}
+.sm-finder-item:last-child{border-radius:0 0 8px 8px}
+.sm-finder-item:hover,.sm-finder-item.active{background:rgba(102,126,234,.25)}
+.sm-finder-item-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.sm-finder-item-info{flex:1;min-width:0}
+.sm-finder-item-name{color:#fff;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sm-finder-item-cat{color:rgba(255,255,255,.4);font-size:11px}
+.sm-finder-empty{padding:16px;text-align:center;color:rgba(255,255,255,.4);font-size:12px}
 .sm-cats{max-height:360px;overflow-y:auto;margin-bottom:12px}
 .sm-cat{margin-bottom:2px}
 .sm-cat-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:none;background:rgba(255,255,255,.04);color:rgba(255,255,255,.8);font-size:12px;font-weight:600;cursor:pointer;border-radius:6px;transition:.15s}
@@ -202,7 +215,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       </div>
     </div>
     <!-- Icon Context Menu -->
-    <div v-if="iconCtx.show" class="icon-ctx" :style="{left:iconCtx.x+'px',top:iconCtx.y+'px'}" @click.stop>
+    <div v-if="iconCtx.show" ref="iconCtxEl" class="icon-ctx" :style="{left:iconCtx.x+'px',top:iconCtx.y+'px'}" @click.stop>
       <div class="icon-ctx-header">{{iconCtx.app?.icon}} {{iconCtx.app ? appName(iconCtx.app) : ''}}</div>
       <div class="icon-ctx-item" @click="openApp(iconCtx.app);hideIconCtx()">▶ {{t('ctxOpen')}}</div>
       <div class="icon-ctx-sep"></div>
@@ -298,6 +311,22 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
   </div>
   <transition name="menu">
     <div v-if="menuOpen" class="start-menu" @click.stop>
+      <div class="sm-finder">
+        <span class="sm-finder-icon">🔍</span>
+        <input class="sm-finder-input" v-model="smSearch" :placeholder="t('search') || 'Ara...'" @keydown.down.prevent="smFinderDown" @keydown.up.prevent="smFinderUp" @keydown.enter.prevent="smFinderEnter" @keydown.escape="smSearch=''"/>
+        <div v-if="smSearch.trim() && smSearchResults.length" class="sm-finder-results">
+          <div v-for="(r, idx) in smSearchResults" :key="r.id" class="sm-finder-item" :class="{active: smFinderIdx===idx}" @click="openApp(r);closeMenu();smSearch=''" @mouseenter="smFinderIdx=idx">
+            <div class="sm-finder-item-icon" :style="{background:r.color}">{{r.icon}}</div>
+            <div class="sm-finder-item-info">
+              <div class="sm-finder-item-name">{{appName(r)}}</div>
+              <div class="sm-finder-item-cat">{{r._catName}}</div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="smSearch.trim() && !smSearchResults.length" class="sm-finder-results">
+          <div class="sm-finder-empty">{{t('storeNoResults')}}</div>
+        </div>
+      </div>
       <div class="sm-cats">
         <div v-for="cat in menuCategories" :key="cat.id" class="sm-cat">
           <button class="sm-cat-btn" :class="{open: openCats[cat.id]}" @click="toggleCat(cat.id)">
@@ -329,7 +358,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
     </div>
   </transition>
   <!-- Start Menu Context Menu (outside start-menu to avoid backdrop-filter containing block) -->
-  <div v-if="smCtx.show" class="icon-ctx" :style="{left:smCtx.x+'px',top:smCtx.y+'px'}" @click.stop>
+  <div v-if="smCtx.show" ref="smCtxEl" class="icon-ctx" :style="{left:smCtx.x+'px',top:smCtx.y+'px'}" @click.stop>
     <div class="icon-ctx-header">{{smCtx.app?.icon}} {{smCtx.app ? appName(smCtx.app) : ''}}</div>
     <div class="icon-ctx-item" @click="openApp(smCtx.app);hideSmCtx();closeMenu()">▶ {{t('ctxOpen')}}</div>
     <div class="icon-ctx-sep"></div>
@@ -3586,6 +3615,27 @@ createApp({
     }
 
     const openCats = reactive({});
+    const smSearch = ref('');
+    const smFinderIdx = ref(0);
+    const smSearchResults = computed(() => {
+      const q = (smSearch.value || '').trim().toLowerCase();
+      if (!q) return [];
+      const results = [];
+      apps.value.forEach(a => {
+        if (a.type === 'service') return;
+        const name = appName(a).toLowerCase();
+        const desc = (appDesc(a) || '').toLowerCase();
+        if (name.includes(q) || desc.includes(q) || (a.id && a.id.toLowerCase().includes(q))) {
+          const catId = a.category || 'other';
+          results.push({ ...a, _catName: getCatName(catId) });
+        }
+      });
+      smFinderIdx.value = 0;
+      return results;
+    });
+    function smFinderDown() { if (smSearchResults.value.length) smFinderIdx.value = (smFinderIdx.value + 1) % smSearchResults.value.length; }
+    function smFinderUp() { if (smSearchResults.value.length) smFinderIdx.value = (smFinderIdx.value - 1 + smSearchResults.value.length) % smSearchResults.value.length; }
+    function smFinderEnter() { const r = smSearchResults.value[smFinderIdx.value]; if (r) { openApp(r); closeMenu(); smSearch.value = ''; } }
 
     function toggleCat(catId) {
       const isOpen = openCats[catId];
@@ -3629,6 +3679,7 @@ createApp({
     const currentDesktop = ref(1);
     const iconDesktopMap = ref(JSON.parse(localStorage.getItem('iconDesktopMap') || '{}'));
     const iconCtx = ref({ show: false, x: 0, y: 0, app: null });
+    const iconCtxEl = ref(null);
     const menuOpen = ref(false);
     const volOpen = ref(false);
     const volStore = useVolumeStore();
@@ -3661,9 +3712,22 @@ createApp({
     }));
 
     function showIconCtx(e, app) {
-      const x = Math.min(e.clientX, window.innerWidth - 200);
-      const y = Math.min(e.clientY, window.innerHeight - 280);
-      iconCtx.value = { show: true, x, y, app };
+      iconCtx.value = { show: true, x: e.clientX, y: e.clientY, app };
+      nextTick(() => {
+        const el = iconCtxEl.value;
+        if (!el) return;
+        const mw = el.offsetWidth;
+        const mh = el.offsetHeight;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        let x = e.clientX;
+        let y = e.clientY;
+        if (x + mw > vw) x = vw - mw - 4;
+        if (y + mh > vh) y = e.clientY - mh;
+        if (x < 0) x = 4;
+        if (y < 0) y = 4;
+        iconCtx.value = { show: true, x, y, app };
+      });
     }
     function hideIconCtx() { iconCtx.value.show = false; }
 
@@ -3702,11 +3766,25 @@ createApp({
     }
 
     const smCtx = ref({ show: false, x: 0, y: 0, app: null });
+    const smCtxEl = ref(null);
 
     function showSmCtx(e, app) {
-      const x = Math.min(e.clientX, window.innerWidth - 200);
-      const y = Math.max(0, Math.min(e.clientY, window.innerHeight - 100));
-      smCtx.value = { show: true, x, y, app };
+      smCtx.value = { show: true, x: e.clientX, y: e.clientY, app };
+      nextTick(() => {
+        const el = smCtxEl.value;
+        if (!el) return;
+        const mw = el.offsetWidth;
+        const mh = el.offsetHeight;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        let x = e.clientX;
+        let y = e.clientY;
+        if (x + mw > vw) x = vw - mw - 4;
+        if (y + mh > vh) y = e.clientY - mh;
+        if (x < 0) x = 4;
+        if (y < 0) y = 4;
+        smCtx.value = { show: true, x, y, app };
+      });
     }
     function hideSmCtx() { smCtx.value.show = false; }
 
@@ -4074,7 +4152,7 @@ createApp({
     window._applyWallpaper = updateWallpaper;
 
     function toggleMenu() { menuOpen.value = !menuOpen.value; }
-    function closeMenu() { menuOpen.value = false; volOpen.value = false; hideSmCtx(); }
+    function closeMenu() { menuOpen.value = false; volOpen.value = false; hideSmCtx(); smSearch.value = ''; }
 
     function onDocClick(e) {
       const t = e.target;
@@ -4431,7 +4509,7 @@ createApp({
       ssCapturedCanvas = null;
     }
 
-    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, removeFromDesktop, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, smCtx, showSmCtx, hideSmCtx, addToDesktop, doLogout, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture, showKeyboardTray: computed(() => settingsStore.showKeyboardTray), showMagnifierTray: computed(() => settingsStore.showMagnifierTray) };
+    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, iconCtxEl, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, removeFromDesktop, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, smCtx, smCtxEl, showSmCtx, hideSmCtx, addToDesktop, doLogout, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture, smSearch, smFinderIdx, smSearchResults, smFinderDown, smFinderUp, smFinderEnter, showKeyboardTray: computed(() => settingsStore.showKeyboardTray), showMagnifierTray: computed(() => settingsStore.showMagnifierTray) };
   }
 }).use(pinia).use(ElementPlus, EP_LOCALES[localStorage.getItem('sys_locale') || 'tr'] || EP_LOCALES.en).mount('#app');
 

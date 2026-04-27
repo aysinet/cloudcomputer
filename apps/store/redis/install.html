@@ -1,0 +1,91 @@
+<div class="redis-install-form">
+  <div class="redis-install-header">
+    <span class="redis-install-icon">🔴</span>
+    <h3>Redis</h3>
+    <p class="redis-install-subtitle" data-i18n="subtitle">Redis şifresini belirleyin (isteğe bağlı)</p>
+  </div>
+  <div class="redis-install-body">
+    <label data-i18n="passwordLabel">Redis Şifresi (opsiyonel)</label>
+    <div class="redis-password-wrap">
+      <input type="password" id="redis-password" placeholder="Boş bırakılabilir" autocomplete="new-password" />
+      <button type="button" class="redis-eye-btn" onclick="toggleRedisPass()">👁</button>
+    </div>
+    <p class="redis-install-hint" data-i18n="hint">Şifre belirlerseniz Redis'e bağlanırken AUTH komutu gerekir. Boş bırakırsanız şifresiz çalışır.</p>
+    <div class="redis-install-error" id="redis-install-error" style="display:none"></div>
+  </div>
+  <div class="redis-install-footer">
+    <button class="redis-cancel-btn" onclick="cancelServiceInstall()" data-i18n="cancel">İptal</button>
+    <button class="redis-install-btn" onclick="confirmServiceInstall()" data-i18n="installBtn">Kur ve Başlat</button>
+  </div>
+</div>
+
+<script>
+  const REDIS_I18N = {
+    tr: { subtitle: 'Redis şifresini belirleyin (isteğe bağlı)', passwordLabel: 'Redis Şifresi (opsiyonel)', hint: 'Şifre belirlerseniz Redis\'e bağlanırken AUTH komutu gerekir. Boş bırakırsanız şifresiz çalışır.', cancel: 'İptal', installBtn: 'Kur ve Başlat', errorShort: 'Şifre en az 4 karakter olmalı' },
+    en: { subtitle: 'Set Redis password (optional)', passwordLabel: 'Redis Password (optional)', hint: 'If you set a password, AUTH command will be required to connect. Leave empty for no authentication.', cancel: 'Cancel', installBtn: 'Install & Start', errorShort: 'Password must be at least 4 characters' },
+    de: { subtitle: 'Redis-Passwort festlegen (optional)', passwordLabel: 'Redis-Passwort (optional)', hint: 'Wenn ein Passwort gesetzt wird, ist AUTH erforderlich. Leer lassen für keine Authentifizierung.', cancel: 'Abbrechen', installBtn: 'Installieren & Starten', errorShort: 'Passwort muss mindestens 4 Zeichen lang sein' },
+    fr: { subtitle: 'Définir le mot de passe Redis (optionnel)', passwordLabel: 'Mot de passe Redis (optionnel)', hint: 'Si un mot de passe est défini, la commande AUTH sera requise. Laissez vide pour aucune authentification.', cancel: 'Annuler', installBtn: 'Installer & Démarrer', errorShort: 'Le mot de passe doit comporter au moins 4 caractères' },
+    es: { subtitle: 'Establecer contraseña Redis (opcional)', passwordLabel: 'Contraseña Redis (opcional)', hint: 'Si estableces una contraseña, se requerirá el comando AUTH. Déjalo vacío para sin autenticación.', cancel: 'Cancelar', installBtn: 'Instalar e Iniciar', errorShort: 'La contraseña debe tener al menos 4 caracteres' }
+  };
+
+  function getRedisLocale() {
+    try { return window.__serviceInstallLocale || 'tr'; } catch { return 'tr'; }
+  }
+
+  function getRedisI18n(key) {
+    const loc = getRedisLocale();
+    return (REDIS_I18N[loc] || REDIS_I18N.tr)[key] || (REDIS_I18N.tr)[key] || key;
+  }
+
+  function toggleRedisPass() {
+    const inp = document.getElementById('redis-password');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  function getInstallConfig() {
+    const password = (document.getElementById('redis-password').value || '').trim();
+    const errEl = document.getElementById('redis-install-error');
+    if (password && password.length < 4) {
+      errEl.textContent = getRedisI18n('errorShort');
+      errEl.style.display = 'block';
+      return null;
+    }
+    errEl.style.display = 'none';
+    const config = {};
+    if (password) config.REDIS_PASSWORD = password;
+    return config;
+  }
+</script>
+
+<style>
+  .redis-install-form { padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; }
+  .redis-install-header { text-align: center; margin-bottom: 20px; }
+  .redis-install-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+  .redis-install-header h3 { margin: 0 0 4px; font-size: 20px; color: #fff; }
+  .redis-install-subtitle { margin: 0; font-size: 13px; color: #aaa; }
+  .redis-install-body label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #ccc; }
+  .redis-password-wrap { display: flex; gap: 6px; margin-bottom: 8px; }
+  .redis-password-wrap input {
+    flex: 1; padding: 10px 12px; border: 1px solid #444; border-radius: 6px;
+    background: #1e1e2e; color: #fff; font-size: 14px; outline: none;
+  }
+  .redis-password-wrap input:focus { border-color: #dc382d; }
+  .redis-eye-btn {
+    background: #2a2a3a; border: 1px solid #444; border-radius: 6px; padding: 0 12px;
+    cursor: pointer; font-size: 16px;
+  }
+  .redis-install-hint { font-size: 11px; color: #888; margin: 4px 0 0; }
+  .redis-install-error { color: #ff6b6b; font-size: 12px; margin-top: 8px; padding: 6px 10px; background: rgba(255,0,0,0.1); border-radius: 4px; }
+  .redis-install-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .redis-cancel-btn {
+    padding: 8px 20px; border: 1px solid #555; border-radius: 6px; background: transparent;
+    color: #ccc; cursor: pointer; font-size: 13px;
+  }
+  .redis-cancel-btn:hover { background: #333; }
+  .redis-install-btn {
+    padding: 8px 24px; border: none; border-radius: 6px;
+    background: linear-gradient(135deg, #dc382d, #ff5c4a); color: #fff;
+    cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  .redis-install-btn:hover { opacity: 0.9; }
+</style>

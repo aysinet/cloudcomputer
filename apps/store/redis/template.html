@@ -1,0 +1,27 @@
+<div class="redis-service-root">
+  <div class="redis-service-header">
+    <span class="redis-service-icon">🔴</span>
+    <h3>Redis</h3>
+    <span :class="['redis-status-badge', status]">
+      {{ status === 'running' ? '● Çalışıyor' : status === 'stopped' ? '○ Durdu' : status === 'loading' ? '◌ Yükleniyor...' : status === 'restarting' ? '◌ Yeniden başlatılıyor...' : '⚠ Hata' }}
+    </span>
+  </div>
+
+  <div v-if="status === 'error'" class="redis-error">
+    <p>{{ errorMsg }}</p>
+    <button @click="loadStatus">Tekrar Dene</button>
+  </div>
+
+  <div v-if="connInfo && status === 'running'" class="redis-conn-info">
+    <h4>Bağlantı Bilgileri</h4>
+    <div class="redis-conn-row"><span class="redis-conn-label">Host (harici):</span><code>localhost</code></div>
+    <div class="redis-conn-row"><span class="redis-conn-label">Host (dahili):</span><code>{{ connInfo.internalHost }}</code></div>
+    <div class="redis-conn-row"><span class="redis-conn-label">Port:</span><code>{{ connInfo.port }}</code></div>
+    <div class="redis-conn-row"><span class="redis-conn-label">Şifre:</span><code>{{ connInfo.hasPassword ? '••••••' : 'Yok' }}</code></div>
+  </div>
+
+  <div v-if="status === 'running' || status === 'stopped'" class="redis-actions">
+    <button class="redis-restart-btn" @click="restart" :disabled="status === 'restarting'">🔄 Yeniden Başlat</button>
+    <button class="redis-refresh-btn" @click="loadStatus">↻ Yenile</button>
+  </div>
+</div>

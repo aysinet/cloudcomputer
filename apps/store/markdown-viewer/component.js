@@ -123,7 +123,7 @@
       } catch(e) { return '<pre>' + text + '</pre>'; }
     }
 
-    var htmlPreview = computed(function() { return renderMarkdown(mdText.value); });
+    var htmlPreview = computed(function() { if (!markedLoaded.value) return ''; return renderMarkdown(mdText.value); });
 
     /* ── Stats ── */
     var stats = computed(function() {

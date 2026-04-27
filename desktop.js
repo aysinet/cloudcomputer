@@ -52,6 +52,22 @@ function resolveVolumes(volumes, appId) {
   });
 }
 
+// ── Resolve cmd template from installConfig; returns null if any var missing ──
+function resolveCmd(cmdTemplate, installConfig) {
+  if (!Array.isArray(cmdTemplate) || cmdTemplate.length === 0) return null;
+  if (!installConfig) return null;
+  const resolved = [];
+  for (const part of cmdTemplate) {
+    if (typeof part !== 'string') continue;
+    const replaced = part.replace(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, key) => {
+      return installConfig[key] != null ? String(installConfig[key]) : '';
+    });
+    if (replaced === '') return null;
+    resolved.push(replaced);
+  }
+  return resolved.length > 0 ? resolved : null;
+}
+
 async function dmFetch(path, opts = {}) {
   const url = DOCKER_MANAGER_URL + path;
   const headers = { 'Content-Type': 'application/json', 'x-dm-secret': DM_SECRET, ...(opts.headers || {}) };
@@ -382,22 +398,27 @@ app.post('/api/services/install', authMiddleware, async (req, res) => {
   // Build volumes - use user-specific directory for data
   const volumes = resolveVolumes(appManifest.docker.volumes || [], appId);
 
+  // Build cmd from template + installConfig
+  const cmd = resolveCmd(appManifest.docker.cmd, installConfig);
+
   const dockerConfig = appManifest.docker;
   try {
     // Pull image first
     await dmFetch('/pull', { method: 'POST', body: JSON.stringify({ image: dockerConfig.image }) });
 
     // Run container with restart always for services
+    const runBody = {
+      image: dockerConfig.image,
+      appId,
+      containerPort: dockerConfig.containerPort || 80,
+      volumes,
+      env,
+      restart: 'always'
+    };
+    if (cmd) runBody.cmd = cmd;
     const runData = await dmFetch('/run', {
       method: 'POST',
-      body: JSON.stringify({
-        image: dockerConfig.image,
-        appId,
-        containerPort: dockerConfig.containerPort || 5432,
-        volumes,
-        env,
-        restart: 'always'
-      })
+      body: JSON.stringify(runBody)
     });
 
     // Track container
@@ -413,6 +434,7 @@ app.post('/api/services/install', authMiddleware, async (req, res) => {
     serviceConfigs[appId].port = runData.hostPort;
     serviceConfigs[appId].containerName = runData.containerName;
     serviceConfigs[appId].internalUrl = runData.internalUrl;
+    if (cmd) serviceConfigs[appId].cmd = cmd;
     saveServiceConfigs(req.user.username, serviceConfigs);
 
     res.json({ ok: true, app: appManifest, port: runData.hostPort, containerId: runData.containerId });
@@ -780,7 +802,7 @@ app.post('/api/docker/pull', authMiddleware, async (req, res) => {
 });
 
 app.post('/api/docker/run', authMiddleware, async (req, res) => {
-  const { image, appId, containerPort, volumes, env, restart } = req.body;
+  const { image, appId, containerPort, volumes, env, restart, cmd } = req.body;
   if (!image || !appId) return res.status(400).json({ error: 'image and appId required' });
   if (!/^[a-zA-Z0-9_\-./]+:[a-zA-Z0-9_.\-]*$|^[a-zA-Z0-9_\-./]+$/.test(image)) return res.status(400).json({ error: 'Invalid image name' });
   if (!/^[a-zA-Z0-9_-]+$/.test(appId)) return res.status(400).json({ error: 'Invalid appId' });
@@ -791,6 +813,7 @@ app.post('/api/docker/run', authMiddleware, async (req, res) => {
   try {
     const body = { image, appId, containerPort: containerPort || 80, volumes: resolvedVolumes, env };
     if (restart) body.restart = restart;
+    if (Array.isArray(cmd)) body.cmd = cmd;
     const data = await dmFetch('/run', {
       method: 'POST',
       body: JSON.stringify(body)

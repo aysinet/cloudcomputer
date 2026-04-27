@@ -1,0 +1,29 @@
+.redis-service-root { padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; height: 100%; box-sizing: border-box; background: #1a1a2e; }
+.redis-service-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.redis-service-icon { font-size: 36px; }
+.redis-service-header h3 { margin: 0; font-size: 18px; color: #fff; flex: 1; }
+.redis-status-badge { font-size: 12px; padding: 4px 12px; border-radius: 12px; font-weight: 600; }
+.redis-status-badge.running { background: rgba(82,196,26,0.15); color: #52c41a; }
+.redis-status-badge.stopped { background: rgba(255,77,79,0.15); color: #ff4d4f; }
+.redis-status-badge.loading, .redis-status-badge.restarting { background: rgba(24,144,255,0.15); color: #1890ff; }
+.redis-status-badge.error { background: rgba(255,77,79,0.15); color: #ff4d4f; }
+
+.redis-conn-info { background: #222238; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.redis-conn-info h4 { margin: 0 0 12px; font-size: 14px; color: #aaa; }
+.redis-conn-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; }
+.redis-conn-label { color: #888; min-width: 110px; }
+.redis-conn-row code { background: #1a1a2e; padding: 2px 8px; border-radius: 4px; color: #dc382d; font-size: 13px; }
+
+.redis-actions { display: flex; gap: 10px; }
+.redis-restart-btn, .redis-refresh-btn {
+  padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px;
+}
+.redis-restart-btn { background: linear-gradient(135deg, #dc382d, #ff5c4a); color: #fff; }
+.redis-restart-btn:hover { opacity: 0.9; }
+.redis-restart-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.redis-refresh-btn { background: #2a2a3a; color: #ccc; border: 1px solid #444; }
+.redis-refresh-btn:hover { background: #333; }
+
+.redis-error { background: rgba(255,0,0,0.1); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.redis-error p { margin: 0 0 8px; color: #ff6b6b; font-size: 13px; }
+.redis-error button { padding: 6px 14px; border: none; border-radius: 4px; background: #dc382d; color: #fff; cursor: pointer; font-size: 12px; }
