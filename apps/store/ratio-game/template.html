@@ -1,0 +1,83 @@
+<div class="rg-root">
+  <!-- HELP -->
+  <el-button class="rg-help" circle size="small" @click="showHelp=!showHelp">?</el-button>
+  <transition name="el-fade-in">
+    <div v-if="showHelp" class="rg-tooltip" @click.stop>
+      <strong>{{ L('howToPlay') }}</strong>
+      <span>{{ L('helpText') }}</span>
+    </div>
+  </transition>
+
+  <!-- GAME VIEW -->
+  <template v-if="!summaryVisible">
+    <section class="rg-target">
+      <p class="rg-round-text">{{ L('round') }} {{ round }} / 10</p>
+      <h1 class="rg-target-fraction">
+        <span class="rg-frac">
+          <span>{{ target.numerator }}</span>
+          <span class="rg-frac-slash">/</span>
+          <span>{{ target.denominator }}</span>
+        </span>
+      </h1>
+    </section>
+
+    <p class="rg-instruction">{{ instruction }}</p>
+
+    <svg class="rg-board" ref="svgEl" viewBox="-190 -190 380 380"
+         @pointermove="positionCut" @pointerdown="makeSlice">
+      <circle class="rg-disc" :class="{faded:locked}" r="132" />
+      <g ref="partsEl" class="rg-parts" :class="{'is-visible':partsVisible}">
+        <path v-for="(p,i) in partPaths" :key="i"
+              :d="p.d" :class="['rg-part', {'is-target':p.isTarget}]"
+              :style="{'--index':i}" />
+      </g>
+      <path class="rg-user-slice" :class="{'is-visible':locked}" :d="userSliceD" :style="{transform:userSliceTx}" />
+      <path class="rg-target-slice" :class="{'is-visible':locked}" :d="targetSliceD" />
+      <line class="rg-base-line" :class="{'is-locked':locked}" x1="0" y1="0" x2="0" y2="-132" />
+      <line class="rg-cut-line" :class="{'is-locked':locked}" x1="0" y1="0" :x2="cutEnd.x" :y2="cutEnd.y" />
+      <circle class="rg-centre" :class="{'is-locked':locked}" r="3.5" />
+    </svg>
+
+    <section class="rg-result">
+      <span>{{ cutResultText }}</span>
+      <strong>{{ scoreText }}</strong>
+    </section>
+
+    <el-button class="rg-next" type="primary" :disabled="!locked" @click="nextStep" round>
+      {{ round >= 10 && locked ? L('results') : L('next') }}
+    </el-button>
+  </template>
+
+  <!-- SUMMARY VIEW -->
+  <template v-if="summaryVisible">
+    <section class="rg-summary">
+      <p class="rg-summary-label">{{ L('resultsTitle') }}</p>
+      <h2 class="rg-avg-error">{{ avgError }} pts</h2>
+      <p class="rg-analysis">{{ analysisText }}</p>
+
+      <div class="rg-stats">
+        <div>
+          <span>{{ L('bestCut') }}</span>
+          <strong>{{ bestCutText }} pts</strong>
+        </div>
+        <div>
+          <span>{{ L('avgBias') }}</span>
+          <strong>{{ biasText }} pts</strong>
+        </div>
+      </div>
+
+      <div class="rg-attempts">
+        <div v-for="a in history" :key="a.round" class="rg-attempt">
+          <svg viewBox="-26 -26 52 52">
+            <circle r="19" />
+            <path class="rg-mini-user" :d="miniWedge(0, a.userValue, a.side, 19)" />
+            <path class="rg-mini-target" :d="miniWedge(0, a.targetValue, a.side, 19)" />
+          </svg>
+          <span>{{ a.error.toFixed(1) }} pts</span>
+        </div>
+      </div>
+
+      <el-button class="rg-next" type="primary" @click="startGame" round>{{ L('playAgain') }}</el-button>
+    </section>
+  </template>
+</div>

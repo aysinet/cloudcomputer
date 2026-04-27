@@ -20,7 +20,8 @@
         from:'Kimden', date:'Tarih', back:'Geri', saveDraft:'Taslak Kaydet',
         testConnection:'Bağlantı Test', testSuccess:'Bağlantı başarılı', testFail:'Bağlantı başarısız',
         loading:'Yükleniyor...', attachments:'Ekler', noSubject:'(Konu yok)', refresh:'Yenile',
-        all:'Tümü', unread:'Okunmamış'
+        all:'Tümü', unread:'Okunmamış',
+        searchContacts:'Kişi ara...', noContacts:'Kişi bulunamadı'
       },
       en: {
         title:'Mail', inbox:'Inbox', sent:'Sent', drafts:'Drafts', compose:'Compose',
@@ -37,7 +38,8 @@
         from:'From', date:'Date', back:'Back', saveDraft:'Save Draft',
         testConnection:'Test Connection', testSuccess:'Connection successful', testFail:'Connection failed',
         loading:'Loading...', attachments:'Attachments', noSubject:'(No Subject)', refresh:'Refresh',
-        all:'All', unread:'Unread'
+        all:'All', unread:'Unread',
+        searchContacts:'Search contacts...', noContacts:'No contacts found'
       },
       de: {
         title:'Mail', inbox:'Posteingang', sent:'Gesendet', drafts:'Entwürfe', compose:'Verfassen',
@@ -54,7 +56,8 @@
         from:'Von', date:'Datum', back:'Zurück', saveDraft:'Entwurf speichern',
         testConnection:'Verbindung testen', testSuccess:'Verbindung erfolgreich', testFail:'Verbindung fehlgeschlagen',
         loading:'Laden...', attachments:'Anhänge', noSubject:'(Kein Betreff)', refresh:'Aktualisieren',
-        all:'Alle', unread:'Ungelesen'
+        all:'Alle', unread:'Ungelesen',
+        searchContacts:'Kontakte suchen...', noContacts:'Keine Kontakte gefunden'
       },
       fr: {
         title:'Mail', inbox:'Boîte de réception', sent:'Envoyés', drafts:'Brouillons', compose:'Rédiger',
@@ -71,7 +74,8 @@
         from:'De', date:'Date', back:'Retour', saveDraft:'Enreg. brouillon',
         testConnection:'Tester connexion', testSuccess:'Connexion réussie', testFail:'Connexion échouée',
         loading:'Chargement...', attachments:'Pièces jointes', noSubject:'(Sans objet)', refresh:'Actualiser',
-        all:'Tous', unread:'Non lus'
+        all:'Tous', unread:'Non lus',
+        searchContacts:'Rechercher...', noContacts:'Aucun contact trouvé'
       },
       es: {
         title:'Correo', inbox:'Bandeja de entrada', sent:'Enviados', drafts:'Borradores', compose:'Redactar',
@@ -88,7 +92,8 @@
         from:'De', date:'Fecha', back:'Atrás', saveDraft:'Guardar borrador',
         testConnection:'Probar conexión', testSuccess:'Conexión exitosa', testFail:'Conexión fallida',
         loading:'Cargando...', attachments:'Adjuntos', noSubject:'(Sin asunto)', refresh:'Actualizar',
-        all:'Todos', unread:'No leídos'
+        all:'Todos', unread:'No leídos',
+        searchContacts:'Buscar contactos...', noContacts:'No se encontraron contactos'
       },
       ru: {
         title:'Почта', inbox:'Входящие', sent:'Отправленные', drafts:'Черновики', compose:'Написать',
@@ -105,7 +110,8 @@
         from:'От', date:'Дата', back:'Назад', saveDraft:'Сохр. черновик',
         testConnection:'Тест соединения', testSuccess:'Соединение успешно', testFail:'Соединение не удалось',
         loading:'Загрузка...', attachments:'Вложения', noSubject:'(Без темы)', refresh:'Обновить',
-        all:'Все', unread:'Непрочитанные'
+        all:'Все', unread:'Непрочитанные',
+        searchContacts:'Поиск контактов...', noContacts:'Контакты не найдены'
       },
     zh: { title:'邮件', inbox:'收件箱', sent:'已发送', drafts:'草稿', compose:'写邮件', settings:'设置', accounts:'账户', addAccount:'添加账户', editAccount:'编辑账户', deleteAccount:'删除账户', deleteAccountConfirm:'确认删除账户？', email:'邮箱', password:'密码', name:'名称', save:'保存', cancel:'取消', delete:'删除', smtpHost:'SMTP主机', smtpPort:'SMTP端口', smtpSecure:'SMTP加密', pop3Host:'POP3主机', pop3Port:'POP3端口', pop3Tls:'POP3 TLS', to:'收件人', cc:'抄送', bcc:'密送', subject:'主题', send:'发送', sending:'发送中', sendSuccess:'发送成功', sendError:'发送失败', fetchMail:'收取邮件', fetching:'收取中', fetchSuccess:'收取成功', fetchError:'收取失败', noMails:'没有邮件', noAccount:'没有账户', reply:'回复', forward:'转发', deleteMsg:'删除邮件', markRead:'标为已读', from:'发件人', date:'日期', back:'返回', saveDraft:'保存草稿', testConnection:'测试连接', testSuccess:'连接成功', testFail:'连接失败', loading:'加载中', attachments:'附件', noSubject:'无主题', refresh:'刷新', all:'全部', unread:'未读' },
     ja: { title:'メール', inbox:'受信トレイ', sent:'送信済', drafts:'下書き', compose:'新規メール', settings:'設定', accounts:'アカウント', addAccount:'アカウント追加', editAccount:'アカウント編集', deleteAccount:'アカウント削除', deleteAccountConfirm:'アカウントを削除しますか？', email:'メール', password:'パスワード', name:'名前', save:'保存', cancel:'キャンセル', delete:'削除', smtpHost:'SMTPホスト', smtpPort:'SMTPポート', smtpSecure:'SMTPセキュア', pop3Host:'POP3ホスト', pop3Port:'POP3ポート', pop3Tls:'POP3 TLS', to:'宛先', cc:'CC', bcc:'BCC', subject:'件名', send:'送信', sending:'送信中', sendSuccess:'送信成功', sendError:'送信エラー', fetchMail:'メール受信', fetching:'受信中', fetchSuccess:'受信成功', fetchError:'受信エラー', noMails:'メールなし', noAccount:'アカウントなし', reply:'返信', forward:'転送', deleteMsg:'メール削除', markRead:'既読にする', from:'差出人', date:'日付', back:'戻る', saveDraft:'下書き保存', testConnection:'接続テスト', testSuccess:'接続成功', testFail:'接続失敗', loading:'読込中', attachments:'添付ファイル', noSubject:'件名なし', refresh:'更新', all:'すべて', unread:'未読' },
@@ -311,6 +317,36 @@
       sendResult.value = { type: '', msg: '' };
     }
 
+    // Contact picker
+    const showContactPicker = ref(false);
+    const cpSearch = ref('');
+    const cpContacts = ref([]);
+
+    async function loadAllContacts() {
+      try {
+        const res = await fetch('/api/contacts', { headers: authHeaders() });
+        if (res.ok) cpContacts.value = (await res.json()).filter(c => c.email);
+      } catch {}
+    }
+
+    async function searchContacts() {
+      const q = cpSearch.value.trim();
+      if (!q) return loadAllContacts();
+      try {
+        const res = await fetch('/api/contacts/search?q=' + encodeURIComponent(q), { headers: authHeaders() });
+        if (res.ok) cpContacts.value = (await res.json()).filter(c => c.email);
+      } catch {}
+    }
+
+    function pickContact(c) {
+      const addr = c.first_name + ' ' + (c.last_name||'') + ' <' + c.email + '>';
+      compose.to = compose.to ? compose.to + ', ' + addr.trim() : addr.trim();
+      showContactPicker.value = false;
+      cpSearch.value = '';
+    }
+
+    watch(showContactPicker, (v) => { if (v) loadAllContacts(); });
+
     // Account management
     function openAddAccount() {
       Object.assign(accForm, { id: null, email: '', name: '', password: '', smtpHost: '', smtpPort: 587, smtpSecure: false, pop3Host: '', pop3Port: 995, pop3Tls: true });
@@ -442,7 +478,8 @@
       compose, sendingMail, sendResult, sendMail, saveDraft, resetCompose,
       accForm, accFormError, testing, openAddAccount, openEditAccount, saveAccount, deleteAccount,
       setActiveAccount, testConn,
-      loadMessages, fetchMail, openMessage, deleteMessage, replyTo, forwardMsg, openDraft, formatDate, shortFrom
+      loadMessages, fetchMail, openMessage, deleteMessage, replyTo, forwardMsg, openDraft, formatDate, shortFrom,
+      showContactPicker, cpSearch, cpContacts, searchContacts, pickContact
     };
   }
 })

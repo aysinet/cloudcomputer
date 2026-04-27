@@ -1,0 +1,52 @@
+{
+  "id": "mandala-maker",
+  "name": "Mandala Maker",
+  "icon": "🕸️",
+  "color": "linear-gradient(135deg,#8e44ad,#3498db)",
+  "type": "internal",
+  "size": {
+    "w": 780,
+    "h": 620
+  },
+  "global": false,
+  "description": "Simetrik mandala çizim aracı — radyal simetri, renk paleti, fırça boyutu",
+  "category": "tools",
+  "lang": {
+    "tr": {
+      "name": "Mandala Maker",
+      "description": "Simetrik mandala çizim aracı — radyal simetri, renk paleti, fırça boyutu"
+    },
+    "en": {
+      "name": "Mandala Maker",
+      "description": "Symmetrical mandala drawing tool — radial symmetry, color palette, brush size"
+    },
+    "de": {
+      "name": "Mandala Maker",
+      "description": "Symmetrisches Mandala-Zeichentool — radiale Symmetrie, Farbpalette, Pinselgröße"
+    },
+    "fr": {
+      "name": "Mandala Maker",
+      "description": "Outil de dessin de mandala — symétrie radiale, palette de couleurs, taille du pinceau"
+    },
+    "es": {
+      "name": "Mandala Maker",
+      "description": "Herramienta de dibujo de mandala — simetría radial, paleta de colores, tamaño de pincel"
+    },
+    "ru": {
+      "name": "Mandala Maker",
+      "description": "Инструмент для рисования мандал — радиальная симметрия, палитра цветов, размер кисти"
+    },
+    "zh": {
+      "name": "Mandala Maker",
+      "description": "对称曼陀罗绘图工具 — 径向对称、调色板、画笔大小"
+    },
+    "ja": {
+      "name": "Mandala Maker",
+      "description": "対称マンダラ描画ツール — 放射対称、カラーパレット、ブラシサイズ"
+    },
+    "it": {
+      "name": "Mandala Maker",
+      "description": "Strumento di disegno mandala — simmetria radiale, tavolozza colori, dimensione pennello"
+    }
+  }
+}

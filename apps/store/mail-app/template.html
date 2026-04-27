@@ -152,9 +152,29 @@
             <h3>{{ L('compose') }}</h3>
           </div>
           <div class="mail-compose-form">
-            <el-input v-model="compose.to" :placeholder="L('to')" style="margin-bottom:8px">
-              <template #prepend>{{ L('to') }}</template>
-            </el-input>
+            <div style="display:flex;gap:6px;margin-bottom:8px;align-items:stretch">
+              <el-input v-model="compose.to" :placeholder="L('to')" style="flex:1">
+                <template #prepend>{{ L('to') }}</template>
+              </el-input>
+              <el-button @click="showContactPicker=true" title="📇" style="height:auto">📇</el-button>
+            </div>
+            <!-- Contact Picker Popover -->
+            <div v-if="showContactPicker" class="mail-contact-picker">
+              <div class="mail-cp-header">
+                <input v-model="cpSearch" :placeholder="L('searchContacts') || 'Search contacts...'" class="mail-cp-search" @input="searchContacts" />
+                <button class="mail-cp-close" @click="showContactPicker=false">✕</button>
+              </div>
+              <div class="mail-cp-list">
+                <div v-if="!cpContacts.length" style="text-align:center;color:#aaa;padding:16px;font-size:13px">{{ L('noContacts') || 'No contacts found' }}</div>
+                <div v-for="c in cpContacts" :key="c.id" class="mail-cp-item" @click="pickContact(c)">
+                  <div class="mail-cp-avatar" :style="{background:c.avatar_color||'#409eff'}">{{(c.first_name||'').charAt(0)}}{{(c.last_name||'').charAt(0)}}</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-weight:600;font-size:13px">{{c.first_name}} {{c.last_name}}</div>
+                    <div style="font-size:11px;color:#909399">{{c.email}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div v-if="!compose.showCc" style="margin-bottom:8px">
               <el-button text size="small" @click="compose.showCc=true">CC / BCC</el-button>
             </div>

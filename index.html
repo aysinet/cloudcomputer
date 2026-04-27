@@ -71,7 +71,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .vol-media-btn:hover{background:rgba(255,255,255,.15);color:#fff}
 .vol-media-play{width:36px;height:36px;font-size:16px;background:rgba(102,126,234,.3);color:#fff}
 .vol-media-play:hover{background:rgba(102,126,234,.5)}
-.start-menu{position:fixed;bottom:52px;left:8px;width:320px;background:rgba(15,15,30,.97);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.12);border-radius:12px;z-index:9999;padding:16px;box-shadow:0 -4px 40px rgba(0,0,0,.6)}
+.start-menu{position:fixed;bottom:52px;left:8px;width:352px;background:rgba(15,15,30,.97);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.12);border-radius:12px;z-index:9999;padding:16px;box-shadow:0 -4px 40px rgba(0,0,0,.6)}
 .sm-header{color:rgba(255,255,255,.5);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;padding:0 4px}
 .sm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
 .sm-item{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;border-radius:8px;cursor:pointer;transition:.15s;border:none;background:transparent}
@@ -154,7 +154,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .fd-body::-webkit-scrollbar-thumb{background:rgba(74,144,217,.2);border-radius:4px}
 
 /* ── Icon Context Menu ── */
-.icon-ctx{position:fixed;z-index:9998;background:rgba(30,30,50,.95);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:4px 0;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.icon-ctx{position:fixed;z-index:10000;background:rgba(30,30,50,.95);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:4px 0;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
 .icon-ctx-header{padding:6px 14px;font-size:11px;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.08)}
 .icon-ctx-item{padding:7px 14px;font-size:13px;color:rgba(255,255,255,.85);cursor:pointer;display:flex;align-items:center;gap:8px;transition:.12s}
 .icon-ctx-item:hover{background:rgba(255,255,255,.12)}
@@ -215,6 +215,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       <div class="icon-ctx-sub">
         <div v-for="d in 4" :key="'c'+d" class="icon-ctx-item" :class="{disabled:isIconOnDesktop(iconCtx.app.id, d)}" @click="copyIcon(iconCtx.app.id, d)">{{t('ctxDesktop')}} {{d}}</div>
       </div>
+      <div class="icon-ctx-sep"></div>
+      <div class="icon-ctx-item" style="color:#f56c6c" @click="removeFromDesktop(iconCtx.app.id)">🗑 {{t('ctxRemove')}}</div>
     </div>
     <button class="fs-toggle" @click="toggleFullscreen" :title="isFullscreen?t('fullscreenExit'):t('fullscreen')">
       <svg v-if="!isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
@@ -304,7 +306,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
           </button>
           <transition name="sm-collapse">
             <div v-if="openCats[cat.id]" class="sm-cat-grid">
-              <button v-for="app in cat.apps" :key="app.id" class="sm-item" @click="openApp(app);closeMenu()">
+              <button v-for="app in cat.apps" :key="app.id" class="sm-item" @click="openApp(app);closeMenu()" @contextmenu.prevent="showSmCtx($event, app)">
                 <div class="sm-icon" :style="{background:app.color}">{{app.icon}}</div>
                 <span class="sm-label">{{appName(app)}}</span>
               </button>
@@ -319,11 +321,20 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         </div>
         <div style="display:flex;gap:6px">
           <button class="sm-power sm-settings-btn" @click="openApp(apps.find(a=>a.id==='settings'));closeMenu()" title="Ayarlar">⚙️</button>
-          <button class="sm-power">⏻</button>
+          <button class="sm-power" @click="doLogout" :title="t('ctxLogout')">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
         </div>
       </div>
     </div>
   </transition>
+  <!-- Start Menu Context Menu (outside start-menu to avoid backdrop-filter containing block) -->
+  <div v-if="smCtx.show" class="icon-ctx" :style="{left:smCtx.x+'px',top:smCtx.y+'px'}" @click.stop>
+    <div class="icon-ctx-header">{{smCtx.app?.icon}} {{smCtx.app ? appName(smCtx.app) : ''}}</div>
+    <div class="icon-ctx-item" @click="openApp(smCtx.app);hideSmCtx();closeMenu()">▶ {{t('ctxOpen')}}</div>
+    <div class="icon-ctx-sep"></div>
+    <div class="icon-ctx-item" @click="addToDesktop(smCtx.app.id);hideSmCtx()">🖥️ {{t('ctxAddDesktop')}}</div>
+  </div>
   <!-- Reminder Alert Overlay -->
   <div v-if="reminderAlert.show" class="reminder-alert-overlay" @click.self="dismissReminder">
     <div class="reminder-alert-box">
@@ -628,6 +639,104 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
   </div>
 </script>
 
+<script type="text/template" id="ContactsApp">
+  <div class="contacts-root">
+    <!-- LIST VIEW -->
+    <template v-if="view==='list'">
+      <div class="contacts-header">
+        <h2>📇 {{t('contactsTitle')}}</h2>
+        <div class="contacts-actions">
+          <el-input v-model="searchQuery" :placeholder="t('contactsSearch')" clearable prefix-icon="Search" size="small" style="width:200px" @input="doSearch" />
+          <el-button size="small" type="primary" @click="openAdd">+ {{t('contactsAdd')}}</el-button>
+        </div>
+      </div>
+      <div class="contacts-list">
+        <div v-if="!filteredContacts.length" class="contacts-empty">{{t('contactsEmpty')}}</div>
+        <div v-for="c in filteredContacts" :key="c.id" class="contact-item" @click="openDetail(c)">
+          <div class="contact-avatar" :style="{background:c.avatar_color||'#409eff'}">{{contactInitials(c)}}</div>
+          <div class="contact-item-body">
+            <div class="contact-item-name">{{c.first_name}} {{c.last_name}}</div>
+            <div class="contact-item-info" v-if="c.email||c.phone||c.company">{{c.email || c.phone || c.company}}</div>
+          </div>
+          <span v-if="c.favorite" class="contact-fav-star">★</span>
+        </div>
+      </div>
+      <div class="contacts-count">{{filteredContacts.length}} {{t('contactsCount')}}</div>
+    </template>
+
+    <!-- DETAIL VIEW -->
+    <template v-if="view==='detail' && selected">
+      <div class="contacts-detail">
+        <div class="contacts-detail-top">
+          <el-button text @click="view='list'" size="small">← {{t('contactsBack')}}</el-button>
+          <span style="flex:1"></span>
+          <el-button text @click="openEdit(selected)" size="small">✏️ {{t('contactsEdit')}}</el-button>
+          <el-button text @click="confirmDelete(selected)" size="small" style="color:#f56c6c">🗑 {{t('contactsDelete')}}</el-button>
+        </div>
+        <div class="contacts-detail-card">
+          <div class="contact-avatar-lg" :style="{background:selected.avatar_color||'#409eff'}">{{contactInitials(selected)}}</div>
+          <h3>{{selected.first_name}} {{selected.last_name}}</h3>
+          <div v-if="selected.job_title||selected.company" class="contact-detail-sub">{{selected.job_title}}<span v-if="selected.job_title&&selected.company"> — </span>{{selected.company}}</div>
+          <el-button :type="selected.favorite?'warning':''" size="small" @click="toggleFav(selected)" plain>{{selected.favorite?'★':'☆'}} {{selected.favorite?t('contactsFaved'):t('contactsFav')}}</el-button>
+        </div>
+        <div class="contacts-detail-fields">
+          <div class="cdf-row" v-if="selected.email"><span class="cdf-icon">📧</span><div><div class="cdf-label">{{t('contactsEmail')}}</div><div class="cdf-val">{{selected.email}}</div></div></div>
+          <div class="cdf-row" v-if="selected.phone"><span class="cdf-icon">📞</span><div><div class="cdf-label">{{t('contactsPhone')}}</div><div class="cdf-val">{{selected.phone}}</div></div></div>
+          <div class="cdf-row" v-if="selected.mobile"><span class="cdf-icon">📱</span><div><div class="cdf-label">{{t('contactsMobile')}}</div><div class="cdf-val">{{selected.mobile}}</div></div></div>
+          <div class="cdf-row" v-if="selected.company"><span class="cdf-icon">🏢</span><div><div class="cdf-label">{{t('contactsCompany')}}</div><div class="cdf-val">{{selected.company}}</div></div></div>
+          <div class="cdf-row" v-if="selected.job_title"><span class="cdf-icon">💼</span><div><div class="cdf-label">{{t('contactsJobTitle')}}</div><div class="cdf-val">{{selected.job_title}}</div></div></div>
+          <div class="cdf-row" v-if="selected.address||selected.city||selected.country"><span class="cdf-icon">📍</span><div><div class="cdf-label">{{t('contactsAddress')}}</div><div class="cdf-val">{{[selected.address,selected.city,selected.country].filter(Boolean).join(', ')}}</div></div></div>
+          <div class="cdf-row" v-if="selected.website"><span class="cdf-icon">🌐</span><div><div class="cdf-label">{{t('contactsWebsite')}}</div><div class="cdf-val">{{selected.website}}</div></div></div>
+          <div class="cdf-row" v-if="selected.birthday"><span class="cdf-icon">🎂</span><div><div class="cdf-label">{{t('contactsBirthday')}}</div><div class="cdf-val">{{selected.birthday}}</div></div></div>
+          <div class="cdf-row" v-if="selected.notes"><span class="cdf-icon">📝</span><div><div class="cdf-label">{{t('contactsNotes')}}</div><div class="cdf-val cdf-notes">{{selected.notes}}</div></div></div>
+        </div>
+      </div>
+    </template>
+
+    <!-- ADD / EDIT FORM -->
+    <template v-if="view==='form'">
+      <div class="contacts-form">
+        <div class="contacts-detail-top">
+          <el-button text @click="cancelForm" size="small">← {{t('contactsBack')}}</el-button>
+          <h3 style="flex:1;text-align:center;margin:0">{{form.id ? t('contactsEdit') : t('contactsAdd')}}</h3>
+          <el-button type="primary" size="small" @click="saveContact">{{t('contactsSave')}}</el-button>
+        </div>
+        <div class="contacts-form-body">
+          <el-row :gutter="10">
+            <el-col :span="12"><el-input v-model="form.first_name" :placeholder="t('contactsFirstName')" size="small" /></el-col>
+            <el-col :span="12"><el-input v-model="form.last_name" :placeholder="t('contactsLastName')" size="small" /></el-col>
+          </el-row>
+          <el-divider style="margin:10px 0">📧</el-divider>
+          <el-input v-model="form.email" :placeholder="t('contactsEmail')" size="small" />
+          <el-divider style="margin:10px 0">📞</el-divider>
+          <el-row :gutter="10">
+            <el-col :span="12"><el-input v-model="form.phone" :placeholder="t('contactsPhone')" size="small" /></el-col>
+            <el-col :span="12"><el-input v-model="form.mobile" :placeholder="t('contactsMobile')" size="small" /></el-col>
+          </el-row>
+          <el-divider style="margin:10px 0">🏢</el-divider>
+          <el-row :gutter="10">
+            <el-col :span="12"><el-input v-model="form.company" :placeholder="t('contactsCompany')" size="small" /></el-col>
+            <el-col :span="12"><el-input v-model="form.job_title" :placeholder="t('contactsJobTitle')" size="small" /></el-col>
+          </el-row>
+          <el-divider style="margin:10px 0">📍</el-divider>
+          <el-input v-model="form.address" :placeholder="t('contactsAddress')" size="small" />
+          <el-row :gutter="10" style="margin-top:6px">
+            <el-col :span="12"><el-input v-model="form.city" :placeholder="t('contactsCity')" size="small" /></el-col>
+            <el-col :span="12"><el-input v-model="form.country" :placeholder="t('contactsCountry')" size="small" /></el-col>
+          </el-row>
+          <el-divider style="margin:10px 0">🔗</el-divider>
+          <el-row :gutter="10">
+            <el-col :span="12"><el-input v-model="form.website" :placeholder="t('contactsWebsite')" size="small" /></el-col>
+            <el-col :span="12"><el-input v-model="form.birthday" :placeholder="t('contactsBirthday') + ' (YYYY-MM-DD)'" size="small" /></el-col>
+          </el-row>
+          <el-divider style="margin:10px 0">📝</el-divider>
+          <el-input v-model="form.notes" type="textarea" :rows="3" :placeholder="t('contactsNotes')" size="small" />
+        </div>
+      </div>
+    </template>
+  </div>
+</script>
+
 <script type="text/template" id="CalendarApp">
   <div class="cal-root">
     <div class="cal-toolbar">
@@ -636,11 +745,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       <el-button size="small" @click="nextMonth">&gt;</el-button>
       <el-button size="small" @click="goToday" type="primary" plain>{{t('calToday')}}</el-button>
       <span style="flex:1"></span>
+      <el-button size="small" :type="showBirthdays?'warning':''" @click="showBirthdays=!showBirthdays" plain title="🎂">🎂</el-button>
       <el-button size="small" @click="showHolidayDialog=true" plain>🏖️</el-button>
       <el-button size="small" type="primary" @click="openAdd">{{t('calAddEvent')}}</el-button>
     </div>
     <div class="cal-body">
-      <table style="width:100%;border-collapse:collapse">
+      <table style="width:100%;border-collapse:collapse;table-layout:fixed">
         <thead>
           <tr>
             <th v-for="d in dayNames" style="padding:6px 0;font-size:12px;font-weight:600;color:#909399;text-align:center;border-bottom:1px solid #e4e7ed">{{d}}</th>
@@ -679,7 +789,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
           <div v-for="(ev,i) in selectedEvents" class="cal-ev-item">
             <div class="ev-color" :style="{background:colorMap[ev.color||'']}"></div>
             <span class="ev-text">{{ev.title}}</span>
-            <button class="ev-del" @click="removeEvent(i)">✕</button>
+            <button v-if="!ev.isBirthday" class="ev-del" @click="removeEvent(i)">✕</button>
           </div>
         </div>
       </div>
@@ -712,7 +822,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
     </div>
     <div class="notif-list">
       <div v-if="!notifications.length" class="notif-empty">{{t('noNotifications')}}</div>
-      <div v-for="(n,i) in notifications" :key="i" class="notif-item" :class="{unread:!n.read}" @click="n.read=true;save()">
+      <div v-for="(n,i) in notifications" :key="n.id||i" class="notif-item" :class="{unread:!n.read}" @click="markRead(n)">
         <div class="ni-icon" :style="{background:n.bg}">{{n.icon}}</div>
         <div class="ni-body">
           <div class="ni-title">{{n.title}}</div>
@@ -736,10 +846,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       <h2>🛒 {{t('storeTitle')}}</h2>
       <div class="sub">{{storeApps.length}} {{t('appsAvailable')}}</div>
     </div>
+    <div class="store-search">
+      <el-input v-model="searchQuery" :placeholder="t('storeSearch')" clearable prefix-icon="Search" size="small" />
+    </div>
     <div class="store-list">
       <div v-if="loading" class="store-loading">{{t('loading')}}</div>
+      <div v-else-if="filteredCategories.length === 0" class="store-loading">{{t('storeNoResults')}}</div>
       <el-collapse v-else v-model="activeCategory" accordion>
-        <el-collapse-item v-for="cat in storeCategories" :key="cat.id" :name="cat.id">
+        <el-collapse-item v-for="cat in filteredCategories" :key="cat.id" :name="cat.id">
           <template #title>
             <span style="font-size:14px;font-weight:600">{{cat.icon}} {{cat.name}}</span>
             <span style="font-size:11px;color:#909399;margin-left:8px">({{cat.apps.filter(a=>a.installed||a.global).length}}/{{cat.apps.length}})</span>
@@ -1249,6 +1363,10 @@ window.FileDialog = (function() {
   };
 })();
 
+// ── Auth helpers (global scope) ──
+function getToken() { try { return localStorage.getItem('auth_token') || ''; } catch { return ''; } }
+function authHeaders() { return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' }; }
+
 // ── i18n translations ──
 const I18N = {
   tr: {
@@ -1278,7 +1396,7 @@ const I18N = {
     send: 'Gönder', openApp: 'Uygulamayı Aç',
     // App Store
     storeTitle: 'Uygulama Mağazası', appsAvailable: 'uygulama mevcut',
-    internal: 'Dahili', external: 'Harici', service: 'Servis', install: 'Kur', uninstall: 'Kaldır',
+    internal: 'Dahili', external: 'Harici', service: 'Servis', install: 'Kur', uninstall: 'Kaldır', storeSearch: 'Uygulama ara...', storeNoResults: 'Sonuç bulunamadı',
     // Volume
     volMute: '🔇 Sessiz', volUnmute: '🔈 Sesi Aç',
     // Wallpaper
@@ -1314,7 +1432,7 @@ const I18N = {
     markAllRead: 'Mark All as Read', testNotifPlaceholder: 'Add test notification...',
     send: 'Send', openApp: 'Open App',
     storeTitle: 'App Store', appsAvailable: 'apps available',
-    internal: 'Internal', external: 'External', service: 'Service', install: 'Install', uninstall: 'Uninstall',
+    internal: 'Internal', external: 'External', service: 'Service', install: 'Install', uninstall: 'Uninstall', storeSearch: 'Search apps...', storeNoResults: 'No results found',
     volMute: '🔇 Mute', volUnmute: '🔈 Unmute',
     settingsWallpaper: 'Wallpaper', wpMode: 'Mode', wpModeDesc: 'Same wallpaper for all desktops or different for each',
     wpAll: 'Same for All', wpPer: 'Per Desktop', wpDesktopSelect: 'Select Desktop',
@@ -1348,7 +1466,7 @@ const I18N = {
     markAllRead: 'Alle als gelesen markieren', testNotifPlaceholder: 'Testbenachrichtigung hinzufügen...',
     send: 'Senden', openApp: 'App öffnen',
     storeTitle: 'App Store', appsAvailable: 'Apps verfügbar',
-    internal: 'Intern', external: 'Extern', service: 'Dienst', install: 'Installieren', uninstall: 'Deinstallieren',
+    internal: 'Intern', external: 'Extern', service: 'Dienst', install: 'Installieren', uninstall: 'Deinstallieren', storeSearch: 'Apps suchen...', storeNoResults: 'Keine Ergebnisse gefunden',
     volMute: '🔇 Stumm', volUnmute: '🔈 Ton an',
     settingsWallpaper: 'Hintergrundbild', wpMode: 'Modus', wpModeDesc: 'Gleiches oder verschiedenes Hintergrundbild für alle Desktops',
     wpAll: 'Für alle gleich', wpPer: 'Pro Desktop', wpDesktopSelect: 'Desktop auswählen',
@@ -1382,7 +1500,7 @@ const I18N = {
     markAllRead: 'Tout marquer comme lu', testNotifPlaceholder: 'Ajouter une notification test...',
     send: 'Envoyer', openApp: 'Ouvrir l\'app',
     storeTitle: 'Boutique d\'apps', appsAvailable: 'apps disponibles',
-    internal: 'Interne', external: 'Externe', service: 'Service', install: 'Installer', uninstall: 'Désinstaller',
+    internal: 'Interne', external: 'Externe', service: 'Service', install: 'Installer', uninstall: 'Désinstaller', storeSearch: 'Rechercher...', storeNoResults: 'Aucun résultat trouvé',
     volMute: '🔇 Muet', volUnmute: '🔈 Son activé',
     settingsWallpaper: 'Fond d\'écran', wpMode: 'Mode', wpModeDesc: 'Même fond d\'écran pour tous les bureaux ou différent pour chacun',
     wpAll: 'Identique pour tous', wpPer: 'Par bureau', wpDesktopSelect: 'Sélectionner le bureau',
@@ -1416,7 +1534,7 @@ const I18N = {
     markAllRead: 'Marcar todo como leído', testNotifPlaceholder: 'Añadir notificación de prueba...',
     send: 'Enviar', openApp: 'Abrir app',
     storeTitle: 'Tienda de apps', appsAvailable: 'apps disponibles',
-    internal: 'Interna', external: 'Externa', service: 'Servicio', install: 'Instalar', uninstall: 'Desinstalar',
+    internal: 'Interna', external: 'Externa', service: 'Servicio', install: 'Instalar', uninstall: 'Desinstalar', storeSearch: 'Buscar apps...', storeNoResults: 'Sin resultados',
     volMute: '🔇 Silenciar', volUnmute: '🔈 Activar sonido',
     settingsWallpaper: 'Fondo de pantalla', wpMode: 'Modo', wpModeDesc: 'Mismo fondo para todos los escritorios o diferente para cada uno',
     wpAll: 'Igual para todos', wpPer: 'Por escritorio', wpDesktopSelect: 'Seleccionar escritorio',
@@ -1450,7 +1568,7 @@ const I18N = {
     markAllRead: 'Отметить все как прочитанные', testNotifPlaceholder: 'Добавить тестовое уведомление...',
     send: 'Отправить', openApp: 'Открыть',
     storeTitle: 'Магазин приложений', appsAvailable: 'приложений доступно',
-    internal: 'Встроенное', external: 'Внешнее', service: 'Сервис', install: 'Установить', uninstall: 'Удалить',
+    internal: 'Встроенное', external: 'Внешнее', service: 'Сервис', install: 'Установить', uninstall: 'Удалить', storeSearch: 'Поиск приложений...', storeNoResults: 'Ничего не найдено',
     volMute: '🔇 Без звука', volUnmute: '🔈 Включить звук',
     settingsWallpaper: 'Обои', wpMode: 'Режим', wpModeDesc: 'Одинаковые обои для всех рабочих столов или разные',
     wpAll: 'Одинаковые для всех', wpPer: 'Для каждого стола', wpDesktopSelect: 'Выбрать рабочий стол',
@@ -1484,7 +1602,7 @@ const I18N = {
     markAllRead: '全部标记为已读', testNotifPlaceholder: '添加测试通知...',
     send: '发送', openApp: '打开应用',
     storeTitle: '应用商店', appsAvailable: '个可用应用',
-    internal: '内置', external: '外部', service: '服务', install: '安装', uninstall: '卸载',
+    internal: '内置', external: '外部', service: '服务', install: '安装', uninstall: '卸载', storeSearch: '搜索应用...', storeNoResults: '未找到结果',
     volMute: '🔇 静音', volUnmute: '🔈 取消静音',
     settingsWallpaper: '壁纸', wpMode: '模式', wpModeDesc: '为所有桌面设置相同或不同的壁纸',
     wpAll: '全部相同', wpPer: '各自不同', wpDesktopSelect: '选择桌面',
@@ -1518,7 +1636,7 @@ const I18N = {
     markAllRead: 'すべて既読にする', testNotifPlaceholder: 'テスト通知を追加...',
     send: '送信', openApp: 'アプリを開く',
     storeTitle: 'アプリストア', appsAvailable: '個のアプリが利用可能',
-    internal: '内蔵', external: '外部', service: 'サービス', install: 'インストール', uninstall: 'アンインストール',
+    internal: '内蔵', external: '外部', service: 'サービス', install: 'インストール', uninstall: 'アンインストール', storeSearch: 'アプリを検索...', storeNoResults: '結果が見つかりません',
     volMute: '🔇 ミュート', volUnmute: '🔈 ミュート解除',
     settingsWallpaper: '壁紙', wpMode: 'モード', wpModeDesc: 'すべてのデスクトップに同じ壁紙または個別に設定',
     wpAll: 'すべて同じ', wpPer: 'デスクトップごと', wpDesktopSelect: 'デスクトップを選択',
@@ -1552,7 +1670,7 @@ const I18N = {
     markAllRead: 'Segna tutto come letto', testNotifPlaceholder: 'Aggiungi notifica di test...',
     send: 'Invia', openApp: 'Apri app',
     storeTitle: 'App Store', appsAvailable: 'app disponibili',
-    internal: 'Interna', external: 'Esterna', service: 'Servizio', install: 'Installa', uninstall: 'Disinstalla',
+    internal: 'Interna', external: 'Esterna', service: 'Servizio', install: 'Installa', uninstall: 'Disinstalla', storeSearch: 'Cerca app...', storeNoResults: 'Nessun risultato trovato',
     volMute: '🔇 Muto', volUnmute: '🔈 Riattiva audio',
     settingsWallpaper: 'Sfondo', wpMode: 'Modalità', wpModeDesc: 'Stesso sfondo per tutti i desktop o diverso per ciascuno',
     wpAll: 'Uguale per tutti', wpPer: 'Per desktop', wpDesktopSelect: 'Seleziona desktop',
@@ -1603,7 +1721,7 @@ function getIntlLocale() { return LOCALE_MAP[useSettingsStore().locale] || 'tr-T
 
 // ── Extended I18N keys ──
 Object.assign(I18N.tr, {
-  ctxOpen:'Aç', ctxMove:'Taşı', ctxCopy:'Kopyala', ctxDesktop:'Masaüstü',
+  ctxOpen:'Aç', ctxMove:'Taşı', ctxCopy:'Kopyala', ctxDesktop:'Masaüstü', ctxRemove:'Masaüstünden Kaldır', ctxAddDesktop:'Masaüstüne Ekle', ctxLogout:'Çıkış Yap',
   start:'Başlat', fullscreen:'Tam Ekran', fullscreenExit:'Tam Ekrandan Çık',
   notepadClear:'Temizle', notepadCopy:'Kopyala', notepadPlaceholder:'Yazmaya başlayın...', notepadChars:'karakter', notepadWords:'kelime',
   todoTitle:'Görev Listesi', todoCompleted:'tamamlandı', todoPlaceholder:'Yeni görev ekle...', todoAdd:'Ekle', todoEmpty:'Henüz görev yok 🎉',
@@ -1620,10 +1738,14 @@ Object.assign(I18N.tr, {
   mediaPrev:'Önceki', mediaNext:'Sonraki',
     // Browser
     brUrlPlaceholder:'URL veya arama yazın...', brAdd:'Ekle', brRetry:'Tekrar Dene', brNewTab:'Yeni Sekme',
-    brBack:'Geri', brForward:'İleri', brReload:'Yenile', brHome:'Ana Sayfa', brBookmarks:'Yer İmleri'
+    brBack:'Geri', brForward:'İleri', brReload:'Yenile', brHome:'Ana Sayfa', brBookmarks:'Yer İmleri',
+    // Contacts
+    contacts:'Kişiler', contactsTitle:'Kişiler', contactsSearch:'Kişi ara...', contactsAdd:'Kişi Ekle', contactsEdit:'Düzenle', contactsDelete:'Sil', contactsDeleteConfirm:'Bu kişiyi silmek istediğinize emin misiniz?', contactsSave:'Kaydet', contactsBack:'Geri', contactsEmpty:'Henüz kişi eklenmemiş',
+    contactsFirstName:'Ad', contactsLastName:'Soyad', contactsEmail:'E-posta', contactsPhone:'Telefon', contactsMobile:'Cep Telefonu', contactsCompany:'Şirket', contactsJobTitle:'Ünvan', contactsAddress:'Adres', contactsCity:'Şehir', contactsCountry:'Ülke', contactsWebsite:'Web Sitesi', contactsBirthday:'Doğum Günü', contactsNotes:'Notlar',
+    contactsFav:'Favorilere Ekle', contactsFaved:'Favorilerde', contactsCount:'kişi', contactsPickContact:'Kişilerden Seç'
 });
 Object.assign(I18N.en, {
-  ctxOpen:'Open', ctxMove:'Move', ctxCopy:'Copy', ctxDesktop:'Desktop',
+  ctxOpen:'Open', ctxMove:'Move', ctxCopy:'Copy', ctxDesktop:'Desktop', ctxRemove:'Remove from Desktop', ctxAddDesktop:'Add to Desktop', ctxLogout:'Log Out',
   start:'Start', fullscreen:'Fullscreen', fullscreenExit:'Exit Fullscreen',
   notepadClear:'Clear', notepadCopy:'Copy', notepadPlaceholder:'Start typing...', notepadChars:'characters', notepadWords:'words',
   todoTitle:'To-Do List', todoCompleted:'completed', todoPlaceholder:'Add new task...', todoAdd:'Add', todoEmpty:'No tasks yet 🎉',
@@ -1639,10 +1761,13 @@ Object.assign(I18N.en, {
   notifNow:'Now', notifLabel:'Notification',
   mediaPrev:'Previous', mediaNext:'Next',
     brUrlPlaceholder:'Type a URL or search...', brAdd:'Add', brRetry:'Retry', brNewTab:'New Tab',
-    brBack:'Back', brForward:'Forward', brReload:'Reload', brHome:'Home', brBookmarks:'Bookmarks'
+    brBack:'Back', brForward:'Forward', brReload:'Reload', brHome:'Home', brBookmarks:'Bookmarks',
+    contacts:'Contacts', contactsTitle:'Contacts', contactsSearch:'Search contacts...', contactsAdd:'Add Contact', contactsEdit:'Edit', contactsDelete:'Delete', contactsDeleteConfirm:'Are you sure you want to delete this contact?', contactsSave:'Save', contactsBack:'Back', contactsEmpty:'No contacts yet',
+    contactsFirstName:'First Name', contactsLastName:'Last Name', contactsEmail:'Email', contactsPhone:'Phone', contactsMobile:'Mobile', contactsCompany:'Company', contactsJobTitle:'Job Title', contactsAddress:'Address', contactsCity:'City', contactsCountry:'Country', contactsWebsite:'Website', contactsBirthday:'Birthday', contactsNotes:'Notes',
+    contactsFav:'Add to Favorites', contactsFaved:'Favorited', contactsCount:'contacts', contactsPickContact:'Pick from Contacts'
 });
 Object.assign(I18N.de, {
-  ctxOpen:'Öffnen', ctxMove:'Verschieben', ctxCopy:'Kopieren', ctxDesktop:'Desktop',
+  ctxOpen:'Öffnen', ctxMove:'Verschieben', ctxCopy:'Kopieren', ctxDesktop:'Desktop', ctxRemove:'Vom Desktop entfernen', ctxAddDesktop:'Zum Desktop hinzufügen', ctxLogout:'Abmelden',
   start:'Start', fullscreen:'Vollbild', fullscreenExit:'Vollbild beenden',
   notepadClear:'Löschen', notepadCopy:'Kopieren', notepadPlaceholder:'Schreiben Sie...', notepadChars:'Zeichen', notepadWords:'Wörter',
   todoTitle:'Aufgabenliste', todoCompleted:'erledigt', todoPlaceholder:'Neue Aufgabe...', todoAdd:'Hinzufügen', todoEmpty:'Noch keine Aufgaben 🎉',
@@ -1658,10 +1783,13 @@ Object.assign(I18N.de, {
   notifNow:'Jetzt', notifLabel:'Benachrichtigung',
   mediaPrev:'Zurück', mediaNext:'Weiter',
     brUrlPlaceholder:'URL oder Suche eingeben...', brAdd:'Hinzufügen', brRetry:'Erneut versuchen', brNewTab:'Neuer Tab',
-    brBack:'Zurück', brForward:'Vorwärts', brReload:'Neu laden', brHome:'Startseite', brBookmarks:'Lesezeichen'
+    brBack:'Zurück', brForward:'Vorwärts', brReload:'Neu laden', brHome:'Startseite', brBookmarks:'Lesezeichen',
+    contacts:'Kontakte', contactsTitle:'Kontakte', contactsSearch:'Kontakte suchen...', contactsAdd:'Kontakt hinzufügen', contactsEdit:'Bearbeiten', contactsDelete:'Löschen', contactsDeleteConfirm:'Möchten Sie diesen Kontakt wirklich löschen?', contactsSave:'Speichern', contactsBack:'Zurück', contactsEmpty:'Noch keine Kontakte',
+    contactsFirstName:'Vorname', contactsLastName:'Nachname', contactsEmail:'E-Mail', contactsPhone:'Telefon', contactsMobile:'Mobil', contactsCompany:'Firma', contactsJobTitle:'Berufsbezeichnung', contactsAddress:'Adresse', contactsCity:'Stadt', contactsCountry:'Land', contactsWebsite:'Webseite', contactsBirthday:'Geburtstag', contactsNotes:'Notizen',
+    contactsFav:'Zu Favoriten', contactsFaved:'Favorisiert', contactsCount:'Kontakte', contactsPickContact:'Aus Kontakten wählen'
 });
 Object.assign(I18N.fr, {
-  ctxOpen:'Ouvrir', ctxMove:'Déplacer', ctxCopy:'Copier', ctxDesktop:'Bureau',
+  ctxOpen:'Ouvrir', ctxMove:'Déplacer', ctxCopy:'Copier', ctxDesktop:'Bureau', ctxRemove:'Retirer du bureau', ctxAddDesktop:'Ajouter au bureau', ctxLogout:'Déconnexion',
   start:'Démarrer', fullscreen:'Plein écran', fullscreenExit:'Quitter le plein écran',
   notepadClear:'Effacer', notepadCopy:'Copier', notepadPlaceholder:'Commencez à écrire...', notepadChars:'caractères', notepadWords:'mots',
   todoTitle:'Liste de tâches', todoCompleted:'terminées', todoPlaceholder:'Ajouter une tâche...', todoAdd:'Ajouter', todoEmpty:'Aucune tâche 🎉',
@@ -1677,10 +1805,13 @@ Object.assign(I18N.fr, {
   notifNow:'Maintenant', notifLabel:'Notification',
   mediaPrev:'Précédent', mediaNext:'Suivant',
     brUrlPlaceholder:'Saisissez une URL ou recherchez...', brAdd:'Ajouter', brRetry:'Réessayer', brNewTab:'Nouvel onglet',
-    brBack:'Retour', brForward:'Avancer', brReload:'Recharger', brHome:'Accueil', brBookmarks:'Favoris'
+    brBack:'Retour', brForward:'Avancer', brReload:'Recharger', brHome:'Accueil', brBookmarks:'Favoris',
+    contacts:'Contacts', contactsTitle:'Contacts', contactsSearch:'Rechercher...', contactsAdd:'Ajouter un contact', contactsEdit:'Modifier', contactsDelete:'Supprimer', contactsDeleteConfirm:'Voulez-vous vraiment supprimer ce contact ?', contactsSave:'Enregistrer', contactsBack:'Retour', contactsEmpty:'Aucun contact',
+    contactsFirstName:'Prénom', contactsLastName:'Nom', contactsEmail:'E-mail', contactsPhone:'Téléphone', contactsMobile:'Mobile', contactsCompany:'Entreprise', contactsJobTitle:'Poste', contactsAddress:'Adresse', contactsCity:'Ville', contactsCountry:'Pays', contactsWebsite:'Site web', contactsBirthday:'Anniversaire', contactsNotes:'Notes',
+    contactsFav:'Ajouter aux favoris', contactsFaved:'Favori', contactsCount:'contacts', contactsPickContact:'Choisir un contact'
 });
 Object.assign(I18N.es, {
-  ctxOpen:'Abrir', ctxMove:'Mover', ctxCopy:'Copiar', ctxDesktop:'Escritorio',
+  ctxOpen:'Abrir', ctxMove:'Mover', ctxCopy:'Copiar', ctxDesktop:'Escritorio', ctxRemove:'Quitar del escritorio', ctxAddDesktop:'Añadir al escritorio', ctxLogout:'Cerrar sesión',
   start:'Inicio', fullscreen:'Pantalla completa', fullscreenExit:'Salir de pantalla completa',
   notepadClear:'Limpiar', notepadCopy:'Copiar', notepadPlaceholder:'Empiece a escribir...', notepadChars:'caracteres', notepadWords:'palabras',
   todoTitle:'Lista de tareas', todoCompleted:'completadas', todoPlaceholder:'Añadir tarea...', todoAdd:'Añadir', todoEmpty:'Sin tareas aún 🎉',
@@ -1696,10 +1827,13 @@ Object.assign(I18N.es, {
   notifNow:'Ahora', notifLabel:'Notificación',
   mediaPrev:'Anterior', mediaNext:'Siguiente',
     brUrlPlaceholder:'Escriba una URL o busque...', brAdd:'Añadir', brRetry:'Reintentar', brNewTab:'Nueva pestaña',
-    brBack:'Atrás', brForward:'Adelante', brReload:'Recargar', brHome:'Inicio', brBookmarks:'Marcadores'
+    brBack:'Atrás', brForward:'Adelante', brReload:'Recargar', brHome:'Inicio', brBookmarks:'Marcadores',
+    contacts:'Contactos', contactsTitle:'Contactos', contactsSearch:'Buscar contactos...', contactsAdd:'Añadir contacto', contactsEdit:'Editar', contactsDelete:'Eliminar', contactsDeleteConfirm:'¿Seguro que desea eliminar este contacto?', contactsSave:'Guardar', contactsBack:'Volver', contactsEmpty:'Sin contactos aún',
+    contactsFirstName:'Nombre', contactsLastName:'Apellido', contactsEmail:'Correo', contactsPhone:'Teléfono', contactsMobile:'Móvil', contactsCompany:'Empresa', contactsJobTitle:'Cargo', contactsAddress:'Dirección', contactsCity:'Ciudad', contactsCountry:'País', contactsWebsite:'Sitio web', contactsBirthday:'Cumpleaños', contactsNotes:'Notas',
+    contactsFav:'Añadir a favoritos', contactsFaved:'Favorito', contactsCount:'contactos', contactsPickContact:'Elegir de contactos'
 });
 Object.assign(I18N.ru, {
-  ctxOpen:'Открыть', ctxMove:'Переместить', ctxCopy:'Копировать', ctxDesktop:'Рабочий стол',
+  ctxOpen:'Открыть', ctxMove:'Переместить', ctxCopy:'Копировать', ctxDesktop:'Рабочий стол', ctxRemove:'Удалить с рабочего стола', ctxAddDesktop:'Добавить на рабочий стол', ctxLogout:'Выйти',
   start:'Пуск', fullscreen:'Полный экран', fullscreenExit:'Выйти из полного экрана',
   notepadClear:'Очистить', notepadCopy:'Копировать', notepadPlaceholder:'Начните вводить...', notepadChars:'символов', notepadWords:'слов',
   todoTitle:'Список задач', todoCompleted:'выполнено', todoPlaceholder:'Добавить задачу...', todoAdd:'Добавить', todoEmpty:'Задач пока нет 🎉',
@@ -1715,10 +1849,13 @@ Object.assign(I18N.ru, {
   notifNow:'Сейчас', notifLabel:'Уведомление',
   mediaPrev:'Назад', mediaNext:'Далее',
     brUrlPlaceholder:'Введите URL или поиск...', brAdd:'Добавить', brRetry:'Повторить', brNewTab:'Новая вкладка',
-    brBack:'Назад', brForward:'Вперёд', brReload:'Обновить', brHome:'Домой', brBookmarks:'Закладки'
+    brBack:'Назад', brForward:'Вперёд', brReload:'Обновить', brHome:'Домой', brBookmarks:'Закладки',
+    contacts:'Контакты', contactsTitle:'Контакты', contactsSearch:'Поиск контактов...', contactsAdd:'Добавить контакт', contactsEdit:'Редактировать', contactsDelete:'Удалить', contactsDeleteConfirm:'Вы уверены, что хотите удалить этот контакт?', contactsSave:'Сохранить', contactsBack:'Назад', contactsEmpty:'Контактов пока нет',
+    contactsFirstName:'Имя', contactsLastName:'Фамилия', contactsEmail:'Эл. почта', contactsPhone:'Телефон', contactsMobile:'Мобильный', contactsCompany:'Компания', contactsJobTitle:'Должность', contactsAddress:'Адрес', contactsCity:'Город', contactsCountry:'Страна', contactsWebsite:'Сайт', contactsBirthday:'День рождения', contactsNotes:'Заметки',
+    contactsFav:'В избранное', contactsFaved:'В избранном', contactsCount:'контактов', contactsPickContact:'Выбрать из контактов'
 });
 Object.assign(I18N.zh, {
-  ctxOpen:'打开', ctxMove:'移动', ctxCopy:'复制', ctxDesktop:'桌面',
+  ctxOpen:'打开', ctxMove:'移动', ctxCopy:'复制', ctxDesktop:'桌面', ctxRemove:'从桌面移除', ctxAddDesktop:'添加到桌面', ctxLogout:'注销',
   start:'开始', fullscreen:'全屏', fullscreenExit:'退出全屏',
   notepadClear:'清除', notepadCopy:'复制', notepadPlaceholder:'开始输入...', notepadChars:'字符', notepadWords:'字',
   todoTitle:'待办事项', todoCompleted:'已完成', todoPlaceholder:'添加新任务...', todoAdd:'添加', todoEmpty:'暂无任务 🎉',
@@ -1734,10 +1871,13 @@ Object.assign(I18N.zh, {
   notifNow:'现在', notifLabel:'通知',
   mediaPrev:'上一首', mediaNext:'下一首',
     brUrlPlaceholder:'输入URL或搜索...', brAdd:'添加', brRetry:'重试', brNewTab:'新标签页',
-    brBack:'后退', brForward:'前进', brReload:'刷新', brHome:'主页', brBookmarks:'书签'
+    brBack:'后退', brForward:'前进', brReload:'刷新', brHome:'主页', brBookmarks:'书签',
+    contacts:'联系人', contactsTitle:'联系人', contactsSearch:'搜索联系人...', contactsAdd:'添加联系人', contactsEdit:'编辑', contactsDelete:'删除', contactsDeleteConfirm:'确定要删除此联系人吗？', contactsSave:'保存', contactsBack:'返回', contactsEmpty:'暂无联系人',
+    contactsFirstName:'名', contactsLastName:'姓', contactsEmail:'邮箱', contactsPhone:'电话', contactsMobile:'手机', contactsCompany:'公司', contactsJobTitle:'职位', contactsAddress:'地址', contactsCity:'城市', contactsCountry:'国家', contactsWebsite:'网站', contactsBirthday:'生日', contactsNotes:'备注',
+    contactsFav:'添加收藏', contactsFaved:'已收藏', contactsCount:'位联系人', contactsPickContact:'从联系人选择'
 });
 Object.assign(I18N.ja, {
-  ctxOpen:'開く', ctxMove:'移動', ctxCopy:'コピー', ctxDesktop:'デスクトップ',
+  ctxOpen:'開く', ctxMove:'移動', ctxCopy:'コピー', ctxDesktop:'デスクトップ', ctxRemove:'デスクトップから削除', ctxAddDesktop:'デスクトップに追加', ctxLogout:'ログアウト',
   start:'スタート', fullscreen:'全画面', fullscreenExit:'全画面終了',
   notepadClear:'クリア', notepadCopy:'コピー', notepadPlaceholder:'入力を開始...', notepadChars:'文字', notepadWords:'語',
   todoTitle:'ToDoリスト', todoCompleted:'完了', todoPlaceholder:'新しいタスクを追加...', todoAdd:'追加', todoEmpty:'タスクはまだありません 🎉',
@@ -1753,10 +1893,13 @@ Object.assign(I18N.ja, {
   notifNow:'今', notifLabel:'通知',
   mediaPrev:'前へ', mediaNext:'次へ',
     brUrlPlaceholder:'URLまたは検索を入力...', brAdd:'追加', brRetry:'再試行', brNewTab:'新しいタブ',
-    brBack:'戻る', brForward:'進む', brReload:'再読み込み', brHome:'ホーム', brBookmarks:'ブックマーク'
+    brBack:'戻る', brForward:'進む', brReload:'再読み込み', brHome:'ホーム', brBookmarks:'ブックマーク',
+    contacts:'連絡先', contactsTitle:'連絡先', contactsSearch:'連絡先を検索...', contactsAdd:'連絡先を追加', contactsEdit:'編集', contactsDelete:'削除', contactsDeleteConfirm:'この連絡先を削除しますか？', contactsSave:'保存', contactsBack:'戻る', contactsEmpty:'連絡先がありません',
+    contactsFirstName:'名', contactsLastName:'姓', contactsEmail:'メール', contactsPhone:'電話', contactsMobile:'携帯', contactsCompany:'会社', contactsJobTitle:'役職', contactsAddress:'住所', contactsCity:'市区町村', contactsCountry:'国', contactsWebsite:'ウェブサイト', contactsBirthday:'誕生日', contactsNotes:'メモ',
+    contactsFav:'お気に入りに追加', contactsFaved:'お気に入り', contactsCount:'件の連絡先', contactsPickContact:'連絡先から選択'
 });
 Object.assign(I18N.it, {
-  ctxOpen:'Apri', ctxMove:'Sposta', ctxCopy:'Copia', ctxDesktop:'Scrivania',
+  ctxOpen:'Apri', ctxMove:'Sposta', ctxCopy:'Copia', ctxDesktop:'Scrivania', ctxRemove:'Rimuovi dal desktop', ctxAddDesktop:'Aggiungi al desktop', ctxLogout:'Esci',
   start:'Avvia', fullscreen:'Schermo intero', fullscreenExit:'Esci da schermo intero',
   notepadClear:'Cancella', notepadCopy:'Copia', notepadPlaceholder:'Inizia a scrivere...', notepadChars:'caratteri', notepadWords:'parole',
   todoTitle:'Lista attività', todoCompleted:'completate', todoPlaceholder:'Aggiungi attività...', todoAdd:'Aggiungi', todoEmpty:'Nessuna attività 🎉',
@@ -1772,7 +1915,10 @@ Object.assign(I18N.it, {
   notifNow:'Ora', notifLabel:'Notifica',
   mediaPrev:'Precedente', mediaNext:'Successivo',
     brUrlPlaceholder:'Digita un URL o cerca...', brAdd:'Aggiungi', brRetry:'Riprova', brNewTab:'Nuova scheda',
-    brBack:'Indietro', brForward:'Avanti', brReload:'Ricarica', brHome:'Home', brBookmarks:'Segnalibri'
+    brBack:'Indietro', brForward:'Avanti', brReload:'Ricarica', brHome:'Home', brBookmarks:'Segnalibri',
+    contacts:'Contatti', contactsTitle:'Contatti', contactsSearch:'Cerca contatti...', contactsAdd:'Aggiungi contatto', contactsEdit:'Modifica', contactsDelete:'Elimina', contactsDeleteConfirm:'Sei sicuro di voler eliminare questo contatto?', contactsSave:'Salva', contactsBack:'Indietro', contactsEmpty:'Nessun contatto',
+    contactsFirstName:'Nome', contactsLastName:'Cognome', contactsEmail:'Email', contactsPhone:'Telefono', contactsMobile:'Cellulare', contactsCompany:'Azienda', contactsJobTitle:'Qualifica', contactsAddress:'Indirizzo', contactsCity:'Città', contactsCountry:'Paese', contactsWebsite:'Sito web', contactsBirthday:'Compleanno', contactsNotes:'Note',
+    contactsFav:'Aggiungi ai preferiti', contactsFaved:'Preferito', contactsCount:'contatti', contactsPickContact:'Scegli dai contatti'
 });
 
 // ── WMO Weather Descriptions (per locale) ──
@@ -1875,6 +2021,7 @@ const APPS = [
   {id:'appstore',name:'Uygulama Mağazası',icon:'🛒',color:'linear-gradient(135deg,#6c5ce7,#a29bfe)',category:'internet'},
   {id:'browser',name:'Tarayıcı',icon:'🌐',color:'linear-gradient(135deg,#4a90d9,#00b894)',category:'internet'},
   {id:'screenkeyboard',name:'Ekran Klavyesi',icon:'⌨️',color:'linear-gradient(135deg,#6c63ff,#3f3d56)',category:'utilities'},
+  {id:'contacts',name:'Kişiler',icon:'📇',color:'linear-gradient(135deg,#00b894,#00cec9)',category:'productivity'},
 ];
 
 const SIZES = {
@@ -1885,7 +2032,8 @@ const SIZES = {
   notifications:{w:380,h:440},
   appstore:{w:440,h:460},
   browser:{w:900,h:620},
-  screenkeyboard:{w:640,h:360}
+  screenkeyboard:{w:640,h:360},
+  contacts:{w:420,h:520}
 };
 
 /* ── CalcApp ── */
@@ -2418,6 +2566,109 @@ const ClockApp = {
   }
 };
 
+/* ── ContactsApp ── */
+const ContactsApp = {
+  template: '#ContactsApp',
+  props: [],
+  emits: [],
+  setup() {
+    const contacts = ref([]);
+    const searchQuery = ref('');
+    const view = ref('list');
+    const selected = ref(null);
+    const form = reactive({ id:null, first_name:'', last_name:'', email:'', phone:'', mobile:'', company:'', job_title:'', address:'', city:'', country:'', website:'', birthday:'', notes:'', favorite:false, avatar_color:'' });
+
+    const filteredContacts = computed(() => {
+      if (!searchQuery.value.trim()) return contacts.value;
+      const q = searchQuery.value.trim().toLowerCase();
+      return contacts.value.filter(c =>
+        (c.first_name+' '+c.last_name).toLowerCase().includes(q) ||
+        (c.email||'').toLowerCase().includes(q) ||
+        (c.phone||'').toLowerCase().includes(q) ||
+        (c.mobile||'').toLowerCase().includes(q) ||
+        (c.company||'').toLowerCase().includes(q)
+      );
+    });
+
+    function contactInitials(c) {
+      const f = (c.first_name||'').charAt(0);
+      const l = (c.last_name||'').charAt(0);
+      return (f + l) || '?';
+    }
+
+    async function loadContacts() {
+      try {
+        const res = await fetch('/api/contacts', { headers: authHeaders() });
+        if (res.ok) contacts.value = await res.json();
+      } catch {}
+    }
+
+    function doSearch() { /* client-side filtering via computed */ }
+
+    function openAdd() {
+      Object.assign(form, { id:null, first_name:'', last_name:'', email:'', phone:'', mobile:'', company:'', job_title:'', address:'', city:'', country:'', website:'', birthday:'', notes:'', favorite:false, avatar_color:'' });
+      view.value = 'form';
+    }
+
+    function openDetail(c) {
+      selected.value = { ...c };
+      view.value = 'detail';
+    }
+
+    function openEdit(c) {
+      Object.assign(form, { id:c.id, first_name:c.first_name, last_name:c.last_name||'', email:c.email||'', phone:c.phone||'', mobile:c.mobile||'', company:c.company||'', job_title:c.job_title||'', address:c.address||'', city:c.city||'', country:c.country||'', website:c.website||'', birthday:c.birthday||'', notes:c.notes||'', favorite:!!c.favorite, avatar_color:c.avatar_color||'' });
+      view.value = 'form';
+    }
+
+    function cancelForm() {
+      if (form.id && selected.value) view.value = 'detail';
+      else view.value = 'list';
+    }
+
+    async function saveContact() {
+      if (!form.first_name.trim()) return;
+      try {
+        if (form.id) {
+          await fetch('/api/contacts/' + form.id, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(form) });
+        } else {
+          await fetch('/api/contacts', { method: 'POST', headers: authHeaders(), body: JSON.stringify(form) });
+        }
+        await loadContacts();
+        if (form.id) {
+          const updated = contacts.value.find(c => c.id === form.id);
+          if (updated) selected.value = { ...updated };
+          view.value = 'detail';
+        } else {
+          view.value = 'list';
+        }
+      } catch {}
+    }
+
+    async function confirmDelete(c) {
+      if (!confirm(t('contactsDeleteConfirm'))) return;
+      try {
+        await fetch('/api/contacts/' + c.id, { method: 'DELETE', headers: authHeaders() });
+        await loadContacts();
+        view.value = 'list';
+      } catch {}
+    }
+
+    async function toggleFav(c) {
+      c.favorite = !c.favorite;
+      try {
+        await fetch('/api/contacts/' + c.id, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ favorite: c.favorite }) });
+        await loadContacts();
+        const updated = contacts.value.find(x => x.id === c.id);
+        if (updated) selected.value = { ...updated };
+      } catch {}
+    }
+
+    onMounted(() => loadContacts());
+
+    return { contacts, searchQuery, view, selected, form, filteredContacts, contactInitials, doSearch, openAdd, openDetail, openEdit, cancelForm, saveContact, confirmDelete, toggleFav, t };
+  }
+};
+
 /* ── CalendarApp ── */
 const HOLIDAY_TEMPLATES = {
   TR: { flag: '🇹🇷', name: 'Türkiye', holidays: {
@@ -2497,7 +2748,9 @@ const CalendarApp = {
     const newTitle = ref('');
     const newColor = ref('');
     const events = ref({});
-    const colorMap = { '': '#409eff', green: '#67c23a', orange: '#e6a23c', red: '#f56c6c', purple: '#6f5ef7' };
+    const showBirthdays = ref(true);
+    const birthdayContacts = ref([]);
+    const colorMap = { '': '#409eff', green: '#67c23a', orange: '#e6a23c', red: '#f56c6c', purple: '#6f5ef7', birthday: '#e91e63' };
     const dayNames = computed(() => {
       const loc = getIntlLocale();
       return Array.from({length:7}, (_,i) => new Intl.DateTimeFormat(loc, {weekday:'short'}).format(new Date(2024,0,1+i)));
@@ -2512,6 +2765,21 @@ const CalendarApp = {
         const res = await fetch('/api/calendar/events', { headers: authHeaders() });
         if (res.ok) events.value = await res.json();
       } catch {}
+    }
+
+    async function loadBirthdayContacts() {
+      try {
+        const res = await fetch('/api/contacts', { headers: authHeaders() });
+        if (res.ok) birthdayContacts.value = (await res.json()).filter(c => c.birthday);
+      } catch {}
+    }
+
+    function getBirthdayEvents(dateStr) {
+      if (!showBirthdays.value) return [];
+      const mmdd = dateStr.slice(5);
+      return birthdayContacts.value
+        .filter(c => c.birthday && c.birthday.slice(5) === mmdd)
+        .map(c => ({ title: '🎂 ' + c.first_name + ' ' + (c.last_name || ''), color: 'birthday', isBirthday: true }));
     }
 
     const monthLabel = computed(() => monthNames.value[month.value] + ' ' + year.value);
@@ -2548,7 +2816,7 @@ const CalendarApp = {
       return weeks;
     });
 
-    function getEvents(dateStr) { return events.value[dateStr] || []; }
+    function getEvents(dateStr) { return [...(events.value[dateStr] || []), ...getBirthdayEvents(dateStr)]; }
 
     const dialogDate = computed(() => {
       if (!selectedDate.value) return '';
@@ -2556,7 +2824,7 @@ const CalendarApp = {
       return parseInt(d) + ' ' + monthNames.value[parseInt(m)-1] + ' ' + y;
     });
 
-    const selectedEvents = computed(() => events.value[selectedDate.value] || []);
+    const selectedEvents = computed(() => [...(events.value[selectedDate.value] || []), ...getBirthdayEvents(selectedDate.value)]);
 
     function selectDate(dateStr) {
       selectedDate.value = dateStr;
@@ -2626,42 +2894,71 @@ const CalendarApp = {
       } catch {}
     }
 
-    onMounted(() => loadEvents());
+    onMounted(() => { loadEvents(); loadBirthdayContacts(); });
 
-    return { year, month, showDialog, selectedDate, newTitle, newColor, events, colorMap, dayNames, monthLabel, calendarGrid, getEvents, dialogDate, selectedEvents, selectDate, openAdd, addEvent, removeEvent, prevMonth, nextMonth, goToday, showHolidayDialog, holidayCountries, addHolidays, clearHolidays, t };
+    return { year, month, showDialog, selectedDate, newTitle, newColor, events, colorMap, dayNames, monthLabel, calendarGrid, getEvents, dialogDate, selectedEvents, selectDate, openAdd, addEvent, removeEvent, prevMonth, nextMonth, goToday, showHolidayDialog, holidayCountries, addHolidays, clearHolidays, showBirthdays, t };
   }
 };
 
 /* ── NotificationsApp ── */
-const NOTIF_STORAGE_KEY = 'desktopNotifications';
-function loadNotifications() {
-  const d = JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY) || 'null');
-  if (d) return d;
-  return [];
-}
-
 const NotificationsApp = {
   template: '#NotificationsApp',
   setup() {
-    const notifications = ref(loadNotifications());
+    const notifications = ref([]);
     const newText = ref('');
     const unreadCount = computed(() => notifications.value.filter(n => !n.read).length);
-    function save() { localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(notifications.value)); }
-    function markAllRead() { notifications.value.forEach(n => n.read = true); save(); }
-    function remove(i) { notifications.value.splice(i, 1); save(); }
-    function addNotif() {
-      if (!newText.value.trim()) return;
-      notifications.value.unshift({ icon:'📌', bg:'#ecf5ff', title:t('notifLabel'), text: newText.value.trim(), time:t('notifNow'), read:false });
-      newText.value = '';
-      save();
+
+    async function loadNotifications() {
+      try {
+        const res = await fetch('/api/notifications');
+        if (res.ok) notifications.value = await res.json();
+      } catch (e) { console.error('Notifications load error', e); }
     }
-    function openAction(n) {
+
+    async function markAllRead() {
+      notifications.value.forEach(n => n.read = true);
+      try { await fetch('/api/notifications/read-all', { method: 'PATCH' }); } catch {}
+    }
+
+    async function remove(i) {
+      const n = notifications.value[i];
+      notifications.value.splice(i, 1);
+      if (n && n.id) {
+        try { await fetch('/api/notifications/' + n.id, { method: 'DELETE' }); } catch {}
+      }
+    }
+
+    async function markRead(n) {
+      if (n.read) return;
       n.read = true;
-      save();
+      if (n.id) {
+        try { await fetch('/api/notifications/' + n.id + '/read', { method: 'PATCH' }); } catch {}
+      }
+    }
+
+    async function addNotif() {
+      if (!newText.value.trim()) return;
+      try {
+        const res = await fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: t('notifLabel'), text: newText.value.trim() })
+        });
+        if (res.ok) {
+          const notif = await res.json();
+          notifications.value.unshift(notif);
+        }
+      } catch {}
+      newText.value = '';
+    }
+
+    function openAction(n) {
+      markRead(n);
       if (n.action && n.action.app) {
         window.dispatchEvent(new CustomEvent('open-app-action', { detail: n.action }));
       }
     }
+
     function formatTime(t) {
       if (!t) return '';
       try {
@@ -2672,7 +2969,25 @@ const NotificationsApp = {
         return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
       } catch { return t; }
     }
-    return { notifications, newText, unreadCount, markAllRead, remove, addNotif, save, openAction, formatTime, t };
+
+    // Listen for WS-pushed notifications
+    window.addEventListener('notif-push', (e) => {
+      const notif = e.detail;
+      if (!notifications.value.find(n => n.id === notif.id)) {
+        notifications.value.unshift(notif);
+      }
+    });
+    window.addEventListener('notif-deleted', (e) => {
+      const idx = notifications.value.findIndex(n => n.id === e.detail.id);
+      if (idx >= 0) notifications.value.splice(idx, 1);
+    });
+    window.addEventListener('notif-read-all', () => {
+      notifications.value.forEach(n => n.read = true);
+    });
+
+    onMounted(() => loadNotifications());
+
+    return { notifications, newText, unreadCount, markAllRead, remove, addNotif, markRead, openAction, formatTime, t };
   }
 };
 
@@ -3076,6 +3391,7 @@ const AppStoreApp = {
   setup() {
     const storeApps = ref([]);
     const loading = ref(true);
+    const searchQuery = ref('');
 
     async function getAuthHeaders() {
       const cookies = document.cookie.split(';').reduce((acc, c) => { const [k, ...v] = c.trim().split('='); acc[k] = v.join('='); return acc; }, {});
@@ -3146,6 +3462,21 @@ const AppStoreApp = {
 
     function sAppName(app) { const loc = useSettingsStore().locale; const l = (app.lang||{})[loc] || (app.lang||{}).tr; return l && l.name ? l.name : app.name; }
     function sAppDesc(app) { const loc = useSettingsStore().locale; const l = (app.lang||{})[loc] || (app.lang||{}).tr; return l && l.description ? l.description : (app.description||''); }
+
+    const filteredCategories = computed(() => {
+      const q = searchQuery.value.trim().toLowerCase();
+      if (!q) return storeCategories.value;
+      return storeCategories.value
+        .map(cat => ({
+          ...cat,
+          apps: cat.apps.filter(app =>
+            sAppName(app).toLowerCase().includes(q) ||
+            sAppDesc(app).toLowerCase().includes(q) ||
+            app.id.toLowerCase().includes(q)
+          )
+        }))
+        .filter(cat => cat.apps.length > 0);
+    });
 
     // ── Service install dialog ──
     const serviceInstallDialog = reactive({ show: false, app: null, loading: false, loadingMsg: '' });
@@ -3220,7 +3551,7 @@ const AppStoreApp = {
       serviceInstallDialog.app = null;
     }
 
-    return { storeApps, storeCategories, activeCategory, loading, install, uninstall, installService, serviceInstallDialog, installPageContainer, closeServiceInstall, t, appName: sAppName, appDesc: sAppDesc };
+    return { storeApps, storeCategories, filteredCategories, activeCategory, searchQuery, loading, install, uninstall, installService, serviceInstallDialog, installPageContainer, closeServiceInstall, t, appName: sAppName, appDesc: sAppDesc };
   }
 };
 
@@ -3238,7 +3569,8 @@ const componentMap = {
   notifications: NotificationsApp,
   appstore: AppStoreApp,
   browser: BrowserApp,
-  screenkeyboard: ScreenKeyboardApp
+  screenkeyboard: ScreenKeyboardApp,
+  contacts: ContactsApp
 };
 
 /* ── Main App ── */
@@ -3310,7 +3642,9 @@ createApp({
     function saveIconMap() { localStorage.setItem('iconDesktopMap', JSON.stringify(iconDesktopMap.value)); }
 
     function getIconDesktops(appId) {
-      return iconDesktopMap.value[appId] || [1];
+      const mapped = iconDesktopMap.value[appId];
+      if (mapped !== undefined) return mapped;
+      return [1];
     }
 
     function isIconOnDesktop(appId, d) {
@@ -3351,10 +3685,55 @@ createApp({
       hideIconCtx();
     }
 
+    function removeFromDesktop(appId) {
+      const current = iconDesktopMap.value[appId];
+      if (current) {
+        const desktops = current.filter(d => d !== currentDesktop.value);
+        iconDesktopMap.value[appId] = desktops;
+      } else {
+        // App had no explicit mapping (defaulted to desktop 1)
+        // Only desktop 1 needs explicit empty; others already absent
+        if (currentDesktop.value === 1) {
+          iconDesktopMap.value[appId] = [];
+        }
+      }
+      saveIconMap();
+      hideIconCtx();
+    }
+
+    const smCtx = ref({ show: false, x: 0, y: 0, app: null });
+
+    function showSmCtx(e, app) {
+      const x = Math.min(e.clientX, window.innerWidth - 200);
+      const y = Math.max(0, Math.min(e.clientY, window.innerHeight - 100));
+      smCtx.value = { show: true, x, y, app };
+    }
+    function hideSmCtx() { smCtx.value.show = false; }
+
+    function addToDesktop(appId) {
+      const desktops = getIconDesktops(appId);
+      if (!desktops.includes(currentDesktop.value)) {
+        desktops.push(currentDesktop.value);
+        iconDesktopMap.value[appId] = desktops;
+        saveIconMap();
+      }
+    }
+
+    function doLogout() {
+      document.cookie = 'token=; Path=/; Max-Age=0';
+      localStorage.removeItem('auth_token');
+      location.href = '/';
+    }
+
     const notifCount = ref(0);
-    function updateNotifCount() {
-      const d = JSON.parse(localStorage.getItem('desktopNotifications') || 'null');
-      notifCount.value = d ? d.filter(n => !n.read).length : 2;
+    async function updateNotifCount() {
+      try {
+        const res = await fetch('/api/notifications');
+        if (res.ok) {
+          const data = await res.json();
+          notifCount.value = data.filter(n => !n.read).length;
+        }
+      } catch {}
     }
 
     function updateClock() {
@@ -3695,7 +4074,7 @@ createApp({
     window._applyWallpaper = updateWallpaper;
 
     function toggleMenu() { menuOpen.value = !menuOpen.value; }
-    function closeMenu() { menuOpen.value = false; volOpen.value = false; }
+    function closeMenu() { menuOpen.value = false; volOpen.value = false; hideSmCtx(); }
 
     function onDocClick(e) {
       const t = e.target;
@@ -3707,6 +4086,9 @@ createApp({
       }
       if (iconCtx.value.show && !t.closest('.icon-ctx')) {
         iconCtx.value.show = false;
+      }
+      if (smCtx.value.show && !t.closest('.icon-ctx')) {
+        smCtx.value.show = false;
       }
     }
 
@@ -3747,10 +4129,15 @@ createApp({
         try {
           const msg = JSON.parse(e.data);
           if (msg.type === 'notification' && msg.data) {
-            const stored = JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY) || '[]');
-            stored.unshift(msg.data);
-            if (stored.length > 200) stored.length = 200;
-            localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(stored));
+            window.dispatchEvent(new CustomEvent('notif-push', { detail: msg.data }));
+            updateNotifCount();
+          }
+          if (msg.type === 'notification-deleted' && msg.data) {
+            window.dispatchEvent(new CustomEvent('notif-deleted', { detail: msg.data }));
+            updateNotifCount();
+          }
+          if (msg.type === 'notifications-read-all') {
+            window.dispatchEvent(new CustomEvent('notif-read-all'));
             updateNotifCount();
           }
           if (msg.type === 'reminder-alert' && msg.data) {
@@ -3864,7 +4251,8 @@ createApp({
     onMounted(() => {
       updateClock();
       updateNotifCount();
-      clockTimer = setInterval(() => { updateClock(); updateNotifCount(); }, 1000);
+      clockTimer = setInterval(() => { updateClock(); }, 1000);
+      setInterval(updateNotifCount, 30000);
       document.addEventListener('fullscreenchange', onFsChange);
       document.addEventListener('click', onDocClick, true);
       window.addEventListener('app-installed', onAppInstalled);
@@ -4043,7 +4431,7 @@ createApp({
       ssCapturedCanvas = null;
     }
 
-    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture, showKeyboardTray: computed(() => settingsStore.showKeyboardTray), showMagnifierTray: computed(() => settingsStore.showMagnifierTray) };
+    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, removeFromDesktop, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, smCtx, showSmCtx, hideSmCtx, addToDesktop, doLogout, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture, showKeyboardTray: computed(() => settingsStore.showKeyboardTray), showMagnifierTray: computed(() => settingsStore.showMagnifierTray) };
   }
 }).use(pinia).use(ElementPlus, EP_LOCALES[localStorage.getItem('sys_locale') || 'tr'] || EP_LOCALES.en).mount('#app');
 

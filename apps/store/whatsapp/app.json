@@ -1,0 +1,25 @@
+{
+  "id": "whatsapp",
+  "name": "WhatsApp",
+  "icon": "💬",
+  "color": "linear-gradient(135deg,#25d366,#128c7e)",
+  "type": "internal",
+  "size": {
+    "w": 420,
+    "h": 260
+  },
+  "global": false,
+  "category": "social",
+  "description": "WhatsApp Web mesajlaşma uygulaması",
+  "lang": {
+    "tr": { "name": "WhatsApp", "description": "WhatsApp Web mesajlaşma uygulaması" },
+    "en": { "name": "WhatsApp", "description": "WhatsApp Web messaging app" },
+    "de": { "name": "WhatsApp", "description": "WhatsApp Web Messaging-App" },
+    "fr": { "name": "WhatsApp", "description": "Application de messagerie WhatsApp Web" },
+    "es": { "name": "WhatsApp", "description": "Aplicación de mensajería WhatsApp Web" },
+    "ru": { "name": "WhatsApp", "description": "Мессенджер WhatsApp Web" },
+    "zh": { "name": "WhatsApp", "description": "WhatsApp网页版即时通讯" },
+    "ja": { "name": "WhatsApp", "description": "WhatsApp Webメッセージアプリ" },
+    "it": { "name": "WhatsApp", "description": "App di messaggistica WhatsApp Web" }
+  }
+}

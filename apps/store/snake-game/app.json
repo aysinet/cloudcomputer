@@ -1,0 +1,52 @@
+{
+  "id": "snake-game",
+  "name": "Snake",
+  "icon": "🐍",
+  "color": "linear-gradient(135deg,#27ae60,#2ecc71)",
+  "type": "internal",
+  "size": {
+    "w": 480,
+    "h": 580
+  },
+  "global": false,
+  "category": "games",
+  "description": "Klasik Yılan oyunu — skor, hız seviyesi, duvar/kendiyle çarpışma",
+  "lang": {
+    "tr": {
+      "name": "Yılan",
+      "description": "Klasik Yılan oyunu — skor, hız seviyesi, duvar/kendiyle çarpışma"
+    },
+    "en": {
+      "name": "Snake",
+      "description": "Classic Snake game — score, speed levels, wall/self collision"
+    },
+    "de": {
+      "name": "Snake",
+      "description": "Klassisches Snake-Spiel — Punkte, Geschwindigkeitsstufen, Kollision"
+    },
+    "fr": {
+      "name": "Snake",
+      "description": "Jeu de Snake classique — score, niveaux de vitesse, collision"
+    },
+    "es": {
+      "name": "Snake",
+      "description": "Juego de Snake clásico — puntuación, niveles de velocidad, colisión"
+    },
+    "ru": {
+      "name": "Змейка",
+      "description": "Классическая Змейка — очки, уровни скорости, столкновение"
+    },
+    "zh": {
+      "name": "贪吃蛇",
+      "description": "经典贪吃蛇游戏 — 得分、速度等级、碰撞"
+    },
+    "ja": {
+      "name": "スネーク",
+      "description": "クラシックなスネークゲーム — スコア、速度レベル、衝突"
+    },
+    "it": {
+      "name": "Snake",
+      "description": "Gioco Snake classico — punteggio, livelli di velocità, collisione"
+    }
+  }
+}

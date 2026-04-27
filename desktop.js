@@ -956,9 +956,108 @@ function getUserDb(username) {
       sort_order INTEGER DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS notifications (
+      id TEXT PRIMARY KEY,
+      icon TEXT DEFAULT '📌',
+      bg TEXT DEFAULT '#ecf5ff',
+      title TEXT NOT NULL,
+      text TEXT NOT NULL,
+      time TEXT NOT NULL,
+      read INTEGER DEFAULT 0,
+      action TEXT DEFAULT '',
+      created_at INTEGER DEFAULT 0
+    );
+    CREATE INDEX IF NOT EXISTS idx_notif_created ON notifications(created_at DESC);
+
+    CREATE TABLE IF NOT EXISTS contacts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      first_name TEXT NOT NULL,
+      last_name TEXT DEFAULT '',
+      email TEXT DEFAULT '',
+      phone TEXT DEFAULT '',
+      mobile TEXT DEFAULT '',
+      company TEXT DEFAULT '',
+      job_title TEXT DEFAULT '',
+      address TEXT DEFAULT '',
+      city TEXT DEFAULT '',
+      country TEXT DEFAULT '',
+      website TEXT DEFAULT '',
+      birthday TEXT DEFAULT '',
+      notes TEXT DEFAULT '',
+      favorite INTEGER DEFAULT 0,
+      avatar_color TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now')),
+      updated_at TEXT DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_contacts_name ON contacts(first_name, last_name);
+    CREATE INDEX IF NOT EXISTS idx_contacts_email ON contacts(email);
+
+    CREATE TABLE IF NOT EXISTS budget_categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      icon TEXT DEFAULT '📁',
+      type TEXT NOT NULL DEFAULT 'expense',
+      color TEXT DEFAULT '#409eff',
+      sort_order INTEGER DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS budget_entries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      category_id INTEGER,
+      type TEXT NOT NULL DEFAULT 'expense',
+      amount REAL NOT NULL DEFAULT 0,
+      description TEXT DEFAULT '',
+      date TEXT NOT NULL,
+      paid INTEGER DEFAULT 1,
+      recurring TEXT DEFAULT '',
+      notify INTEGER DEFAULT 0,
+      show_calendar INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (category_id) REFERENCES budget_categories(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_budget_date ON budget_entries(date);
+    CREATE INDEX IF NOT EXISTS idx_budget_type ON budget_entries(type);
+    CREATE INDEX IF NOT EXISTS idx_budget_cat ON budget_entries(category_id);
   `);
+
+  /* Seed default budget categories if empty */
+  const catCount = db.prepare('SELECT COUNT(*) as c FROM budget_categories').get().c;
+  if (catCount === 0) {
+    const cats = [
+      ['Maaş','💰','income','#67c23a',1],['Ek Gelir','💵','income','#409eff',2],
+      ['Kira','🏠','expense','#e6a23c',3],['Market','🛒','expense','#f56c6c',4],
+      ['Fatura','📄','expense','#909399',5],['Ulaşım','🚗','expense','#e91e63',6],
+      ['Sağlık','🏥','expense','#00bcd4',7],['Eğitim','📚','expense','#9c27b0',8],
+      ['Eğlence','🎬','expense','#ff9800',9],['Giyim','👕','expense','#795548',10],
+      ['Diğer','📌','expense','#607d8b',11]
+    ];
+    const ins = db.prepare('INSERT INTO budget_categories (name,icon,type,color,sort_order) VALUES (?,?,?,?,?)');
+    const tr = db.transaction(() => cats.forEach(c => ins.run(...c)));
+    tr();
+  }
+
   userDbCache[safe] = db;
   return db;
+}
+
+function addNotificationToDb(username, notif) {
+  try {
+    const db = getUserDb(username);
+    db.prepare(
+      'INSERT OR IGNORE INTO notifications (id, icon, bg, title, text, time, read, action, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+    ).run(
+      notif.id,
+      notif.icon || '📌',
+      notif.bg || '#ecf5ff',
+      notif.title,
+      notif.text,
+      notif.time || new Date().toISOString(),
+      notif.read ? 1 : 0,
+      notif.action ? JSON.stringify(notif.action) : '',
+      notif.createdAt || Date.now()
+    );
+  } catch (e) { console.error('addNotificationToDb error:', e.message); }
 }
 
 // ── Calendar API ──
@@ -1044,6 +1143,67 @@ app.delete('/api/todos/:id', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Contacts API ──
+app.get('/api/contacts', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  const rows = db.prepare('SELECT * FROM contacts ORDER BY favorite DESC, first_name ASC, last_name ASC').all();
+  res.json(rows.map(r => ({ ...r, favorite: !!r.favorite })));
+});
+
+app.get('/api/contacts/search', authMiddleware, (req, res) => {
+  const q = (req.query.q || '').trim();
+  if (!q) return res.json([]);
+  const db = getUserDb(req.user.username);
+  const like = `%${q}%`;
+  const rows = db.prepare('SELECT * FROM contacts WHERE first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR phone LIKE ? OR mobile LIKE ? OR company LIKE ? ORDER BY favorite DESC, first_name ASC LIMIT 50').all(like, like, like, like, like, like);
+  res.json(rows.map(r => ({ ...r, favorite: !!r.favorite })));
+});
+
+app.post('/api/contacts', authMiddleware, (req, res) => {
+  const { first_name, last_name, email, phone, mobile, company, job_title, address, city, country, website, birthday, notes, favorite, avatar_color } = req.body;
+  if (!first_name || !first_name.trim()) return res.status(400).json({ error: 'first_name required' });
+  const db = getUserDb(req.user.username);
+  const colors = ['#409eff','#67c23a','#e6a23c','#f56c6c','#6f5ef7','#e91e63','#00bcd4','#ff5722','#795548','#607d8b'];
+  const color = avatar_color || colors[Math.floor(Math.random() * colors.length)];
+  const info = db.prepare(
+    'INSERT INTO contacts (first_name, last_name, email, phone, mobile, company, job_title, address, city, country, website, birthday, notes, favorite, avatar_color) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+  ).run(first_name.trim(), last_name||'', email||'', phone||'', mobile||'', company||'', job_title||'', address||'', city||'', country||'', website||'', birthday||'', notes||'', favorite?1:0, color);
+  res.json({ ok: true, id: info.lastInsertRowid });
+});
+
+app.put('/api/contacts/:id', authMiddleware, (req, res) => {
+  const { first_name, last_name, email, phone, mobile, company, job_title, address, city, country, website, birthday, notes, favorite, avatar_color } = req.body;
+  const db = getUserDb(req.user.username);
+  const fields = [];
+  const vals = [];
+  if (first_name !== undefined) { fields.push('first_name=?'); vals.push(first_name); }
+  if (last_name !== undefined) { fields.push('last_name=?'); vals.push(last_name); }
+  if (email !== undefined) { fields.push('email=?'); vals.push(email); }
+  if (phone !== undefined) { fields.push('phone=?'); vals.push(phone); }
+  if (mobile !== undefined) { fields.push('mobile=?'); vals.push(mobile); }
+  if (company !== undefined) { fields.push('company=?'); vals.push(company); }
+  if (job_title !== undefined) { fields.push('job_title=?'); vals.push(job_title); }
+  if (address !== undefined) { fields.push('address=?'); vals.push(address); }
+  if (city !== undefined) { fields.push('city=?'); vals.push(city); }
+  if (country !== undefined) { fields.push('country=?'); vals.push(country); }
+  if (website !== undefined) { fields.push('website=?'); vals.push(website); }
+  if (birthday !== undefined) { fields.push('birthday=?'); vals.push(birthday); }
+  if (notes !== undefined) { fields.push('notes=?'); vals.push(notes); }
+  if (favorite !== undefined) { fields.push('favorite=?'); vals.push(favorite?1:0); }
+  if (avatar_color !== undefined) { fields.push('avatar_color=?'); vals.push(avatar_color); }
+  if (fields.length === 0) return res.status(400).json({ error: 'no fields to update' });
+  fields.push("updated_at=datetime('now')");
+  vals.push(req.params.id);
+  db.prepare('UPDATE contacts SET ' + fields.join(', ') + ' WHERE id=?').run(...vals);
+  res.json({ ok: true });
+});
+
+app.delete('/api/contacts/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM contacts WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
 // ── Wallpaper API ──
 function getUserWallpaperDir(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -1123,14 +1283,19 @@ app.get('/api/weather', authMiddleware, async (req, res) => {
 });
 
 // ── Notification API ──
-let notifications = [];
-
 app.get('/api/notifications', authMiddleware, (req, res) => {
-  res.json(notifications);
+  const db = getUserDb(req.user.username);
+  const rows = db.prepare('SELECT id, icon, bg, title, text, time, read, action, created_at FROM notifications ORDER BY created_at DESC LIMIT 200').all();
+  res.json(rows.map(r => ({
+    id: r.id, icon: r.icon, bg: r.bg, title: r.title, text: r.text,
+    time: r.time, read: !!r.read,
+    action: r.action ? (function(){ try { return JSON.parse(r.action); } catch { return undefined; } })() : undefined,
+    createdAt: r.created_at
+  })));
 });
 
 app.post('/api/notifications', authMiddleware, (req, res) => {
-  const { title, text, icon, bg } = req.body;
+  const { title, text, icon, bg, action } = req.body;
   if (!title || !text) return res.status(400).json({ error: 'title and text required' });
   const notif = {
     id: crypto.randomUUID(),
@@ -1140,22 +1305,160 @@ app.post('/api/notifications', authMiddleware, (req, res) => {
     text,
     time: new Date().toISOString(),
     read: false,
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    action: action || undefined
   };
-  notifications.unshift(notif);
+  addNotificationToDb(req.user.username, notif);
   broadcastWS({ type: 'notification', data: notif });
   res.json(notif);
 });
 
 app.delete('/api/notifications/:id', authMiddleware, (req, res) => {
-  notifications = notifications.filter(n => n.id !== req.params.id);
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM notifications WHERE id = ?').run(req.params.id);
   broadcastWS({ type: 'notification-deleted', data: { id: req.params.id } });
   res.json({ ok: true });
 });
 
+app.patch('/api/notifications/:id/read', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('UPDATE notifications SET read = 1 WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
 app.patch('/api/notifications/read-all', authMiddleware, (req, res) => {
-  notifications.forEach(n => n.read = true);
+  const db = getUserDb(req.user.username);
+  db.prepare('UPDATE notifications SET read = 1').run();
   broadcastWS({ type: 'notifications-read-all' });
+  res.json({ ok: true });
+});
+
+// ── Budget API ──
+app.get('/api/budget/categories', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  res.json(db.prepare('SELECT * FROM budget_categories ORDER BY sort_order ASC').all());
+});
+
+app.post('/api/budget/categories', authMiddleware, (req, res) => {
+  const { name, icon, type, color } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: 'name required' });
+  const db = getUserDb(req.user.username);
+  const maxOrder = db.prepare('SELECT COALESCE(MAX(sort_order),0) as m FROM budget_categories').get().m;
+  const info = db.prepare('INSERT INTO budget_categories (name,icon,type,color,sort_order) VALUES (?,?,?,?,?)').run(name.trim(), icon || '📁', type || 'expense', color || '#409eff', maxOrder + 1);
+  res.json({ ok: true, id: info.lastInsertRowid });
+});
+
+app.put('/api/budget/categories/:id', authMiddleware, (req, res) => {
+  const { name, icon, type, color } = req.body;
+  const db = getUserDb(req.user.username);
+  const fields = []; const vals = [];
+  if (name !== undefined) { fields.push('name=?'); vals.push(name); }
+  if (icon !== undefined) { fields.push('icon=?'); vals.push(icon); }
+  if (type !== undefined) { fields.push('type=?'); vals.push(type); }
+  if (color !== undefined) { fields.push('color=?'); vals.push(color); }
+  if (!fields.length) return res.status(400).json({ error: 'no fields' });
+  vals.push(req.params.id);
+  db.prepare('UPDATE budget_categories SET ' + fields.join(', ') + ' WHERE id=?').run(...vals);
+  res.json({ ok: true });
+});
+
+app.delete('/api/budget/categories/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM budget_categories WHERE id=?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+app.get('/api/budget/entries', authMiddleware, (req, res) => {
+  const { month, type, paid, category_id } = req.query;
+  const db = getUserDb(req.user.username);
+  let sql = 'SELECT e.*, c.name as category_name, c.icon as category_icon, c.color as category_color FROM budget_entries e LEFT JOIN budget_categories c ON e.category_id = c.id WHERE 1=1';
+  const params = [];
+  if (month) { sql += " AND strftime('%Y-%m', e.date) = ?"; params.push(month); }
+  if (type) { sql += ' AND e.type = ?'; params.push(type); }
+  if (paid !== undefined && paid !== '') { sql += ' AND e.paid = ?'; params.push(Number(paid)); }
+  if (category_id) { sql += ' AND e.category_id = ?'; params.push(Number(category_id)); }
+  sql += ' ORDER BY e.date DESC, e.id DESC';
+  res.json(db.prepare(sql).all(...params));
+});
+
+app.get('/api/budget/summary', authMiddleware, (req, res) => {
+  const { month } = req.query;
+  const db = getUserDb(req.user.username);
+  let where = '';
+  const params = [];
+  if (month) { where = " WHERE strftime('%Y-%m', date) = ?"; params.push(month); }
+  const rows = db.prepare('SELECT type, paid, SUM(amount) as total FROM budget_entries' + where + ' GROUP BY type, paid').all(...params);
+  const byCat = db.prepare('SELECT e.type, c.name as category, c.icon, c.color, SUM(e.amount) as total FROM budget_entries e LEFT JOIN budget_categories c ON e.category_id = c.id' + where + ' GROUP BY e.type, e.category_id ORDER BY total DESC').all(...params);
+  res.json({ totals: rows, byCategory: byCat });
+});
+
+app.post('/api/budget/entries', authMiddleware, (req, res) => {
+  const { category_id, type, amount, description, date, paid, recurring, notify, show_calendar } = req.body;
+  if (!amount || !date) return res.status(400).json({ error: 'amount and date required' });
+  const db = getUserDb(req.user.username);
+  const isPaid = paid !== undefined ? (paid ? 1 : 0) : 1;
+  const isNotify = (!isPaid && notify) ? 1 : 0;
+  const isCal = (!isPaid && show_calendar) ? 1 : 0;
+  const info = db.prepare('INSERT INTO budget_entries (category_id,type,amount,description,date,paid,recurring,notify,show_calendar) VALUES (?,?,?,?,?,?,?,?,?)').run(
+    category_id || null, type || 'expense', Number(amount), description || '', date, isPaid, recurring || '', isNotify, isCal
+  );
+  const entryId = info.lastInsertRowid;
+  const label = description || (type === 'income' ? 'Gelir' : 'Gider');
+  if (isNotify) {
+    const notif = { id: 'budget-' + entryId, icon: '💰', bg: '#fff3e0', title: label, text: Number(amount).toFixed(2) + ' — ' + date, time: new Date().toISOString(), read: false, createdAt: Date.now() };
+    addNotificationToDb(req.user.username, notif);
+    broadcastWS({ type: 'notification', data: notif });
+  }
+  if (isCal) {
+    const calTitle = (type === 'income' ? '📈 ' : '📉 ') + label + ' (' + Number(amount).toFixed(2) + ')';
+    db.prepare('INSERT INTO calendar_events (date, title, color) VALUES (?, ?, ?)').run(date, calTitle, type === 'income' ? '#67c23a' : '#f56c6c');
+  }
+  res.json({ ok: true, id: entryId });
+});
+
+app.put('/api/budget/entries/:id', authMiddleware, (req, res) => {
+  const { category_id, type, amount, description, date, paid, recurring, notify, show_calendar } = req.body;
+  const db = getUserDb(req.user.username);
+  const fields = []; const vals = [];
+  if (category_id !== undefined) { fields.push('category_id=?'); vals.push(category_id); }
+  if (type !== undefined) { fields.push('type=?'); vals.push(type); }
+  if (amount !== undefined) { fields.push('amount=?'); vals.push(Number(amount)); }
+  if (description !== undefined) { fields.push('description=?'); vals.push(description); }
+  if (date !== undefined) { fields.push('date=?'); vals.push(date); }
+  if (paid !== undefined) { fields.push('paid=?'); vals.push(paid ? 1 : 0); }
+  if (recurring !== undefined) { fields.push('recurring=?'); vals.push(recurring); }
+  if (notify !== undefined) { fields.push('notify=?'); vals.push(notify ? 1 : 0); }
+  if (show_calendar !== undefined) { fields.push('show_calendar=?'); vals.push(show_calendar ? 1 : 0); }
+  if (!fields.length) return res.status(400).json({ error: 'no fields' });
+  vals.push(req.params.id);
+  db.prepare('UPDATE budget_entries SET ' + fields.join(', ') + ' WHERE id=?').run(...vals);
+
+  /* Side-effects for notify/show_calendar on update */
+  const row = db.prepare('SELECT * FROM budget_entries e LEFT JOIN budget_categories c ON e.category_id = c.id WHERE e.id=?').get(req.params.id);
+  if (row) {
+    const label = row.description || (row.type === 'income' ? 'Gelir' : 'Gider');
+    if (notify && !row.paid) {
+      const existing = db.prepare('SELECT id FROM notifications WHERE id=?').get('budget-' + req.params.id);
+      if (!existing) {
+        const notif = { id: 'budget-' + req.params.id, icon: '💰', bg: '#fff3e0', title: label, text: Number(row.amount).toFixed(2) + ' — ' + row.date, time: new Date().toISOString(), read: false, createdAt: Date.now() };
+        addNotificationToDb(req.user.username, notif);
+        broadcastWS({ type: 'notification', data: notif });
+      }
+    }
+    if (show_calendar && !row.paid) {
+      const calTitle = (row.type === 'income' ? '📈 ' : '📉 ') + label + ' (' + Number(row.amount).toFixed(2) + ')';
+      const existingCal = db.prepare('SELECT id FROM calendar_events WHERE title=? AND date=?').get(calTitle, row.date);
+      if (!existingCal) {
+        db.prepare('INSERT INTO calendar_events (date, title, color) VALUES (?, ?, ?)').run(row.date, calTitle, row.type === 'income' ? '#67c23a' : '#f56c6c');
+      }
+    }
+  }
+  res.json({ ok: true });
+});
+
+app.delete('/api/budget/entries/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM budget_entries WHERE id=?').run(req.params.id);
   res.json({ ok: true });
 });
 
@@ -1322,7 +1625,7 @@ function broadcastWS(message) {
 function handleWSMessage(ws, msg) {
   switch (msg.type) {
     case 'notify': {
-      const { title, text, icon, bg } = msg.data || {};
+      const { title, text, icon, bg, action } = msg.data || {};
       if (!title || !text) return;
       const notif = {
         id: crypto.randomUUID(),
@@ -1332,9 +1635,10 @@ function handleWSMessage(ws, msg) {
         text,
         time: new Date().toISOString(),
         read: false,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        action: action || undefined
       };
-      notifications.unshift(notif);
+      if (ws.user) addNotificationToDb(ws.user.username, notif);
       broadcastWS({ type: 'notification', data: notif });
       break;
     }
@@ -2358,7 +2662,7 @@ async function fetchAllFeeds(username, notify) {
         createdAt: Date.now(),
         action: { app: 'rss-reader' }
       };
-      notifications.unshift(notif);
+      addNotificationToDb(username, notif);
       broadcastWS({ type: 'notification', data: notif });
     }
   }
@@ -2572,7 +2876,7 @@ function startReminderChecker() {
             createdAt: now.getTime(),
             action: { app: 'reminder' }
           };
-          notifications.unshift(notif);
+          addNotificationToDb(d.name, notif);
           // Only broadcast notification to this user
           wsClients.forEach(ws => {
             if (ws.readyState !== 1) return;
@@ -3657,7 +3961,7 @@ function startMailChecker() {
                 createdAt: now.getTime(),
                 action: { app: 'mail-app' }
               };
-              notifications.unshift(notif);
+              addNotificationToDb(username, notif);
               wsClients.forEach(ws => {
                 if (ws.readyState !== 1) return;
                 if (ws.user && ws.user.username === username) {

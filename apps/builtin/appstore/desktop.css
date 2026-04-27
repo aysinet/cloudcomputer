@@ -29,3 +29,5 @@
 .service-install-loading{padding:40px;text-align:center;color:#aaa}
 .sil-spinner{width:32px;height:32px;border:3px solid #333;border-top-color:#4a90c4;border-radius:50%;animation:sil-spin .8s linear infinite;margin:0 auto 12px}
 @keyframes sil-spin{to{transform:rotate(360deg)}}
+.store-search{padding:8px 10px 0;flex-shrink:0}
+.store-search .el-input__inner{border-radius:8px}

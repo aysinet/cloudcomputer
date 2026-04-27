@@ -15,5 +15,6 @@
 .cal-event-dot.orange{background:#e6a23c}
 .cal-event-dot.red{background:#f56c6c}
 .cal-event-dot.purple{background:#6f5ef7}
+.cal-event-dot.birthday{background:#e91e63}
 .cal-dialog-events{margin-top:8px;display:flex;flex-direction:column;gap:6px}
 .cal-ev-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f5f7fa;border-radius:6px}

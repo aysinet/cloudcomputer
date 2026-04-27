@@ -1,0 +1,74 @@
+<div class="mm-root">
+  <!-- TOOLBAR -->
+  <div class="mm-toolbar">
+    <!-- Left tools -->
+    <div class="mm-tb-left">
+      <!-- Color -->
+      <el-color-picker v-model="color" size="small" show-alpha :title="L('color')" />
+
+      <!-- Brush size -->
+      <div class="mm-ctrl">
+        <span class="mm-ctrl-label">{{ L('brushSize') }}</span>
+        <el-slider v-model="brushSize" :min="1" :max="40" :step="1" style="width:100px" size="small" />
+        <span class="mm-ctrl-val">{{ brushSize }}px</span>
+      </div>
+
+      <!-- Symmetry sectors -->
+      <div class="mm-ctrl">
+        <span class="mm-ctrl-label">{{ L('sectors') }}</span>
+        <el-slider v-model="sectors" :min="2" :max="32" :step="1" style="width:100px" size="small" />
+        <span class="mm-ctrl-val">{{ sectors }}</span>
+      </div>
+
+      <!-- Mirror toggle -->
+      <el-tooltip :content="L('mirror')" placement="bottom">
+        <el-button :type="mirror ? 'primary' : 'default'" size="small" @click="mirror = !mirror"
+          style="font-size:16px;padding:4px 8px">🪞</el-button>
+      </el-tooltip>
+
+      <!-- Guide lines -->
+      <el-tooltip :content="L('guides')" placement="bottom">
+        <el-button :type="showGuides ? 'primary' : 'default'" size="small" @click="toggleGuides"
+          style="font-size:16px;padding:4px 8px">◎</el-button>
+      </el-tooltip>
+
+      <!-- Eraser -->
+      <el-tooltip :content="L('eraser')" placement="bottom">
+        <el-button :type="eraser ? 'primary' : 'default'" size="small" @click="eraser = !eraser"
+          style="font-size:16px;padding:4px 8px">🧹</el-button>
+      </el-tooltip>
+    </div>
+
+    <!-- Right actions -->
+    <div class="mm-tb-right">
+      <el-button size="small" @click="openFile" :title="L('open')">📂</el-button>
+      <el-button size="small" @click="saveFile" :title="L('save')">💾</el-button>
+      <el-button size="small" @click="saveFileAs" :title="L('saveAs')">📋</el-button>
+      <div class="mm-tb-sep"></div>
+      <el-button size="small" @click="undoAction" :disabled="historyIdx <= 0" :title="L('undo')">↩️</el-button>
+      <el-button size="small" @click="redoAction" :disabled="historyIdx >= history.length - 1" :title="L('redo')">↪️</el-button>
+      <el-button size="small" type="danger" @click="clearCanvas" :title="L('clear')">🗑️</el-button>
+      <el-button size="small" type="success" @click="downloadPNG" :title="L('download')">⬇️</el-button>
+    </div>
+  </div>
+
+  <!-- BG Color bar -->
+  <div class="mm-bg-bar">
+    <span class="mm-ctrl-label">{{ L('bgColor') }}</span>
+    <el-color-picker v-model="bgColor" size="small" @change="onBgChange" />
+    <!-- Presets -->
+    <div class="mm-presets">
+      <div v-for="c in presetColors" :key="c" class="mm-preset" :style="{ background: c }"
+        :class="{ active: color === c }" @click="color = c; eraser = false"></div>
+    </div>
+    <span v-if="currentFileName" class="mm-filename" :title="currentFilePath">📄 {{ currentFileName }}</span>
+  </div>
+
+  <!-- CANVAS AREA -->
+  <div class="mm-canvas-wrap" ref="canvasWrap">
+    <canvas ref="drawCanvas" class="mm-canvas"
+      @pointerdown="onPointerDown" @pointermove="onPointerMove"
+      @pointerup="onPointerUp" @pointerleave="onPointerUp"></canvas>
+    <canvas ref="guideCanvas" class="mm-guide-canvas" v-show="showGuides"></canvas>
+  </div>
+</div>

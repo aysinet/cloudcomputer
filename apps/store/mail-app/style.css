@@ -248,6 +248,18 @@
 }
 .mail-compose-actions { display: flex; gap: 10px; }
 
+/* Contact Picker */
+.mail-contact-picker{background:#1a1d28;border:1px solid rgba(255,255,255,.12);border-radius:8px;margin-bottom:10px;max-height:220px;display:flex;flex-direction:column;overflow:hidden}
+.mail-cp-header{display:flex;align-items:center;gap:6px;padding:8px;border-bottom:1px solid rgba(255,255,255,.08)}
+.mail-cp-search{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:6px 10px;color:#e1e4ea;font-size:13px;outline:none}
+.mail-cp-search:focus{border-color:#409eff}
+.mail-cp-close{background:none;border:none;color:#909399;cursor:pointer;font-size:16px;padding:4px 6px}
+.mail-cp-close:hover{color:#f56c6c}
+.mail-cp-list{overflow-y:auto;flex:1}
+.mail-cp-item{display:flex;align-items:center;gap:10px;padding:8px 10px;cursor:pointer;transition:background .15s}
+.mail-cp-item:hover{background:rgba(64,158,255,.15)}
+.mail-cp-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11px;flex-shrink:0;text-transform:uppercase}
+
 /* Settings */
 .mail-settings {
   flex: 1;

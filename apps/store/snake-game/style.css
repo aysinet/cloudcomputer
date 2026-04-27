@@ -1,0 +1,122 @@
+.sk-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #16213e;
+  color: #fff;
+  overflow: hidden;
+  outline: none;
+  user-select: none;
+}
+
+/* ---- Header ---- */
+.sk-header {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 12px 8px;
+  background: #0f3460;
+  flex-shrink: 0;
+}
+.sk-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.sk-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.5);
+  letter-spacing: 1px;
+}
+.sk-stat-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2ecc71;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Board ---- */
+.sk-board-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 0;
+  padding: 8px;
+}
+.sk-board {
+  border-radius: 6px;
+  box-shadow: 0 0 20px rgba(46,204,113,.15);
+}
+
+/* ---- Overlay ---- */
+.sk-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15,15,30,.85);
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+.sk-overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.sk-title {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+.sk-hint {
+  font-size: 12px;
+  color: rgba(255,255,255,.45);
+}
+.sk-game-over {
+  font-size: 28px;
+  font-weight: 700;
+  color: #e74c3c;
+}
+.sk-final-score {
+  font-size: 18px;
+  color: #2ecc71;
+}
+.sk-paused {
+  font-size: 28px;
+  font-weight: 700;
+  color: #f39c12;
+}
+
+/* ---- Controls ---- */
+.sk-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #0f3460;
+  flex-shrink: 0;
+}
+
+/* ---- D-pad ---- */
+.sk-dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: auto;
+  gap: 2px;
+}
+.sk-dpad-mid {
+  display: flex;
+  gap: 24px;
+}
+.sk-dpad-btn {
+  min-width: 32px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+}

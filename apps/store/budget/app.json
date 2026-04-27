@@ -1,0 +1,52 @@
+{
+  "id": "budget",
+  "name": "Budget",
+  "icon": "💰",
+  "color": "linear-gradient(135deg,#27ae60,#f39c12)",
+  "type": "internal",
+  "size": {
+    "w": 860,
+    "h": 640
+  },
+  "global": false,
+  "category": "tools",
+  "description": "Bütçe takip — gelir/gider kaydı, ödeme planlaması, grafikler",
+  "lang": {
+    "tr": {
+      "name": "Bütçe",
+      "description": "Bütçe takip — gelir/gider kaydı, ödeme planlaması, grafikler"
+    },
+    "en": {
+      "name": "Budget",
+      "description": "Budget tracker — income/expense records, payment planning, charts"
+    },
+    "de": {
+      "name": "Budget",
+      "description": "Budgetverfolgung — Einnahmen/Ausgaben, Zahlungsplanung, Diagramme"
+    },
+    "fr": {
+      "name": "Budget",
+      "description": "Suivi budgétaire — revenus/dépenses, planification des paiements, graphiques"
+    },
+    "es": {
+      "name": "Presupuesto",
+      "description": "Seguimiento de presupuesto — ingresos/gastos, planificación de pagos, gráficos"
+    },
+    "ru": {
+      "name": "Бюджет",
+      "description": "Учёт бюджета — доходы/расходы, планирование платежей, графики"
+    },
+    "zh": {
+      "name": "预算",
+      "description": "预算跟踪 — 收入/支出记录、付款计划、图表"
+    },
+    "ja": {
+      "name": "予算",
+      "description": "予算管理 — 収入/支出記録、支払い計画、グラフ"
+    },
+    "it": {
+      "name": "Budget",
+      "description": "Monitoraggio budget — entrate/uscite, pianificazione pagamenti, grafici"
+    }
+  }
+}

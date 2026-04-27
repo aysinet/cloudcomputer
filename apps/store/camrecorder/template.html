@@ -1,0 +1,45 @@
+<div class="camrec-root">
+  <!-- Permission / Error -->
+  <div v-if="error" class="camrec-error">
+    <div style="font-size:48px;margin-bottom:12px">🎥</div>
+    <div style="font-size:14px;margin-bottom:8px">{{error}}</div>
+    <el-button size="small" type="primary" @click="initCamera">{{L('retry')}}</el-button>
+  </div>
+  <!-- Main UI -->
+  <template v-else>
+    <div class="camrec-preview">
+      <video ref="videoEl" autoplay playsinline muted class="camrec-video" :class="{mirror:facingMode==='user'}"></video>
+      <canvas ref="canvasEl" style="display:none"></canvas>
+      <div v-if="recording" class="camrec-rec-badge">
+        <span class="camrec-rec-dot"></span> REC {{recTime}}
+      </div>
+      <div v-if="countdown>0" class="camrec-countdown">{{countdown}}</div>
+    </div>
+    <div class="camrec-toolbar">
+      <el-button v-if="devices.length>1" circle size="small" @click="switchCamera" :title="L('switch')">🔄</el-button>
+      <el-button circle size="small" @click="takePhoto" :title="L('photo')" :disabled="recording">📷</el-button>
+      <el-button v-if="!recording" circle type="danger" size="default" @click="startRec" :title="L('startRec')">⏺</el-button>
+      <el-button v-else circle type="danger" size="default" @click="stopRec" :title="L('stopRec')" class="camrec-stop-btn">⏹</el-button>
+      <el-button circle size="small" @click="timerShot" :disabled="recording" :title="L('timer')">⏱️</el-button>
+      <el-select v-model="selectedDevice" size="small" style="max-width:140px" @change="switchDevice" v-if="devices.length>1">
+        <el-option v-for="d in devices" :key="d.deviceId" :label="d.label||'Camera'" :value="d.deviceId" />
+      </el-select>
+    </div>
+    <div v-if="gallery.length" class="camrec-gallery">
+      <div v-for="(item,i) in gallery" :key="i" class="camrec-thumb" @click="previewItem(item)">
+        <img v-if="item.type==='photo'" :src="item.url" />
+        <div v-else class="camrec-vid-thumb">🎬 {{item.duration||''}}</div>
+        <button class="camrec-thumb-del" @click.stop="removeItem(i)">✕</button>
+      </div>
+    </div>
+  </template>
+  <el-dialog v-model="showPreview" width="520px" :close-on-click-modal="true">
+    <div v-if="previewData" style="text-align:center">
+      <img v-if="previewData.type==='photo'" :src="previewData.url" style="max-width:100%;border-radius:8px" />
+      <video v-else :src="previewData.url" controls style="max-width:100%;border-radius:8px"></video>
+      <div style="margin-top:10px;display:flex;gap:8px;justify-content:center">
+        <el-button size="small" type="primary" @click="downloadItem(previewData)">💾 {{L('download')}}</el-button>
+      </div>
+    </div>
+  </el-dialog>
+</div>

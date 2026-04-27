@@ -1,0 +1,65 @@
+<div class="sk-root" ref="rootEl" tabindex="0" @keydown="onKeyDown">
+  <!-- Header -->
+  <div class="sk-header">
+    <div class="sk-stat">
+      <span class="sk-stat-label">{{ L('score') }}</span>
+      <span class="sk-stat-val">{{ score }}</span>
+    </div>
+    <div class="sk-stat">
+      <span class="sk-stat-label">{{ L('best') }}</span>
+      <span class="sk-stat-val">{{ bestScore }}</span>
+    </div>
+    <div class="sk-stat">
+      <span class="sk-stat-label">{{ L('level') }}</span>
+      <span class="sk-stat-val">{{ level }}</span>
+    </div>
+    <div class="sk-stat">
+      <span class="sk-stat-label">{{ L('length') }}</span>
+      <span class="sk-stat-val">{{ snake.length }}</span>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <div class="sk-board-wrap">
+    <canvas ref="boardCanvas" class="sk-board"
+      :width="COLS * CELL" :height="ROWS * CELL"></canvas>
+
+    <!-- Overlay: start / game over -->
+    <div class="sk-overlay" v-if="state !== 'playing'">
+      <div v-if="state === 'idle'" class="sk-overlay-content">
+        <div class="sk-title">🐍 Snake</div>
+        <el-button type="success" size="large" @click="startGame">{{ L('start') }}</el-button>
+        <div class="sk-hint">{{ L('controls') }}</div>
+      </div>
+      <div v-else-if="state === 'over'" class="sk-overlay-content">
+        <div class="sk-game-over">{{ L('gameOver') }}</div>
+        <div class="sk-final-score">{{ L('score') }}: {{ score }}</div>
+        <el-button type="success" size="large" @click="startGame">{{ L('restart') }}</el-button>
+      </div>
+      <div v-else-if="state === 'paused'" class="sk-overlay-content">
+        <div class="sk-paused">{{ L('paused') }}</div>
+        <el-button type="primary" size="large" @click="resumeGame">{{ L('resume') }}</el-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="sk-controls">
+    <el-button size="small" @click="togglePause" :disabled="state === 'idle' || state === 'over'">
+      {{ state === 'paused' ? L('resume') : L('pause') }}
+    </el-button>
+    <el-button size="small" type="danger" @click="resetGame" :disabled="state === 'idle'">
+      {{ L('reset') }}
+    </el-button>
+
+    <!-- Mobile D-pad -->
+    <div class="sk-dpad">
+      <el-button size="small" class="sk-dpad-btn sk-up" @click="setDir(0,-1)">▲</el-button>
+      <div class="sk-dpad-mid">
+        <el-button size="small" class="sk-dpad-btn" @click="setDir(-1,0)">◀</el-button>
+        <el-button size="small" class="sk-dpad-btn" @click="setDir(1,0)">▶</el-button>
+      </div>
+      <el-button size="small" class="sk-dpad-btn sk-down" @click="setDir(0,1)">▼</el-button>
+    </div>
+  </div>
+</div>

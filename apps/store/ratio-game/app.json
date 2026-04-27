@@ -1,0 +1,22 @@
+{
+  "id": "ratio-game",
+  "name": "Oran Oyunu",
+  "icon": "🎯",
+  "color": "linear-gradient(135deg,#24231f,#8b8478)",
+  "type": "internal",
+  "size": { "w": 440, "h": 680 },
+  "global": false,
+  "description": "Daireyi hedef kesire göre dilimle — 10 turda en iyi skoru yap",
+  "category": "games",
+  "lang": {
+    "tr": { "name": "Oran Oyunu", "description": "Daireyi hedef kesire göre dilimle — 10 turda en iyi skoru yap" },
+    "en": { "name": "Ratio Game", "description": "Slice the circle to match the target fraction — score best in 10 rounds" },
+    "de": { "name": "Bruch-Spiel", "description": "Schneide den Kreis passend zum Zielbruch — 10 Runden" },
+    "fr": { "name": "Jeu de Fractions", "description": "Découpez le cercle selon la fraction cible — 10 tours" },
+    "es": { "name": "Juego de Fracciones", "description": "Corta el círculo según la fracción objetivo — 10 rondas" },
+    "ru": { "name": "Игра дробей", "description": "Разрежьте круг по целевой дроби — 10 раундов" },
+    "zh": { "name": "分数游戏", "description": "按目标分数切割圆形 — 10轮挑战" },
+    "ja": { "name": "分数ゲーム", "description": "目標の分数に合わせて円を切る — 10ラウンド" },
+    "it": { "name": "Gioco Frazioni", "description": "Taglia il cerchio secondo la frazione — 10 turni" }
+  }
+}

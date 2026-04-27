@@ -1,0 +1,214 @@
+<div class="bg-root">
+  <!-- HEADER: month selector + summary -->
+  <div class="bg-header">
+    <div class="bg-month-nav">
+      <el-button size="small" @click="prevMonth" circle>◀</el-button>
+      <span class="bg-month-label">{{ monthLabel }}</span>
+      <el-button size="small" @click="nextMonth" circle>▶</el-button>
+      <el-button size="small" @click="goToday" :disabled="isCurrentMonth">{{ L('today') }}</el-button>
+    </div>
+    <div class="bg-summary-cards">
+      <div class="bg-card bg-card-income">
+        <span class="bg-card-icon">📈</span>
+        <div class="bg-card-body">
+          <span class="bg-card-label">{{ L('income') }}</span>
+          <span class="bg-card-val">{{ fmt(totalIncome) }}</span>
+        </div>
+      </div>
+      <div class="bg-card bg-card-expense">
+        <span class="bg-card-icon">📉</span>
+        <div class="bg-card-body">
+          <span class="bg-card-label">{{ L('expense') }}</span>
+          <span class="bg-card-val">{{ fmt(totalExpense) }}</span>
+        </div>
+      </div>
+      <div class="bg-card" :class="balance >= 0 ? 'bg-card-pos' : 'bg-card-neg'">
+        <span class="bg-card-icon">💵</span>
+        <div class="bg-card-body">
+          <span class="bg-card-label">{{ L('balance') }}</span>
+          <span class="bg-card-val">{{ fmt(balance) }}</span>
+        </div>
+      </div>
+      <div class="bg-card bg-card-pending">
+        <span class="bg-card-icon">⏳</span>
+        <div class="bg-card-body">
+          <span class="bg-card-label">{{ L('pending') }}</span>
+          <span class="bg-card-val">{{ fmt(totalPending) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="bg-tabs">
+    <el-radio-group v-model="tab" size="small">
+      <el-radio-button value="list">{{ L('list') }}</el-radio-button>
+      <el-radio-button value="chart">{{ L('charts') }}</el-radio-button>
+      <el-radio-button value="categories">{{ L('categories') }}</el-radio-button>
+    </el-radio-group>
+    <div class="bg-tab-actions" v-if="tab === 'list'">
+      <el-select v-model="filterType" size="small" style="width:110px" :placeholder="L('all')">
+        <el-option value="" :label="L('all')" />
+        <el-option value="income" :label="L('income')" />
+        <el-option value="expense" :label="L('expense')" />
+      </el-select>
+      <el-select v-model="filterPaid" size="small" style="width:120px" :placeholder="L('allStatus')">
+        <el-option value="" :label="L('allStatus')" />
+        <el-option value="1" :label="L('paid')" />
+        <el-option value="0" :label="L('unpaid')" />
+      </el-select>
+      <el-button type="primary" size="small" @click="openForm()">+ {{ L('add') }}</el-button>
+    </div>
+    <div class="bg-tab-actions" v-if="tab === 'categories'">
+      <el-button type="primary" size="small" @click="openCatForm()">+ {{ L('addCat') }}</el-button>
+    </div>
+  </div>
+
+  <!-- TAB: LIST -->
+  <div class="bg-content" v-if="tab === 'list'">
+    <div v-if="entries.length === 0" class="bg-empty">{{ L('noEntries') }}</div>
+    <div class="bg-entry" v-for="e in entries" :key="e.id"
+      :class="{ 'bg-entry-income': e.type === 'income', 'bg-entry-unpaid': !e.paid }">
+      <div class="bg-entry-icon" :style="{ background: e.category_color || '#ccc' }">
+        {{ e.category_icon || '📌' }}
+      </div>
+      <div class="bg-entry-body">
+        <div class="bg-entry-top">
+          <span class="bg-entry-desc">{{ e.description || e.category_name || '-' }}</span>
+          <span class="bg-entry-amount" :class="e.type === 'income' ? 'bg-amt-income' : 'bg-amt-expense'">
+            {{ e.type === 'income' ? '+' : '-' }}{{ fmt(e.amount) }}
+          </span>
+        </div>
+        <div class="bg-entry-bottom">
+          <span class="bg-entry-cat">{{ e.category_icon }} {{ e.category_name || '' }}</span>
+          <span class="bg-entry-date">{{ e.date }}</span>
+          <el-tag :type="e.paid ? 'success' : 'warning'" size="small" effect="plain" @click="togglePaid(e)"
+            style="cursor:pointer">
+            {{ e.paid ? L('paid') : L('unpaid') }}
+          </el-tag>
+          <span v-if="!e.paid && e.notify" class="bg-entry-badge" title="🔔">🔔</span>
+          <span v-if="!e.paid && e.show_calendar" class="bg-entry-badge" title="📅">📅</span>
+          <span v-if="e.recurring" class="bg-entry-rec">🔁 {{ L('rec_' + e.recurring) }}</span>
+        </div>
+      </div>
+      <div class="bg-entry-actions">
+        <el-button size="small" circle @click="openForm(e)">✏️</el-button>
+        <el-button size="small" circle type="danger" @click="deleteEntry(e.id)">🗑️</el-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: CHARTS -->
+  <div class="bg-content bg-chart-tab" v-if="tab === 'chart'">
+    <div class="bg-chart-row">
+      <div class="bg-chart-box">
+        <div class="bg-chart-title">{{ L('incomeVsExpense') }}</div>
+        <canvas ref="barCanvas" width="380" height="220"></canvas>
+      </div>
+      <div class="bg-chart-box">
+        <div class="bg-chart-title">{{ L('expenseByCat') }}</div>
+        <canvas ref="pieCanvas" width="260" height="260"></canvas>
+        <div class="bg-chart-legend">
+          <div v-for="(item, i) in pieData" :key="i" class="bg-legend-item">
+            <span class="bg-legend-dot" :style="{ background: item.color }"></span>
+            <span>{{ item.icon }} {{ item.label }}</span>
+            <span class="bg-legend-val">{{ fmt(item.value) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bg-chart-row">
+      <div class="bg-chart-box bg-chart-wide">
+        <div class="bg-chart-title">{{ L('paidVsPending') }}</div>
+        <canvas ref="statusCanvas" width="500" height="180"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: CATEGORIES -->
+  <div class="bg-content" v-if="tab === 'categories'">
+    <div class="bg-cat-list">
+      <div class="bg-cat-item" v-for="c in categories" :key="c.id">
+        <span class="bg-cat-icon" :style="{ background: c.color }">{{ c.icon }}</span>
+        <span class="bg-cat-name">{{ c.name }}</span>
+        <el-tag :type="c.type === 'income' ? 'success' : 'danger'" size="small" effect="plain">
+          {{ c.type === 'income' ? L('income') : L('expense') }}
+        </el-tag>
+        <div class="bg-cat-actions">
+          <el-button size="small" circle @click="openCatForm(c)">✏️</el-button>
+          <el-button size="small" circle type="danger" @click="deleteCat(c.id)">🗑️</el-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENTRY FORM DIALOG -->
+  <el-dialog v-model="showForm" :title="editingEntry ? L('editEntry') : L('addEntry')" width="420px" append-to-body>
+    <el-form label-position="top" size="small">
+      <el-form-item :label="L('type')">
+        <el-radio-group v-model="form.type">
+          <el-radio value="income">{{ L('income') }}</el-radio>
+          <el-radio value="expense">{{ L('expense') }}</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item :label="L('amount')">
+        <el-input-number v-model="form.amount" :min="0" :precision="2" style="width:100%" />
+      </el-form-item>
+      <el-form-item :label="L('category')">
+        <el-select v-model="form.category_id" style="width:100%" :placeholder="L('selectCat')" clearable>
+          <el-option v-for="c in filteredCats" :key="c.id" :value="c.id" :label="c.icon + ' ' + c.name" />
+        </el-select>
+      </el-form-item>
+      <el-form-item :label="L('description')">
+        <el-input v-model="form.description" :placeholder="L('descPlaceholder')" />
+      </el-form-item>
+      <el-form-item :label="L('date')">
+        <el-date-picker v-model="form.date" type="date" value-format="YYYY-MM-DD" style="width:100%" />
+      </el-form-item>
+      <el-form-item :label="L('status')">
+        <el-switch v-model="form.paid" :active-text="L('paid')" :inactive-text="L('unpaid')" />
+      </el-form-item>
+      <div v-if="!form.paid" class="bg-unpaid-opts">
+        <el-checkbox v-model="form.notify">🔔 {{ L('notifyMe') }}</el-checkbox>
+        <el-checkbox v-model="form.show_calendar">📅 {{ L('showOnCalendar') }}</el-checkbox>
+      </div>
+      <el-form-item :label="L('recurring')">
+        <el-select v-model="form.recurring" style="width:100%" clearable :placeholder="L('none')">
+          <el-option value="" :label="L('none')" />
+          <el-option value="weekly" :label="L('rec_weekly')" />
+          <el-option value="monthly" :label="L('rec_monthly')" />
+          <el-option value="yearly" :label="L('rec_yearly')" />
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="showForm = false">{{ L('cancel') }}</el-button>
+      <el-button type="primary" @click="saveEntry">{{ L('save') }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- CATEGORY FORM DIALOG -->
+  <el-dialog v-model="showCatForm" :title="editingCat ? L('editCat') : L('addCat')" width="360px" append-to-body>
+    <el-form label-position="top" size="small">
+      <el-form-item :label="L('catName')">
+        <el-input v-model="catForm.name" />
+      </el-form-item>
+      <el-form-item :label="L('icon')">
+        <el-input v-model="catForm.icon" style="width:80px" />
+      </el-form-item>
+      <el-form-item :label="L('type')">
+        <el-radio-group v-model="catForm.type">
+          <el-radio value="income">{{ L('income') }}</el-radio>
+          <el-radio value="expense">{{ L('expense') }}</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item :label="L('color')">
+        <el-color-picker v-model="catForm.color" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="showCatForm = false">{{ L('cancel') }}</el-button>
+      <el-button type="primary" @click="saveCat">{{ L('save') }}</el-button>
+    </template>
+  </el-dialog>
+</div>

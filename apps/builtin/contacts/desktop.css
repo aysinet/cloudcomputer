@@ -1,0 +1,29 @@
+.contacts-root{display:flex;flex-direction:column;height:100%;font-family:'Segoe UI',sans-serif;background:#fff;color:#303133;overflow:hidden}
+.contacts-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid #e4e7ed;flex-wrap:wrap;gap:8px}
+.contacts-header h2{margin:0;font-size:18px}
+.contacts-actions{display:flex;gap:8px;align-items:center}
+.contacts-list{flex:1;overflow-y:auto;padding:0}
+.contacts-empty{text-align:center;color:#aaa;padding:40px;font-size:14px}
+.contacts-count{padding:8px 16px;font-size:11px;color:#909399;border-top:1px solid #f0f0f0;text-align:right}
+.contact-item{display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;border-bottom:1px solid #f5f5f5;transition:background .15s}
+.contact-item:hover{background:#ecf5ff}
+.contact-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;flex-shrink:0;text-transform:uppercase}
+.contact-avatar-lg{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:24px;text-transform:uppercase;margin:0 auto 8px}
+.contact-item-body{flex:1;min-width:0}
+.contact-item-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.contact-item-info{font-size:12px;color:#909399;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.contact-fav-star{color:#e6a23c;font-size:16px}
+.contacts-detail{display:flex;flex-direction:column;height:100%;overflow-y:auto}
+.contacts-detail-top{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid #e4e7ed}
+.contacts-detail-card{text-align:center;padding:20px 16px 12px}
+.contacts-detail-card h3{margin:8px 0 2px;font-size:18px}
+.contact-detail-sub{font-size:13px;color:#909399;margin-bottom:10px}
+.contacts-detail-fields{padding:0 16px 16px}
+.cdf-row{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5}
+.cdf-icon{font-size:18px;margin-top:2px}
+.cdf-label{font-size:11px;color:#909399;text-transform:uppercase;letter-spacing:.5px}
+.cdf-val{font-size:14px;color:#303133;word-break:break-word}
+.cdf-notes{white-space:pre-wrap}
+.contacts-form{display:flex;flex-direction:column;height:100%}
+.contacts-form-body{flex:1;overflow-y:auto;padding:16px}
+.contacts-form-body .el-input,.contacts-form-body .el-textarea{margin-bottom:0}
