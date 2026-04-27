@@ -1,0 +1,159 @@
+<div class="ftp-client-app">
+  <!-- Connection Bar -->
+  <div class="ftp-conn-bar">
+    <div class="ftp-conn-fields">
+      <div class="ftp-field">
+        <label>{{ t('host') }}</label>
+        <el-input v-model="connForm.host" :placeholder="t('host')" size="small" :disabled="isConnected" />
+      </div>
+      <div class="ftp-field ftp-field-sm">
+        <label>{{ t('port') }}</label>
+        <el-input-number v-model="connForm.port" :min="1" :max="65535" size="small" :disabled="isConnected" controls-position="right" />
+      </div>
+      <div class="ftp-field">
+        <label>{{ t('username') }}</label>
+        <el-input v-model="connForm.username" :placeholder="t('username')" size="small" :disabled="isConnected" />
+      </div>
+      <div class="ftp-field">
+        <label>{{ t('password') }}</label>
+        <el-input v-model="connForm.password" :placeholder="t('password')" size="small" type="password" show-password :disabled="isConnected" />
+      </div>
+      <div class="ftp-field ftp-field-xs">
+        <label>{{ t('secure') }}</label>
+        <el-switch v-model="connForm.secure" :disabled="isConnected" size="small" />
+      </div>
+      <div class="ftp-conn-actions">
+        <el-button type="primary" size="small" @click="connect" :loading="isConnecting" :disabled="isConnected" :icon="isConnecting ? '' : ''">
+          {{ isConnected ? t('connected') : t('quickConnect') }}
+        </el-button>
+        <el-button type="danger" size="small" @click="disconnect" :disabled="!isConnected" plain>
+          {{ t('disconnect') }}
+        </el-button>
+        <el-button size="small" @click="saveConn" :title="t('save')">💾</el-button>
+        <el-button size="small" @click="showSavedPanel = !showSavedPanel" :title="t('savedConnections')">📋</el-button>
+      </div>
+    </div>
+
+    <!-- Saved Connections Dropdown -->
+    <div class="ftp-saved-panel" v-if="showSavedPanel">
+      <div class="ftp-saved-title">{{ t('savedConnections') }}</div>
+      <div v-if="!savedConns.length" class="ftp-saved-empty">{{ t('noSaved') }}</div>
+      <div v-for="(c, i) in savedConns" :key="i" class="ftp-saved-item">
+        <span class="ftp-saved-name" @click="loadConn(c)">📡 {{ c.name }} <small>({{ c.host }}:{{ c.port }})</small></span>
+        <el-button type="danger" size="small" text @click="deleteConn(i)">✗</el-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content: Split Pane -->
+  <div class="ftp-main">
+    <!-- Local Panel -->
+    <div class="ftp-panel ftp-local">
+      <div class="ftp-panel-header">
+        <span class="ftp-panel-title">💻 {{ t('localFiles') }}</span>
+        <div class="ftp-panel-toolbar">
+          <el-button size="small" text @click="localUp" :title="t('parentDir')">⬆️</el-button>
+          <el-button size="small" text @click="loadLocalDir" :title="t('refresh')">🔄</el-button>
+          <el-button size="small" type="primary" text @click="uploadSelected" :disabled="!isConnected || !localSelected.length" :title="t('upload')">
+            ➡️ {{ t('upload') }}
+          </el-button>
+        </div>
+      </div>
+      <div class="ftp-path-bar">
+        <span class="ftp-path-label">{{ t('path') }}:</span>
+        <el-input v-model="localPath" size="small" readonly class="ftp-path-input" />
+      </div>
+      <div class="ftp-file-list" v-loading="localLoading">
+        <div class="ftp-file-header">
+          <span class="ftp-col-name">{{ t('name') }}</span>
+          <span class="ftp-col-size">{{ t('size') }}</span>
+          <span class="ftp-col-date">{{ t('modified') }}</span>
+        </div>
+        <div v-for="item in localFiles" :key="item.path"
+          class="ftp-file-row"
+          :class="{ selected: isLocalSelected(item), dir: item.isDir }"
+          @click="toggleLocalSelect(item)"
+          @dblclick="localEnter(item)">
+          <span class="ftp-col-name"><span class="ftp-icon">{{ fileIcon(item) }}</span> {{ item.name }}</span>
+          <span class="ftp-col-size">{{ item.isDir ? '' : formatSize(item.size) }}</span>
+          <span class="ftp-col-date">{{ item.modified ? new Date(item.modified).toLocaleString() : '' }}</span>
+        </div>
+      </div>
+      <div class="ftp-status-bar" v-if="localSelectionInfo">{{ localSelectionInfo }}</div>
+    </div>
+
+    <!-- Transfer Buttons -->
+    <div class="ftp-transfer-col">
+      <el-button size="small" @click="uploadSelected" :disabled="!isConnected || !localSelected.length" :title="t('upload')">
+        ➡️
+      </el-button>
+      <el-button size="small" @click="downloadSelected" :disabled="!isConnected || !remoteSelected.length" :title="t('download')">
+        ⬅️
+      </el-button>
+    </div>
+
+    <!-- Remote Panel -->
+    <div class="ftp-panel ftp-remote">
+      <div class="ftp-panel-header">
+        <span class="ftp-panel-title">🌐 {{ t('remoteFiles') }}</span>
+        <div class="ftp-panel-toolbar">
+          <el-button size="small" text @click="remoteUp" :disabled="!isConnected" :title="t('parentDir')">⬆️</el-button>
+          <el-button size="small" text @click="loadRemoteDir" :disabled="!isConnected" :title="t('refresh')">🔄</el-button>
+          <el-button size="small" text @click="remoteMkdir" :disabled="!isConnected" :title="t('newFolder')">📁+</el-button>
+          <el-button size="small" text @click="remoteRename" :disabled="!isConnected || remoteSelected.length !== 1" :title="t('rename')">✏️</el-button>
+          <el-button size="small" text type="danger" @click="remoteDelete" :disabled="!isConnected || !remoteSelected.length" :title="t('delete')">🗑️</el-button>
+          <el-button size="small" type="success" text @click="downloadSelected" :disabled="!isConnected || !remoteSelected.length" :title="t('download')">
+            ⬅️ {{ t('download') }}
+          </el-button>
+        </div>
+      </div>
+      <div class="ftp-path-bar">
+        <span class="ftp-path-label">{{ t('path') }}:</span>
+        <el-input v-model="remotePath" size="small" readonly class="ftp-path-input" />
+      </div>
+      <div class="ftp-file-list" v-loading="remoteLoading">
+        <div class="ftp-file-header">
+          <span class="ftp-col-name">{{ t('name') }}</span>
+          <span class="ftp-col-size">{{ t('size') }}</span>
+          <span class="ftp-col-perm">{{ t('permissions') }}</span>
+          <span class="ftp-col-date">{{ t('modified') }}</span>
+        </div>
+        <div v-for="item in remoteFiles" :key="item.name"
+          class="ftp-file-row"
+          :class="{ selected: isRemoteSelected(item), dir: item.isDir }"
+          @click="toggleRemoteSelect(item)"
+          @dblclick="remoteEnter(item)">
+          <span class="ftp-col-name"><span class="ftp-icon">{{ fileIcon(item) }}</span> {{ item.name }}</span>
+          <span class="ftp-col-size">{{ item.isDir ? '' : formatSize(item.size) }}</span>
+          <span class="ftp-col-perm">{{ item.permissions || '' }}</span>
+          <span class="ftp-col-date">{{ item.modified ? new Date(item.modified).toLocaleString() : '' }}</span>
+        </div>
+      </div>
+      <div class="ftp-status-bar" v-if="remoteSelectionInfo">{{ remoteSelectionInfo }}</div>
+    </div>
+  </div>
+
+  <!-- Transfer Status -->
+  <div class="ftp-transfer-bar" v-if="transferring">
+    <span class="ftp-transfer-spinner">⟳</span>
+    <span>{{ transferText || t('transferring') }}</span>
+  </div>
+
+  <!-- Log Panel -->
+  <div class="ftp-log" v-show="showLog">
+    <div class="ftp-log-header">
+      <span>📋 {{ t('log') }}</span>
+      <div>
+        <el-button size="small" text @click="logMessages = []">{{ t('clearLog') }}</el-button>
+        <el-button size="small" text @click="showLog = false">✕</el-button>
+      </div>
+    </div>
+    <div class="ftp-log-body">
+      <div v-for="(l, i) in logMessages" :key="i" class="ftp-log-line" :class="'log-' + l.type">
+        <span class="ftp-log-ts">{{ l.ts }}</span>
+        <span class="ftp-log-msg">{{ l.msg }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="ftp-log-toggle" v-if="!showLog" @click="showLog = true">📋 {{ t('log') }}</div>
+</div>

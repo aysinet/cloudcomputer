@@ -1,0 +1,23 @@
+{
+  "id": "kanban",
+  "icon": "📋",
+  "name": "Kanban Board",
+  "lang": {
+    "tr": { "name": "Kanban Panosu", "description": "Sürükle-bırak destekli Kanban panosu ile görevlerinizi yönetin" },
+    "en": { "name": "Kanban Board", "description": "Manage your tasks with a drag-and-drop Kanban board" },
+    "de": { "name": "Kanban-Tafel", "description": "Verwalten Sie Ihre Aufgaben mit einem Drag-and-Drop-Kanban-Board" },
+    "fr": { "name": "Tableau Kanban", "description": "Gérez vos tâches avec un tableau Kanban glisser-déposer" },
+    "es": { "name": "Tablero Kanban", "description": "Gestione sus tareas con un tablero Kanban de arrastrar y soltar" },
+    "ru": { "name": "Канбан-доска", "description": "Управляйте задачами с помощью канбан-доски с перетаскиванием" },
+    "zh": { "name": "看板", "description": "使用拖放式看板管理您的任务" },
+    "ja": { "name": "カンバンボード", "description": "ドラッグ＆ドロップ対応のカンバンボードでタスクを管理" },
+    "it": { "name": "Bacheca Kanban", "description": "Gestisci le tue attività con una bacheca Kanban drag-and-drop" }
+  },
+  "category": "productivity",
+  "version": "1.0.0",
+  "author": "CloudComputer",
+  "color": "linear-gradient(135deg,#6366f1,#8b5cf6)",
+  "width": 1050,
+  "height": 650,
+  "singleInstance": true
+}

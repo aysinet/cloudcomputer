@@ -1,0 +1,272 @@
+.ftp-client-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+/* ── Connection Bar ── */
+.ftp-conn-bar {
+  background: #16213e;
+  border-bottom: 1px solid #0f3460;
+  padding: 6px 10px;
+  flex-shrink: 0;
+  position: relative;
+}
+.ftp-conn-fields {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ftp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+}
+.ftp-field label {
+  font-size: 10px;
+  color: #8899aa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.ftp-field-sm { min-width: 80px; max-width: 100px; }
+.ftp-field-xs { min-width: 60px; max-width: 80px; }
+.ftp-conn-actions {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+  margin-left: auto;
+}
+
+/* Saved Connections Panel */
+.ftp-saved-panel {
+  position: absolute;
+  top: 100%;
+  right: 10px;
+  z-index: 100;
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 6px;
+  padding: 8px;
+  min-width: 280px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.ftp-saved-title {
+  font-weight: 600;
+  color: #e94560;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+.ftp-saved-empty { color: #666; font-style: italic; font-size: 12px; }
+.ftp-saved-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.ftp-saved-item:hover { background: rgba(233,69,96,0.1); }
+.ftp-saved-name { flex: 1; }
+.ftp-saved-name small { color: #888; margin-left: 4px; }
+
+/* ── Main Split View ── */
+.ftp-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Panel */
+.ftp-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid #0f3460;
+}
+.ftp-local { border-right: none; }
+.ftp-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0f3460;
+  padding: 4px 8px;
+  flex-shrink: 0;
+}
+.ftp-panel-title {
+  font-weight: 600;
+  font-size: 12px;
+  color: #e94560;
+}
+.ftp-panel-toolbar {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+.ftp-path-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  background: #1a1a2e;
+  border-bottom: 1px solid #0f3460;
+  flex-shrink: 0;
+}
+.ftp-path-label {
+  font-size: 11px;
+  color: #8899aa;
+  white-space: nowrap;
+}
+.ftp-path-input { flex: 1; }
+
+/* File List */
+.ftp-file-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.ftp-file-header {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: #162447;
+  font-size: 11px;
+  color: #8899aa;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 1px solid #0f3460;
+}
+.ftp-file-row {
+  display: flex;
+  align-items: center;
+  padding: 3px 8px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(15,52,96,0.3);
+  transition: background 0.15s;
+  user-select: none;
+}
+.ftp-file-row:hover { background: rgba(233,69,96,0.08); }
+.ftp-file-row.selected { background: rgba(233,69,96,0.2); }
+.ftp-file-row.dir .ftp-col-name { font-weight: 600; }
+.ftp-col-name { flex: 3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ftp-col-size { flex: 1; text-align: right; color: #8899aa; font-size: 12px; }
+.ftp-col-date { flex: 1.5; text-align: right; color: #8899aa; font-size: 11px; }
+.ftp-col-perm { flex: 1; text-align: center; color: #8899aa; font-size: 11px; font-family: monospace; }
+.ftp-icon { margin-right: 6px; }
+
+.ftp-status-bar {
+  padding: 3px 8px;
+  font-size: 11px;
+  color: #e94560;
+  background: #162447;
+  border-top: 1px solid #0f3460;
+  flex-shrink: 0;
+}
+
+/* Transfer Column */
+.ftp-transfer-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 4px;
+  flex-shrink: 0;
+  background: #16213e;
+}
+
+/* Transfer Bar */
+.ftp-transfer-bar {
+  background: #0f3460;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e94560;
+  font-weight: 600;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.ftp-transfer-spinner {
+  display: inline-block;
+  animation: ftp-spin 1s linear infinite;
+}
+@keyframes ftp-spin { to { transform: rotate(360deg); } }
+
+/* ── Log Panel ── */
+.ftp-log {
+  flex-shrink: 0;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #0f3460;
+}
+.ftp-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0f3460;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.ftp-log-body {
+  flex: 1;
+  overflow-y: auto;
+  background: #0d1117;
+  padding: 4px 8px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 11px;
+}
+.ftp-log-line {
+  display: flex;
+  gap: 8px;
+  padding: 1px 0;
+}
+.ftp-log-ts { color: #555; white-space: nowrap; }
+.ftp-log-msg { word-break: break-all; }
+.log-info .ftp-log-msg { color: #aaa; }
+.log-cmd .ftp-log-msg { color: #58a6ff; }
+.log-success .ftp-log-msg { color: #3fb950; }
+.log-error .ftp-log-msg { color: #f85149; }
+
+.ftp-log-toggle {
+  padding: 3px 10px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 11px;
+  color: #8899aa;
+  background: #16213e;
+  border-top: 1px solid #0f3460;
+  flex-shrink: 0;
+}
+.ftp-log-toggle:hover { color: #e94560; }
+
+/* ── Scrollbar ── */
+.ftp-client-app ::-webkit-scrollbar { width: 6px; height: 6px; }
+.ftp-client-app ::-webkit-scrollbar-track { background: #1a1a2e; }
+.ftp-client-app ::-webkit-scrollbar-thumb { background: #0f3460; border-radius: 3px; }
+.ftp-client-app ::-webkit-scrollbar-thumb:hover { background: #e94560; }
+
+/* ── Element Plus overrides ── */
+.ftp-client-app .el-input__wrapper {
+  background: #0d1117 !important;
+  box-shadow: 0 0 0 1px #0f3460 inset !important;
+}
+.ftp-client-app .el-input__inner { color: #e0e0e0 !important; font-size: 12px; }
+.ftp-client-app .el-input-number { width: 100%; }
+.ftp-client-app .el-switch { --el-switch-on-color: #e94560; }

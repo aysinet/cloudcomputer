@@ -141,7 +141,8 @@
       });
 
       onBeforeUnmount(() => {
-        window.removeEventListener('locale-changed', onLocaleChanged));
+        window.removeEventListener('locale-changed', onLocaleChanged);
+      });
 
       return {
         status, errorMsg, port, containerId, iframeSrc,

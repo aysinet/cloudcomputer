@@ -1,0 +1,22 @@
+{
+  "id": "ftp-client",
+  "name": "FTP İstemcisi",
+  "icon": "📡",
+  "color": "linear-gradient(135deg,#1565c0,#0d47a1)",
+  "type": "internal",
+  "size": { "w": 960, "h": 620 },
+  "global": false,
+  "description": "FileZilla benzeri FTP istemcisi — bağlan, dosya indir/yükle, uzak dosya yönetimi",
+  "lang": {
+    "tr": { "name": "FTP İstemcisi", "description": "FileZilla benzeri FTP istemcisi — bağlan, dosya indir/yükle, uzak dosya yönetimi" },
+    "en": { "name": "FTP Client", "description": "FileZilla-like FTP client — connect, download/upload, remote file management" },
+    "de": { "name": "FTP-Client", "description": "FileZilla-ähnlicher FTP-Client — verbinden, hoch-/herunterladen, Dateiverwaltung" },
+    "fr": { "name": "Client FTP", "description": "Client FTP type FileZilla — connexion, téléchargement, gestion de fichiers" },
+    "es": { "name": "Cliente FTP", "description": "Cliente FTP tipo FileZilla — conectar, descargar/subir, gestión remota" },
+    "ru": { "name": "FTP-клиент", "description": "FTP-клиент а-ля FileZilla — подключение, загрузка/выгрузка, управление файлами" },
+    "zh": { "name": "FTP客户端", "description": "类FileZilla FTP客户端 — 连接、上传下载、远程文件管理" },
+    "ja": { "name": "FTPクライアント", "description": "FileZilla風FTPクライアント — 接続、ダウンロード/アップロード、リモートファイル管理" },
+    "it": { "name": "Client FTP", "description": "Client FTP stile FileZilla — connessione, download/upload, gestione file remota" }
+  },
+  "category": "internet"
+}

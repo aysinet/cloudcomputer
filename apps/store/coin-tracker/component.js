@@ -376,7 +376,8 @@
           ws.onclose = null;
           ws.close();
         }
-        window.removeEventListener('locale-changed', onLocaleChanged));
+        window.removeEventListener('locale-changed', onLocaleChanged);
+      });
 
       return {
         L,

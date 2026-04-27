@@ -64,9 +64,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'-apple-system','Se
 .desktop-switcher .ds-btn{width:18px;height:18px;border:1px solid rgba(255,255,255,.15);border-radius:3px;background:rgba(255,255,255,.06);cursor:pointer;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1px;padding:3px;transition:.15s;position:relative}
 .desktop-switcher .ds-btn:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.25)}
 .desktop-switcher .ds-btn.active{background:rgba(100,130,255,.4);border-color:rgba(100,130,255,.6)}
+.desktop-switcher .ds-btn.has-windows{background:rgba(255,180,50,.25);border-color:rgba(255,180,50,.45)}
+.desktop-switcher .ds-btn.has-windows:hover{background:rgba(255,180,50,.35);border-color:rgba(255,180,50,.55)}
+.desktop-switcher .ds-btn.has-windows .ds-sq{background:rgba(255,200,100,.6)}
+.desktop-switcher .ds-btn.active.has-windows{background:rgba(100,130,255,.4);border-color:rgba(100,130,255,.6)}
+.desktop-switcher .ds-btn.active.has-windows .ds-sq{background:rgba(255,255,255,.7)}
 .desktop-switcher .ds-btn .ds-sq{background:rgba(255,255,255,.35);border-radius:1px}
 .desktop-switcher .ds-btn.active .ds-sq{background:rgba(255,255,255,.7)}
 .desktop-switcher .ds-btn .ds-dot{position:absolute;bottom:0px;left:50%;transform:translateX(-50%);width:4px;height:1.5px;border-radius:1px;background:rgba(255,255,255,.6)}
+.desktop-switcher .ds-btn.has-windows .ds-dot{background:rgba(255,200,100,.9)}
 
 /* ── Notification Bell ── */
 .notif-bell{position:relative;width:32px;height:32px;border-radius:6px;border:none;background:transparent;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:.15s}
@@ -662,7 +668,7 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
       <div class="browser-loading-progress"></div>
     </div>
 
-    <div class="browser-tabs" v-if="tabs.length > 1">
+    <div class="browser-tabs">
       <div v-for="(tab, i) in tabs" :key="tab.id"
         :class="['browser-tab', { active: activeTab === i }]"
         @click="switchTab(i)">
@@ -2418,7 +2424,7 @@ const BrowserApp = {
     }
 
     // Bookmarks
-    function toggleBookmarks() { showBookmarks.value = !showBookmarks.value; }
+    function toggleBookmarks() { showBookmarks.value = !showBookmarks.value; localStorage.setItem('browser_bookmarks_open', showBookmarks.value ? '1' : ''); }
     function addBookmark() {
       if (!currentUrl.value) return;
       if (bookmarks.value.find(b => b.url === currentUrl.value)) return;
@@ -2432,7 +2438,7 @@ const BrowserApp = {
       try { bookmarks.value = JSON.parse(localStorage.getItem('browser_bookmarks') || '[]'); } catch { bookmarks.value = []; }
     }
 
-    onMounted(() => { loadBookmarks(); window.addEventListener('browser-open-url', onBrowserOpenUrl); });
+    onMounted(() => { loadBookmarks(); showBookmarks.value = !!localStorage.getItem('browser_bookmarks_open'); window.addEventListener('browser-open-url', onBrowserOpenUrl); });
     onUnmounted(() => { window.removeEventListener('browser-open-url', onBrowserOpenUrl); });
 
     function onBrowserOpenUrl(e) {

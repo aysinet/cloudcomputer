@@ -1,0 +1,124 @@
+<div class="kanban-app">
+  <!-- Header / Board Tabs -->
+  <div class="kanban-header">
+    <div class="kanban-board-tabs">
+      <button v-for="b in boards" :key="b.id"
+        class="kanban-tab" :class="{active: b.id === activeBoardId}"
+        @click="switchBoard(b.id)">
+        {{ b.name }}
+      </button>
+      <button class="kanban-tab kanban-tab-add" @click="addBoard">+ {{ t('addBoard') }}</button>
+    </div>
+    <div class="kanban-header-actions" v-if="activeBoard">
+      <el-button size="small" text @click="renameBoard" :title="t('renameBoard')">✏️</el-button>
+      <el-button size="small" text @click="importTodos" :title="t('importTodos')">📥 {{ t('importTodos') }}</el-button>
+      <el-button size="small" text type="danger" @click="deleteBoard" :title="t('deleteBoard')">🗑️</el-button>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div v-if="!boards.length" class="kanban-empty">
+    <div class="kanban-empty-icon">📋</div>
+    <div>{{ t('noBoards') }}</div>
+  </div>
+
+  <!-- Columns -->
+  <div class="kanban-board" v-if="activeBoardId" v-loading="loading">
+    <div v-for="col in columns" :key="col.id" class="kanban-column"
+      @dragover="onDragOverEmpty($event, col)"
+      @drop="onDrop($event, col)">
+      <!-- Column Header -->
+      <div class="kanban-col-header" :style="{borderTopColor: col.color}">
+        <span class="kanban-col-title">{{ col.name }}</span>
+        <span class="kanban-col-count" :style="{background: col.color}">{{ col.cards ? col.cards.length : 0 }}</span>
+        <div class="kanban-col-actions">
+          <el-dropdown trigger="click" size="small">
+            <span class="kanban-col-menu">⋮</span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item @click="renameColumn(col)">✏️ {{ t('renameColumn') }}</el-dropdown-item>
+                <el-dropdown-item @click="moveColumn(col, -1)">⬅️ {{ t('moveLeft') }}</el-dropdown-item>
+                <el-dropdown-item @click="moveColumn(col, 1)">➡️ {{ t('moveRight') }}</el-dropdown-item>
+                <el-dropdown-item divided>
+                  <div style="display:flex;gap:4px;flex-wrap:wrap;padding:2px 0">
+                    <span v-for="c in COL_COLORS" :key="c" class="kanban-color-dot" :style="{background:c}" @click="changeColumnColor(col,c)"></span>
+                  </div>
+                </el-dropdown-item>
+                <el-dropdown-item divided @click="deleteColumn(col)" style="color:#f56c6c">🗑️ {{ t('deleteColumn') }}</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+      </div>
+
+      <!-- Cards -->
+      <div class="kanban-cards">
+        <div v-for="(card, idx) in col.cards" :key="card.id"
+          class="kanban-card"
+          :class="{'drag-over': dragOverCol === col.id && dragOverIdx === idx}"
+          :style="card.color ? {borderLeftColor: card.color} : {}"
+          draggable="true"
+          @dragstart="onDragStart($event, card, col)"
+          @dragend="onDragEnd"
+          @dragover.stop="onDragOverCol($event, col, idx)"
+          @click="openEditCard(card)">
+          <div class="kanban-card-title">{{ card.title }}</div>
+          <div v-if="card.description" class="kanban-card-desc">{{ card.description }}</div>
+          <div class="kanban-card-meta">
+            <span v-if="card.priority" class="kanban-card-priority" :style="{color: priorityColor(card.priority)}">● {{ priorityLabel(card.priority) }}</span>
+            <span v-if="card.due_date" class="kanban-card-due">📅 {{ card.due_date }}</span>
+          </div>
+          <button class="kanban-card-del" @click.stop="deleteCard(col, card)" :title="t('deleteCard')">✕</button>
+        </div>
+      </div>
+
+      <!-- Add Card Button -->
+      <button class="kanban-add-card" @click="openAddCard(col.id)">+ {{ t('addCard') }}</button>
+    </div>
+
+    <!-- Add Column -->
+    <div class="kanban-column kanban-column-add" @click="addColumn">
+      <span>+ {{ t('addColumn') }}</span>
+    </div>
+  </div>
+
+  <!-- Card Dialog -->
+  <el-dialog v-model="cardDialog" :title="isEditCard ? t('editCard') : t('addCard')" width="440px" :close-on-click-modal="false" append-to-body>
+    <div class="kanban-card-form">
+      <div class="kanban-form-row">
+        <label>{{ t('cardTitle') }}</label>
+        <el-input v-model="cardForm.title" :placeholder="t('cardTitle')" />
+      </div>
+      <div class="kanban-form-row">
+        <label>{{ t('description') }}</label>
+        <el-input v-model="cardForm.description" type="textarea" :rows="3" :placeholder="t('description')" />
+      </div>
+      <div class="kanban-form-row">
+        <label>{{ t('priority') }}</label>
+        <el-select v-model="cardForm.priority" style="width:100%">
+          <el-option :value="0" label="-" />
+          <el-option :value="1" :label="t('low')" />
+          <el-option :value="2" :label="t('medium')" />
+          <el-option :value="3" :label="t('high')" />
+          <el-option :value="4" :label="t('critical')" />
+        </el-select>
+      </div>
+      <div class="kanban-form-row">
+        <label>{{ t('dueDate') }}</label>
+        <el-date-picker v-model="cardForm.due_date" type="date" value-format="YYYY-MM-DD" style="width:100%" :placeholder="t('dueDate')" />
+      </div>
+      <div class="kanban-form-row">
+        <label>{{ t('color') }}</label>
+        <div class="kanban-color-picker">
+          <span v-for="c in CARD_COLORS" :key="c"
+            class="kanban-color-dot" :class="{active: cardForm.color === c}"
+            :style="{background: c || '#ddd'}" @click="cardForm.color = c"></span>
+        </div>
+      </div>
+    </div>
+    <template #footer>
+      <el-button @click="cardDialog = false">{{ t('cancel') }}</el-button>
+      <el-button type="primary" @click="saveCard">{{ t('save') }}</el-button>
+    </template>
+  </el-dialog>
+</div>

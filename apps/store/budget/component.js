@@ -1,5 +1,5 @@
 (function(Vue) {
-  const { ref, computed, onMounted, watch, nextTick } = Vue;
+  const { ref, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
 
   const LANGS = {
     tr: {
@@ -167,6 +167,9 @@
     setup() {
       const locale = ref(getLocale());
       const L = (k) => (LANGS[locale.value] || LANGS.en)[k] || k;
+      function onLocaleChanged() { locale.value = getLocale(); }
+      window.addEventListener('locale-changed', onLocaleChanged);
+      onUnmounted(() => window.removeEventListener('locale-changed', onLocaleChanged));
 
       /* ── State ── */
       const tab = ref('list');

@@ -132,10 +132,167 @@ function authMiddleware(req, res, next) {
   next();
 }
 
+// ── Setup check ──
+function needsSetup() {
+  // If config has credentials, setup is done
+  if (config.auth.username && config.auth.password) return false;
+  // Even if config is empty, check if any user directory exists (recovery)
+  try {
+    const entries = fs.readdirSync(DATA_DIR, { withFileTypes: true });
+    if (entries.some(e => e.isDirectory())) return false;
+  } catch {}
+  return true;
+}
+
+function initGlobalDb() {
+  const dbPath = path.join(__dirname, 'data', 'global.db');
+  if (fs.existsSync(dbPath)) return;
+  const Database2 = require('better-sqlite3');
+  const db = new Database2(dbPath);
+  db.pragma('journal_mode = WAL');
+
+  function parseCSV(filePath, hasHeader) {
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    const lines = raw.split(/\r?\n/).filter(l => l.trim());
+    const rows = lines.map(line => {
+      const fields = []; let inQuote = false, field = '';
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') { inQuote = !inQuote; continue; }
+        if (ch === ',' && !inQuote) { fields.push(field); field = ''; continue; }
+        field += ch;
+      }
+      fields.push(field);
+      return fields;
+    });
+    if (hasHeader) rows.shift();
+    return rows;
+  }
+
+  const DATA = path.join(__dirname, 'data');
+
+  db.exec(`CREATE TABLE worldcities (
+    id TEXT PRIMARY KEY, city TEXT NOT NULL, city_ascii TEXT, lat REAL, lng REAL,
+    country TEXT, iso2 TEXT, iso3 TEXT, admin_name TEXT, capital TEXT, population INTEGER
+  )`);
+  db.exec('CREATE INDEX idx_wc_city ON worldcities(city_ascii)');
+  db.exec('CREATE INDEX idx_wc_country ON worldcities(iso2)');
+  const wcFile = path.join(DATA, 'worldcities.csv');
+  if (fs.existsSync(wcFile)) {
+    const rows = parseCSV(wcFile, true);
+    const ins = db.prepare('INSERT OR IGNORE INTO worldcities (city,city_ascii,lat,lng,country,iso2,iso3,admin_name,capital,population,id) VALUES (?,?,?,?,?,?,?,?,?,?,?)');
+    db.transaction(() => { for (const r of rows) ins.run(r[0],r[1],parseFloat(r[2])||null,parseFloat(r[3])||null,r[4],r[5],r[6],r[7],r[8],parseInt(r[9])||null,r[10]); })();
+  }
+
+  db.exec('CREATE TABLE countries (iso2 TEXT PRIMARY KEY, name TEXT NOT NULL)');
+  const ccFile = path.join(DATA, 'country.csv');
+  if (fs.existsSync(ccFile)) {
+    const rows = parseCSV(ccFile, false);
+    const ins = db.prepare('INSERT OR IGNORE INTO countries (iso2, name) VALUES (?,?)');
+    db.transaction(() => { for (const r of rows) if (r.length >= 2) ins.run(r[0], r[1]); })();
+  }
+
+  db.exec('CREATE TABLE time_zones (timezone TEXT NOT NULL, iso2 TEXT, abbr TEXT, utc_timestamp INTEGER, utc_offset INTEGER, dst INTEGER)');
+  db.exec('CREATE INDEX idx_tz_iso2 ON time_zones(iso2)');
+  const tzFile = path.join(DATA, 'time_zone.csv');
+  if (fs.existsSync(tzFile)) {
+    const rows = parseCSV(tzFile, false);
+    const ins = db.prepare('INSERT INTO time_zones (timezone,iso2,abbr,utc_timestamp,utc_offset,dst) VALUES (?,?,?,?,?,?)');
+    db.transaction(() => { for (const r of rows) if (r.length >= 6) ins.run(r[0],r[1]||null,r[2]||null,parseInt(r[3])||null,parseInt(r[4])||null,parseInt(r[5])||null); })();
+  }
+
+  db.close();
+  // Re-open as read-only for runtime
+  globalDb = new Database2(dbPath, { readonly: true });
+}
+
+// ── Setup API (public, no auth) ──
+app.get('/api/setup/countries', (req, res) => {
+  const dbPath = path.join(__dirname, 'data', 'global.db');
+  let db;
+  if (globalDb) { db = globalDb; }
+  else if (fs.existsSync(dbPath)) {
+    const Database2 = require('better-sqlite3');
+    db = new Database2(dbPath, { readonly: true });
+  } else {
+    // Build global.db on-the-fly if CSV data exists
+    initGlobalDb();
+    db = globalDb;
+  }
+  if (!db) return res.json([]);
+  try {
+    res.json(db.prepare('SELECT iso2, name FROM countries ORDER BY name').all());
+  } catch { res.json([]); }
+});
+
+app.get('/api/setup/cities', (req, res) => {
+  const iso2 = (req.query.iso2 || '').replace(/[^A-Za-z]/g, '').toUpperCase();
+  if (!iso2) return res.json([]);
+  const dbPath = path.join(__dirname, 'data', 'global.db');
+  let db;
+  if (globalDb) { db = globalDb; }
+  else if (fs.existsSync(dbPath)) {
+    const Database2 = require('better-sqlite3');
+    db = new Database2(dbPath, { readonly: true });
+  } else {
+    initGlobalDb();
+    db = globalDb;
+  }
+  if (!db) return res.json([]);
+  try {
+    res.json(db.prepare('SELECT city, admin_name, population FROM worldcities WHERE iso2 = ? ORDER BY population DESC LIMIT 200').all(iso2));
+  } catch { res.json([]); }
+});
+
+app.post('/api/setup', (req, res) => {
+  if (!needsSetup()) return res.status(403).json({ error: 'Setup already completed' });
+  const { locale, username, password, country, city } = req.body;
+  if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+  if (username.length < 3 || !/^[a-zA-Z0-9_-]+$/.test(username)) return res.status(400).json({ error: 'Invalid username' });
+  if (password.length < 4) return res.status(400).json({ error: 'Password too short' });
+
+  // 1. Ensure global.db exists
+  initGlobalDb();
+
+  // 2. Update config in memory & on disk
+  const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+  config.auth.username = username;
+  config.auth.password = hashedPassword;
+  if (config.auth.jwtSecret === 'vue-desktop-jwt-secret-change-me') {
+    config.auth.jwtSecret = crypto.randomBytes(32).toString('hex');
+  }
+  try {
+    fs.writeFileSync(path.join(__dirname, 'desktop.config.json'), JSON.stringify(config, null, 2));
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to save config: ' + e.message });
+  }
+
+  // 3. Create user directory & settings
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const userDir = path.join(DATA_DIR, safe);
+  if (!fs.existsSync(userDir)) fs.mkdirSync(userDir, { recursive: true });
+  const filesDir = path.join(userDir, 'files');
+  if (!fs.existsSync(filesDir)) fs.mkdirSync(filesDir, { recursive: true });
+
+  // 4. Save initial settings
+  const settings = { locale: locale || 'en', country: country || '', city: city || '' };
+  fs.writeFileSync(path.join(userDir, 'settings.json'), JSON.stringify(settings, null, 2));
+
+  // 5. Initialize user appdata db
+  getUserDb(username);
+
+  // 6. Issue token
+  const token = signToken({ username });
+  res.setHeader('Set-Cookie', `token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400`);
+  res.json({ ok: true, token, user: { username } });
+});
+
 // ── Auth Routes (public) ──
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
-  if (username === config.auth.username && password === config.auth.password) {
+  // Support both plaintext (legacy) and SHA-256 hashed passwords
+  const inputHash = crypto.createHash('sha256').update(password).digest('hex');
+  if (username === config.auth.username && (password === config.auth.password || inputHash === config.auth.password)) {
     const token = signToken({ username });
     res.setHeader('Set-Cookie', `token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400`);
     res.json({ ok: true, token, user: { username } });
@@ -148,8 +305,9 @@ app.get('/api/me', authMiddleware, (req, res) => {
   res.json({ user: req.user });
 });
 
-// ── Root route: login.html or index.html based on JWT ──
+// ── Root route: setup.html, login.html or index.html based on state ──
 app.get('/', (req, res) => {
+  if (needsSetup()) return res.sendFile(path.join(__dirname, 'setup.html'));
   const token = extractToken(req);
   if (token && verifyToken(token)) {
     const ua = req.headers['user-agent'] || '';
@@ -1042,6 +1200,38 @@ function getUserDb(username) {
     CREATE INDEX IF NOT EXISTS idx_budget_date ON budget_entries(date);
     CREATE INDEX IF NOT EXISTS idx_budget_type ON budget_entries(type);
     CREATE INDEX IF NOT EXISTS idx_budget_cat ON budget_entries(category_id);
+
+    CREATE TABLE IF NOT EXISTS kanban_boards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL DEFAULT 'Kanban',
+      sort_order INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS kanban_columns (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      board_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      color TEXT DEFAULT '#409eff',
+      sort_order INTEGER DEFAULT 0,
+      wip_limit INTEGER DEFAULT 0,
+      FOREIGN KEY (board_id) REFERENCES kanban_boards(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_kanban_col_board ON kanban_columns(board_id);
+
+    CREATE TABLE IF NOT EXISTS kanban_cards (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      column_id INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      color TEXT DEFAULT '',
+      priority INTEGER DEFAULT 0,
+      due_date TEXT DEFAULT '',
+      sort_order INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (column_id) REFERENCES kanban_columns(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_kanban_card_col ON kanban_cards(column_id);
   `);
 
   /* Seed default budget categories if empty */
@@ -1164,6 +1354,132 @@ app.delete('/api/todos/:id', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
   db.prepare('DELETE FROM todos WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
+});
+
+// ── Kanban API ──
+app.get('/api/kanban/boards', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  res.json(db.prepare('SELECT * FROM kanban_boards ORDER BY sort_order ASC, id ASC').all());
+});
+
+app.post('/api/kanban/boards', authMiddleware, (req, res) => {
+  const { name } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: 'name required' });
+  const db = getUserDb(req.user.username);
+  const info = db.prepare('INSERT INTO kanban_boards (name) VALUES (?)').run(name.trim());
+  res.json({ id: Number(info.lastInsertRowid), name: name.trim() });
+});
+
+app.put('/api/kanban/boards/:id', authMiddleware, (req, res) => {
+  const { name } = req.body;
+  const db = getUserDb(req.user.username);
+  if (name !== undefined) db.prepare('UPDATE kanban_boards SET name = ? WHERE id = ?').run(name, req.params.id);
+  res.json({ ok: true });
+});
+
+app.delete('/api/kanban/boards/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM kanban_cards WHERE column_id IN (SELECT id FROM kanban_columns WHERE board_id = ?)').run(req.params.id);
+  db.prepare('DELETE FROM kanban_columns WHERE board_id = ?').run(req.params.id);
+  db.prepare('DELETE FROM kanban_boards WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+app.get('/api/kanban/boards/:boardId/columns', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  const cols = db.prepare('SELECT * FROM kanban_columns WHERE board_id = ? ORDER BY sort_order ASC, id ASC').all(req.params.boardId);
+  const cards = db.prepare('SELECT * FROM kanban_cards WHERE column_id IN (SELECT id FROM kanban_columns WHERE board_id = ?) ORDER BY sort_order ASC, id ASC').all(req.params.boardId);
+  const result = cols.map(c => ({ ...c, cards: cards.filter(k => k.column_id === c.id) }));
+  res.json(result);
+});
+
+app.post('/api/kanban/columns', authMiddleware, (req, res) => {
+  const { board_id, name, color } = req.body;
+  if (!board_id || !name || !name.trim()) return res.status(400).json({ error: 'board_id and name required' });
+  const db = getUserDb(req.user.username);
+  const maxOrder = db.prepare('SELECT MAX(sort_order) as m FROM kanban_columns WHERE board_id = ?').get(board_id);
+  const order = (maxOrder && maxOrder.m != null) ? maxOrder.m + 1 : 0;
+  const info = db.prepare('INSERT INTO kanban_columns (board_id, name, color, sort_order) VALUES (?, ?, ?, ?)').run(board_id, name.trim(), color || '#409eff', order);
+  res.json({ id: Number(info.lastInsertRowid), board_id, name: name.trim(), color: color || '#409eff', sort_order: order, cards: [] });
+});
+
+app.put('/api/kanban/columns/:id', authMiddleware, (req, res) => {
+  const { name, color, sort_order, wip_limit } = req.body;
+  const db = getUserDb(req.user.username);
+  if (name !== undefined) db.prepare('UPDATE kanban_columns SET name = ? WHERE id = ?').run(name, req.params.id);
+  if (color !== undefined) db.prepare('UPDATE kanban_columns SET color = ? WHERE id = ?').run(color, req.params.id);
+  if (sort_order !== undefined) db.prepare('UPDATE kanban_columns SET sort_order = ? WHERE id = ?').run(sort_order, req.params.id);
+  if (wip_limit !== undefined) db.prepare('UPDATE kanban_columns SET wip_limit = ? WHERE id = ?').run(wip_limit, req.params.id);
+  res.json({ ok: true });
+});
+
+app.delete('/api/kanban/columns/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM kanban_cards WHERE column_id = ?').run(req.params.id);
+  db.prepare('DELETE FROM kanban_columns WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+app.post('/api/kanban/cards', authMiddleware, (req, res) => {
+  const { column_id, title, description, color, priority, due_date } = req.body;
+  if (!column_id || !title || !title.trim()) return res.status(400).json({ error: 'column_id and title required' });
+  const db = getUserDb(req.user.username);
+  const maxOrder = db.prepare('SELECT MAX(sort_order) as m FROM kanban_cards WHERE column_id = ?').get(column_id);
+  const order = (maxOrder && maxOrder.m != null) ? maxOrder.m + 1 : 0;
+  const info = db.prepare('INSERT INTO kanban_cards (column_id, title, description, color, priority, due_date, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)').run(column_id, title.trim(), description || '', color || '', priority || 0, due_date || '', order);
+  res.json({ id: Number(info.lastInsertRowid), column_id, title: title.trim(), description: description || '', color: color || '', priority: priority || 0, due_date: due_date || '', sort_order: order });
+});
+
+app.put('/api/kanban/cards/:id', authMiddleware, (req, res) => {
+  const { title, description, color, priority, due_date, column_id, sort_order } = req.body;
+  const db = getUserDb(req.user.username);
+  if (title !== undefined) db.prepare('UPDATE kanban_cards SET title = ? WHERE id = ?').run(title, req.params.id);
+  if (description !== undefined) db.prepare('UPDATE kanban_cards SET description = ? WHERE id = ?').run(description, req.params.id);
+  if (color !== undefined) db.prepare('UPDATE kanban_cards SET color = ? WHERE id = ?').run(color, req.params.id);
+  if (priority !== undefined) db.prepare('UPDATE kanban_cards SET priority = ? WHERE id = ?').run(priority, req.params.id);
+  if (due_date !== undefined) db.prepare('UPDATE kanban_cards SET due_date = ? WHERE id = ?').run(due_date, req.params.id);
+  if (column_id !== undefined) db.prepare('UPDATE kanban_cards SET column_id = ? WHERE id = ?').run(column_id, req.params.id);
+  if (sort_order !== undefined) db.prepare('UPDATE kanban_cards SET sort_order = ? WHERE id = ?').run(sort_order, req.params.id);
+  res.json({ ok: true });
+});
+
+app.delete('/api/kanban/cards/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM kanban_cards WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+app.post('/api/kanban/move-card', authMiddleware, (req, res) => {
+  const { cardId, targetColumnId, targetIndex } = req.body;
+  const db = getUserDb(req.user.username);
+  const cards = db.prepare('SELECT id FROM kanban_cards WHERE column_id = ? ORDER BY sort_order ASC, id ASC').all(targetColumnId);
+  db.prepare('UPDATE kanban_cards SET column_id = ? WHERE id = ?').run(targetColumnId, cardId);
+  const allCards = db.prepare('SELECT id FROM kanban_cards WHERE column_id = ? AND id != ? ORDER BY sort_order ASC, id ASC').all(targetColumnId, cardId);
+  allCards.splice(targetIndex, 0, { id: cardId });
+  const update = db.prepare('UPDATE kanban_cards SET sort_order = ? WHERE id = ?');
+  const tr = db.transaction(() => { allCards.forEach((c, i) => update.run(i, c.id)); });
+  tr();
+  res.json({ ok: true });
+});
+
+app.post('/api/kanban/import-todos', authMiddleware, (req, res) => {
+  const { boardId, columnId } = req.body;
+  if (!boardId || !columnId) return res.status(400).json({ error: 'boardId and columnId required' });
+  const db = getUserDb(req.user.username);
+  const todos = db.prepare('SELECT id, text, done FROM todos ORDER BY sort_order ASC, id DESC').all();
+  if (!todos.length) return res.json({ imported: 0 });
+  const maxOrder = db.prepare('SELECT MAX(sort_order) as m FROM kanban_cards WHERE column_id = ?').get(columnId);
+  let order = (maxOrder && maxOrder.m != null) ? maxOrder.m + 1 : 0;
+  const ins = db.prepare('INSERT INTO kanban_cards (column_id, title, description, color, priority, sort_order) VALUES (?, ?, ?, ?, ?, ?)');
+  const tr = db.transaction(() => {
+    for (const td of todos) {
+      const color = td.done ? '#67c23a' : '';
+      const desc = td.done ? '✅' : '';
+      ins.run(columnId, td.text, desc, color, 0, order++);
+    }
+  });
+  tr();
+  res.json({ imported: todos.length });
 });
 
 // ── Contacts API ──
@@ -5049,6 +5365,162 @@ app.get('/api/youtube/trending', authMiddleware, async (req, res) => {
     } catch {}
   }
   res.json([]);
+});
+
+// ── FTP Client API ──
+const ftp = require('basic-ftp');
+const ftpSessions = new Map();
+
+function getFtpSession(sessionId) {
+  const s = ftpSessions.get(sessionId);
+  if (!s || !s.client) return null;
+  return s;
+}
+
+function cleanupFtpSession(sessionId) {
+  const s = ftpSessions.get(sessionId);
+  if (s) {
+    try { s.client.close(); } catch {}
+    ftpSessions.delete(sessionId);
+  }
+}
+
+// Auto-cleanup idle sessions after 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, s] of ftpSessions) {
+    if (now - s.lastUsed > 600000) cleanupFtpSession(id);
+  }
+}, 60000);
+
+app.post('/api/ftp/connect', authMiddleware, async (req, res) => {
+  const { host, port, username, password, secure } = req.body;
+  if (!host) return res.status(400).json({ error: 'Host is required' });
+  const client = new ftp.Client();
+  client.ftp.verbose = false;
+  try {
+    await client.access({
+      host,
+      port: port || 21,
+      user: username || 'anonymous',
+      password: password || '',
+      secure: secure === true,
+      secureOptions: secure ? { rejectUnauthorized: false } : undefined
+    });
+    const sessionId = crypto.randomUUID();
+    const cwd = await client.pwd();
+    ftpSessions.set(sessionId, { client, user: req.user.username, lastUsed: Date.now() });
+    res.json({ sessionId, cwd });
+  } catch (e) {
+    try { client.close(); } catch {}
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ftp/disconnect', authMiddleware, (req, res) => {
+  const { sessionId } = req.body;
+  cleanupFtpSession(sessionId);
+  res.json({ ok: true });
+});
+
+app.post('/api/ftp/list', authMiddleware, async (req, res) => {
+  const { sessionId, path: dirPath } = req.body;
+  const s = getFtpSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  try {
+    const list = await s.client.list(dirPath || '/');
+    const files = list.map(f => ({
+      name: f.name,
+      size: f.size,
+      isDir: f.isDirectory,
+      modified: f.modifiedAt ? f.modifiedAt.toISOString() : null,
+      permissions: f.permissions ? `${f.permissions.user}${f.permissions.group}${f.permissions.world}` : '',
+      owner: f.user || ''
+    }));
+    files.sort((a, b) => {
+      if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+    res.json({ files });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ftp/download', authMiddleware, async (req, res) => {
+  const { sessionId, remotePath: rPath, localPath: lPath } = req.body;
+  const s = getFtpSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  const root = getUserFilesRoot(req.user.username);
+  const dest = safePath(root, lPath);
+  if (!dest) return res.status(403).json({ error: 'Invalid local path' });
+  try {
+    const dir = path.dirname(dest);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    await s.client.downloadTo(dest, rPath);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ftp/upload', authMiddleware, async (req, res) => {
+  const { sessionId, localPath: lPath, remotePath: rPath } = req.body;
+  const s = getFtpSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  const root = getUserFilesRoot(req.user.username);
+  const src = safePath(root, lPath);
+  if (!src) return res.status(403).json({ error: 'Invalid local path' });
+  if (!fs.existsSync(src)) return res.status(404).json({ error: 'Local file not found' });
+  try {
+    await s.client.uploadFrom(src, rPath);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ftp/mkdir', authMiddleware, async (req, res) => {
+  const { sessionId, path: dirPath } = req.body;
+  const s = getFtpSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  try {
+    await s.client.ensureDir(dirPath);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ftp/delete', authMiddleware, async (req, res) => {
+  const { sessionId, path: filePath, isDir } = req.body;
+  const s = getFtpSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  try {
+    if (isDir) await s.client.removeDir(filePath);
+    else await s.client.remove(filePath);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ftp/rename', authMiddleware, async (req, res) => {
+  const { sessionId, oldPath, newPath } = req.body;
+  const s = getFtpSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  try {
+    await s.client.rename(oldPath, newPath);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 server.listen(config.server.port, config.server.host, () => {

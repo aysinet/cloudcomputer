@@ -447,7 +447,8 @@
           ws.onclose = null;
           ws.close();
         }
-        window.removeEventListener('locale-changed', onLocaleChanged)if (marketTimer) clearInterval(marketTimer);
+        window.removeEventListener('locale-changed', onLocaleChanged);
+        if (marketTimer) clearInterval(marketTimer);
       });
 
       return {

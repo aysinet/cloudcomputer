@@ -472,7 +472,8 @@
     });
 
     onUnmounted(function() {
-      window.removeEventListener('locale-changed', onLocaleChanged)/* Tray icon and postits persist after window close */
+      window.removeEventListener('locale-changed', onLocaleChanged);
+      /* Tray icon and postits persist after window close */
     });
 
     return {

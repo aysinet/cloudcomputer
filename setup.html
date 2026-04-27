@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup — Vue Desktop</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; min-height: 100vh; }
+    .bg-animate { background-size: 400% 400%; animation: gradientShift 12s ease infinite; }
+    @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    .glass { background: rgba(255,255,255,.08); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,.12); }
+    input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px #1e1e3a inset !important; -webkit-text-fill-color: #fff !important; }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    .step { display: none; } .step.active { display: block; }
+    .lang-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .lang-btn { padding: 10px 8px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 2px solid transparent; cursor: pointer; text-align: center; transition: 0.2s; color: #fff; }
+    .lang-btn:hover { background: rgba(255,255,255,0.08); }
+    .lang-btn.selected { border-color: #6366f1; background: rgba(99,102,241,0.15); }
+    .lang-btn .flag { font-size: 24px; display: block; margin-bottom: 2px; }
+    .lang-btn .label { font-size: 12px; opacity: 0.8; }
+    .step-indicator { display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; }
+    .step-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.15); transition: 0.3s; }
+    .step-dot.active { background: #6366f1; }
+    .step-dot.done { background: #22c55e; }
+    .progress-bar { height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-top: 12px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #a855f7); transition: width 0.5s; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] bg-animate flex items-center justify-center min-h-screen">
+
+  <div class="glass rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8">
+    <!-- Logo -->
+    <div class="flex flex-col items-center mb-6">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl shadow-lg mb-3">🖥️</div>
+      <h1 class="text-white text-xl font-semibold tracking-wide">Vue Desktop</h1>
+      <p class="text-white/40 text-sm mt-1" id="setupSubtitle"></p>
+    </div>
+
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+      <div class="step-dot active" id="dot0"></div>
+      <div class="step-dot" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+    </div>
+
+    <!-- Step 1: Language -->
+    <div class="step active" id="step0">
+      <h2 class="text-white text-center text-lg font-medium mb-4" id="langTitle">Select Language</h2>
+      <div class="lang-grid" id="langGrid"></div>
+    </div>
+
+    <!-- Step 2: User Account -->
+    <div class="step" id="step1">
+      <h2 class="text-white text-lg font-medium mb-4" id="userTitle"></h2>
+      <div class="mb-4">
+        <label class="block text-white/50 text-xs font-medium mb-1.5 uppercase tracking-wider" id="lblUsername"></label>
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">👤</span>
+          <input id="inpUsername" type="text" required autocomplete="off" maxlength="32"
+            class="w-full h-11 pl-10 pr-4 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder-white/20 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+            placeholder="admin">
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="block text-white/50 text-xs font-medium mb-1.5 uppercase tracking-wider" id="lblPassword"></label>
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">🔒</span>
+          <input id="inpPassword" type="password" required autocomplete="new-password" minlength="4"
+            class="w-full h-11 pl-10 pr-4 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder-white/20 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+            placeholder="••••••••">
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="block text-white/50 text-xs font-medium mb-1.5 uppercase tracking-wider" id="lblPasswordConfirm"></label>
+        <div class="relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">🔒</span>
+          <input id="inpPasswordConfirm" type="password" required autocomplete="new-password" minlength="4"
+            class="w-full h-11 pl-10 pr-4 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder-white/20 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+            placeholder="••••••••">
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Location -->
+    <div class="step" id="step2">
+      <h2 class="text-white text-lg font-medium mb-4" id="locTitle"></h2>
+      <div class="mb-4">
+        <label class="block text-white/50 text-xs font-medium mb-1.5 uppercase tracking-wider" id="lblCountry"></label>
+        <select id="selCountry"
+          class="w-full h-11 px-4 rounded-lg bg-white/5 border border-white/10 text-white text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition pr-8">
+          <option value=""></option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label class="block text-white/50 text-xs font-medium mb-1.5 uppercase tracking-wider" id="lblCity"></label>
+        <select id="selCity" disabled
+          class="w-full h-11 px-4 rounded-lg bg-white/5 border border-white/10 text-white text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition pr-8 disabled:opacity-40">
+          <option value=""></option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div id="errorMsg" class="hidden mt-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center"></div>
+
+    <!-- Navigation -->
+    <div class="flex gap-3 mt-6">
+      <button id="btnBack" onclick="prevStep()"
+        class="hidden flex-1 h-11 rounded-lg bg-white/5 border border-white/10 text-white/60 font-medium text-sm cursor-pointer hover:bg-white/10 transition"></button>
+      <button id="btnNext" onclick="nextStep()"
+        class="flex-1 h-11 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium text-sm cursor-pointer hover:from-indigo-500 hover:to-purple-500 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        <span id="btnNextText"></span>
+        <svg id="btnSpinner" class="hidden animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"></circle>
+          <path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="opacity-75"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:33%"></div></div>
+    <p class="text-center text-white/20 text-xs mt-4">Vue Desktop OS &copy; 2026</p>
+  </div>
+
+<script>
+const LANGS = {
+  tr: { flag:'🇹🇷', label:'Türkçe', subtitle:'İlk kurulumu tamamlayın', langTitle:'Dil Seçin',
+    userTitle:'Yönetici Hesabı', username:'Kullanıcı Adı', password:'Şifre', passwordConfirm:'Şifre (Tekrar)',
+    locTitle:'Konum Ayarları', country:'Ülke', city:'Şehir', back:'Geri', next:'İleri', finish:'Kurulumu Tamamla',
+    finishing:'Kuruluyor...', errRequired:'Tüm alanlar zorunludur', errPasswordMatch:'Şifreler eşleşmiyor',
+    errPasswordMin:'Şifre en az 4 karakter olmalı', errUsername:'Kullanıcı adı en az 3 karakter olmalı',
+    errUsernameChars:'Kullanıcı adı sadece harf, rakam, _ ve - içerebilir',
+    selectCountry:'Ülke seçin', selectCity:'Şehir seçin' },
+  en: { flag:'🇬🇧', label:'English', subtitle:'Complete the initial setup', langTitle:'Select Language',
+    userTitle:'Administrator Account', username:'Username', password:'Password', passwordConfirm:'Confirm Password',
+    locTitle:'Location Settings', country:'Country', city:'City', back:'Back', next:'Next', finish:'Complete Setup',
+    finishing:'Setting up...', errRequired:'All fields are required', errPasswordMatch:'Passwords do not match',
+    errPasswordMin:'Password must be at least 4 characters', errUsername:'Username must be at least 3 characters',
+    errUsernameChars:'Username can only contain letters, numbers, _ and -',
+    selectCountry:'Select country', selectCity:'Select city' },
+  de: { flag:'🇩🇪', label:'Deutsch', subtitle:'Ersteinrichtung abschließen', langTitle:'Sprache wählen',
+    userTitle:'Administratorkonto', username:'Benutzername', password:'Passwort', passwordConfirm:'Passwort bestätigen',
+    locTitle:'Standorteinstellungen', country:'Land', city:'Stadt', back:'Zurück', next:'Weiter', finish:'Einrichtung abschließen',
+    finishing:'Einrichtung läuft...', errRequired:'Alle Felder sind erforderlich', errPasswordMatch:'Passwörter stimmen nicht überein',
+    errPasswordMin:'Passwort muss mindestens 4 Zeichen lang sein', errUsername:'Benutzername muss mindestens 3 Zeichen lang sein',
+    errUsernameChars:'Benutzername darf nur Buchstaben, Zahlen, _ und - enthalten',
+    selectCountry:'Land wählen', selectCity:'Stadt wählen' },
+  fr: { flag:'🇫🇷', label:'Français', subtitle:'Terminez la configuration initiale', langTitle:'Choisir la langue',
+    userTitle:'Compte administrateur', username:'Nom d\'utilisateur', password:'Mot de passe', passwordConfirm:'Confirmer le mot de passe',
+    locTitle:'Paramètres de localisation', country:'Pays', city:'Ville', back:'Retour', next:'Suivant', finish:'Terminer la configuration',
+    finishing:'Configuration en cours...', errRequired:'Tous les champs sont obligatoires', errPasswordMatch:'Les mots de passe ne correspondent pas',
+    errPasswordMin:'Le mot de passe doit comporter au moins 4 caractères', errUsername:'Le nom d\'utilisateur doit comporter au moins 3 caractères',
+    errUsernameChars:'Le nom d\'utilisateur ne peut contenir que des lettres, des chiffres, _ et -',
+    selectCountry:'Choisir un pays', selectCity:'Choisir une ville' },
+  es: { flag:'🇪🇸', label:'Español', subtitle:'Complete la configuración inicial', langTitle:'Seleccionar idioma',
+    userTitle:'Cuenta de administrador', username:'Nombre de usuario', password:'Contraseña', passwordConfirm:'Confirmar contraseña',
+    locTitle:'Configuración de ubicación', country:'País', city:'Ciudad', back:'Atrás', next:'Siguiente', finish:'Completar configuración',
+    finishing:'Configurando...', errRequired:'Todos los campos son obligatorios', errPasswordMatch:'Las contraseñas no coinciden',
+    errPasswordMin:'La contraseña debe tener al menos 4 caracteres', errUsername:'El nombre de usuario debe tener al menos 3 caracteres',
+    errUsernameChars:'El nombre de usuario solo puede contener letras, números, _ y -',
+    selectCountry:'Seleccionar país', selectCity:'Seleccionar ciudad' },
+  ru: { flag:'🇷🇺', label:'Русский', subtitle:'Завершите начальную настройку', langTitle:'Выберите язык',
+    userTitle:'Учётная запись администратора', username:'Имя пользователя', password:'Пароль', passwordConfirm:'Подтвердите пароль',
+    locTitle:'Настройки местоположения', country:'Страна', city:'Город', back:'Назад', next:'Далее', finish:'Завершить настройку',
+    finishing:'Настройка...', errRequired:'Все поля обязательны', errPasswordMatch:'Пароли не совпадают',
+    errPasswordMin:'Пароль должен содержать не менее 4 символов', errUsername:'Имя пользователя должно содержать не менее 3 символов',
+    errUsernameChars:'Имя пользователя может содержать только буквы, цифры, _ и -',
+    selectCountry:'Выберите страну', selectCity:'Выберите город' },
+  zh: { flag:'🇨🇳', label:'中文', subtitle:'完成初始设置', langTitle:'选择语言',
+    userTitle:'管理员账户', username:'用户名', password:'密码', passwordConfirm:'确认密码',
+    locTitle:'位置设置', country:'国家', city:'城市', back:'返回', next:'下一步', finish:'完成设置',
+    finishing:'正在设置...', errRequired:'所有字段均为必填', errPasswordMatch:'密码不匹配',
+    errPasswordMin:'密码至少需要4个字符', errUsername:'用户名至少需要3个字符',
+    errUsernameChars:'用户名只能包含字母、数字、_ 和 -',
+    selectCountry:'选择国家', selectCity:'选择城市' },
+  ja: { flag:'🇯🇵', label:'日本語', subtitle:'初期設定を完了してください', langTitle:'言語を選択',
+    userTitle:'管理者アカウント', username:'ユーザー名', password:'パスワード', passwordConfirm:'パスワード確認',
+    locTitle:'ロケーション設定', country:'国', city:'都市', back:'戻る', next:'次へ', finish:'セットアップ完了',
+    finishing:'設定中...', errRequired:'すべてのフィールドは必須です', errPasswordMatch:'パスワードが一致しません',
+    errPasswordMin:'パスワードは4文字以上必要です', errUsername:'ユーザー名は3文字以上必要です',
+    errUsernameChars:'ユーザー名は英数字、_、-のみ使用できます',
+    selectCountry:'国を選択', selectCity:'都市を選択' },
+  it: { flag:'🇮🇹', label:'Italiano', subtitle:'Completa la configurazione iniziale', langTitle:'Seleziona lingua',
+    userTitle:'Account amministratore', username:'Nome utente', password:'Password', passwordConfirm:'Conferma password',
+    locTitle:'Impostazioni posizione', country:'Paese', city:'Città', back:'Indietro', next:'Avanti', finish:'Completa configurazione',
+    finishing:'Configurazione...', errRequired:'Tutti i campi sono obbligatori', errPasswordMatch:'Le password non corrispondono',
+    errPasswordMin:'La password deve contenere almeno 4 caratteri', errUsername:'Il nome utente deve contenere almeno 3 caratteri',
+    errUsernameChars:'Il nome utente può contenere solo lettere, numeri, _ e -',
+    selectCountry:'Seleziona paese', selectCity:'Seleziona città' }
+};
+
+let currentStep = 0;
+let selectedLang = 'en';
+
+function t(key) { return (LANGS[selectedLang] || LANGS.en)[key] || key; }
+
+function updateUI() {
+  document.getElementById('setupSubtitle').textContent = t('subtitle');
+  document.getElementById('langTitle').textContent = t('langTitle');
+  document.getElementById('userTitle').textContent = t('userTitle');
+  document.getElementById('lblUsername').textContent = t('username');
+  document.getElementById('lblPassword').textContent = t('password');
+  document.getElementById('lblPasswordConfirm').textContent = t('passwordConfirm');
+  document.getElementById('locTitle').textContent = t('locTitle');
+  document.getElementById('lblCountry').textContent = t('country');
+  document.getElementById('lblCity').textContent = t('city');
+  document.getElementById('btnBack').textContent = t('back');
+  document.getElementById('btnNextText').textContent = currentStep === 2 ? t('finish') : t('next');
+  document.getElementById('inpUsername').placeholder = t('username').toLowerCase();
+  document.getElementById('inpPassword').placeholder = '••••••••';
+  document.getElementById('inpPasswordConfirm').placeholder = '••••••••';
+  // Country/City placeholders
+  const selCountry = document.getElementById('selCountry');
+  if (selCountry.options.length > 0) selCountry.options[0].textContent = t('selectCountry');
+  const selCity = document.getElementById('selCity');
+  if (selCity.options.length > 0) selCity.options[0].textContent = t('selectCity');
+}
+
+function selectLang(code) {
+  selectedLang = code;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('selected', b.dataset.lang === code));
+  updateUI();
+}
+
+function showStep(n) {
+  document.querySelectorAll('.step').forEach((s, i) => s.classList.toggle('active', i === n));
+  for (let i = 0; i < 3; i++) {
+    const dot = document.getElementById('dot' + i);
+    dot.className = 'step-dot' + (i === n ? ' active' : (i < n ? ' done' : ''));
+  }
+  document.getElementById('btnBack').classList.toggle('hidden', n === 0);
+  document.getElementById('btnNextText').textContent = n === 2 ? t('finish') : t('next');
+  document.getElementById('progressFill').style.width = ((n + 1) * 33.3) + '%';
+  document.getElementById('errorMsg').classList.add('hidden');
+}
+
+function hideError() { document.getElementById('errorMsg').classList.add('hidden'); }
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+function prevStep() {
+  if (currentStep > 0) { currentStep--; showStep(currentStep); }
+}
+
+function nextStep() {
+  hideError();
+  if (currentStep === 0) {
+    // Language selected, go to user step
+    currentStep = 1;
+    showStep(1);
+    document.getElementById('inpUsername').focus();
+  } else if (currentStep === 1) {
+    // Validate user fields
+    const username = document.getElementById('inpUsername').value.trim();
+    const password = document.getElementById('inpPassword').value;
+    const passwordConfirm = document.getElementById('inpPasswordConfirm').value;
+    if (!username || !password) { showError(t('errRequired')); return; }
+    if (username.length < 3) { showError(t('errUsername')); return; }
+    if (!/^[a-zA-Z0-9_-]+$/.test(username)) { showError(t('errUsernameChars')); return; }
+    if (password.length < 4) { showError(t('errPasswordMin')); return; }
+    if (password !== passwordConfirm) { showError(t('errPasswordMatch')); return; }
+    currentStep = 2;
+    showStep(2);
+  } else if (currentStep === 2) {
+    // Final step — submit setup
+    doSetup();
+  }
+}
+
+async function doSetup() {
+  const btn = document.getElementById('btnNext');
+  const btnText = document.getElementById('btnNextText');
+  const spinner = document.getElementById('btnSpinner');
+  btn.disabled = true;
+  btnText.textContent = t('finishing');
+  spinner.classList.remove('hidden');
+  hideError();
+
+  const payload = {
+    locale: selectedLang,
+    username: document.getElementById('inpUsername').value.trim(),
+    password: document.getElementById('inpPassword').value,
+    country: document.getElementById('selCountry').value,
+    city: document.getElementById('selCity').value
+  };
+
+  try {
+    const res = await fetch('/api/setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('auth_token', data.token);
+        localStorage.setItem('sys_locale', selectedLang);
+      }
+      window.location.href = '/';
+    } else {
+      showError(data.error || 'Setup failed');
+    }
+  } catch (err) {
+    showError('Connection error');
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = t('finish');
+    spinner.classList.add('hidden');
+  }
+}
+
+// ── Init ──
+function buildLangGrid() {
+  const grid = document.getElementById('langGrid');
+  grid.innerHTML = '';
+  for (const [code, lang] of Object.entries(LANGS)) {
+    const btn = document.createElement('div');
+    btn.className = 'lang-btn' + (code === selectedLang ? ' selected' : '');
+    btn.dataset.lang = code;
+    btn.innerHTML = '<span class="flag">' + lang.flag + '</span><span class="label">' + lang.label + '</span>';
+    btn.onclick = () => selectLang(code);
+    grid.appendChild(btn);
+  }
+}
+
+async function loadCountries() {
+  try {
+    const res = await fetch('/api/setup/countries');
+    if (!res.ok) return;
+    const countries = await res.json();
+    const sel = document.getElementById('selCountry');
+    sel.innerHTML = '<option value="">' + t('selectCountry') + '</option>';
+    for (const c of countries) {
+      const opt = document.createElement('option');
+      opt.value = c.iso2;
+      opt.textContent = c.name;
+      sel.appendChild(opt);
+    }
+  } catch {}
+}
+
+document.getElementById('selCountry').addEventListener('change', async function() {
+  const iso2 = this.value;
+  const sel = document.getElementById('selCity');
+  sel.innerHTML = '<option value="">' + t('selectCity') + '</option>';
+  sel.disabled = true;
+  if (!iso2) return;
+  try {
+    const res = await fetch('/api/setup/cities?iso2=' + encodeURIComponent(iso2));
+    if (!res.ok) return;
+    const cities = await res.json();
+    for (const c of cities) {
+      const opt = document.createElement('option');
+      opt.value = c.city;
+      opt.textContent = c.city + (c.admin_name ? ' (' + c.admin_name + ')' : '');
+      sel.appendChild(opt);
+    }
+    sel.disabled = false;
+  } catch {}
+});
+
+// Allow Enter key in inputs to go to next step
+document.querySelectorAll('#step1 input, #step2 select').forEach(el => {
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') nextStep(); });
+});
+
+buildLangGrid();
+loadCountries();
+updateUI();
+</script>
+</body>
+</html>

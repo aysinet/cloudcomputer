@@ -1,0 +1,60 @@
+<div class="bil-app">
+  <!-- Header -->
+  <div class="bil-header">
+    <div class="bil-title">🎱 {{ t('eightBall') }}</div>
+    <div class="bil-controls">
+      <div class="bil-power-wrap">
+        <span class="bil-power-label">{{ t('power') }}:</span>
+        <input type="range" min="3" max="18" v-model.number="power" class="bil-power-slider" />
+        <span class="bil-power-val">{{ power }}</span>
+      </div>
+      <button class="bil-btn" @click="newGame">🔄 {{ t('newGame') }}</button>
+    </div>
+  </div>
+
+  <!-- Scoreboard -->
+  <div class="bil-scores">
+    <div class="bil-player" :class="{ active: currentPlayer === 1 && gameState !== 'gameover' }">
+      <div class="bil-player-name">🧑 {{ t('player1') }}</div>
+      <div class="bil-player-type" v-if="playerTypeLabel">{{ playerTypeLabel }}</div>
+      <div class="bil-pocketed">
+        <span v-for="b in playerPocketed" :key="b.id" class="bil-mini-ball"
+          :class="{ stripe: isStripe(b.id) }"
+          :style="{ '--ball-color': BALL_COLORS[b.id] }">{{ b.id }}</span>
+      </div>
+    </div>
+    <div class="bil-status">
+      <div v-if="foulMsg" class="bil-foul">⚠️ {{ foulMsg }}</div>
+      <div v-else-if="gameState === 'gameover'" class="bil-result" :class="{ won: winner === 1, lost: winner === 2 }">
+        {{ message }}
+      </div>
+      <div v-else-if="currentPlayer === 1" class="bil-turn">{{ t('yourTurn') }}</div>
+      <div v-else class="bil-turn ai">{{ t('aiTurn') }}</div>
+    </div>
+    <div class="bil-player" :class="{ active: currentPlayer === 2 && gameState !== 'gameover' }">
+      <div class="bil-player-name">🤖 {{ t('player2') }}</div>
+      <div class="bil-player-type" v-if="aiTypeLabel">{{ aiTypeLabel }}</div>
+      <div class="bil-pocketed">
+        <span v-for="b in aiPocketed" :key="b.id" class="bil-mini-ball"
+          :class="{ stripe: isStripe(b.id) }"
+          :style="{ '--ball-color': BALL_COLORS[b.id] }">{{ b.id }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <div class="bil-table-wrap">
+    <canvas ref="canvasRef" class="bil-canvas"
+      @mousemove="onMouseMove" @mousedown="onMouseDown"></canvas>
+    <div v-if="gameState === 'aiming' && currentPlayer === 1" class="bil-aim-hint">{{ t('aim') }}</div>
+  </div>
+
+  <!-- Game Over overlay -->
+  <div v-if="gameState === 'gameover'" class="bil-overlay">
+    <div class="bil-overlay-box">
+      <div class="bil-overlay-icon">{{ winner === 1 ? '🏆' : '😞' }}</div>
+      <div class="bil-overlay-msg">{{ message }}</div>
+      <button class="bil-btn primary" @click="newGame">{{ t('restart') }}</button>
+    </div>
+  </div>
+</div>

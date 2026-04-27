@@ -551,7 +551,7 @@
       window.addEventListener('locale-changed', onLocaleChanged);
       await checkExists();
     });
-    onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged));
+    onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged); });
 
     return {
       L, screen, walletExists, walletPassword, confirmPw, pwError, locked,

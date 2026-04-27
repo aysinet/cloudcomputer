@@ -5,6 +5,15 @@ const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
 
+// ── Global error handlers ──
+process.on('uncaughtException', (err, origin) => {
+  console.error(`[FATAL] Uncaught Exception (${origin}):`, err.stack || err.message || err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[FATAL] Unhandled Promise Rejection:', reason instanceof Error ? reason.stack : reason);
+});
+
 const app = express();
 app.use(express.json());
 
@@ -26,9 +35,21 @@ function authCheck(req, res, next) {
 
 // ── Docker exec helper ──
 function dockerExec(args, timeout = 120000) {
+  const cmdStr = 'docker ' + args.join(' ');
+  console.log(`[DOCKER-CMD] Executing: ${cmdStr}`);
+  const startTime = Date.now();
   return new Promise((resolve, reject) => {
     execFile('docker', args, { timeout, maxBuffer: 5 * 1024 * 1024 }, (err, stdout, stderr) => {
-      if (err) return reject(new Error(stderr || err.message));
+      const elapsed = Date.now() - startTime;
+      if (err) {
+        console.error(`[DOCKER-CMD] FAILED (${elapsed}ms): ${cmdStr}`);
+        console.error(`[DOCKER-CMD]   exit code: ${err.code || 'N/A'}, signal: ${err.signal || 'N/A'}`);
+        if (stderr) console.error(`[DOCKER-CMD]   stderr: ${stderr.substring(0, 500)}`);
+        if (err.killed) console.error(`[DOCKER-CMD]   Process was killed (timeout=${timeout}ms)`);
+        return reject(new Error(stderr || err.message));
+      }
+      console.log(`[DOCKER-CMD] OK (${elapsed}ms): ${cmdStr}`);
+      if (stdout.trim()) console.log(`[DOCKER-CMD]   stdout: ${stdout.trim().substring(0, 200)}`);
       resolve(stdout.trim());
     });
   });
@@ -314,14 +335,24 @@ app.get('/status/:appId', authCheck, async (req, res) => {
   }
 });
 
+// ── Express error middleware ──
+app.use((err, req, res, _next) => {
+  console.error(`[EXPRESS] Unhandled route error on ${req.method} ${req.path}:`, err.stack || err.message);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
 // ── Start server ──
 loadPortAllocations();
-scanDockerPorts().then(() => {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Docker Manager running on port ${PORT}`);
-    console.log(`Network: ${NETWORK_NAME}`);
-    console.log(`Port range: ${PORT_START}-${PORT_END}`);
-    console.log(`Ports file: ${PORTS_FILE}`);
-    console.log(`Allocated ports:`, portAllocations);
+scanDockerPorts()
+  .then(() => {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Docker Manager running on port ${PORT}`);
+      console.log(`Network: ${NETWORK_NAME}`);
+      console.log(`Port range: ${PORT_START}-${PORT_END}`);
+      console.log(`Ports file: ${PORTS_FILE}`);
+      console.log(`Allocated ports:`, portAllocations);
+    });
+  })
+  .catch(err => {
+    console.error('[FATAL] Failed to start Docker Manager:', err.stack || err.message);
   });
-});
