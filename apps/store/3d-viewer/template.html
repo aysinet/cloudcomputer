@@ -1,0 +1,69 @@
+<div class="v3d-root">
+  <!-- Toolbar -->
+  <div class="v3d-toolbar">
+    <div class="v3d-toolbar-left">
+      <el-dropdown trigger="click" @command="c => c === 'server' ? openFromServer() : openFile()">
+        <el-button size="small" type="primary">📂 {{ L('open') }} <el-icon style="margin-left:4px"><arrow-down /></el-icon></el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="server">🖥️ {{ L('openServer') }}</el-dropdown-item>
+            <el-dropdown-item command="client">💻 {{ L('openClient') }}</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <input ref="fileInput" type="file" accept=".glb,.gltf,.obj,.fbx,.stl" style="display:none" @change="onFileSelected" />
+      <span v-if="modelName" class="v3d-filename">{{ modelName }}</span>
+    </div>
+    <div class="v3d-toolbar-right">
+      <el-button size="small" :type="wireframe ? 'primary' : ''" @click="toggleWireframe" :title="L('wireframe')">🔲</el-button>
+      <el-button size="small" @click="resetCamera" :title="L('resetView')">🎯</el-button>
+      <el-button size="small" @click="zoomIn" title="Zoom +">➕</el-button>
+      <el-button size="small" @click="zoomOut" title="Zoom −">➖</el-button>
+      <div class="v3d-separator"></div>
+      <el-button size="small" :type="autoRotate ? 'success' : ''" @click="toggleAutoRotate" :title="L('autoRotate')">
+        {{ autoRotate ? '⏸️' : '▶️' }} {{ L('play') }}
+      </el-button>
+      <el-button size="small" @click="toggleBg" :title="L('bgToggle')">🎨</el-button>
+    </div>
+  </div>
+
+  <!-- 3D Canvas -->
+  <div class="v3d-canvas-wrap" ref="canvasWrap">
+    <!-- Drop zone overlay -->
+    <div v-if="!modelLoaded && !loading" class="v3d-dropzone"
+         @dragover.prevent="dragover = true"
+         @dragleave="dragover = false"
+         @drop.prevent="onDrop"
+         :class="{ active: dragover }">
+      <div class="v3d-drop-icon">🧊</div>
+      <div class="v3d-drop-text">{{ L('dropText') }}</div>
+      <div class="v3d-drop-sub">{{ L('dropSub') }}</div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <el-button type="primary" @click="openFromServer">🖥️ {{ L('openServer') }}</el-button>
+        <el-button @click="openFile">💻 {{ L('openClient') }}</el-button>
+      </div>
+    </div>
+    <!-- Loading -->
+    <div v-if="loading" class="v3d-loading">
+      <div class="v3d-loading-spinner"></div>
+      <div>{{ L('loading') }}</div>
+      <div v-if="loadProgress > 0" class="v3d-progress">{{ loadProgress }}%</div>
+    </div>
+    <!-- Error -->
+    <div v-if="loadError" class="v3d-error">❌ {{ loadError }}</div>
+    <canvas ref="canvas3d"></canvas>
+  </div>
+
+  <!-- Info bar -->
+  <div class="v3d-infobar" v-if="modelLoaded">
+    <span>{{ L('vertices') }}: {{ vertexCount }}</span>
+    <span>{{ L('faces') }}: {{ faceCount }}</span>
+    <span v-if="animationNames.length">{{ L('animations') }}: {{ animationNames.length }}</span>
+    <div v-if="animationNames.length" class="v3d-anim-controls">
+      <el-select v-model="currentAnim" size="small" style="width:140px" @change="playAnimation">
+        <el-option v-for="a in animationNames" :key="a" :label="a" :value="a" />
+      </el-select>
+      <el-button size="small" @click="toggleAnimPause">{{ animPaused ? '▶️' : '⏸️' }}</el-button>
+    </div>
+  </div>
+</div>

@@ -19,6 +19,7 @@
 <script src="https://unpkg.com/ol@10.5.0/dist/ol.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
+<script src="https://unpkg.com/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://unpkg.com/simple-mind-map@0.12.1/dist/simpleMindMap.esm.min.css">
 <script src="https://unpkg.com/simple-mind-map@0.12.1/dist/simpleMindMap.umd.min.js"></script>
 <style>
@@ -3355,6 +3356,21 @@ const _bootStore = useSettingsStore();
 _bootStore.load().then(() => {
   if (window._applyWallpaper) window._applyWallpaper();
 });
+
+// Twemoji: parse flag emojis to images
+(function() {
+  if (!window.twemoji) return;
+  const opts = { folder: 'svg', ext: '.svg', base: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/' };
+  function parse(el) { twemoji.parse(el, opts); }
+  parse(document.body);
+  new MutationObserver(function(muts) {
+    for (const m of muts) {
+      for (const n of m.addedNodes) {
+        if (n.nodeType === 1) parse(n);
+      }
+    }
+  }).observe(document.body, { childList: true, subtree: true });
+})();
 </script>
 </body>
 </html>

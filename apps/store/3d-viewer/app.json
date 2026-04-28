@@ -1,0 +1,68 @@
+{
+  "id": "3d-viewer",
+  "name": "3D Görüntüleyici",
+  "icon": "🧊",
+  "color": "linear-gradient(135deg,#6c5ce7,#a29bfe)",
+  "type": "internal",
+  "size": {
+    "w": 860,
+    "h": 620
+  },
+  "global": false,
+  "description": "3D model görüntüleyici — GLB/GLTF dosyaları, döndürme, yakınlaştırma",
+  "lang": {
+    "tr": {
+      "name": "3D Görüntüleyici",
+      "description": "3D model görüntüleyici — GLB/GLTF dosyaları, döndürme, yakınlaştırma"
+    },
+    "en": {
+      "name": "3D Viewer",
+      "description": "3D model viewer — GLB/GLTF files, rotate, zoom"
+    },
+    "de": {
+      "name": "3D-Betrachter",
+      "description": "3D-Modellbetrachter — GLB/GLTF-Dateien, Drehen, Zoomen"
+    },
+    "fr": {
+      "name": "Visionneuse 3D",
+      "description": "Visionneuse de modèles 3D — fichiers GLB/GLTF, rotation, zoom"
+    },
+    "es": {
+      "name": "Visor 3D",
+      "description": "Visor de modelos 3D — archivos GLB/GLTF, rotación, zoom"
+    },
+    "ru": {
+      "name": "3D Просмотрщик",
+      "description": "Просмотр 3D моделей — GLB/GLTF файлы, вращение, масштабирование"
+    },
+    "zh": {
+      "name": "3D 查看器",
+      "description": "3D 模型查看器 — GLB/GLTF 文件、旋转、缩放"
+    },
+    "ja": {
+      "name": "3Dビューア",
+      "description": "3Dモデルビューア — GLB/GLTFファイル、回転、ズーム"
+    },
+    "it": {
+      "name": "Visualizzatore 3D",
+      "description": "Visualizzatore modelli 3D — file GLB/GLTF, rotazione, zoom"
+    },
+    "ar": {
+      "name": "عارض ثلاثي الأبعاد",
+      "description": "عارض نماذج ثلاثية الأبعاد — ملفات GLB/GLTF، تدوير، تكبير"
+    },
+    "ko": {
+      "name": "3D 뷰어",
+      "description": "3D 모델 뷰어 — GLB/GLTF 파일, 회전, 확대/축소"
+    },
+    "hi": {
+      "name": "3D व्यूअर",
+      "description": "3D मॉडल व्यूअर — GLB/GLTF फ़ाइलें, घुमाएं, ज़ूम"
+    },
+    "pt": {
+      "name": "Visualizador 3D",
+      "description": "Visualizador de modelos 3D — arquivos GLB/GLTF, rotação, zoom"
+    }
+  },
+  "category": "tools"
+}

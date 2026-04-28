@@ -1,0 +1,150 @@
+.v3d-root {
+  width: 100%; height: 100%;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Toolbar */
+.v3d-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: rgba(255,255,255,.04);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.v3d-toolbar-left, .v3d-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.v3d-filename {
+  font-size: 12px;
+  color: rgba(255,255,255,.5);
+  margin-left: 8px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.v3d-separator {
+  width: 1px;
+  height: 20px;
+  background: rgba(255,255,255,.12);
+  margin: 0 4px;
+}
+
+/* Canvas */
+.v3d-canvas-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #1a1a2e;
+}
+.v3d-canvas-wrap canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Dropzone */
+.v3d-dropzone {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(26,26,46,.95);
+  z-index: 5;
+  cursor: pointer;
+  transition: background .2s;
+}
+.v3d-dropzone.active {
+  background: rgba(108,92,231,.15);
+}
+.v3d-drop-icon {
+  font-size: 64px;
+  margin-bottom: 12px;
+}
+.v3d-drop-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255,255,255,.6);
+}
+.v3d-drop-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,.3);
+  margin-top: 6px;
+}
+
+/* Loading */
+.v3d-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(26,26,46,.9);
+  z-index: 6;
+  gap: 10px;
+  font-size: 14px;
+  color: rgba(255,255,255,.6);
+}
+.v3d-loading-spinner {
+  width: 40px; height: 40px;
+  border: 3px solid rgba(255,255,255,.1);
+  border-top-color: #6c5ce7;
+  border-radius: 50%;
+  animation: v3dSpin 0.8s linear infinite;
+}
+@keyframes v3dSpin {
+  to { transform: rotate(360deg); }
+}
+.v3d-progress {
+  font-size: 12px;
+  color: #6c5ce7;
+  font-weight: 600;
+}
+
+/* Error */
+.v3d-error {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(231,76,60,.9);
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  z-index: 7;
+}
+
+/* Info Bar */
+.v3d-infobar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 12px;
+  background: rgba(255,255,255,.04);
+  border-top: 1px solid rgba(255,255,255,.06);
+  font-size: 11px;
+  color: rgba(255,255,255,.4);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.v3d-anim-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
