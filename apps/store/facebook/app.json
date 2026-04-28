@@ -1,0 +1,52 @@
+{
+  "id": "facebook",
+  "name": "Facebook",
+  "icon": "👤",
+  "color": "linear-gradient(135deg,#1877f2,#0a5dc2)",
+  "type": "internal",
+  "size": {
+    "w": 480,
+    "h": 340
+  },
+  "global": false,
+  "description": "Facebook sosyal medya platformuna hızlı erişim",
+  "lang": {
+    "tr": {
+      "name": "Facebook",
+      "description": "Facebook sosyal medya platformuna hızlı erişim"
+    },
+    "en": {
+      "name": "Facebook",
+      "description": "Quick access to Facebook social media platform"
+    },
+    "de": {
+      "name": "Facebook",
+      "description": "Schneller Zugriff auf die Facebook Social-Media-Plattform"
+    },
+    "fr": {
+      "name": "Facebook",
+      "description": "Accès rapide à la plateforme de médias sociaux Facebook"
+    },
+    "es": {
+      "name": "Facebook",
+      "description": "Acceso rápido a la plataforma de redes sociales Facebook"
+    },
+    "ru": {
+      "name": "Facebook",
+      "description": "Быстрый доступ к социальной сети Facebook"
+    },
+    "zh": {
+      "name": "Facebook",
+      "description": "快速访问Facebook社交媒体平台"
+    },
+    "ja": {
+      "name": "Facebook",
+      "description": "Facebookソーシャルメディアプラットフォームへのクイックアクセス"
+    },
+    "it": {
+      "name": "Facebook",
+      "description": "Accesso rapido alla piattaforma social Facebook"
+    }
+  },
+  "category": "social"
+}

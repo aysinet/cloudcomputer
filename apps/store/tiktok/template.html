@@ -1,0 +1,22 @@
+<div class="tiktok-app">
+  <div class="tt-header">
+    <div class="tt-logo">♪</div>
+    <div class="tt-title">{{ t.title }}</div>
+  </div>
+  <p class="tt-subtitle">{{ t.subtitle }}</p>
+  <div class="tt-grid">
+    <div
+      v-for="item in shortcuts"
+      :key="item.key"
+      class="tt-card"
+      @click="openLink(item.url)"
+    >
+      <span class="tt-card-icon">{{ item.icon }}</span>
+      <span class="tt-card-label">{{ t[item.key] }}</span>
+    </div>
+  </div>
+  <button class="tt-open-btn" @click="openLink('https://www.tiktok.com/')">
+    {{ t.openMain }}
+  </button>
+  <p class="tt-note">{{ t.popupBlocked }}</p>
+</div>

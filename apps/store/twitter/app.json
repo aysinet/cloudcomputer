@@ -1,0 +1,52 @@
+{
+  "id": "twitter",
+  "name": "X (Twitter)",
+  "icon": "𝕏",
+  "color": "linear-gradient(135deg,#1d9bf0,#0a7bc4)",
+  "type": "internal",
+  "size": {
+    "w": 480,
+    "h": 380
+  },
+  "global": false,
+  "description": "X (Twitter) sosyal medya platformuna hızlı erişim",
+  "lang": {
+    "tr": {
+      "name": "X (Twitter)",
+      "description": "X (Twitter) sosyal medya platformuna hızlı erişim"
+    },
+    "en": {
+      "name": "X (Twitter)",
+      "description": "Quick access to X (Twitter) social media platform"
+    },
+    "de": {
+      "name": "X (Twitter)",
+      "description": "Schneller Zugriff auf die X (Twitter) Social-Media-Plattform"
+    },
+    "fr": {
+      "name": "X (Twitter)",
+      "description": "Accès rapide à la plateforme X (Twitter)"
+    },
+    "es": {
+      "name": "X (Twitter)",
+      "description": "Acceso rápido a la plataforma X (Twitter)"
+    },
+    "ru": {
+      "name": "X (Twitter)",
+      "description": "Быстрый доступ к социальной сети X (Twitter)"
+    },
+    "zh": {
+      "name": "X (Twitter)",
+      "description": "快速访问X (Twitter)社交媒体平台"
+    },
+    "ja": {
+      "name": "X (Twitter)",
+      "description": "X (Twitter)ソーシャルメディアプラットフォームへのクイックアクセス"
+    },
+    "it": {
+      "name": "X (Twitter)",
+      "description": "Accesso rapido alla piattaforma social X (Twitter)"
+    }
+  },
+  "category": "social"
+}

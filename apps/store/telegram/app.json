@@ -1,0 +1,52 @@
+{
+  "id": "telegram",
+  "name": "Telegram",
+  "icon": "✈️",
+  "color": "linear-gradient(135deg,#2aabee,#229ed9)",
+  "type": "internal",
+  "size": {
+    "w": 900,
+    "h": 640
+  },
+  "global": false,
+  "description": "Telegram Web mesajlaşma uygulaması",
+  "lang": {
+    "tr": {
+      "name": "Telegram",
+      "description": "Telegram Web mesajlaşma uygulaması"
+    },
+    "en": {
+      "name": "Telegram",
+      "description": "Telegram Web messaging app"
+    },
+    "de": {
+      "name": "Telegram",
+      "description": "Telegram Web-Messaging-App"
+    },
+    "fr": {
+      "name": "Telegram",
+      "description": "Application de messagerie Telegram Web"
+    },
+    "es": {
+      "name": "Telegram",
+      "description": "Aplicación de mensajería Telegram Web"
+    },
+    "ru": {
+      "name": "Telegram",
+      "description": "Веб-мессенджер Telegram"
+    },
+    "zh": {
+      "name": "Telegram",
+      "description": "Telegram网页版消息应用"
+    },
+    "ja": {
+      "name": "Telegram",
+      "description": "Telegram Webメッセージングアプリ"
+    },
+    "it": {
+      "name": "Telegram",
+      "description": "App di messaggistica Telegram Web"
+    }
+  },
+  "category": "social"
+}

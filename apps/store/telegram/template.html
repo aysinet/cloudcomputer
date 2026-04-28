@@ -1,0 +1,39 @@
+<div class="telegram-app">
+  <!-- Toolbar -->
+  <div class="tg-toolbar">
+    <div class="tg-toolbar-left">
+      <span class="tg-logo">✈️</span>
+      <span class="tg-toolbar-title">{{ t.title }}</span>
+    </div>
+    <div class="tg-toolbar-actions">
+      <button class="tg-btn" @click="reloadIframe" :title="t.reload">🔄</button>
+      <button class="tg-btn" @click="openExternal" :title="t.openExternal">↗️</button>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div v-if="loading" class="tg-loading">
+    <div class="tg-spinner"></div>
+    <span>{{ t.loading }}</span>
+  </div>
+
+  <!-- Load Error -->
+  <div v-if="loadFailed" class="tg-error">
+    <span class="tg-error-icon">⚠️</span>
+    <p>{{ t.loadError }}</p>
+    <div class="tg-error-actions">
+      <button class="tg-btn-primary" @click="reloadIframe">🔄 {{ t.reload }}</button>
+      <button class="tg-btn-secondary" @click="openExternal">↗️ {{ t.openExternal }}</button>
+    </div>
+  </div>
+
+  <!-- Iframe -->
+  <iframe
+    v-if="iframeSrc"
+    :src="iframeSrc"
+    class="tg-iframe"
+    allow="clipboard-write; clipboard-read"
+    @load="onIframeLoad"
+    @error="onIframeError"
+  ></iframe>
+</div>

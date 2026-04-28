@@ -1,0 +1,52 @@
+{
+  "id": "tiktok",
+  "name": "TikTok",
+  "icon": "🎵",
+  "color": "linear-gradient(135deg,#ff0050,#00f2ea)",
+  "type": "internal",
+  "size": {
+    "w": 480,
+    "h": 380
+  },
+  "global": false,
+  "description": "TikTok sosyal medya platformuna hızlı erişim",
+  "lang": {
+    "tr": {
+      "name": "TikTok",
+      "description": "TikTok sosyal medya platformuna hızlı erişim"
+    },
+    "en": {
+      "name": "TikTok",
+      "description": "Quick access to TikTok social media platform"
+    },
+    "de": {
+      "name": "TikTok",
+      "description": "Schneller Zugriff auf die TikTok-Plattform"
+    },
+    "fr": {
+      "name": "TikTok",
+      "description": "Accès rapide à la plateforme TikTok"
+    },
+    "es": {
+      "name": "TikTok",
+      "description": "Acceso rápido a la plataforma TikTok"
+    },
+    "ru": {
+      "name": "TikTok",
+      "description": "Быстрый доступ к платформе TikTok"
+    },
+    "zh": {
+      "name": "TikTok",
+      "description": "快速访问TikTok平台"
+    },
+    "ja": {
+      "name": "TikTok",
+      "description": "TikTokプラットフォームへのクイックアクセス"
+    },
+    "it": {
+      "name": "TikTok",
+      "description": "Accesso rapido alla piattaforma TikTok"
+    }
+  },
+  "category": "social"
+}

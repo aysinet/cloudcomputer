@@ -49,6 +49,7 @@
     }
   },
   "category": "games",
+  "proxyMode": "hpm",  
   "docker": {
     "image": "elliottking/doom-wasm:0.1.1",
     "containerPort": 8000

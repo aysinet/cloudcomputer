@@ -74,3 +74,38 @@
 .mp-viz-btns{display:flex;gap:10px;align-items:center}
 .mp-viz-toggle{font-size:14px !important}
 .mp-viz-toggle.active{background:rgba(56,239,125,.25);box-shadow:0 0 8px rgba(56,239,125,.3)}
+
+/* Link Input Bar */
+.mp-link-bar{display:flex;gap:6px;padding:6px 12px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06)}
+.mp-link-input{flex:1;padding:5px 10px;border:1px solid rgba(255,255,255,.1);border-radius:6px;background:rgba(255,255,255,.06);color:#fff;font-size:12px;outline:none;transition:.15s}
+.mp-link-input:focus{border-color:rgba(56,239,125,.4);background:rgba(255,255,255,.08)}
+.mp-link-input::placeholder{color:rgba(255,255,255,.3)}
+.mp-link-btn{padding:5px 12px;border:none;border-radius:6px;background:rgba(56,239,125,.15);color:#38ef7d;font-size:12px;cursor:pointer;transition:.15s;white-space:nowrap}
+.mp-link-btn:hover{background:rgba(56,239,125,.3)}
+.mp-link-btn:disabled{opacity:.4;cursor:default}
+
+/* Playlist Toolbar */
+.mp-pl-toolbar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06)}
+.mp-pl-active-name{flex:1;font-size:12px;opacity:.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mp-pl-save-btn{padding:4px 12px;border:none;border-radius:6px;background:rgba(56,239,125,.15);color:#38ef7d;font-size:11px;cursor:pointer;transition:.15s;white-space:nowrap}
+.mp-pl-save-btn:hover{background:rgba(56,239,125,.3)}
+.mp-pl-save-btn:disabled{opacity:.4;cursor:default}
+.mp-pl-name-input{flex:1;padding:5px 10px;border:1px solid rgba(255,255,255,.1);border-radius:6px;background:rgba(255,255,255,.06);color:#fff;font-size:12px;outline:none;transition:.15s}
+.mp-pl-name-input:focus{border-color:rgba(56,239,125,.4);background:rgba(255,255,255,.08)}
+.mp-pl-name-input::placeholder{color:rgba(255,255,255,.3)}
+
+/* Playlist Items */
+.mp-pl-item{border-bottom:1px solid rgba(255,255,255,.05)}
+.mp-pl-item.active{background:rgba(56,239,125,.06)}
+.mp-pl-item-header{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;transition:.12s}
+.mp-pl-item-header:hover{background:rgba(255,255,255,.05)}
+.mp-pl-icon{font-size:14px;flex-shrink:0}
+.mp-pl-name{flex:1;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mp-pl-count{font-size:10px;opacity:.4;flex-shrink:0}
+.mp-pl-expand{font-size:10px;opacity:.4;flex-shrink:0;width:14px;text-align:center}
+.mp-pl-actions{display:flex;gap:4px;padding:0 12px 6px;justify-content:flex-end}
+
+/* Playlist Tracks (expanded) */
+.mp-pl-tracks{background:rgba(0,0,0,.15);border-top:1px solid rgba(255,255,255,.04);padding:2px 0}
+.mp-pl-track-row{display:flex;align-items:center;gap:8px;padding:4px 16px 4px 20px;font-size:11px;opacity:.7}
+.mp-pl-track-row:hover{opacity:1;background:rgba(255,255,255,.03)}

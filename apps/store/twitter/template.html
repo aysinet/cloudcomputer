@@ -1,0 +1,22 @@
+<div class="twitter-app">
+  <div class="tw-header">
+    <div class="tw-logo">𝕏</div>
+    <div class="tw-title">{{ t.title }}</div>
+  </div>
+  <p class="tw-subtitle">{{ t.subtitle }}</p>
+  <div class="tw-grid">
+    <div
+      v-for="item in shortcuts"
+      :key="item.key"
+      class="tw-card"
+      @click="openLink(item.url)"
+    >
+      <span class="tw-card-icon">{{ item.icon }}</span>
+      <span class="tw-card-label">{{ t[item.key] }}</span>
+    </div>
+  </div>
+  <button class="tw-open-btn" @click="openLink('https://x.com/')">
+    {{ t.openMain }}
+  </button>
+  <p class="tw-note">{{ t.popupBlocked }}</p>
+</div>

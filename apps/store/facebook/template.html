@@ -1,0 +1,22 @@
+<div class="facebook-app">
+  <div class="fb-header">
+    <div class="fb-logo">f</div>
+    <div class="fb-title">{{ t.title }}</div>
+  </div>
+  <p class="fb-subtitle">{{ t.subtitle }}</p>
+  <div class="fb-grid">
+    <div
+      v-for="item in shortcuts"
+      :key="item.key"
+      class="fb-card"
+      @click="openLink(item.url)"
+    >
+      <span class="fb-card-icon">{{ item.icon }}</span>
+      <span class="fb-card-label">{{ t[item.key] }}</span>
+    </div>
+  </div>
+  <button class="fb-open-btn" @click="openLink('https://www.facebook.com/')">
+    {{ t.openMain }}
+  </button>
+  <p class="fb-note">{{ t.popupBlocked }}</p>
+</div>
