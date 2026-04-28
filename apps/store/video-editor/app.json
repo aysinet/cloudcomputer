@@ -46,6 +46,22 @@
     "it": {
       "name": "Editor video",
       "description": "Modifica file video"
+    },
+    "ar": {
+      "name": "محرر الفيديو",
+      "description": "تحرير الفيديو — قص، تقسيم، نص، التحكم بالسرعة والتصدير"
+    },
+    "ko": {
+      "name": "비디오 편집기",
+      "description": "비디오 편집 — 자르기, 분할, 텍스트 오버레이, 속도 조절 및 내보내기"
+    },
+    "hi": {
+      "name": "वीडियो एडिटर",
+      "description": "वीडियो एडिटिंग — ट्रिम, स्प्लिट, टेक्स्ट ओवरले, स्पीड कंट्रोल और एक्सपोर्ट"
+    },
+    "pt": {
+      "name": "Editor de Vídeo",
+      "description": "Edição de vídeo — cortar, dividir, sobreposição de texto, controle de velocidade e exportação"
     }
   },
   "category": "media"

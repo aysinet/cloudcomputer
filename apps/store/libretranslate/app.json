@@ -46,6 +46,22 @@
     "it": {
       "name": "Traduttore",
       "description": "Strumento di traduzione open source gratuito"
+    },
+    "ar": {
+      "name": "ليبر ترانسليت",
+      "description": "ترجمة تعتمد على Docker — ترجمة آلية مفتوحة المصدر"
+    },
+    "ko": {
+      "name": "리브레 번역",
+      "description": "Docker 기반 번역 — 오픈 소스 기계 번역"
+    },
+    "hi": {
+      "name": "लिबरट्रांसलेट",
+      "description": "Docker-आधारित अनुवाद — ओपन सोर्स मशीन अनुवाद"
+    },
+    "pt": {
+      "name": "LibreTranslate",
+      "description": "Tradução baseada em Docker — tradução automática de código aberto"
     }
   },
   "category": "utilities",

@@ -46,6 +46,22 @@
     "it": {
       "name": "FreeCell",
       "description": "Gioco di carte FreeCell classico"
+    },
+    "ar": {
+      "name": "فري سيل",
+      "description": "لعبة فري سيل الكلاسيكية"
+    },
+    "ko": {
+      "name": "프리셀",
+      "description": "클래식 프리셀 카드 게임"
+    },
+    "hi": {
+      "name": "फ्रीसेल",
+      "description": "क्लासिक फ्रीसेल कार्ड गेम"
+    },
+    "pt": {
+      "name": "Freecell",
+      "description": "Jogo de cartas Freecell clássico"
     }
   },
   "category": "games"

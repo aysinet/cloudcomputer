@@ -46,6 +46,22 @@
     "it": {
       "name": "Condivisione social",
       "description": "Condividi contenuti sui social media"
+    },
+    "ar": {
+      "name": "مشاركة اجتماعية",
+      "description": "مشاركة على وسائل التواصل — تويتر، فيسبوك، واتساب، تيليجرام والمزيد"
+    },
+    "ko": {
+      "name": "소셜 공유",
+      "description": "소셜 미디어 공유 — 트위터, 페이스북, 왓츠앱, 텔레그램 등"
+    },
+    "hi": {
+      "name": "सोशल शेयर",
+      "description": "सोशल मीडिया शेयरिंग — ट्विटर, फ़ेसबुक, व्हाट्सएप, टेलीग्राम और अधिक"
+    },
+    "pt": {
+      "name": "Compartilhar Social",
+      "description": "Compartilhamento em redes sociais — Twitter, Facebook, WhatsApp, Telegram e mais"
     }
   },
   "category": "social"

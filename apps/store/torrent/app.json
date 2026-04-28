@@ -46,6 +46,22 @@
     "it": {
       "name": "Torrent",
       "description": "Gestisci download torrent"
+    },
+    "ar": {
+      "name": "تورنت",
+      "description": "عميل تورنت P2P — تنزيل ومشاركة عبر روابط مغناطيسية وملفات .torrent"
+    },
+    "ko": {
+      "name": "토렌트",
+      "description": "P2P 토렌트 클라이언트 — 마그넷 링크 및 .torrent 파일로 다운로드 및 공유"
+    },
+    "hi": {
+      "name": "टोरेंट",
+      "description": "P2P टोरेंट क्लाइंट — मैग्नेट लिंक और .torrent फ़ाइलों से डाउनलोड और शेयर करें"
+    },
+    "pt": {
+      "name": "Torrent",
+      "description": "Cliente Torrent P2P — baixar e compartilhar via links magnéticos e arquivos .torrent"
     }
   },
   "category": "internet"

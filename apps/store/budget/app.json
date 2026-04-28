@@ -47,6 +47,22 @@
     "it": {
       "name": "Budget",
       "description": "Monitoraggio budget — entrate/uscite, pianificazione pagamenti, grafici"
+    },
+    "ar": {
+      "name": "الميزانية",
+      "description": "تتبع الميزانية — سجلات الدخل/المصروفات، تخطيط المدفوعات، رسوم بيانية"
+    },
+    "ko": {
+      "name": "예산",
+      "description": "예산 추적기 — 수입/지출 기록, 결제 계획, 차트"
+    },
+    "hi": {
+      "name": "बजट",
+      "description": "बजट ट्रैकर — आय/व्यय रिकॉर्ड, भुगतान योजना, चार्ट"
+    },
+    "pt": {
+      "name": "Orçamento",
+      "description": "Rastreador de orçamento — registros de receita/despesa, planejamento de pagamentos, gráficos"
     }
   }
 }

@@ -46,6 +46,22 @@
     "it": {
       "name": "YouTube",
       "description": "Cerca e guarda video YouTube"
+    },
+    "ar": {
+      "name": "يوتيوب",
+      "description": "تطبيق بحث ومشاهدة فيديوهات يوتيوب"
+    },
+    "ko": {
+      "name": "유튜브",
+      "description": "유튜브 동영상 검색 및 시청 앱"
+    },
+    "hi": {
+      "name": "यूट्यूब",
+      "description": "यूट्यूब वीडियो खोज और देखने का ऐप"
+    },
+    "pt": {
+      "name": "YouTube",
+      "description": "Aplicativo de pesquisa e reprodução de vídeos do YouTube"
     }
   },
   "category": "media"

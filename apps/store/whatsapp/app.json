@@ -12,14 +12,57 @@
   "category": "social",
   "description": "WhatsApp Web mesajlaşma uygulaması",
   "lang": {
-    "tr": { "name": "WhatsApp", "description": "WhatsApp Web mesajlaşma uygulaması" },
-    "en": { "name": "WhatsApp", "description": "WhatsApp Web messaging app" },
-    "de": { "name": "WhatsApp", "description": "WhatsApp Web Messaging-App" },
-    "fr": { "name": "WhatsApp", "description": "Application de messagerie WhatsApp Web" },
-    "es": { "name": "WhatsApp", "description": "Aplicación de mensajería WhatsApp Web" },
-    "ru": { "name": "WhatsApp", "description": "Мессенджер WhatsApp Web" },
-    "zh": { "name": "WhatsApp", "description": "WhatsApp网页版即时通讯" },
-    "ja": { "name": "WhatsApp", "description": "WhatsApp Webメッセージアプリ" },
-    "it": { "name": "WhatsApp", "description": "App di messaggistica WhatsApp Web" }
+    "tr": {
+      "name": "WhatsApp",
+      "description": "WhatsApp Web mesajlaşma uygulaması"
+    },
+    "en": {
+      "name": "WhatsApp",
+      "description": "WhatsApp Web messaging app"
+    },
+    "de": {
+      "name": "WhatsApp",
+      "description": "WhatsApp Web Messaging-App"
+    },
+    "fr": {
+      "name": "WhatsApp",
+      "description": "Application de messagerie WhatsApp Web"
+    },
+    "es": {
+      "name": "WhatsApp",
+      "description": "Aplicación de mensajería WhatsApp Web"
+    },
+    "ru": {
+      "name": "WhatsApp",
+      "description": "Мессенджер WhatsApp Web"
+    },
+    "zh": {
+      "name": "WhatsApp",
+      "description": "WhatsApp网页版即时通讯"
+    },
+    "ja": {
+      "name": "WhatsApp",
+      "description": "WhatsApp Webメッセージアプリ"
+    },
+    "it": {
+      "name": "WhatsApp",
+      "description": "App di messaggistica WhatsApp Web"
+    },
+    "ar": {
+      "name": "واتساب",
+      "description": "تطبيق واتساب ويب للمراسلة"
+    },
+    "ko": {
+      "name": "왓츠앱",
+      "description": "왓츠앱 웹 메시징 앱"
+    },
+    "hi": {
+      "name": "व्हाट्सएप",
+      "description": "व्हाट्सएप वेब मैसेजिंग ऐप"
+    },
+    "pt": {
+      "name": "WhatsApp",
+      "description": "Aplicativo de mensagens WhatsApp Web"
+    }
   }
 }

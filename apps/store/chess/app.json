@@ -46,6 +46,22 @@
     "it": {
       "name": "Scacchi",
       "description": "Gioco di scacchi classico"
+    },
+    "ar": {
+      "name": "شطرنج",
+      "description": "لعبة شطرنج تعتمد على Docker"
+    },
+    "ko": {
+      "name": "체스",
+      "description": "Docker 기반 체스 게임"
+    },
+    "hi": {
+      "name": "शतरंज",
+      "description": "Docker-आधारित शतरंज गेम"
+    },
+    "pt": {
+      "name": "Xadrez",
+      "description": "Jogo de xadrez baseado em Docker"
     }
   },
   "category": "games",

@@ -46,6 +46,22 @@
     "it": {
       "name": "Stamp Paint",
       "description": "Disegno stile TuxPaint — timbri, effetti magici, pennelli"
+    },
+    "ar": {
+      "name": "طلاء الأختام",
+      "description": "رسم بأسلوب TuxPaint — أختام، تأثيرات سحرية، فرش"
+    },
+    "ko": {
+      "name": "스탬프 페인트",
+      "description": "TuxPaint 스타일 그리기 — 스탬프, 마법 효과, 브러시"
+    },
+    "hi": {
+      "name": "स्टैम्प पेंट",
+      "description": "TuxPaint-स्टाइल ड्राइंग — स्टैम्प, मैजिक इफेक्ट, ब्रश"
+    },
+    "pt": {
+      "name": "Stamp Paint",
+      "description": "Desenho estilo TuxPaint — carimbos, efeitos mágicos, pincéis"
     }
   },
   "category": "productivity"

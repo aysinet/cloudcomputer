@@ -47,6 +47,22 @@
     "it": {
       "name": "Mandala Maker",
       "description": "Strumento di disegno mandala — simmetria radiale, tavolozza colori, dimensione pennello"
+    },
+    "ar": {
+      "name": "صانع الماندالا",
+      "description": "أداة رسم ماندالا متماثلة — تناظر شعاعي، لوحة ألوان، حجم الفرشاة"
+    },
+    "ko": {
+      "name": "만다라 메이커",
+      "description": "대칭 만다라 그리기 도구 — 방사 대칭, 색상 팔레트, 브러시 크기"
+    },
+    "hi": {
+      "name": "मंडला मेकर",
+      "description": "सममित मंडला ड्राइंग टूल — रेडियल सिमेट्री, कलर पैलेट, ब्रश साइज़"
+    },
+    "pt": {
+      "name": "Criador de Mandala",
+      "description": "Ferramenta de desenho de mandala simétrica — simetria radial, paleta de cores, tamanho do pincel"
     }
   }
 }

@@ -46,6 +46,22 @@
     "it": {
       "name": "Formula matematica",
       "description": "Crea e calcola formule matematiche"
+    },
+    "ar": {
+      "name": "محرر الصيغ",
+      "description": "محرر صيغ رياضية — كتابة الصيغ بـ LaTeX، تصدير PNG/SVG/LaTeX/MathML"
+    },
+    "ko": {
+      "name": "수식 편집기",
+      "description": "수학 수식 편집기 — LaTeX로 수식 작성, PNG/SVG/LaTeX/MathML 내보내기"
+    },
+    "hi": {
+      "name": "फॉर्मूला एडिटर",
+      "description": "गणित फॉर्मूला संपादक — LaTeX में फॉर्मूला लिखें, PNG/SVG/LaTeX/MathML निर्यात"
+    },
+    "pt": {
+      "name": "Editor de Fórmulas",
+      "description": "Editor de fórmulas matemáticas — escreva fórmulas em LaTeX, exporte como PNG/SVG/LaTeX/MathML"
     }
   },
   "category": "productivity"

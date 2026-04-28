@@ -11,15 +11,58 @@
   "global": false,
   "description": "8-top bilardo oyunu — fizik motoru, yapay zeka rakip",
   "lang": {
-    "tr": { "name": "Bilardo", "description": "8-top bilardo oyunu — fizik motoru, yapay zeka rakip" },
-    "en": { "name": "Billiards", "description": "8-ball pool game — physics engine, AI opponent" },
-    "de": { "name": "Billard", "description": "8-Ball-Billardspiel — Physik-Engine, KI-Gegner" },
-    "fr": { "name": "Billard", "description": "Jeu de billard 8 boules — moteur physique, adversaire IA" },
-    "es": { "name": "Billar", "description": "Juego de billar 8 bolas — motor de física, oponente IA" },
-    "ru": { "name": "Бильярд", "description": "Бильярд 8 шаров — физический движок, ИИ-противник" },
-    "zh": { "name": "台球", "description": "八球台球游戏 - 物理引擎，AI对手" },
-    "ja": { "name": "ビリヤード", "description": "エイトボール — 物理エンジン、AI対戦" },
-    "it": { "name": "Biliardo", "description": "Biliardo 8 palle — motore fisico, avversario IA" }
+    "tr": {
+      "name": "Bilardo",
+      "description": "8-top bilardo oyunu — fizik motoru, yapay zeka rakip"
+    },
+    "en": {
+      "name": "Billiards",
+      "description": "8-ball pool game — physics engine, AI opponent"
+    },
+    "de": {
+      "name": "Billard",
+      "description": "8-Ball-Billardspiel — Physik-Engine, KI-Gegner"
+    },
+    "fr": {
+      "name": "Billard",
+      "description": "Jeu de billard 8 boules — moteur physique, adversaire IA"
+    },
+    "es": {
+      "name": "Billar",
+      "description": "Juego de billar 8 bolas — motor de física, oponente IA"
+    },
+    "ru": {
+      "name": "Бильярд",
+      "description": "Бильярд 8 шаров — физический движок, ИИ-противник"
+    },
+    "zh": {
+      "name": "台球",
+      "description": "八球台球游戏 - 物理引擎，AI对手"
+    },
+    "ja": {
+      "name": "ビリヤード",
+      "description": "エイトボール — 物理エンジン、AI対戦"
+    },
+    "it": {
+      "name": "Biliardo",
+      "description": "Biliardo 8 palle — motore fisico, avversario IA"
+    },
+    "ar": {
+      "name": "بلياردو",
+      "description": "لعبة بلياردو 8 كرات — محرك فيزيائي، خصم ذكاء اصطناعي"
+    },
+    "ko": {
+      "name": "당구",
+      "description": "8볼 당구 게임 — 물리 엔진, AI 상대"
+    },
+    "hi": {
+      "name": "बिलियर्ड्स",
+      "description": "8-बॉल पूल गेम — फिजिक्स इंजन, AI प्रतिद्वंद्वी"
+    },
+    "pt": {
+      "name": "Bilhar",
+      "description": "Jogo de bilhar 8-ball — motor de física, oponente IA"
+    }
   },
   "category": "games"
 }

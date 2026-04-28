@@ -46,6 +46,22 @@
     "it": {
       "name": "Paint",
       "description": "Disegno e modifica immagini"
+    },
+    "ar": {
+      "name": "رسام",
+      "description": "محرر صور — رسم، أشكال، نصوص، لوحة ألوان"
+    },
+    "ko": {
+      "name": "그림판",
+      "description": "이미지 편집기 — 그리기, 도형, 텍스트, 색상 팔레트"
+    },
+    "hi": {
+      "name": "पेंट",
+      "description": "इमेज एडिटर — ड्राइंग, शेप्स, टेक्स्ट, कलर पैलेट"
+    },
+    "pt": {
+      "name": "Paint",
+      "description": "Editor de imagem — desenho, formas, texto, paleta de cores"
     }
   },
   "category": "productivity"

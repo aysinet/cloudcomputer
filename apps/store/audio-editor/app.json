@@ -46,6 +46,22 @@
     "it": {
       "name": "Editor audio",
       "description": "Modifica ed elabora file audio"
+    },
+    "ar": {
+      "name": "محرر الصوت",
+      "description": "تحرير ملفات الصوت — قص، نسخ، تأثيرات وتصدير WAV"
+    },
+    "ko": {
+      "name": "오디오 편집기",
+      "description": "오디오 파일 편집 — 자르기, 복사, 효과 및 WAV 내보내기"
+    },
+    "hi": {
+      "name": "ऑडियो संपादक",
+      "description": "ऑडियो फ़ाइलें संपादित करें — कट, कॉपी, इफेक्ट और WAV निर्यात"
+    },
+    "pt": {
+      "name": "Editor de Áudio",
+      "description": "Editar arquivos de áudio — cortar, copiar, efeitos e exportar WAV"
     }
   },
   "category": "tools"

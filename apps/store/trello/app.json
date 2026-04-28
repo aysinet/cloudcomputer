@@ -46,6 +46,22 @@
     "it": {
       "name": "Trello",
       "description": "Gestione bacheche Trello — schede, liste, trascina e rilascia"
+    },
+    "ar": {
+      "name": "تريلو",
+      "description": "إدارة لوحات تريلو — بطاقات، قوائم، سحب وإفلات"
+    },
+    "ko": {
+      "name": "트렐로",
+      "description": "트렐로 보드 관리 — 카드, 목록, 드래그 앤 드롭"
+    },
+    "hi": {
+      "name": "ट्रेलो",
+      "description": "ट्रेलो बोर्ड प्रबंधन — कार्ड, सूचियाँ, ड्रैग एंड ड्रॉप"
+    },
+    "pt": {
+      "name": "Trello",
+      "description": "Gerenciamento de quadros Trello — cartões, listas, arrastar e soltar"
     }
   },
   "category": "productivity"

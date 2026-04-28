@@ -49,6 +49,22 @@
     "it": {
       "name": "Visualizzatore JSON",
       "description": "Editor e visualizzatore JSON — formattazione, controllo errori, minimap"
+    },
+    "ar": {
+      "name": "عارض JSON",
+      "description": "محرر وعارض JSON — تنسيق، فحص الأخطاء، خريطة مصغرة"
+    },
+    "ko": {
+      "name": "JSON 뷰어",
+      "description": "JSON 편집기 및 뷰어 — 포맷, 오류 검사, 미니맵"
+    },
+    "hi": {
+      "name": "JSON व्यूअर",
+      "description": "JSON संपादक और व्यूअर — प्रिटी प्रिंट, त्रुटि जांच, मिनीमैप"
+    },
+    "pt": {
+      "name": "Visualizador JSON",
+      "description": "Editor e visualizador JSON — formatação, verificação de erros, minimapa"
     }
   },
   "category": "development"

@@ -46,6 +46,22 @@
     "it": {
       "name": "Circuiti",
       "description": "Progetta circuiti elettronici"
+    },
+    "ar": {
+      "name": "مصمم الدوائر",
+      "description": "مصمم مخططات الدوائر الإلكترونية — مكتبة المكونات، رسم الأسلاك، تحرير الخصائص، تصدير PNG"
+    },
+    "ko": {
+      "name": "회로 설계",
+      "description": "전자 회로 설계 — 부품 라이브러리, 배선, 속성 편집, PNG 내보내기"
+    },
+    "hi": {
+      "name": "सर्किट डिजाइनर",
+      "description": "इलेक्ट्रॉनिक सर्किट डिजाइनर — कंपोनेंट लाइब्रेरी, वायर ड्राइंग, प्रॉपर्टी एडिटिंग, PNG निर्यात"
+    },
+    "pt": {
+      "name": "Designer de Circuitos",
+      "description": "Designer de circuitos eletrônicos — biblioteca de componentes, desenho de fios, edição de propriedades, exportação PNG"
     }
   },
   "category": "productivity"

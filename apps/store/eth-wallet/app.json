@@ -46,6 +46,22 @@
     "it": {
       "name": "Portafoglio ETH",
       "description": "Gestisci risorse Ethereum"
+    },
+    "ar": {
+      "name": "محفظة ETH",
+      "description": "محفظة إيثريوم — الرصيد، الإرسال، سجل المعاملات"
+    },
+    "ko": {
+      "name": "ETH 지갑",
+      "description": "이더리움 지갑 — 잔액, 전송, 거래 내역"
+    },
+    "hi": {
+      "name": "ETH वॉलेट",
+      "description": "इथेरियम वॉलेट — बैलेंस, भेजें, लेनदेन इतिहास"
+    },
+    "pt": {
+      "name": "Carteira ETH",
+      "description": "Carteira Ethereum — saldo, enviar, histórico de transações"
     }
   },
   "category": "finance"

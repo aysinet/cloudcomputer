@@ -46,6 +46,22 @@
     "it": {
       "name": "Backup e ripristino",
       "description": "Backup e ripristino dati"
+    },
+    "ar": {
+      "name": "النسخ الاحتياطي والاستعادة",
+      "description": "النسخ الاحتياطي والاستعادة للنظام — جميع البيانات والإعدادات والملفات"
+    },
+    "ko": {
+      "name": "백업 및 복원",
+      "description": "시스템 백업 및 복원 — 모든 데이터, 설정 및 파일"
+    },
+    "hi": {
+      "name": "बैकअप और रिस्टोर",
+      "description": "सिस्टम बैकअप और रिस्टोर — सभी डेटा, सेटिंग्स और फ़ाइलें"
+    },
+    "pt": {
+      "name": "Backup e Restauração",
+      "description": "Backup e restauração do sistema — todos os dados, configurações e arquivos"
     }
   },
   "category": "tools"

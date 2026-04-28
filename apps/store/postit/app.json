@@ -46,6 +46,22 @@
     "it": {
       "name": "Post-it",
       "description": "Note adesive per il desktop"
+    },
+    "ar": {
+      "name": "ملاحظات لاصقة",
+      "description": "ألصق ملاحظات على سطح المكتب — سحب، تغيير الحجم، تلوين"
+    },
+    "ko": {
+      "name": "포스트잇",
+      "description": "바탕화면에 메모 붙이기 — 드래그, 크기 조절, 색상 변경"
+    },
+    "hi": {
+      "name": "पोस्टइट नोट्स",
+      "description": "अपने डेस्कटॉप पर नोट्स चिपकाएं — ड्रैग, रिसाइज़, रंग बदलें"
+    },
+    "pt": {
+      "name": "Notas Adesivas",
+      "description": "Cole notas na sua área de trabalho — arrastar, redimensionar, colorir"
     }
   },
   "category": "productivity"

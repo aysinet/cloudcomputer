@@ -47,6 +47,22 @@
     "it": {
       "name": "Snake",
       "description": "Gioco Snake classico — punteggio, livelli di velocità, collisione"
+    },
+    "ar": {
+      "name": "الأفعى",
+      "description": "لعبة الأفعى الكلاسيكية — النقاط، مستويات السرعة، التصادم"
+    },
+    "ko": {
+      "name": "스네이크",
+      "description": "클래식 스네이크 게임 — 점수, 속도 레벨, 충돌"
+    },
+    "hi": {
+      "name": "स्नेक",
+      "description": "क्लासिक स्नेक गेम — स्कोर, स्पीड लेवल, टक्कर"
+    },
+    "pt": {
+      "name": "Snake",
+      "description": "Jogo Snake clássico — pontuação, níveis de velocidade, colisão"
     }
   }
 }

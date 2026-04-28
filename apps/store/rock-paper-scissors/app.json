@@ -47,6 +47,22 @@
     "it": {
       "name": "Sasso Carta Forbice",
       "description": "Classico Sasso Carta Forbice — gioca contro il computer"
+    },
+    "ar": {
+      "name": "حجر ورقة مقص",
+      "description": "لعبة حجر ورقة مقص الكلاسيكية — العب ضد الكمبيوتر، تتبع النتائج"
+    },
+    "ko": {
+      "name": "가위바위보",
+      "description": "클래식 가위바위보 — 컴퓨터와 대전, 점수 추적"
+    },
+    "hi": {
+      "name": "पत्थर कागज़ कैंची",
+      "description": "क्लासिक पत्थर कागज़ कैंची — कंप्यूटर के खिलाफ खेलें, स्कोर ट्रैकिंग"
+    },
+    "pt": {
+      "name": "Pedra Papel Tesoura",
+      "description": "Pedra Papel Tesoura clássico — jogue contra o computador, acompanhamento de pontuação"
     }
   }
 }

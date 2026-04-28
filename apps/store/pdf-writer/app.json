@@ -46,6 +46,22 @@
     "it": {
       "name": "Scrittore PDF",
       "description": "Crea documenti PDF"
+    },
+    "ar": {
+      "name": "كاتب PDF",
+      "description": "منشئ PDF — محرر نصوص غني، إدراج الصور، إدارة الصفحات، حفظ على الخادم"
+    },
+    "ko": {
+      "name": "PDF 작성기",
+      "description": "PDF 생성기 — 리치 텍스트 편집기, 이미지 삽입, 페이지 관리, 서버 저장"
+    },
+    "hi": {
+      "name": "PDF लेखक",
+      "description": "PDF निर्माता — रिच टेक्स्ट एडिटर, इमेज इंसर्शन, पेज प्रबंधन, सर्वर पर सहेजें"
+    },
+    "pt": {
+      "name": "Editor PDF",
+      "description": "Criador de PDF — editor de texto rico, inserção de imagem, gerenciamento de páginas, salvar no servidor"
     }
   },
   "category": "productivity"

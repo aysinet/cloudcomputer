@@ -46,6 +46,22 @@
     "it": {
       "name": "Lettore libri",
       "description": "Leggi libri digitali"
+    },
+    "ar": {
+      "name": "قارئ الكتب",
+      "description": "قارئ الكتب الإلكترونية — يدعم صيغ EPUB، PDF، TXT، HTML، FB2"
+    },
+    "ko": {
+      "name": "북 리더",
+      "description": "전자책 리더 — EPUB, PDF, TXT, HTML, FB2 형식 지원"
+    },
+    "hi": {
+      "name": "बुक रीडर",
+      "description": "ई-बुक रीडर — EPUB, PDF, TXT, HTML, FB2 प्रारूप समर्थन"
+    },
+    "pt": {
+      "name": "Leitor de Livros",
+      "description": "Leitor de e-books — suporta formatos EPUB, PDF, TXT, HTML, FB2"
     }
   },
   "category": "tools"

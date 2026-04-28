@@ -46,6 +46,22 @@
     "it": {
       "name": "Foto",
       "description": "Visualizza e gestisci foto"
+    },
+    "ar": {
+      "name": "الصور",
+      "description": "معرض الصور — ألبومات، عرض شرائح، تحرير"
+    },
+    "ko": {
+      "name": "포토",
+      "description": "사진 갤러리 — 앨범, 슬라이드쇼, 편집"
+    },
+    "hi": {
+      "name": "फ़ोटो",
+      "description": "फ़ोटो गैलरी — एल्बम, स्लाइडशो, एडिटिंग"
+    },
+    "pt": {
+      "name": "Fotos",
+      "description": "Galeria de fotos — álbuns, apresentação de slides, edição"
     }
   },
   "category": "media"

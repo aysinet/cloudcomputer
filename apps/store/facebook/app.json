@@ -46,6 +46,22 @@
     "it": {
       "name": "Facebook",
       "description": "Accesso rapido alla piattaforma social Facebook"
+    },
+    "ar": {
+      "name": "فيسبوك",
+      "description": "وصول سريع إلى منصة فيسبوك"
+    },
+    "ko": {
+      "name": "페이스북",
+      "description": "페이스북 소셜 미디어 빠른 접속"
+    },
+    "hi": {
+      "name": "फ़ेसबुक",
+      "description": "फ़ेसबुक सोशल मीडिया प्लेटफ़ॉर्म पर त्वरित पहुँच"
+    },
+    "pt": {
+      "name": "Facebook",
+      "description": "Acesso rápido à plataforma Facebook"
     }
   },
   "category": "social"

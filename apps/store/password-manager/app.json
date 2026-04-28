@@ -46,6 +46,22 @@
     "it": {
       "name": "Gestore password",
       "description": "Gestisci le password in modo sicuro"
+    },
+    "ar": {
+      "name": "مدير كلمات المرور",
+      "description": "مدير كلمات المرور — تشفير AES، خزنة آمنة"
+    },
+    "ko": {
+      "name": "비밀번호 관리자",
+      "description": "비밀번호 관리자 — AES 암호화, 보안 금고"
+    },
+    "hi": {
+      "name": "पासवर्ड मैनेजर",
+      "description": "पासवर्ड मैनेजर — AES एन्क्रिप्शन, सुरक्षित वॉल्ट"
+    },
+    "pt": {
+      "name": "Gerenciador de Senhas",
+      "description": "Gerenciador de senhas — criptografia AES, cofre seguro"
     }
   },
   "category": "tools"

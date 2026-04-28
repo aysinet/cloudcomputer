@@ -46,6 +46,22 @@
     "it": {
       "name": "Signal MIDI Editor",
       "description": "Sequencer e editor MIDI basato sul web"
+    },
+    "ar": {
+      "name": "محرر MIDI",
+      "description": "محرر ومؤلف MIDI على الويب"
+    },
+    "ko": {
+      "name": "시그널 MIDI",
+      "description": "웹 기반 MIDI 시퀀서 및 편집기"
+    },
+    "hi": {
+      "name": "सिग्नल MIDI",
+      "description": "वेब-आधारित MIDI सीक्वेंसर और एडिटर"
+    },
+    "pt": {
+      "name": "Signal MIDI",
+      "description": "Sequenciador e editor MIDI baseado na web"
     }
   },
   "category": "media",

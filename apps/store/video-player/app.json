@@ -46,6 +46,22 @@
     "it": {
       "name": "Lettore video",
       "description": "Riproduci file video"
+    },
+    "ar": {
+      "name": "مشغل الفيديو",
+      "description": "مشغل فيديو — قائمة تشغيل، ملء الشاشة"
+    },
+    "ko": {
+      "name": "비디오 플레이어",
+      "description": "비디오 플레이어 — 재생목록, 전체화면"
+    },
+    "hi": {
+      "name": "वीडियो प्लेयर",
+      "description": "वीडियो प्लेयर — प्लेलिस्ट, फ़ुलस्क्रीन"
+    },
+    "pt": {
+      "name": "Player de Vídeo",
+      "description": "Player de vídeo — playlist, tela cheia"
     }
   },
   "category": "media"

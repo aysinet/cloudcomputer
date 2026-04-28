@@ -46,6 +46,22 @@
     "it": {
       "name": "Telegram",
       "description": "App di messaggistica Telegram Web"
+    },
+    "ar": {
+      "name": "تيليجرام",
+      "description": "تطبيق تيليجرام ويب للمراسلة"
+    },
+    "ko": {
+      "name": "텔레그램",
+      "description": "텔레그램 웹 메시징 앱"
+    },
+    "hi": {
+      "name": "टेलीग्राम",
+      "description": "टेलीग्राम वेब मैसेजिंग ऐप"
+    },
+    "pt": {
+      "name": "Telegram",
+      "description": "Aplicativo de mensagens Telegram Web"
     }
   },
   "category": "social"

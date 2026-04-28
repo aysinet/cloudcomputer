@@ -47,6 +47,22 @@
     "it": {
       "name": "GitHub",
       "description": "Esplora repository GitHub"
+    },
+    "ar": {
+      "name": "جيت هاب",
+      "description": "عمليات Git، المستودعات، المشاكل وطلبات السحب"
+    },
+    "ko": {
+      "name": "깃허브",
+      "description": "Git 작업, 리포지토리, 이슈 및 풀 리퀘스트 관리"
+    },
+    "hi": {
+      "name": "गिटहब",
+      "description": "Git ऑपरेशन, रिपॉजिटरी, इश्यू और पुल रिक्वेस्ट प्रबंधन"
+    },
+    "pt": {
+      "name": "GitHub",
+      "description": "Operações Git, repositórios, issues e gerenciamento de pull requests"
     }
   }
 }

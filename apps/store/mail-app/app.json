@@ -46,6 +46,22 @@
     "it": {
       "name": "Posta",
       "description": "Invia e ricevi email"
+    },
+    "ar": {
+      "name": "البريد",
+      "description": "إرسال واستقبال البريد الإلكتروني — دعم SMTP و POP3"
+    },
+    "ko": {
+      "name": "메일",
+      "description": "이메일 보내기 및 받기 — SMTP 및 POP3 지원"
+    },
+    "hi": {
+      "name": "मेल",
+      "description": "ईमेल भेजें और प्राप्त करें — SMTP और POP3 समर्थन"
+    },
+    "pt": {
+      "name": "Correio",
+      "description": "Enviar e receber e-mails — suporte SMTP e POP3"
     }
   },
   "category": "productivity"

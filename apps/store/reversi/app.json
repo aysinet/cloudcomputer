@@ -46,6 +46,22 @@
     "it": {
       "name": "Reversi",
       "description": "Gioco classico Reversi"
+    },
+    "ar": {
+      "name": "ريفرسي",
+      "description": "لعبة ريفرسي (أوثيلو) الاستراتيجية الكلاسيكية"
+    },
+    "ko": {
+      "name": "리버시",
+      "description": "클래식 리버시(오델로) 전략 게임"
+    },
+    "hi": {
+      "name": "रिवर्सी",
+      "description": "क्लासिक रिवर्सी (ओथेलो) रणनीति गेम"
+    },
+    "pt": {
+      "name": "Reversi",
+      "description": "Jogo de estratégia clássico Reversi (Othello)"
     }
   },
   "category": "games"

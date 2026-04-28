@@ -46,6 +46,22 @@
     "it": {
       "name": "Editor codice",
       "description": "Scrivi e modifica codice"
+    },
+    "ar": {
+      "name": "محرر الأكواد",
+      "description": "محرر أكواد Monaco — تمييز بناء الجملة، فتح/حفظ الملفات"
+    },
+    "ko": {
+      "name": "코드 편집기",
+      "description": "Monaco 기반 코드 편집기 — 구문 강조, 파일 열기/저장"
+    },
+    "hi": {
+      "name": "कोड एडिटर",
+      "description": "Monaco-आधारित कोड एडिटर — सिंटैक्स हाइलाइटिंग, फ़ाइल खोलें/सहेजें"
+    },
+    "pt": {
+      "name": "Editor de Código",
+      "description": "Editor de código baseado em Monaco — destaque de sintaxe, abrir/salvar arquivos"
     }
   },
   "category": "development"

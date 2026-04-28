@@ -46,6 +46,22 @@
     "it": {
       "name": "Archiviatore",
       "description": "Comprimi e decomprimi file"
+    },
+    "ar": {
+      "name": "أرشيف",
+      "description": "ضغط واستخراج أرشيفات ZIP و GZIP"
+    },
+    "ko": {
+      "name": "압축기",
+      "description": "ZIP 및 GZIP 아카이브 압축 및 해제"
+    },
+    "hi": {
+      "name": "आर्काइवर",
+      "description": "ZIP और GZIP आर्काइव को संपीड़ित और निकालें"
+    },
+    "pt": {
+      "name": "Arquivador",
+      "description": "Comprimir e extrair arquivos ZIP e GZIP"
     }
   },
   "category": "tools"

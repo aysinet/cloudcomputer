@@ -46,6 +46,22 @@
     "it": {
       "name": "Visualizzatore Markdown",
       "description": "Visualizza file Markdown"
+    },
+    "ar": {
+      "name": "عارض Markdown",
+      "description": "محرر وعارض Markdown — معاينة مباشرة، فتح/حفظ الملفات"
+    },
+    "ko": {
+      "name": "마크다운 뷰어",
+      "description": "마크다운 편집기 및 뷰어 — 실시간 미리보기, 파일 열기/저장"
+    },
+    "hi": {
+      "name": "मार्कडाउन व्यूअर",
+      "description": "मार्कडाउन संपादक और व्यूअर — लाइव प्रीव्यू, फ़ाइल खोलें/सहेजें"
+    },
+    "pt": {
+      "name": "Visualizador Markdown",
+      "description": "Editor e visualizador Markdown — pré-visualização ao vivo, abrir/salvar arquivos"
     }
   },
   "category": "development"

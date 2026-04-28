@@ -46,6 +46,22 @@
     "it": {
       "name": "Navidrome",
       "description": "Server di streaming musicale"
+    },
+    "ar": {
+      "name": "ناڤيدروم",
+      "description": "خادم موسيقى يعتمد على Docker — Spotify الشخصي الخاص بك"
+    },
+    "ko": {
+      "name": "나비드롬",
+      "description": "Docker 기반 음악 서버 — 나만의 Spotify"
+    },
+    "hi": {
+      "name": "नेविड्रोम",
+      "description": "Docker-आधारित संगीत सर्वर — आपका निजी Spotify"
+    },
+    "pt": {
+      "name": "Navidrome",
+      "description": "Servidor de música baseado em Docker — seu Spotify pessoal"
     }
   },
   "category": "media",

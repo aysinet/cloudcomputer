@@ -46,6 +46,22 @@
     "it": {
       "name": "Promemoria",
       "description": "Imposta promemoria e sveglie"
+    },
+    "ar": {
+      "name": "تذكير",
+      "description": "تذكير — إشعارات مؤقتة، مهام متكررة"
+    },
+    "ko": {
+      "name": "리마인더",
+      "description": "리마인더 — 예약 알림, 반복 작업"
+    },
+    "hi": {
+      "name": "रिमाइंडर",
+      "description": "रिमाइंडर — समयबद्ध सूचनाएं, आवर्ती कार्य"
+    },
+    "pt": {
+      "name": "Lembrete",
+      "description": "Lembrete — notificações programadas, tarefas recorrentes"
     }
   },
   "category": "productivity"

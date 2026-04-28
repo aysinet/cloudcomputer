@@ -46,6 +46,22 @@
     "it": {
       "name": "Tracker crypto",
       "description": "Monitora i prezzi delle criptovalute"
+    },
+    "ar": {
+      "name": "متتبع العملات",
+      "description": "متتبع العملات المشفرة — أسعار مباشرة، المفضلة، المحفظة"
+    },
+    "ko": {
+      "name": "코인 트래커",
+      "description": "암호화폐 추적기 — 실시간 가격, 즐겨찾기, 포트폴리오"
+    },
+    "hi": {
+      "name": "कॉइन ट्रैकर",
+      "description": "क्रिप्टोकरेंसी ट्रैकर — लाइव कीमतें, पसंदीदा, पोर्टफोलियो"
+    },
+    "pt": {
+      "name": "Rastreador de Moedas",
+      "description": "Rastreador de criptomoedas — preços ao vivo, favoritos, portfólio"
     }
   },
   "category": "finance"

@@ -46,6 +46,22 @@
     "it": {
       "name": "Mappa mentale",
       "description": "Crea mappe mentali"
+    },
+    "ar": {
+      "name": "خريطة ذهنية",
+      "description": "إنشاء خرائط ذهنية — فتح/حفظ الملفات، سمات وتخطيطات متعددة"
+    },
+    "ko": {
+      "name": "마인드맵",
+      "description": "마인드맵 생성 — 파일 열기/저장, 다양한 테마 및 레이아웃"
+    },
+    "hi": {
+      "name": "माइंड मैप",
+      "description": "माइंड मैप बनाएं — फ़ाइल खोलें/सहेजें, कई थीम और लेआउट"
+    },
+    "pt": {
+      "name": "Mapa Mental",
+      "description": "Criação de mapa mental — abrir/salvar arquivos, múltiplos temas e layouts"
     }
   },
   "category": "productivity"

@@ -46,6 +46,22 @@
     "it": {
       "name": "Orologio mondiale",
       "description": "Visualizza orari in tutto il mondo"
+    },
+    "ar": {
+      "name": "ساعة عالمية",
+      "description": "ساعة عالمية — مناطق زمنية متعددة، إضافة مدن"
+    },
+    "ko": {
+      "name": "세계 시계",
+      "description": "세계 시계 — 다중 시간대, 도시 추가"
+    },
+    "hi": {
+      "name": "विश्व घड़ी",
+      "description": "विश्व घड़ी — कई समय क्षेत्र, शहर जोड़ें"
+    },
+    "pt": {
+      "name": "Relógio Mundial",
+      "description": "Relógio mundial — múltiplos fusos horários, adicionar cidades"
     }
   },
   "category": "tools"

@@ -46,6 +46,22 @@
     "it": {
       "name": "Risultati Sportivi",
       "description": "Risultati sportivi in diretta — calcio, basket, tennis"
+    },
+    "ar": {
+      "name": "نتائج رياضية",
+      "description": "نتائج رياضية مباشرة — كرة قدم، كرة سلة، تنس"
+    },
+    "ko": {
+      "name": "스포츠 스코어",
+      "description": "실시간 스포츠 점수 — 축구, 농구, 테니스"
+    },
+    "hi": {
+      "name": "स्पोर्ट स्कोर",
+      "description": "लाइव स्पोर्ट स्कोर — फुटबॉल, बास्केटबॉल, टेनिस"
+    },
+    "pt": {
+      "name": "Resultados Esportivos",
+      "description": "Resultados esportivos ao vivo — futebol, basquete, tênis"
     }
   },
   "category": "tools"

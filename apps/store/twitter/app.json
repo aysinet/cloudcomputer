@@ -46,6 +46,22 @@
     "it": {
       "name": "X (Twitter)",
       "description": "Accesso rapido alla piattaforma social X (Twitter)"
+    },
+    "ar": {
+      "name": "إكس (تويتر)",
+      "description": "وصول سريع إلى منصة إكس (تويتر)"
+    },
+    "ko": {
+      "name": "X (트위터)",
+      "description": "X (트위터) 소셜 미디어 빠른 접속"
+    },
+    "hi": {
+      "name": "X (ट्विटर)",
+      "description": "X (ट्विटर) सोशल मीडिया प्लेटफ़ॉर्म पर त्वरित पहुँच"
+    },
+    "pt": {
+      "name": "X (Twitter)",
+      "description": "Acesso rápido à plataforma X (Twitter)"
     }
   },
   "category": "social"

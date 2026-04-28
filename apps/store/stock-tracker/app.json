@@ -46,6 +46,22 @@
     "it": {
       "name": "Tracker azioni",
       "description": "Monitora i prezzi delle azioni"
+    },
+    "ar": {
+      "name": "متتبع الأسهم",
+      "description": "متتبع أسهم ناسداك — أسعار مباشرة، المفضلة، المحفظة"
+    },
+    "ko": {
+      "name": "주식 트래커",
+      "description": "나스닥 주식 추적기 — 실시간 가격, 즐겨찾기, 포트폴리오"
+    },
+    "hi": {
+      "name": "स्टॉक ट्रैकर",
+      "description": "NASDAQ स्टॉक ट्रैकर — लाइव कीमतें, पसंदीदा, पोर्टफोलियो"
+    },
+    "pt": {
+      "name": "Rastreador de Ações",
+      "description": "Rastreador de ações NASDAQ — preços ao vivo, favoritos, portfólio"
     }
   },
   "category": "finance"

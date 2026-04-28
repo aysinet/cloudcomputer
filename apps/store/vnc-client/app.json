@@ -46,6 +46,22 @@
     "it": {
       "name": "Client VNC",
       "description": "Connessione desktop remoto"
+    },
+    "ar": {
+      "name": "عميل VNC",
+      "description": "الاتصال بخوادم VNC لعرض والتحكم بسطح المكتب عن بعد"
+    },
+    "ko": {
+      "name": "VNC 클라이언트",
+      "description": "VNC 서버에 연결하여 원격 데스크톱 보기 및 제어"
+    },
+    "hi": {
+      "name": "VNC क्लाइंट",
+      "description": "रिमोट डेस्कटॉप देखने और नियंत्रण के लिए VNC सर्वर से कनेक्ट करें"
+    },
+    "pt": {
+      "name": "Cliente VNC",
+      "description": "Conectar a servidores VNC para visualização e controle remoto da área de trabalho"
     }
   },
   "category": "utilities"

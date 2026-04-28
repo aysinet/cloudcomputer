@@ -46,6 +46,22 @@
     "it": {
       "name": "Diff testo",
       "description": "Confronta le differenze tra due testi"
+    },
+    "ar": {
+      "name": "مقارنة النصوص",
+      "description": "مقارنة النصوص والملفات — مقارنة جنبًا إلى جنب، مقارنة المجلدات"
+    },
+    "ko": {
+      "name": "텍스트 비교",
+      "description": "텍스트 및 파일 비교 — 나란히 비교, 폴더 비교"
+    },
+    "hi": {
+      "name": "टेक्स्ट डिफ",
+      "description": "टेक्स्ट और फ़ाइल तुलना — साइड-बाय-साइड डिफ, फ़ोल्डर तुलना"
+    },
+    "pt": {
+      "name": "Comparador de Texto",
+      "description": "Comparação de texto e arquivos — diferença lado a lado, comparação de pastas"
     }
   },
   "category": "tools"

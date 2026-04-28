@@ -46,6 +46,22 @@
     "it": {
       "name": "Campo minato",
       "description": "Gioco classico campo minato"
+    },
+    "ar": {
+      "name": "كاسحة الألغام",
+      "description": "لعبة كاسحة الألغام الكلاسيكية — سهل، متوسط، صعب"
+    },
+    "ko": {
+      "name": "지뢰찾기",
+      "description": "클래식 지뢰찾기 게임 — 쉬움, 보통, 어려움"
+    },
+    "hi": {
+      "name": "माइनस्वीपर",
+      "description": "क्लासिक माइनस्वीपर गेम — आसान, मध्यम, कठिन"
+    },
+    "pt": {
+      "name": "Campo Minado",
+      "description": "Jogo clássico de campo minado — fácil, médio, difícil"
     }
   },
   "category": "games"

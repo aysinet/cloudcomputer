@@ -46,6 +46,22 @@
     "it": {
       "name": "Convertitore unità",
       "description": "Converti varie unità di misura"
+    },
+    "ar": {
+      "name": "محول الوحدات",
+      "description": "تحويل وحدات الطول، الوزن، الحرارة، المساحة، الحجم، السرعة والمزيد"
+    },
+    "ko": {
+      "name": "단위 변환기",
+      "description": "길이, 무게, 온도, 면적, 부피, 속도 등 단위 변환"
+    },
+    "hi": {
+      "name": "यूनिट कनवर्टर",
+      "description": "लंबाई, वजन, तापमान, क्षेत्र, आयतन, गति और अधिक इकाइयों को बदलें"
+    },
+    "pt": {
+      "name": "Conversor de Unidades",
+      "description": "Converter unidades de comprimento, peso, temperatura, área, volume, velocidade e mais"
     }
   },
   "category": "tools"

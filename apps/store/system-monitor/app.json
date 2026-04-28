@@ -46,6 +46,22 @@
     "it": {
       "name": "Monitor di Sistema",
       "description": "Monitora l'utilizzo CPU/RAM di server e client con grafici"
+    },
+    "ar": {
+      "name": "مراقب النظام",
+      "description": "مراقبة استخدام CPU/RAM للخادم والعميل بالرسوم البيانية"
+    },
+    "ko": {
+      "name": "시스템 모니터",
+      "description": "서버 및 클라이언트 CPU/RAM 사용량 그래프 모니터링"
+    },
+    "hi": {
+      "name": "सिस्टम मॉनिटर",
+      "description": "ग्राफ़ के साथ सर्वर और क्लाइंट CPU/RAM उपयोग निगरानी"
+    },
+    "pt": {
+      "name": "Monitor do Sistema",
+      "description": "Monitor de uso de CPU/RAM do servidor e cliente com gráficos"
     }
   },
   "category": "utilities"

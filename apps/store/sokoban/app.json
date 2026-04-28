@@ -46,6 +46,22 @@
     "it": {
       "name": "Sokoban",
       "description": "Gioco puzzle classico Sokoban"
+    },
+    "ar": {
+      "name": "سوكوبان",
+      "description": "لعبة سوكوبان الكلاسيكية — ادفع الصناديق إلى المواقع المستهدفة، 30 مستوى"
+    },
+    "ko": {
+      "name": "소코반",
+      "description": "클래식 소코반 퍼즐 게임 — 상자를 목표 위치로 밀기, 30 레벨"
+    },
+    "hi": {
+      "name": "सोकोबन",
+      "description": "क्लासिक सोकोबन पज़ल गेम — बक्सों को लक्ष्य स्थानों पर धकेलें, 30 स्तर"
+    },
+    "pt": {
+      "name": "Sokoban",
+      "description": "Jogo de puzzle clássico Sokoban — empurre caixas para os locais alvo, 30 níveis"
     }
   },
   "category": "games"

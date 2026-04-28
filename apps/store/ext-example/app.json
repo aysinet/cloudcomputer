@@ -47,6 +47,22 @@
     "it": {
       "name": "Esempio estensione",
       "description": "App estensione di esempio"
+    },
+    "ar": {
+      "name": "تطبيق خارجي",
+      "description": "مثال تطبيق خارجي (localhost:9090)"
+    },
+    "ko": {
+      "name": "외부 앱",
+      "description": "외부 애플리케이션 예시 (localhost:9090)"
+    },
+    "hi": {
+      "name": "बाहरी ऐप",
+      "description": "बाहरी एप्लिकेशन उदाहरण (localhost:9090)"
+    },
+    "pt": {
+      "name": "App Externo",
+      "description": "Exemplo de aplicação externa (localhost:9090)"
     }
   },
   "category": "other"

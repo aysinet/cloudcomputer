@@ -46,6 +46,22 @@
     "it": {
       "name": "Visualizzatore PDF",
       "description": "Visualizza file PDF"
+    },
+    "ar": {
+      "name": "عارض PDF",
+      "description": "عارض PDF — فتح الملفات، التنقل بين الصفحات، التكبير"
+    },
+    "ko": {
+      "name": "PDF 뷰어",
+      "description": "PDF 뷰어 — 파일 열기, 페이지 탐색, 확대/축소"
+    },
+    "hi": {
+      "name": "PDF व्यूअर",
+      "description": "PDF व्यूअर — फ़ाइल खोलें, पेज नेविगेशन, ज़ूम"
+    },
+    "pt": {
+      "name": "Visualizador PDF",
+      "description": "Visualizador PDF — abrir arquivo, navegação de páginas, zoom"
     }
   },
   "category": "tools"

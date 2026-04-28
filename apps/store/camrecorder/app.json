@@ -4,19 +4,65 @@
   "icon": "🎥",
   "color": "linear-gradient(135deg,#e74c3c,#c0392b)",
   "type": "internal",
-  "size": { "w": 480, "h": 420 },
+  "size": {
+    "w": 480,
+    "h": 420
+  },
   "global": false,
   "description": "Kamera ile fotoğraf çek ve video kaydet",
   "category": "tools",
   "lang": {
-    "tr": { "name": "Kamera", "description": "Kamera ile fotoğraf çek ve video kaydet" },
-    "en": { "name": "Camera", "description": "Take photos and record videos with your camera" },
-    "de": { "name": "Kamera", "description": "Fotos aufnehmen und Videos aufzeichnen" },
-    "fr": { "name": "Caméra", "description": "Prendre des photos et enregistrer des vidéos" },
-    "es": { "name": "Cámara", "description": "Tomar fotos y grabar videos con la cámara" },
-    "ru": { "name": "Камера", "description": "Фото и видеозапись с камеры" },
-    "zh": { "name": "摄像头", "description": "拍照和录制视频" },
-    "ja": { "name": "カメラ", "description": "写真撮影とビデオ録画" },
-    "it": { "name": "Fotocamera", "description": "Scatta foto e registra video" }
+    "tr": {
+      "name": "Kamera",
+      "description": "Kamera ile fotoğraf çek ve video kaydet"
+    },
+    "en": {
+      "name": "Camera",
+      "description": "Take photos and record videos with your camera"
+    },
+    "de": {
+      "name": "Kamera",
+      "description": "Fotos aufnehmen und Videos aufzeichnen"
+    },
+    "fr": {
+      "name": "Caméra",
+      "description": "Prendre des photos et enregistrer des vidéos"
+    },
+    "es": {
+      "name": "Cámara",
+      "description": "Tomar fotos y grabar videos con la cámara"
+    },
+    "ru": {
+      "name": "Камера",
+      "description": "Фото и видеозапись с камеры"
+    },
+    "zh": {
+      "name": "摄像头",
+      "description": "拍照和录制视频"
+    },
+    "ja": {
+      "name": "カメラ",
+      "description": "写真撮影とビデオ録画"
+    },
+    "it": {
+      "name": "Fotocamera",
+      "description": "Scatta foto e registra video"
+    },
+    "ar": {
+      "name": "الكاميرا",
+      "description": "التقاط الصور وتسجيل الفيديو بالكاميرا"
+    },
+    "ko": {
+      "name": "카메라",
+      "description": "카메라로 사진 촬영 및 비디오 녹화"
+    },
+    "hi": {
+      "name": "कैमरा",
+      "description": "कैमरे से फ़ोटो लें और वीडियो रिकॉर्ड करें"
+    },
+    "pt": {
+      "name": "Câmera",
+      "description": "Tire fotos e grave vídeos com sua câmera"
+    }
   }
 }

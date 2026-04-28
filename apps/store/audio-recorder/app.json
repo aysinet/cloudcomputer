@@ -46,6 +46,22 @@
     "it": {
       "name": "Registratore audio",
       "description": "Registra audio"
+    },
+    "ar": {
+      "name": "مسجل الصوت",
+      "description": "تسجيل الميكروفون — تسجيل WAV في الوقت الفعلي إلى الخادم"
+    },
+    "ko": {
+      "name": "오디오 레코더",
+      "description": "마이크 녹음 — 서버로 실시간 WAV 녹음"
+    },
+    "hi": {
+      "name": "ऑडियो रिकॉर्डर",
+      "description": "माइक्रोफ़ोन रिकॉर्डिंग — सर्वर पर रीयल-टाइम WAV रिकॉर्डिंग"
+    },
+    "pt": {
+      "name": "Gravador de Áudio",
+      "description": "Gravação de microfone — gravação WAV em tempo real para o servidor"
     }
   },
   "category": "tools"

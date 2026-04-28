@@ -46,6 +46,22 @@
     "it": {
       "name": "Lettore musicale",
       "description": "Riproduci file musicali"
+    },
+    "ar": {
+      "name": "مشغل الموسيقى",
+      "description": "مشغل موسيقى — قائمة تشغيل، غلاف الألبوم، تخطي"
+    },
+    "ko": {
+      "name": "음악 플레이어",
+      "description": "음악 플레이어 — 재생목록, 앨범 아트, 건너뛰기"
+    },
+    "hi": {
+      "name": "म्यूज़िक प्लेयर",
+      "description": "म्यूज़िक प्लेयर — प्लेलिस्ट, एल्बम आर्ट, स्किप"
+    },
+    "pt": {
+      "name": "Player de Música",
+      "description": "Player de música — playlist, capa do álbum, pular"
     }
   },
   "category": "media"

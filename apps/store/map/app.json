@@ -46,6 +46,22 @@
     "it": {
       "name": "Mappa",
       "description": "Esplora la mappa del mondo"
+    },
+    "ar": {
+      "name": "خريطة",
+      "description": "خريطة — تحديد المواقع، حفظ العروض، تحديد الطبقات"
+    },
+    "ko": {
+      "name": "지도",
+      "description": "지도 — 위치 표시, 뷰 저장, 레이어 선택"
+    },
+    "hi": {
+      "name": "नक्शा",
+      "description": "नक्शा — स्थान चिह्नित करें, दृश्य सहेजें, लेयर चुनें"
+    },
+    "pt": {
+      "name": "Mapa",
+      "description": "Mapa — marcar locais, salvar visualizações, selecionar camadas"
     }
   },
   "category": "tools"

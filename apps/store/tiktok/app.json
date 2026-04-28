@@ -46,6 +46,22 @@
     "it": {
       "name": "TikTok",
       "description": "Accesso rapido alla piattaforma TikTok"
+    },
+    "ar": {
+      "name": "تيك توك",
+      "description": "وصول سريع إلى منصة تيك توك"
+    },
+    "ko": {
+      "name": "틱톡",
+      "description": "틱톡 소셜 미디어 빠른 접속"
+    },
+    "hi": {
+      "name": "टिकटॉक",
+      "description": "टिकटॉक सोशल मीडिया प्लेटफ़ॉर्म पर त्वरित पहुँच"
+    },
+    "pt": {
+      "name": "TikTok",
+      "description": "Acesso rápido à plataforma TikTok"
     }
   },
   "category": "social"

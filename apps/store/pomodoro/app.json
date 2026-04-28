@@ -46,6 +46,22 @@
     "it": {
       "name": "Pomodoro",
       "description": "Timer tecnica Pomodoro"
+    },
+    "ar": {
+      "name": "بومودورو",
+      "description": "مؤقت بومودورو — دورة عمل/استراحة"
+    },
+    "ko": {
+      "name": "포모도로",
+      "description": "포모도로 타이머 — 작업/휴식 주기"
+    },
+    "hi": {
+      "name": "पोमोडोरो",
+      "description": "पोमोडोरो टाइमर — कार्य/विश्राम चक्र"
+    },
+    "pt": {
+      "name": "Pomodoro",
+      "description": "Timer Pomodoro — ciclo de trabalho/descanso"
     }
   },
   "category": "productivity"

@@ -46,6 +46,22 @@
     "it": {
       "name": "Sudoku",
       "description": "Gioco classico Sudoku"
+    },
+    "ar": {
+      "name": "سودوكو",
+      "description": "لعبة سودوكو — سهل، متوسط، صعب"
+    },
+    "ko": {
+      "name": "스도쿠",
+      "description": "스도쿠 퍼즐 게임 — 쉬움, 보통, 어려움"
+    },
+    "hi": {
+      "name": "सुडोकू",
+      "description": "सुडोकू पज़ल गेम — आसान, मध्यम, कठिन"
+    },
+    "pt": {
+      "name": "Sudoku",
+      "description": "Jogo de puzzle Sudoku — fácil, médio, difícil"
     }
   },
   "category": "games"

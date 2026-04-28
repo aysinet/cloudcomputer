@@ -46,6 +46,22 @@
     "it": {
       "name": "Lettore RSS",
       "description": "Leggi feed RSS"
+    },
+    "ar": {
+      "name": "قارئ RSS",
+      "description": "قارئ RSS — إضافة خلاصات، قراءة المقالات، المفضلة"
+    },
+    "ko": {
+      "name": "RSS 리더",
+      "description": "RSS 리더 — 피드 추가, 기사 읽기, 즐겨찾기"
+    },
+    "hi": {
+      "name": "RSS रीडर",
+      "description": "RSS रीडर — फ़ीड जोड़ें, लेख पढ़ें, पसंदीदा"
+    },
+    "pt": {
+      "name": "Leitor RSS",
+      "description": "Leitor RSS — adicionar feeds, ler artigos, favoritos"
     }
   },
   "category": "internet"
