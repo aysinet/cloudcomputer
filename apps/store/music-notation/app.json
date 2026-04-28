@@ -1,0 +1,68 @@
+{
+  "id": "music-notation",
+  "name": "Müzik Notasyon Editörü",
+  "icon": "🎼",
+  "color": "linear-gradient(135deg,#6c5ce7,#a29bfe)",
+  "type": "internal",
+  "size": {
+    "w": 900,
+    "h": 620
+  },
+  "global": false,
+  "description": "MusicXML tabanlı müzik notasyon editörü ve görüntüleyici",
+  "lang": {
+    "tr": {
+      "name": "Müzik Notasyon Editörü",
+      "description": "MusicXML tabanlı müzik notasyon editörü ve görüntüleyici"
+    },
+    "en": {
+      "name": "Music Notation Editor",
+      "description": "MusicXML-based music notation editor and viewer"
+    },
+    "de": {
+      "name": "Musiknotation-Editor",
+      "description": "MusicXML-basierter Musiknotation-Editor und Viewer"
+    },
+    "fr": {
+      "name": "Éditeur de Notation Musicale",
+      "description": "Éditeur et visualiseur de notation musicale basé sur MusicXML"
+    },
+    "es": {
+      "name": "Editor de Notación Musical",
+      "description": "Editor y visor de notación musical basado en MusicXML"
+    },
+    "ru": {
+      "name": "Редактор нотной записи",
+      "description": "Редактор и просмотрщик нотной записи на основе MusicXML"
+    },
+    "zh": {
+      "name": "乐谱编辑器",
+      "description": "基于MusicXML的乐谱编辑器和查看器"
+    },
+    "ja": {
+      "name": "楽譜エディタ",
+      "description": "MusicXMLベースの楽譜エディタとビューア"
+    },
+    "it": {
+      "name": "Editor di Notazione Musicale",
+      "description": "Editor e visualizzatore di notazione musicale basato su MusicXML"
+    },
+    "ar": {
+      "name": "محرر التدوين الموسيقي",
+      "description": "محرر وعارض التدوين الموسيقي المبني على MusicXML"
+    },
+    "ko": {
+      "name": "악보 편집기",
+      "description": "MusicXML 기반 악보 편집기 및 뷰어"
+    },
+    "hi": {
+      "name": "संगीत अंकन संपादक",
+      "description": "MusicXML आधारित संगीत अंकन संपादक और दर्शक"
+    },
+    "pt": {
+      "name": "Editor de Notação Musical",
+      "description": "Editor e visualizador de notação musical baseado em MusicXML"
+    }
+  },
+  "category": "multimedia"
+}

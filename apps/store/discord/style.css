@@ -1,0 +1,110 @@
+.discord-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: #1e1f22;
+  color: #dbdee1;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 20px;
+  box-sizing: border-box;
+  gap: 14px;
+}
+
+.dc-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dc-logo {
+  width: 44px;
+  height: 44px;
+  background: #5865F2;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dc-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #f2f3f5;
+}
+
+.dc-subtitle {
+  font-size: 13px;
+  color: #949ba4;
+  margin: 0;
+  text-align: center;
+}
+
+.dc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.dc-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: #2b2d31;
+  border-radius: 10px;
+  padding: 14px 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  border: 1px solid #3f4147;
+}
+
+.dc-card:hover {
+  background: #383a40;
+  transform: translateY(-2px);
+}
+
+.dc-card:active {
+  transform: scale(0.97);
+}
+
+.dc-card-icon {
+  font-size: 26px;
+}
+
+.dc-card-label {
+  font-size: 12px;
+  color: #949ba4;
+  text-align: center;
+}
+
+.dc-open-btn {
+  background: #5865F2;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 32px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.dc-open-btn:hover {
+  background: #4752c4;
+  transform: scale(1.02);
+}
+
+.dc-open-btn:active {
+  transform: scale(0.98);
+}
+
+.dc-note {
+  font-size: 11px;
+  color: #5c5e66;
+  margin: 0;
+  text-align: center;
+}

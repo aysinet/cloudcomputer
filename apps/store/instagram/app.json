@@ -1,0 +1,68 @@
+{
+  "id": "instagram",
+  "name": "Instagram",
+  "icon": "📸",
+  "color": "linear-gradient(135deg,#833AB4,#FD1D1D,#F77737)",
+  "type": "internal",
+  "size": {
+    "w": 480,
+    "h": 380
+  },
+  "global": false,
+  "description": "Instagram sosyal medya platformuna hızlı erişim",
+  "lang": {
+    "tr": {
+      "name": "Instagram",
+      "description": "Instagram sosyal medya platformuna hızlı erişim"
+    },
+    "en": {
+      "name": "Instagram",
+      "description": "Quick access to Instagram social media platform"
+    },
+    "de": {
+      "name": "Instagram",
+      "description": "Schneller Zugriff auf die Instagram-Plattform"
+    },
+    "fr": {
+      "name": "Instagram",
+      "description": "Accès rapide à la plateforme Instagram"
+    },
+    "es": {
+      "name": "Instagram",
+      "description": "Acceso rápido a la plataforma Instagram"
+    },
+    "ru": {
+      "name": "Instagram",
+      "description": "Быстрый доступ к платформе Instagram"
+    },
+    "zh": {
+      "name": "Instagram",
+      "description": "快速访问Instagram平台"
+    },
+    "ja": {
+      "name": "Instagram",
+      "description": "Instagramプラットフォームへのクイックアクセス"
+    },
+    "it": {
+      "name": "Instagram",
+      "description": "Accesso rapido alla piattaforma Instagram"
+    },
+    "ar": {
+      "name": "إنستغرام",
+      "description": "وصول سريع إلى منصة إنستغرام"
+    },
+    "ko": {
+      "name": "인스타그램",
+      "description": "인스타그램 소셜 미디어 빠른 접속"
+    },
+    "hi": {
+      "name": "इंस्टाग्राम",
+      "description": "इंस्टाग्राम सोशल मीडिया प्लेटफ़ॉर्म पर त्वरित पहुँच"
+    },
+    "pt": {
+      "name": "Instagram",
+      "description": "Acesso rápido à plataforma Instagram"
+    }
+  },
+  "category": "social"
+}

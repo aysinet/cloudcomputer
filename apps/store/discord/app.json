@@ -1,0 +1,68 @@
+{
+  "id": "discord",
+  "name": "Discord",
+  "icon": "🎧",
+  "color": "linear-gradient(135deg,#5865F2,#3a45c2)",
+  "type": "internal",
+  "size": {
+    "w": 480,
+    "h": 380
+  },
+  "global": false,
+  "description": "Discord iletişim platformuna hızlı erişim",
+  "lang": {
+    "tr": {
+      "name": "Discord",
+      "description": "Discord iletişim platformuna hızlı erişim"
+    },
+    "en": {
+      "name": "Discord",
+      "description": "Quick access to Discord communication platform"
+    },
+    "de": {
+      "name": "Discord",
+      "description": "Schneller Zugriff auf die Discord-Plattform"
+    },
+    "fr": {
+      "name": "Discord",
+      "description": "Accès rapide à la plateforme Discord"
+    },
+    "es": {
+      "name": "Discord",
+      "description": "Acceso rápido a la plataforma Discord"
+    },
+    "ru": {
+      "name": "Discord",
+      "description": "Быстрый доступ к платформе Discord"
+    },
+    "zh": {
+      "name": "Discord",
+      "description": "快速访问Discord平台"
+    },
+    "ja": {
+      "name": "Discord",
+      "description": "Discordプラットフォームへのクイックアクセス"
+    },
+    "it": {
+      "name": "Discord",
+      "description": "Accesso rapido alla piattaforma Discord"
+    },
+    "ar": {
+      "name": "ديسكورد",
+      "description": "وصول سريع إلى منصة ديسكورد"
+    },
+    "ko": {
+      "name": "디스코드",
+      "description": "디스코드 플랫폼 빠른 접속"
+    },
+    "hi": {
+      "name": "डिस्कॉर्ड",
+      "description": "डिस्कॉर्ड प्लेटफ़ॉर्म पर त्वरित पहुँच"
+    },
+    "pt": {
+      "name": "Discord",
+      "description": "Acesso rápido à plataforma Discord"
+    }
+  },
+  "category": "social"
+}

@@ -16,7 +16,9 @@
       colCoin: 'Coin', colAmount: 'Miktar', colBuy: 'Alış', colCurrent: 'Güncel',
       colValue: 'Değer', colPnl: 'K/Z',
       emptyPortfolio: 'Portföyünüze coin ekleyin',
-      favTooltip: 'Favori', hideTooltip: 'Gizle', editTooltip: 'Düzenle', deleteTooltip: 'Sil'
+      favTooltip: 'Favori', hideTooltip: 'Gizle', editTooltip: 'Düzenle', deleteTooltip: 'Sil',
+      alertTooltip: 'Bildirim', alertTitle: 'Fiyat Bildirimi', alertMin: 'Minimum Fiyat', alertMax: 'Maksimum Fiyat',
+      alertSave: 'Kaydet', alertRemove: 'Kaldır', alertClose: 'Kapat', alertActive: 'Aktif Bildirimler', alertNone: 'Bildirim yok'
     },
     en: {
       title: 'Coin Tracker', tabAll: 'All', tabFav: 'Favorites', tabPortfolio: 'Portfolio',
@@ -32,7 +34,9 @@
       colCoin: 'Coin', colAmount: 'Amount', colBuy: 'Buy', colCurrent: 'Current',
       colValue: 'Value', colPnl: 'P/L',
       emptyPortfolio: 'Add coins to your portfolio',
-      favTooltip: 'Favorite', hideTooltip: 'Hide', editTooltip: 'Edit', deleteTooltip: 'Delete'
+      favTooltip: 'Favorite', hideTooltip: 'Hide', editTooltip: 'Edit', deleteTooltip: 'Delete',
+      alertTooltip: 'Alert', alertTitle: 'Price Alert', alertMin: 'Min Price', alertMax: 'Max Price',
+      alertSave: 'Save', alertRemove: 'Remove', alertClose: 'Close', alertActive: 'Active Alerts', alertNone: 'No alerts'
     },
     de: {
       title: 'Coin Tracker', tabAll: 'Alle', tabFav: 'Favoriten', tabPortfolio: 'Portfolio',
@@ -48,7 +52,9 @@
       colCoin: 'Coin', colAmount: 'Menge', colBuy: 'Kauf', colCurrent: 'Aktuell',
       colValue: 'Wert', colPnl: 'G/V',
       emptyPortfolio: 'Fügen Sie Coins zu Ihrem Portfolio hinzu',
-      favTooltip: 'Favorit', hideTooltip: 'Verstecken', editTooltip: 'Bearbeiten', deleteTooltip: 'Löschen'
+      favTooltip: 'Favorit', hideTooltip: 'Verstecken', editTooltip: 'Bearbeiten', deleteTooltip: 'Löschen',
+      alertTooltip: 'Alarm', alertTitle: 'Preisalarm', alertMin: 'Mindestpreis', alertMax: 'Höchstpreis',
+      alertSave: 'Speichern', alertRemove: 'Entfernen', alertClose: 'Schließen', alertActive: 'Aktive Alarme', alertNone: 'Keine Alarme'
     },
     fr: {
       title: 'Coin Tracker', tabAll: 'Tous', tabFav: 'Favoris', tabPortfolio: 'Portefeuille',
@@ -64,7 +70,9 @@
       colCoin: 'Coin', colAmount: 'Montant', colBuy: 'Achat', colCurrent: 'Actuel',
       colValue: 'Valeur', colPnl: 'G/P',
       emptyPortfolio: 'Ajoutez des coins à votre portefeuille',
-      favTooltip: 'Favori', hideTooltip: 'Masquer', editTooltip: 'Modifier', deleteTooltip: 'Supprimer'
+      favTooltip: 'Favori', hideTooltip: 'Masquer', editTooltip: 'Modifier', deleteTooltip: 'Supprimer',
+      alertTooltip: 'Alerte', alertTitle: 'Alerte de prix', alertMin: 'Prix minimum', alertMax: 'Prix maximum',
+      alertSave: 'Enregistrer', alertRemove: 'Supprimer', alertClose: 'Fermer', alertActive: 'Alertes actives', alertNone: 'Aucune alerte'
     },
     es: {
       title: 'Coin Tracker', tabAll: 'Todos', tabFav: 'Favoritos', tabPortfolio: 'Portafolio',
@@ -80,7 +88,9 @@
       colCoin: 'Moneda', colAmount: 'Cantidad', colBuy: 'Compra', colCurrent: 'Actual',
       colValue: 'Valor', colPnl: 'G/P',
       emptyPortfolio: 'Agregue monedas a su portafolio',
-      favTooltip: 'Favorito', hideTooltip: 'Ocultar', editTooltip: 'Editar', deleteTooltip: 'Eliminar'
+      favTooltip: 'Favorito', hideTooltip: 'Ocultar', editTooltip: 'Editar', deleteTooltip: 'Eliminar',
+      alertTooltip: 'Alerta', alertTitle: 'Alerta de precio', alertMin: 'Precio mínimo', alertMax: 'Precio máximo',
+      alertSave: 'Guardar', alertRemove: 'Eliminar', alertClose: 'Cerrar', alertActive: 'Alertas activas', alertNone: 'Sin alertas'
     },
     ru: {
       title: 'Coin Tracker', tabAll: 'Все', tabFav: 'Избранное', tabPortfolio: 'Портфель',
@@ -96,11 +106,13 @@
       colCoin: 'Монета', colAmount: 'Кол-во', colBuy: 'Покупка', colCurrent: 'Текущая',
       colValue: 'Стоимость', colPnl: 'П/У',
       emptyPortfolio: 'Добавьте монеты в свой портфель',
-      favTooltip: 'Избранное', hideTooltip: 'Скрыть', editTooltip: 'Редактировать', deleteTooltip: 'Удалить'
+      favTooltip: 'Избранное', hideTooltip: 'Скрыть', editTooltip: 'Редактировать', deleteTooltip: 'Удалить',
+      alertTooltip: 'Уведомление', alertTitle: 'Уведомление о цене', alertMin: 'Мин. цена', alertMax: 'Макс. цена',
+      alertSave: 'Сохранить', alertRemove: 'Удалить', alertClose: 'Закрыть', alertActive: 'Активные уведомления', alertNone: 'Нет уведомлений'
     },
-    zh: { title:'加密货币追踪', tabAll:'全部', tabFav:'收藏', tabPortfolio:'投资组合', searchPlaceholder:'搜索币种...', showHidden:'显示隐藏', live:'实时', disconnected:'已断开', lastUpdate:'最后更新', colSymbol:'代码', colPrice:'价格', colActions:'操作', noResult:'无结果', loading:'加载中', editTitle:'编辑', addTitle:'添加', lblSymbol:'代码', lblAmount:'数量', lblBuyPrice:'买入价', btnSave:'保存', btnAdd:'添加', btnCancel:'取消', usdtBalance:'USDT余额', totalCost:'总成本', currentValue:'当前价值', pnl:'盈亏', colCoin:'币种', colAmount:'数量', colBuy:'买入价', colCurrent:'当前价', colValue:'价值', colPnl:'盈亏', emptyPortfolio:'投资组合为空', favTooltip:'收藏', hideTooltip:'隐藏', editTooltip:'编辑', deleteTooltip:'删除' },
-    ja: { title:'暗号通貨トラッカー', tabAll:'すべて', tabFav:'お気に入り', tabPortfolio:'ポートフォリオ', searchPlaceholder:'通貨を検索...', showHidden:'非表示を表示', live:'リアルタイム', disconnected:'切断', lastUpdate:'最終更新', colSymbol:'シンボル', colPrice:'価格', colActions:'操作', noResult:'結果なし', loading:'読込中', editTitle:'編集', addTitle:'追加', lblSymbol:'シンボル', lblAmount:'数量', lblBuyPrice:'購入価格', btnSave:'保存', btnAdd:'追加', btnCancel:'キャンセル', usdtBalance:'USDT残高', totalCost:'総コスト', currentValue:'現在価値', pnl:'損益', colCoin:'通貨', colAmount:'数量', colBuy:'購入価格', colCurrent:'現在価格', colValue:'価値', colPnl:'損益', emptyPortfolio:'ポートフォリオは空です', favTooltip:'お気に入り', hideTooltip:'非表示', editTooltip:'編集', deleteTooltip:'削除' },
-    it: { title:'Tracker Criptovalute', tabAll:'Tutte', tabFav:'Preferite', tabPortfolio:'Portafoglio', searchPlaceholder:'Cerca moneta...', showHidden:'Mostra nascoste', live:'In tempo reale', disconnected:'Disconnesso', lastUpdate:'Ultimo aggiornamento', colSymbol:'Simbolo', colPrice:'Prezzo', colActions:'Azioni', noResult:'Nessun risultato', loading:'Caricamento', editTitle:'Modifica', addTitle:'Aggiungi', lblSymbol:'Simbolo', lblAmount:'Quantità', lblBuyPrice:'Prezzo acquisto', btnSave:'Salva', btnAdd:'Aggiungi', btnCancel:'Annulla', usdtBalance:'Saldo USDT', totalCost:'Costo totale', currentValue:'Valore attuale', pnl:'P/L', colCoin:'Moneta', colAmount:'Quantità', colBuy:'Acquisto', colCurrent:'Attuale', colValue:'Valore', colPnl:'P/L', emptyPortfolio:'Portafoglio vuoto', favTooltip:'Preferita', hideTooltip:'Nascondi', editTooltip:'Modifica', deleteTooltip:'Elimina' }
+    zh: { title:'加密货币追踪', tabAll:'全部', tabFav:'收藏', tabPortfolio:'投资组合', searchPlaceholder:'搜索币种...', showHidden:'显示隐藏', live:'实时', disconnected:'已断开', lastUpdate:'最后更新', colSymbol:'代码', colPrice:'价格', colActions:'操作', noResult:'无结果', loading:'加载中', editTitle:'编辑', addTitle:'添加', lblSymbol:'代码', lblAmount:'数量', lblBuyPrice:'买入价', btnSave:'保存', btnAdd:'添加', btnCancel:'取消', usdtBalance:'USDT余额', totalCost:'总成本', currentValue:'当前价值', pnl:'盈亏', colCoin:'币种', colAmount:'数量', colBuy:'买入价', colCurrent:'当前价', colValue:'价值', colPnl:'盈亏', emptyPortfolio:'投资组合为空', favTooltip:'收藏', hideTooltip:'隐藏', editTooltip:'编辑', deleteTooltip:'删除', alertTooltip:'提醒', alertTitle:'价格提醒', alertMin:'最低价', alertMax:'最高价', alertSave:'保存', alertRemove:'删除', alertClose:'关闭', alertActive:'活跃提醒', alertNone:'无提醒' },
+    ja: { title:'暗号通貨トラッカー', tabAll:'すべて', tabFav:'お気に入り', tabPortfolio:'ポートフォリオ', searchPlaceholder:'通貨を検索...', showHidden:'非表示を表示', live:'リアルタイム', disconnected:'切断', lastUpdate:'最終更新', colSymbol:'シンボル', colPrice:'価格', colActions:'操作', noResult:'結果なし', loading:'読込中', editTitle:'編集', addTitle:'追加', lblSymbol:'シンボル', lblAmount:'数量', lblBuyPrice:'購入価格', btnSave:'保存', btnAdd:'追加', btnCancel:'キャンセル', usdtBalance:'USDT残高', totalCost:'総コスト', currentValue:'現在価値', pnl:'損益', colCoin:'通貨', colAmount:'数量', colBuy:'購入価格', colCurrent:'現在価格', colValue:'価値', colPnl:'損益', emptyPortfolio:'ポートフォリオは空です', favTooltip:'お気に入り', hideTooltip:'非表示', editTooltip:'編集', deleteTooltip:'削除', alertTooltip:'アラート', alertTitle:'価格アラート', alertMin:'最低価格', alertMax:'最高価格', alertSave:'保存', alertRemove:'削除', alertClose:'閉じる', alertActive:'アクティブなアラート', alertNone:'アラートなし' },
+    it: { title:'Tracker Criptovalute', tabAll:'Tutte', tabFav:'Preferite', tabPortfolio:'Portafoglio', searchPlaceholder:'Cerca moneta...', showHidden:'Mostra nascoste', live:'In tempo reale', disconnected:'Disconnesso', lastUpdate:'Ultimo aggiornamento', colSymbol:'Simbolo', colPrice:'Prezzo', colActions:'Azioni', noResult:'Nessun risultato', loading:'Caricamento', editTitle:'Modifica', addTitle:'Aggiungi', lblSymbol:'Simbolo', lblAmount:'Quantità', lblBuyPrice:'Prezzo acquisto', btnSave:'Salva', btnAdd:'Aggiungi', btnCancel:'Annulla', usdtBalance:'Saldo USDT', totalCost:'Costo totale', currentValue:'Valore attuale', pnl:'P/L', colCoin:'Moneta', colAmount:'Quantità', colBuy:'Acquisto', colCurrent:'Attuale', colValue:'Valore', colPnl:'P/L', emptyPortfolio:'Portafoglio vuoto', favTooltip:'Preferita', hideTooltip:'Nascondi', editTooltip:'Modifica', deleteTooltip:'Elimina', alertTooltip:'Avviso', alertTitle:'Avviso prezzo', alertMin:'Prezzo minimo', alertMax:'Prezzo massimo', alertSave:'Salva', alertRemove:'Rimuovi', alertClose:'Chiudi', alertActive:'Avvisi attivi', alertNone:'Nessun avviso' }
   };
 
   function getLocale() {
@@ -350,6 +362,47 @@
         pfEdit.value = -1;
       }
 
+      // ── Drag reorder helpers ──
+      const dragIdx = ref(-1);
+      const dragOverIdx = ref(-1);
+      const dragTarget = ref(''); // 'fav' or 'pf'
+
+      function onDragStart(type, idx, e) {
+        dragTarget.value = type;
+        dragIdx.value = idx;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', idx);
+      }
+      function onDragOver(type, idx, e) {
+        if (dragTarget.value !== type) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        dragOverIdx.value = idx;
+      }
+      function onDragEnd() {
+        dragIdx.value = -1;
+        dragOverIdx.value = -1;
+        dragTarget.value = '';
+      }
+      function onDropFav(idx) {
+        if (dragTarget.value !== 'fav' || dragIdx.value < 0 || dragIdx.value === idx) { onDragEnd(); return; }
+        const arr = [...favorites.value];
+        const [moved] = arr.splice(dragIdx.value, 1);
+        arr.splice(idx, 0, moved);
+        favorites.value = arr;
+        onDragEnd();
+        savePrefs();
+      }
+      function onDropPf(idx) {
+        if (dragTarget.value !== 'pf' || dragIdx.value < 0 || dragIdx.value === idx) { onDragEnd(); return; }
+        const arr = [...portfolio.value];
+        const [moved] = arr.splice(dragIdx.value, 1);
+        arr.splice(idx, 0, moved);
+        portfolio.value = arr;
+        onDragEnd();
+        savePrefs();
+      }
+
       // ── Autocomplete for symbol input ──
       const symbolSuggestions = computed(() => {
         if (!pfForm.symbol || pfForm.symbol.length < 1) return [];
@@ -364,8 +417,74 @@
         pfForm.symbol = s;
       }
 
+      // ── Price alerts ──
+      const coinAlerts = ref([]);
+      const alertDialogOpen = ref(false);
+      const alertSymbol = ref('');
+      const alertMin = ref('');
+      const alertMax = ref('');
+
+      async function loadAlerts() {
+        try {
+          const res = await fetch('/api/coins/alerts');
+          if (res.ok) coinAlerts.value = await res.json();
+        } catch {}
+      }
+
+      async function saveAlerts() {
+        try {
+          await fetch('/api/coins/alerts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ alerts: coinAlerts.value })
+          });
+        } catch {}
+      }
+
+      function openAlertDialog(symbol) {
+        const sym = symbol.endsWith('USDT') ? symbol : symbol + 'USDT';
+        alertSymbol.value = sym;
+        const existing = coinAlerts.value.find(a => a.symbol === sym);
+        alertMin.value = existing && existing.min !== null ? String(existing.min) : '';
+        alertMax.value = existing && existing.max !== null ? String(existing.max) : '';
+        alertDialogOpen.value = true;
+      }
+
+      function saveAlert() {
+        const sym = alertSymbol.value;
+        const min = alertMin.value.trim() !== '' ? parseLocaleNumber(alertMin.value) : null;
+        const max = alertMax.value.trim() !== '' ? parseLocaleNumber(alertMax.value) : null;
+        if (min === null && max === null) { removeAlert(); return; }
+        const idx = coinAlerts.value.findIndex(a => a.symbol === sym);
+        const entry = { symbol: sym, min: (min !== null && !isNaN(min)) ? min : null, max: (max !== null && !isNaN(max)) ? max : null };
+        if (idx >= 0) coinAlerts.value[idx] = entry;
+        else coinAlerts.value.push(entry);
+        saveAlerts();
+        alertDialogOpen.value = false;
+      }
+
+      function removeAlert() {
+        coinAlerts.value = coinAlerts.value.filter(a => a.symbol !== alertSymbol.value);
+        saveAlerts();
+        alertDialogOpen.value = false;
+      }
+
+      function removeAlertBySymbol(sym) {
+        coinAlerts.value = coinAlerts.value.filter(a => a.symbol !== sym);
+        saveAlerts();
+      }
+
+      function hasAlert(sym) {
+        return coinAlerts.value.some(a => a.symbol === sym);
+      }
+
+      function closeAlertDialog() {
+        alertDialogOpen.value = false;
+      }
+
       onMounted(() => {
         loadPrefs();
+        loadAlerts();
         connectWS();
         window.addEventListener('locale-changed', onLocaleChanged);
       });
@@ -387,7 +506,11 @@
         portfolio, pfForm, pfEdit, portfolioRows, portfolioTotal,
         addPortfolioEntry, editPortfolioEntry, removePortfolioEntry, cancelEdit,
         symbolSuggestions, pickSymbol, usdtBalance,
-        editingUsdt, usdtDraft, usdtInput, startEditUsdt, saveUsdt, cancelEditUsdt
+        editingUsdt, usdtDraft, usdtInput, startEditUsdt, saveUsdt, cancelEditUsdt,
+        dragIdx, dragOverIdx, dragTarget,
+        onDragStart, onDragOver, onDragEnd, onDropFav, onDropPf,
+        coinAlerts, alertDialogOpen, alertSymbol, alertMin, alertMax,
+        openAlertDialog, saveAlert, removeAlert, removeAlertBySymbol, hasAlert, closeAlertDialog
       };
     }
   };

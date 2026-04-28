@@ -1,0 +1,127 @@
+<div class="mn-root">
+  <!-- ── Toolbar ── -->
+  <div class="mn-toolbar">
+    <div class="mn-toolbar-group">
+      <button class="mn-btn" @click="newFile" title="New">📄</button>
+      <button class="mn-btn" @click="openFile" title="Open">📂</button>
+      <button class="mn-btn" @click="saveFile" :class="{accent:dirty}" title="Save">💾</button>
+      <button class="mn-btn" @click="importFile" title="Import">📥</button>
+      <div class="mn-dropdown">
+        <button class="mn-btn" title="Export">📤</button>
+        <div class="mn-dropdown-menu">
+          <div class="mn-dropdown-item" @click="exportXml">{{t.exportXml}}</div>
+          <div class="mn-dropdown-item" @click="exportPng">{{t.exportPng}}</div>
+        </div>
+      </div>
+      <div class="mn-sep"></div>
+      <div class="mn-dropdown">
+        <button class="mn-btn" title="Templates">📋</button>
+        <div class="mn-dropdown-menu">
+          <div class="mn-dropdown-item" @click="loadTemplate('blank')">{{t.blank}}</div>
+          <div class="mn-dropdown-item" @click="loadTemplate('cMajorScale')">{{t.cMajorScale}}</div>
+          <div class="mn-dropdown-item" @click="loadTemplate('simpleWaltz')">{{t.simpleWaltz}}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mn-toolbar-group">
+      <button class="mn-btn" @click="zoomOut" title="Zoom Out">🔍−</button>
+      <span class="mn-zoom-label">{{Math.round(zoom*100)}}%</span>
+      <button class="mn-btn" @click="zoomIn" title="Zoom In">🔍+</button>
+      <button class="mn-btn mn-btn-sm" @click="zoomReset">{{t.zoomReset}}</button>
+    </div>
+
+    <div class="mn-toolbar-group">
+      <button class="mn-btn" :class="{playing: playing}" @click="playScore">
+        {{playing ? '⏹ ' + t.stop : '▶ ' + t.play}}
+      </button>
+    </div>
+
+    <div class="mn-toolbar-group mn-tabs">
+      <button :class="{active:activeTab==='visual'}" @click="activeTab='visual'">🎼 {{t.tabVisual}}</button>
+      <button :class="{active:activeTab==='source'}" @click="activeTab='source'">📝 {{t.tabSource}}</button>
+    </div>
+  </div>
+
+  <!-- ── Note Input Panel ── -->
+  <div class="mn-note-panel" v-if="activeTab==='visual'">
+    <div class="mn-note-group">
+      <label>{{t.duration}}</label>
+      <div class="mn-note-btns">
+        <button v-for="d in DURATIONS" :key="d.type"
+          :class="{active: selDuration===d.type}" @click="selDuration=d.type"
+          :title="t[d.type] || d.type" class="mn-note-btn">{{d.symbol}}</button>
+      </div>
+    </div>
+    <div class="mn-note-group">
+      <label>{{t.addNote}}</label>
+      <div class="mn-note-btns">
+        <button v-for="n in NOTE_NAMES" :key="n"
+          :class="{active: selNote===n}" @click="selNote=n"
+          class="mn-note-btn">{{t['note'+n]}}</button>
+      </div>
+    </div>
+    <div class="mn-note-group">
+      <label>{{t.octave}}</label>
+      <div class="mn-note-btns">
+        <button v-for="o in [2,3,4,5,6]" :key="o"
+          :class="{active: selOctave===o}" @click="selOctave=o"
+          class="mn-note-btn">{{o}}</button>
+      </div>
+    </div>
+    <div class="mn-note-group">
+      <div class="mn-note-btns">
+        <button :class="{active: selAccidental===1}" @click="selAccidental = selAccidental===1?0:1" class="mn-note-btn" :title="t.sharp">♯</button>
+        <button :class="{active: selAccidental===-1}" @click="selAccidental = selAccidental===-1?0:-1" class="mn-note-btn" :title="t.flat">♭</button>
+        <button :class="{active: selDot}" @click="selDot=!selDot" class="mn-note-btn" :title="t.dot">•</button>
+      </div>
+    </div>
+    <div class="mn-note-group mn-note-actions">
+      <button class="mn-btn mn-btn-accent" @click="addNoteToXml">🎵 {{t.addNote}}</button>
+      <button class="mn-btn" @click="addRestToXml">𝄾 {{t.addRest}}</button>
+      <div class="mn-sep"></div>
+      <button class="mn-btn" @click="addMeasure">➕ {{t.addMeasure}}</button>
+      <button class="mn-btn" @click="removeMeasure">➖ {{t.removeMeasure}}</button>
+    </div>
+  </div>
+
+  <!-- ── Meta Panel ── -->
+  <div class="mn-meta-panel" v-if="activeTab==='visual'">
+    <div class="mn-meta-field">
+      <label>{{t.title_}}</label>
+      <input class="mn-input" v-model="scoreTitle" @change="updateMeta">
+    </div>
+    <div class="mn-meta-field">
+      <label>{{t.composer}}</label>
+      <input class="mn-input" v-model="scoreComposer" @change="updateMeta">
+    </div>
+    <div class="mn-meta-field">
+      <label>{{t.tempo}}</label>
+      <input type="number" class="mn-input mn-input-sm" v-model.number="scoreTempo" min="20" max="300" @change="updateMeta">
+    </div>
+    <div class="mn-meta-field">
+      <label>{{t.timeSignature}}</label>
+      <span class="mn-time-sig">{{scoreBeats}}/{{scoreBeatType}}</span>
+    </div>
+  </div>
+
+  <!-- ── Visual Render ── -->
+  <div class="mn-render" v-show="activeTab==='visual'">
+    <div ref="osmdContainer" class="mn-osmd-container"></div>
+  </div>
+
+  <!-- ── Source Editor ── -->
+  <div class="mn-source" v-show="activeTab==='source'">
+    <textarea ref="xmlEditor" class="mn-xml-editor" :value="xmlSource" @input="onSourceInput" spellcheck="false"></textarea>
+    <div class="mn-source-actions">
+      <button class="mn-btn mn-btn-accent" @click="applySource">▶ {{t.tabVisual}}</button>
+    </div>
+  </div>
+
+  <!-- ── Status bar ── -->
+  <div class="mn-statusbar">
+    <span>{{status}}</span>
+    <span v-if="filePath" class="mn-statusbar-path">{{filePath}}</span>
+    <span v-if="dirty" class="mn-statusbar-dirty">●</span>
+  </div>
+</div>

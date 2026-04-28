@@ -1,0 +1,268 @@
+.bmi-app {
+  width: 100%;
+  height: 100%;
+  background: #0d1117;
+  color: #c9d1d9;
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 20px;
+  box-sizing: border-box;
+  gap: 14px;
+}
+
+.bmi-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bmi-icon {
+  font-size: 28px;
+}
+
+.bmi-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f0f6fc;
+  margin: 0;
+}
+
+.bmi-subtitle {
+  font-size: 12px;
+  color: #8b949e;
+  margin: 0;
+}
+
+.bmi-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bmi-row {
+  display: flex;
+  gap: 10px;
+}
+
+.bmi-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bmi-field label {
+  font-size: 11px;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+
+.bmi-input {
+  height: 34px;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  background: #161b22;
+  color: #c9d1d9;
+  padding: 0 10px;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.bmi-input:focus {
+  border-color: #00b894;
+}
+
+.bmi-gender {
+  display: flex;
+  gap: 4px;
+  height: 34px;
+}
+
+.bmi-gender button {
+  flex: 1;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  background: #161b22;
+  color: #8b949e;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.bmi-gender button.active {
+  background: #00b894;
+  border-color: #00b894;
+  color: #fff;
+  font-weight: 600;
+}
+
+.bmi-gender button:hover:not(.active) {
+  background: #21262d;
+  color: #c9d1d9;
+}
+
+.bmi-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.bmi-btn-calc {
+  flex: 1;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #00b894, #00cec9);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .2s, transform .15s;
+}
+
+.bmi-btn-calc:hover {
+  opacity: .9;
+  transform: scale(1.01);
+}
+
+.bmi-btn-reset {
+  width: 80px;
+  height: 36px;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  background: transparent;
+  color: #8b949e;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.bmi-btn-reset:hover {
+  background: #21262d;
+  color: #c9d1d9;
+}
+
+/* ── Result ── */
+.bmi-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.bmi-gauge-wrap {
+  width: 100%;
+}
+
+.bmi-gauge-bar {
+  position: relative;
+  height: 10px;
+  background: #21262d;
+  border-radius: 5px;
+  overflow: visible;
+}
+
+.bmi-gauge-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width .4s ease, background .3s;
+}
+
+.bmi-gauge-marker {
+  position: absolute;
+  top: -4px;
+  width: 4px;
+  height: 18px;
+  background: #f0f6fc;
+  border-radius: 2px;
+  transform: translateX(-2px);
+  transition: left .4s ease;
+  box-shadow: 0 0 6px rgba(240,246,252,.5);
+}
+
+.bmi-gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: #484f58;
+  margin-top: 4px;
+  padding: 0 2px;
+}
+
+.bmi-result-big {
+  font-size: 48px;
+  font-weight: 800;
+  font-family: 'Courier New', monospace;
+  transition: color .3s;
+}
+
+.bmi-result-cat {
+  padding: 4px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  transition: background .3s;
+}
+
+.bmi-ideal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.bmi-ideal-label {
+  color: #8b949e;
+}
+
+.bmi-ideal-val {
+  color: #00b894;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+/* ── Chart ── */
+.bmi-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.bmi-chart-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.bmi-chart-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bmi-chart-range {
+  width: 90px;
+  color: #8b949e;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+}
+
+.bmi-chart-name {
+  color: #c9d1d9;
+  font-weight: 500;
+}

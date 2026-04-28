@@ -1,0 +1,68 @@
+{
+  "id": "bodymass-index",
+  "name": "Vücut Kitle İndeksi",
+  "icon": "⚖️",
+  "color": "linear-gradient(135deg,#00b894,#00cec9)",
+  "type": "internal",
+  "size": {
+    "w": 420,
+    "h": 520
+  },
+  "global": false,
+  "description": "Vücut kitle indeksinizi (BMI) hesaplayın",
+  "lang": {
+    "tr": {
+      "name": "Vücut Kitle İndeksi",
+      "description": "Vücut kitle indeksinizi (BMI) hesaplayın"
+    },
+    "en": {
+      "name": "Body Mass Index",
+      "description": "Calculate your body mass index (BMI)"
+    },
+    "de": {
+      "name": "Body-Mass-Index",
+      "description": "Berechnen Sie Ihren Body-Mass-Index (BMI)"
+    },
+    "fr": {
+      "name": "Indice de Masse Corporelle",
+      "description": "Calculez votre indice de masse corporelle (IMC)"
+    },
+    "es": {
+      "name": "Índice de Masa Corporal",
+      "description": "Calcule su índice de masa corporal (IMC)"
+    },
+    "ru": {
+      "name": "Индекс массы тела",
+      "description": "Рассчитайте индекс массы тела (ИМТ)"
+    },
+    "zh": {
+      "name": "身体质量指数",
+      "description": "计算您的身体质量指数（BMI）"
+    },
+    "ja": {
+      "name": "ボディマス指数",
+      "description": "BMI（ボディマス指数）を計算"
+    },
+    "it": {
+      "name": "Indice di Massa Corporea",
+      "description": "Calcola il tuo indice di massa corporea (BMI)"
+    },
+    "ar": {
+      "name": "مؤشر كتلة الجسم",
+      "description": "احسب مؤشر كتلة جسمك"
+    },
+    "ko": {
+      "name": "체질량지수",
+      "description": "체질량지수(BMI)를 계산하세요"
+    },
+    "hi": {
+      "name": "बॉडी मास इंडेक्स",
+      "description": "अपना बॉडी मास इंडेक्स (BMI) गणना करें"
+    },
+    "pt": {
+      "name": "Índice de Massa Corporal",
+      "description": "Calcule seu índice de massa corporal (IMC)"
+    }
+  },
+  "category": "utilities"
+}

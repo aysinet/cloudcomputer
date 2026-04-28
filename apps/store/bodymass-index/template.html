@@ -1,0 +1,70 @@
+<div class="bmi-app">
+  <div class="bmi-header">
+    <span class="bmi-icon">⚖️</span>
+    <h2>{{ t.title }}</h2>
+  </div>
+  <p class="bmi-subtitle">{{ t.subtitle }}</p>
+
+  <div class="bmi-form">
+    <div class="bmi-row">
+      <div class="bmi-field">
+        <label>📏 {{ t.height }}</label>
+        <input type="number" step="0.1" min="50" max="250" v-model="height" class="bmi-input" @keydown.enter="calculate" placeholder="175">
+      </div>
+      <div class="bmi-field">
+        <label>🏋️ {{ t.weight }}</label>
+        <input type="number" step="0.1" min="10" max="500" v-model="weight" class="bmi-input" @keydown.enter="calculate" placeholder="70">
+      </div>
+    </div>
+    <div class="bmi-row">
+      <div class="bmi-field">
+        <label>🎂 {{ t.age }}</label>
+        <input type="number" min="1" max="150" v-model="age" class="bmi-input" @keydown.enter="calculate" placeholder="25">
+      </div>
+      <div class="bmi-field">
+        <label>👤 {{ t.gender }}</label>
+        <div class="bmi-gender">
+          <button :class="{active: gender==='male'}" @click="gender='male'">♂ {{ t.male }}</button>
+          <button :class="{active: gender==='female'}" @click="gender='female'">♀ {{ t.female }}</button>
+        </div>
+      </div>
+    </div>
+    <div class="bmi-actions">
+      <button class="bmi-btn-calc" @click="calculate">{{ t.calculate }}</button>
+      <button class="bmi-btn-reset" @click="reset">{{ t.reset }}</button>
+    </div>
+  </div>
+
+  <div v-if="showResult && bmiValue !== null" class="bmi-result">
+    <div class="bmi-gauge-wrap">
+      <div class="bmi-gauge-bar">
+        <div class="bmi-gauge-fill" :style="{width: gaugePercent + '%', background: bmiColor}"></div>
+        <div class="bmi-gauge-marker" :style="{left: gaugePercent + '%'}"></div>
+      </div>
+      <div class="bmi-gauge-labels">
+        <span>10</span><span>18.5</span><span>25</span><span>30</span><span>35</span><span>40+</span>
+      </div>
+    </div>
+    <div class="bmi-result-big" :style="{color: bmiColor}">{{ bmiValue }}</div>
+    <div class="bmi-result-cat" :style="{background: bmiColor}">{{ bmiLabel }}</div>
+    <div v-if="idealWeight" class="bmi-ideal">
+      <span class="bmi-ideal-label">{{ t.idealRange }}:</span>
+      <span class="bmi-ideal-val">{{ idealWeight.min }} – {{ idealWeight.max }} kg</span>
+    </div>
+  </div>
+
+  <div v-if="!showResult" class="bmi-chart">
+    <div class="bmi-chart-row" v-for="cat in [
+      {min:'< 18.5', key:'underweight', color:'#74b9ff'},
+      {min:'18.5 – 24.9', key:'normal', color:'#00b894'},
+      {min:'25.0 – 29.9', key:'overweight', color:'#fdcb6e'},
+      {min:'30.0 – 34.9', key:'obese1', color:'#e17055'},
+      {min:'35.0 – 39.9', key:'obese2', color:'#d63031'},
+      {min:'≥ 40.0', key:'obese3', color:'#6c5ce7'}
+    ]" :key="cat.key">
+      <span class="bmi-chart-dot" :style="{background: cat.color}"></span>
+      <span class="bmi-chart-range">{{ cat.min }}</span>
+      <span class="bmi-chart-name">{{ t[cat.key] }}</span>
+    </div>
+  </div>
+</div>

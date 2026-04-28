@@ -26,7 +26,14 @@
       <span class="ct-col-actions">{{L('colActions')}}</span>
     </div>
     <div v-if="!displayCoins.length" class="ct-empty">{{search ? L('noResult') : L('loading')}}</div>
-    <div v-for="coin in displayCoins" :key="coin.symbol" class="ct-item" :class="{fav: isFav(coin.symbol), hidden: isHidden(coin.symbol)}">
+    <div v-for="(coin, ci) in displayCoins" :key="coin.symbol" class="ct-item"
+         :class="{fav: isFav(coin.symbol), hidden: isHidden(coin.symbol), 'ct-drag-over': tab==='fav' && dragTarget==='fav' && dragOverIdx===ci}"
+         :draggable="tab==='fav'"
+         @dragstart="tab==='fav' && onDragStart('fav', ci, $event)"
+         @dragover="tab==='fav' && onDragOver('fav', ci, $event)"
+         @drop="tab==='fav' && onDropFav(ci)"
+         @dragend="onDragEnd"
+    >
       <span class="ct-col-sym">
         <span class="ct-sym-name">{{coin.symbol.replace('USDT','')}}</span>
         <span class="ct-sym-pair">/USDT</span>
@@ -35,6 +42,7 @@
       <span class="ct-col-actions">
         <button class="ct-act" :class="{on:isFav(coin.symbol)}" @click="toggleFav(coin.symbol)" :title="L('favTooltip')">⭐</button>
         <button class="ct-act" :class="{on:isHidden(coin.symbol)}" @click="toggleHidden(coin.symbol)" :title="L('hideTooltip')">👁</button>
+        <button class="ct-act" :class="{on:hasAlert(coin.symbol)}" @click="openAlertDialog(coin.symbol)" :title="L('alertTooltip')">🔔</button>
       </span>
     </div>
   </div>
@@ -115,7 +123,14 @@
         <span class="ct-pfc-act"></span>
       </div>
       <div v-if="!portfolioRows.length" class="ct-empty">{{L('emptyPortfolio')}}</div>
-      <div v-for="row in portfolioRows" :key="row.isUsdt ? 'usdt' : row.idx" class="ct-pf-row" :class="!row.isUsdt && pfEdit === row.idx ? 'editing' : ''">
+      <div v-for="(row, ri) in portfolioRows" :key="row.isUsdt ? 'usdt' : row.idx" class="ct-pf-row"
+           :class="{'editing': !row.isUsdt && pfEdit === row.idx, 'ct-drag-over': !row.isUsdt && dragTarget==='pf' && dragOverIdx===ri}"
+           :draggable="!row.isUsdt"
+           @dragstart="!row.isUsdt && onDragStart('pf', ri, $event)"
+           @dragover="!row.isUsdt && onDragOver('pf', ri, $event)"
+           @drop="!row.isUsdt && onDropPf(ri)"
+           @dragend="onDragEnd"
+      >
         <span class="ct-pfc-sym">
           <span class="ct-sym-name">{{ row.symbol }}</span>
           <span v-if="!row.isUsdt" class="ct-sym-pair">/USDT</span>
@@ -141,4 +156,42 @@
     </div>
   </div>
   </template>
+
+  <!-- Active Alerts bar -->
+  <div v-if="coinAlerts.length" class="ct-alerts-bar">
+    <div class="ct-alerts-title">🔔 {{L('alertActive')}} ({{coinAlerts.length}})</div>
+    <div class="ct-alerts-list">
+      <div v-for="a in coinAlerts" :key="a.symbol" class="ct-alert-chip" @click="openAlertDialog(a.symbol)">
+        <span class="ct-alert-chip-sym">{{a.symbol.replace('USDT','')}}</span>
+        <span v-if="a.min !== null" class="ct-alert-chip-val ct-alert-min">↓{{a.min}}</span>
+        <span v-if="a.max !== null" class="ct-alert-chip-val ct-alert-max">↑{{a.max}}</span>
+        <button class="ct-alert-chip-del" @click.stop="removeAlertBySymbol(a.symbol)">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Dialog -->
+  <div v-if="alertDialogOpen" class="ct-alert-overlay" @click.self="closeAlertDialog">
+    <div class="ct-alert-dialog">
+      <div class="ct-alert-dialog-header">
+        <span>🔔 {{L('alertTitle')}}</span>
+        <span class="ct-alert-dialog-sym">{{alertSymbol.replace('USDT','')}}/USDT</span>
+      </div>
+      <div class="ct-alert-dialog-body">
+        <div class="ct-alert-field">
+          <label>📉 {{L('alertMin')}}</label>
+          <input type="number" step="any" class="ct-input" v-model="alertMin" :placeholder="L('alertMin')" @keydown.enter="saveAlert">
+        </div>
+        <div class="ct-alert-field">
+          <label>📈 {{L('alertMax')}}</label>
+          <input type="number" step="any" class="ct-input" v-model="alertMax" :placeholder="L('alertMax')" @keydown.enter="saveAlert">
+        </div>
+      </div>
+      <div class="ct-alert-dialog-actions">
+        <button class="ct-alert-btn-save" @click="saveAlert">{{L('alertSave')}}</button>
+        <button class="ct-alert-btn-remove" @click="removeAlert">{{L('alertRemove')}}</button>
+        <button class="ct-alert-btn-close" @click="closeAlertDialog">{{L('alertClose')}}</button>
+      </div>
+    </div>
+  </div>
 </div>

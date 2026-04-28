@@ -2336,14 +2336,15 @@ app.get('/api/coins/favorites', authMiddleware, (req, res) => {
 });
 
 app.post('/api/coins/favorites', authMiddleware, (req, res) => {
-  const { favorites, hidden, portfolio, defaultTab } = req.body;
+  const { favorites, hidden, portfolio, defaultTab, usdtBalance } = req.body;
   const filePath = getCoinPrefsPath(req.user.username);
   const cur = getUserCoinPrefs(req.user.username);
   const data = {
     favorites: favorites !== undefined ? (favorites || []) : cur.favorites,
     hidden: hidden !== undefined ? (hidden || []) : cur.hidden,
     portfolio: portfolio !== undefined ? (portfolio || []) : (cur.portfolio || []),
-    defaultTab: defaultTab !== undefined ? defaultTab : (cur.defaultTab || '')
+    defaultTab: defaultTab !== undefined ? defaultTab : (cur.defaultTab || ''),
+    usdtBalance: usdtBalance !== undefined ? usdtBalance : (cur.usdtBalance || 0)
   };
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
   res.json({ ok: true });
@@ -2358,8 +2359,12 @@ function getCoinPrefsPath(username) {
 
 function getUserCoinPrefs(username) {
   const filePath = getCoinPrefsPath(username);
-  if (!fs.existsSync(filePath)) return { favorites: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT'], hidden: [], portfolio: [], defaultTab: '' };
-  try { return JSON.parse(fs.readFileSync(filePath, 'utf-8')); } catch { return { favorites: [], hidden: [] }; }
+  if (!fs.existsSync(filePath)) return { favorites: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT'], hidden: [], portfolio: [], defaultTab: '', usdtBalance: 0 };
+  try {
+    const d = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    if (d.usdtBalance === undefined) d.usdtBalance = 0;
+    return d;
+  } catch { return { favorites: [], hidden: [], usdtBalance: 0 }; }
 }
 
 function hasCoinSubscribers() {
@@ -2381,6 +2386,97 @@ function stopCoinPollingIfIdle() {
   clearInterval(coinFetchInterval);
   coinFetchInterval = null;
 }
+
+// ── Coin Price Alerts ──
+function getCoinAlertsPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'coin-alerts.json');
+}
+
+function getUserCoinAlerts(username) {
+  const fp = getCoinAlertsPath(username);
+  if (!fs.existsSync(fp)) return [];
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return []; }
+}
+
+function saveUserCoinAlerts(username, alerts) {
+  fs.writeFileSync(getCoinAlertsPath(username), JSON.stringify(alerts, null, 2));
+}
+
+app.get('/api/coins/alerts', authMiddleware, (req, res) => {
+  res.json(getUserCoinAlerts(req.user.username));
+});
+
+app.post('/api/coins/alerts', authMiddleware, (req, res) => {
+  const { alerts } = req.body;
+  if (!Array.isArray(alerts)) return res.status(400).json({ error: 'alerts must be array' });
+  const clean = alerts.map(a => ({
+    symbol: String(a.symbol || '').toUpperCase(),
+    min: a.min !== null && a.min !== undefined && a.min !== '' ? Number(a.min) : null,
+    max: a.max !== null && a.max !== undefined && a.max !== '' ? Number(a.max) : null
+  })).filter(a => a.symbol && (a.min !== null || a.max !== null));
+  saveUserCoinAlerts(req.user.username, clean);
+  res.json({ ok: true });
+});
+
+let coinAlertInterval = null;
+
+function checkCoinAlerts() {
+  if (!coinPrices.length) return;
+  try {
+    const entries = fs.readdirSync(DATA_DIR, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const username = entry.name;
+      const alerts = getUserCoinAlerts(username);
+      if (!alerts.length) continue;
+      const triggered = [];
+      const remaining = [];
+      for (const alert of alerts) {
+        const coin = coinPrices.find(c => c.symbol === alert.symbol);
+        if (!coin) { remaining.push(alert); continue; }
+        let fired = false;
+        if (alert.min !== null && coin.price <= alert.min) {
+          const notif = {
+            id: crypto.randomUUID(),
+            icon: '📉',
+            bg: '#fef0f0',
+            title: alert.symbol.replace('USDT', '') + '/USDT',
+            text: coin.price.toLocaleString('en-US', { maximumFractionDigits: 8 }) + ' ≤ ' + alert.min.toLocaleString('en-US', { maximumFractionDigits: 8 }) + ' (MIN)',
+            time: new Date().toISOString(),
+            read: false,
+            createdAt: Date.now()
+          };
+          addNotificationToDb(username, notif);
+          broadcastWS({ type: 'notification', data: notif });
+          fired = true;
+        }
+        if (alert.max !== null && coin.price >= alert.max) {
+          const notif = {
+            id: crypto.randomUUID(),
+            icon: '📈',
+            bg: '#f0f9eb',
+            title: alert.symbol.replace('USDT', '') + '/USDT',
+            text: coin.price.toLocaleString('en-US', { maximumFractionDigits: 8 }) + ' ≥ ' + alert.max.toLocaleString('en-US', { maximumFractionDigits: 8 }) + ' (MAX)',
+            time: new Date().toISOString(),
+            read: false,
+            createdAt: Date.now()
+          };
+          addNotificationToDb(username, notif);
+          broadcastWS({ type: 'notification', data: notif });
+          fired = true;
+        }
+        if (fired) triggered.push(alert);
+        else remaining.push(alert);
+      }
+      if (triggered.length) saveUserCoinAlerts(username, remaining);
+    }
+  } catch (e) { console.error('checkCoinAlerts error:', e.message); }
+}
+
+coinAlertInterval = setInterval(checkCoinAlerts, 5 * 60 * 1000);
 
 // ── Stock Tracker (Finnhub) ──
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || 'd7mmd5pr01qngrvonql0d7mmd5pr01qngrvonqlg';

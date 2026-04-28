@@ -18,7 +18,7 @@
 .ct-list-header{display:flex;padding:6px 14px;font-size:11px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #21262d;position:sticky;top:0;background:#0d1117;z-index:1}
 .ct-col-sym{flex:1;min-width:0}
 .ct-col-price{width:120px;text-align:right}
-.ct-col-actions{width:60px;text-align:center}
+.ct-col-actions{width:80px;text-align:center}
 .ct-empty{padding:32px;text-align:center;color:#484f58;font-size:13px}
 .ct-item{display:flex;align-items:center;padding:6px 14px;border-bottom:1px solid #21262d;transition:background .1s}
 .ct-item:hover{background:#161b22}
@@ -92,3 +92,38 @@
 .ct-pfc-pnl.down{color:#f85149}
 .ct-pfc-pnl small{font-size:10px;opacity:.8}
 .ct-pfc-act{width:50px;text-align:center;display:flex;gap:2px;justify-content:center}
+
+/* Drag reorder */
+.ct-item[draggable="true"],.ct-pf-row[draggable="true"]{cursor:grab}
+.ct-item[draggable="true"]:active,.ct-pf-row[draggable="true"]:active{cursor:grabbing}
+.ct-drag-over{border-top:2px solid #1f6feb!important;background:rgba(31,111,235,.12)!important}
+
+/* ── Active Alerts bar ── */
+.ct-alerts-bar{padding:8px 14px;background:#161b22;border-top:1px solid #30363d;flex-shrink:0}
+.ct-alerts-title{font-size:11px;font-weight:600;color:#8b949e;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.ct-alerts-list{display:flex;flex-wrap:wrap;gap:6px}
+.ct-alert-chip{display:flex;align-items:center;gap:4px;background:#1c2433;border:1px solid #30363d;border-radius:16px;padding:3px 10px;cursor:pointer;transition:background .15s}
+.ct-alert-chip:hover{background:#253044}
+.ct-alert-chip-sym{font-size:12px;font-weight:600;color:#f0f6fc}
+.ct-alert-chip-val{font-size:11px;font-family:'Courier New',monospace}
+.ct-alert-min{color:#f85149}
+.ct-alert-max{color:#3fb950}
+.ct-alert-chip-del{background:none;border:none;color:#484f58;font-size:12px;cursor:pointer;padding:0 2px;transition:color .15s}
+.ct-alert-chip-del:hover{color:#f85149}
+
+/* ── Alert Dialog ── */
+.ct-alert-overlay{position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:100;display:flex;align-items:center;justify-content:center}
+.ct-alert-dialog{background:#161b22;border:1px solid #30363d;border-radius:12px;width:320px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.ct-alert-dialog-header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #30363d;font-size:14px;font-weight:600;color:#f0f6fc}
+.ct-alert-dialog-sym{font-size:13px;color:#58a6ff;font-weight:600}
+.ct-alert-dialog-body{padding:16px;display:flex;flex-direction:column;gap:12px}
+.ct-alert-field{display:flex;flex-direction:column;gap:4px}
+.ct-alert-field label{font-size:12px;color:#8b949e}
+.ct-alert-field .ct-input{width:100%;height:32px;font-size:13px}
+.ct-alert-dialog-actions{display:flex;gap:6px;padding:12px 16px;border-top:1px solid #30363d}
+.ct-alert-btn-save{flex:1;padding:6px 0;border:none;border-radius:6px;background:#238636;color:#fff;font-size:12px;font-weight:600;cursor:pointer}
+.ct-alert-btn-save:hover{background:#2ea043}
+.ct-alert-btn-remove{flex:1;padding:6px 0;border:none;border-radius:6px;background:#da3633;color:#fff;font-size:12px;font-weight:600;cursor:pointer}
+.ct-alert-btn-remove:hover{background:#f85149}
+.ct-alert-btn-close{flex:1;padding:6px 0;border:1px solid #30363d;border-radius:6px;background:transparent;color:#8b949e;font-size:12px;cursor:pointer}
+.ct-alert-btn-close:hover{background:#21262d;color:#c9d1d9}
