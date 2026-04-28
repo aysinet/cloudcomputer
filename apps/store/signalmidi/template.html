@@ -1,0 +1,49 @@
+<div class="signal-root">
+  <!-- Building State -->
+  <div v-if="status === 'building'" class="signal-status-screen">
+    <div class="signal-spinner"></div>
+    <div class="signal-icon-large">🎹</div>
+    <div class="signal-status-text">{{ pullProgress }}</div>
+    <div class="signal-sub-text">Image kaynak koddan derleniyor, bu işlem ilk seferde birkaç dakika sürebilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="signal-status-screen">
+    <div class="signal-spinner"></div>
+    <div class="signal-icon-large">🎹</div>
+    <div class="signal-status-text">Signal MIDI Editor başlatılıyor...</div>
+    <div class="signal-sub-text">Docker container hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="signal-status-screen signal-error">
+    <div class="signal-icon-large">⚠️</div>
+    <div class="signal-status-text">Bir hata oluştu</div>
+    <div class="signal-error-msg">{{ errorMsg }}</div>
+    <div class="signal-actions">
+      <button class="signal-btn signal-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+      <button class="signal-btn" @click="buildImage">🔨 Yeniden Derle</button>
+    </div>
+    <div class="signal-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="signal-running">
+    <div class="signal-toolbar">
+      <span class="signal-info">🎹 Signal MIDI Editor — Port: {{ port }}</span>
+      <div class="signal-toolbar-actions">
+        <button class="signal-btn signal-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="signal-btn signal-btn-small signal-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="signal-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="signal-status-screen">
+    <div class="signal-icon-large">🎹</div>
+    <div class="signal-status-text">Signal MIDI Editor</div>
+    <div class="signal-sub-text">Web tabanlı MIDI sıralayıcı ve editör</div>
+    <button class="signal-btn signal-btn-primary signal-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

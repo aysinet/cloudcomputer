@@ -2,8 +2,21 @@
   <!-- Toolbar -->
   <div class="jv-toolbar">
     <div class="jv-toolbar-left">
-      <button class="jv-tb-btn" @click="openFile" title="📂">📂</button>
-      <button class="jv-tb-btn" @click="saveFile" title="💾">💾</button>
+      <div class="jv-dropdown-wrap">
+        <button class="jv-tb-btn" @click="openFile" title="📂">📂</button>
+        <div v-if="showOpenMenu" class="jv-dropdown-menu">
+          <div class="jv-dropdown-item" @click="openServerFile">🌐 {{t('openServer')}}</div>
+          <div class="jv-dropdown-item" @click="openLocalFile">💻 {{t('openLocal')}}</div>
+        </div>
+      </div>
+      <div class="jv-dropdown-wrap">
+        <button class="jv-tb-btn" @click="showSaveOptions" title="💾">💾</button>
+        <div v-if="showSaveMenu" class="jv-dropdown-menu">
+          <div class="jv-dropdown-item" @click="saveFile">💾 {{t('saveFile')}}</div>
+          <div class="jv-dropdown-item" @click="saveFileAs">📄 {{t('saveAs')}}</div>
+          <div class="jv-dropdown-item" @click="saveLocal">⬇️ {{t('openLocal')}}</div>
+        </div>
+      </div>
       <span class="jv-sep"></span>
       <button class="jv-tb-btn" @click="formatJson" :title="t('format')">✨ {{t('format')}}</button>
       <button class="jv-tb-btn" @click="minifyJson" :title="t('minify')">📦 {{t('minify')}}</button>
@@ -62,6 +75,7 @@
   <!-- Status bar -->
   <div class="jv-statusbar">
     <span :class="isValid ? 'jv-status-ok' : 'jv-status-err'">{{isValid ? '✅ Valid JSON' : '❌ Invalid'}}</span>
+    <span v-if="currentFilePath" class="jv-status-path" :title="currentFilePath">📁 {{currentFilePath}}</span>
     <span>{{lineCount}} {{t('lines')}}</span>
     <span>{{rawJson.length}} {{t('chars')}}</span>
     <span v-if="parsedSize">{{parsedSize}}</span>

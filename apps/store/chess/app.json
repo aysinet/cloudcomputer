@@ -49,6 +49,7 @@
     }
   },
   "category": "games",
+  "proxyMode": "hpm",
   "docker": {
     "image": "rmeira/chess",
     "containerPort": 80

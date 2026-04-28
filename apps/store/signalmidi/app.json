@@ -1,0 +1,59 @@
+{
+  "id": "signalmidi",
+  "name": "Signal MIDI Editor",
+  "icon": "🎹",
+  "color": "linear-gradient(135deg,#1a1a2e,#4a148c)",
+  "type": "internal",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Web tabanlı MIDI sıralayıcı ve editör (ryohey/signal)",
+  "lang": {
+    "tr": {
+      "name": "Signal MIDI Editör",
+      "description": "Web tabanlı MIDI sıralayıcı ve editör"
+    },
+    "en": {
+      "name": "Signal MIDI Editor",
+      "description": "Web-based MIDI sequencer and editor"
+    },
+    "de": {
+      "name": "Signal MIDI Editor",
+      "description": "Webbasierter MIDI-Sequenzer und Editor"
+    },
+    "fr": {
+      "name": "Signal MIDI Éditeur",
+      "description": "Séquenceur et éditeur MIDI basé sur le web"
+    },
+    "es": {
+      "name": "Signal MIDI Editor",
+      "description": "Secuenciador y editor MIDI basado en web"
+    },
+    "ru": {
+      "name": "Signal MIDI Редактор",
+      "description": "Веб-секвенсор и редактор MIDI"
+    },
+    "zh": {
+      "name": "Signal MIDI 编辑器",
+      "description": "基于网页的MIDI音序器和编辑器"
+    },
+    "ja": {
+      "name": "Signal MIDI エディタ",
+      "description": "ウェブベースのMIDIシーケンサー＆エディタ"
+    },
+    "it": {
+      "name": "Signal MIDI Editor",
+      "description": "Sequencer e editor MIDI basato sul web"
+    }
+  },
+  "category": "media",
+  "docker": {
+    "build": {
+      "context": "./apps/store/signalmidi"
+    },
+    "image": "cloudpc-signalmidi:latest",
+    "containerPort": 3000
+  }
+}

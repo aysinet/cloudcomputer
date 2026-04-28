@@ -692,17 +692,17 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       <div class="term-dot" style="background:#ffbd2e"></div>
       <div class="term-dot" style="background:#27c93f"></div>
       <span style="margin-left:8px">{{t('termBarTitle')}}</span>
+      <span v-if="running" style="margin-left:auto;font-size:11px;color:#ffbd2e">⏳</span>
     </div>
     <div class="term-output" ref="outRef">
-      <div class="term-line"><span class="term-res">{{t('termWelcome')}}</span></div>
       <div v-for="(l,i) in lines" :key="i" class="term-line">
-        <span v-if="l.type==='cmd'" class="term-prompt">user@vuedesktop:~$ </span>
-        <span :class="'term-'+l.type">{{l.text}}</span>
+        <span v-if="l.type==='cmd'" class="term-prompt">$ </span>
+        <span :class="'term-'+l.type" v-html="l.html || escText(l.text)"></span>
       </div>
     </div>
     <div class="term-input-row">
-      <span class="term-ps">user@vuedesktop:~$</span>
-      <input v-model="inp" @keyup.enter="run" :placeholder="t('termPlaceholder')" autofocus>
+      <span class="term-ps">$</span>
+      <input v-model="inp" @keydown="onKey" :placeholder="t('termPlaceholder')" autofocus ref="inputRef">
     </div>
   </div>
 </script>
@@ -2637,23 +2637,89 @@ const TerminalApp = {
     const lines = ref([]);
     const inp = ref('');
     const outRef = ref(null);
-    const fs = { 'Documents': ['cv.txt', 'notes.md'], 'Downloads': ['setup.zip'], 'Desktop': ['readme.txt'] };
-    function run() {
-      const c = inp.value.trim(); if (!c) return;
-      lines.value.push({ type: 'cmd', text: c });
-      const parts = c.split(' '); const cmd = parts[0];
-      if (cmd === 'help') lines.value.push({ type: 'res', text: t('termHelpText') });
-      else if (cmd === 'ls') lines.value.push({ type: 'res', text: Object.keys(fs).join('  ') });
-      else if (cmd === 'date') lines.value.push({ type: 'res', text: new Date().toLocaleString(getIntlLocale()) });
-      else if (cmd === 'echo') lines.value.push({ type: 'res', text: parts.slice(1).join(' ') });
-      else if (cmd === 'whoami') lines.value.push({ type: 'res', text: t('termUser') });
-      else if (cmd === 'pwd') lines.value.push({ type: 'res', text: t('termPwd') });
-      else if (cmd === 'clear') { lines.value = []; }
-      else lines.value.push({ type: 'err', text: t('termNotFound') + ': ' + cmd + '. ' + t('termHelpHint') });
-      inp.value = '';
-      nextTick(() => { if (outRef.value) outRef.value.scrollTop = 9999 });
+    const inputRef = ref(null);
+    const running = ref(false);
+    const history = ref([]);
+    const histIdx = ref(-1);
+    let ws = null;
+    let cmdId = 0;
+
+    function escText(s) {
+      if (!s) return '';
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
-    return { lines, inp, outRef, run, t };
+
+    function scrollBottom() {
+      nextTick(() => { if (outRef.value) outRef.value.scrollTop = outRef.value.scrollHeight; });
+    }
+
+    function connectWS() {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const token = localStorage.getItem('token') || '';
+      ws = new WebSocket(proto + '//' + location.host + '/ws?token=' + encodeURIComponent(token));
+      ws.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.type === 'terminal-stdout' && msg.data) {
+            lines.value.push({ type: 'res', text: msg.data.text });
+            scrollBottom();
+          } else if (msg.type === 'terminal-stderr' && msg.data) {
+            lines.value.push({ type: 'err', text: msg.data.text });
+            scrollBottom();
+          } else if (msg.type === 'terminal-exit' && msg.data) {
+            if (msg.data.code !== 0 && msg.data.code !== null) {
+              lines.value.push({ type: 'err', text: '[exit ' + msg.data.code + ']' });
+            }
+            running.value = false;
+            scrollBottom();
+            nextTick(() => { if (inputRef.value) inputRef.value.focus(); });
+          }
+        } catch {}
+      };
+      ws.onclose = () => { setTimeout(connectWS, 3000); };
+      ws.onerror = () => { ws.close(); };
+    }
+
+    function run() {
+      const c = inp.value.trim();
+      if (!c) return;
+      lines.value.push({ type: 'cmd', text: c });
+      history.value.push(c);
+      histIdx.value = history.value.length;
+      inp.value = '';
+
+      if (c === 'clear') {
+        lines.value = [];
+        return;
+      }
+
+      running.value = true;
+      cmdId++;
+      if (ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'terminal-exec', data: { id: cmdId, command: c } }));
+      } else {
+        lines.value.push({ type: 'err', text: 'WebSocket not connected' });
+        running.value = false;
+      }
+      scrollBottom();
+    }
+
+    function onKey(e) {
+      if (e.key === 'Enter') { run(); }
+      else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (histIdx.value > 0) { histIdx.value--; inp.value = history.value[histIdx.value]; }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (histIdx.value < history.value.length - 1) { histIdx.value++; inp.value = history.value[histIdx.value]; }
+        else { histIdx.value = history.value.length; inp.value = ''; }
+      }
+    }
+
+    onMounted(() => { connectWS(); });
+    onUnmounted(() => { if (ws) { ws.onclose = null; ws.close(); } });
+
+    return { lines, inp, outRef, inputRef, running, run, onKey, escText, t };
   }
 };
 

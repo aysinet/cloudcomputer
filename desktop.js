@@ -454,12 +454,24 @@ app.post('/api/apps/install', authMiddleware, (req, res) => {
     return res.status(400).json({ error: 'Use /api/services/install for service type apps' });
   }
 
-  // If app has docker config, pull the image asynchronously via DockerManager
+  // If app has docker config, build or pull the image asynchronously via DockerManager
   if (appManifest.docker && appManifest.docker.image) {
     const img = appManifest.docker.image;
-    dmFetch('/pull', { method: 'POST', body: JSON.stringify({ image: img }) })
-      .then(() => console.log(`Docker image pulled: ${img}`))
-      .catch(err => console.error(`Docker pull failed for ${img}:`, err.message));
+    if (appManifest.docker.build && appManifest.docker.build.context) {
+      const dfPath = path.join(__dirname, appManifest.docker.build.context, 'Dockerfile');
+      const dfContent = fs.existsSync(dfPath) ? fs.readFileSync(dfPath, 'utf8') : null;
+      if (dfContent) {
+        dmFetch('/build', { method: 'POST', body: JSON.stringify({ dockerfile: dfContent, tag: img }) })
+          .then(() => console.log(`Docker image built: ${img}`))
+          .catch(err => console.error(`Docker build failed for ${img}:`, err.message));
+      } else {
+        console.error(`Dockerfile not found at ${dfPath}`);
+      }
+    } else {
+      dmFetch('/pull', { method: 'POST', body: JSON.stringify({ image: img }) })
+        .then(() => console.log(`Docker image pulled: ${img}`))
+        .catch(err => console.error(`Docker pull failed for ${img}:`, err.message));
+    }
   }
 
   res.json({ ok: true, app: appManifest });
@@ -590,8 +602,14 @@ app.post('/api/services/install', authMiddleware, async (req, res) => {
 
   const dockerConfig = appManifest.docker;
   try {
-    // Pull image first
-    await dmFetch('/pull', { method: 'POST', body: JSON.stringify({ image: dockerConfig.image }) });
+    // Build or pull image first
+    if (dockerConfig.build && dockerConfig.build.context) {
+      const dfPath = path.join(__dirname, dockerConfig.build.context, 'Dockerfile');
+      const dfContent = fs.readFileSync(dfPath, 'utf8');
+      await dmFetch('/build', { method: 'POST', body: JSON.stringify({ dockerfile: dfContent, tag: dockerConfig.image }) });
+    } else {
+      await dmFetch('/pull', { method: 'POST', body: JSON.stringify({ image: dockerConfig.image }) });
+    }
 
     // Run container with restart always for services
     const runBody = {
@@ -975,6 +993,22 @@ app.get('/api/code/languages', authMiddleware, (req, res) => {
 
 // ── Docker Management API (delegates to DockerManager sidecar) ──
 
+app.post('/api/docker/build', authMiddleware, async (req, res) => {
+  const { context, tag } = req.body;
+  if (!context || !tag) return res.status(400).json({ error: 'context and tag required' });
+  if (context.includes('..')) return res.status(400).json({ error: 'Invalid context path' });
+  // Read Dockerfile from the build context directory
+  const dockerfilePath = path.join(__dirname, context, 'Dockerfile');
+  if (!fs.existsSync(dockerfilePath)) return res.status(400).json({ error: 'Dockerfile not found in context: ' + context });
+  const dockerfile = fs.readFileSync(dockerfilePath, 'utf8');
+  try {
+    const data = await dmFetch('/build', { method: 'POST', body: JSON.stringify({ dockerfile, tag }) });
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.post('/api/docker/pull', authMiddleware, async (req, res) => {
   const { image } = req.body;
   if (!image || !/^[a-zA-Z0-9_\-./]+:[a-zA-Z0-9_.\-]*$|^[a-zA-Z0-9_\-./]+$/.test(image)) {
@@ -1016,9 +1050,11 @@ app.post('/api/docker/run', authMiddleware, async (req, res) => {
       internalUrl: data.internalUrl
     };
 
-    // Register dynamic proxy
+    // Register dynamic proxy (with proxyMode from manifest)
     if (proxyCache[appId]) delete proxyCache[appId];
-    proxyCache[appId] = { target: proxyTarget, appId, dynamic: true };
+    const stApps = getStoreApps();
+    const appMf = stApps.find(a => a.id === appId);
+    proxyCache[appId] = { target: proxyTarget, appId, dynamic: true, proxyMode: appMf?.proxyMode || 'default' };
 
     res.json({ ok: true, containerId: data.containerId, port: data.hostPort });
   } catch (e) {
@@ -1053,7 +1089,9 @@ app.get('/api/docker/status/:appId', authMiddleware, async (req, res) => {
       // Ensure proxy is set up (only if we have a valid target)
       if (!proxyCache[appId] && (IS_DOCKER ? data.internalUrl : data.hostPort)) {
         const proxyTarget = IS_DOCKER ? data.internalUrl : `http://localhost:${data.hostPort}`;
-        proxyCache[appId] = { target: proxyTarget, appId, dynamic: true };
+        const stApps2 = getStoreApps();
+        const appMf2 = stApps2.find(a => a.id === appId);
+        proxyCache[appId] = { target: proxyTarget, appId, dynamic: true, proxyMode: appMf2?.proxyMode || 'default' };
       }
     }
     res.json({ running: data.running, containerId: data.containerId, port: data.hostPort });
@@ -1063,37 +1101,80 @@ app.get('/api/docker/status/:appId', authMiddleware, async (req, res) => {
 });
 
 // ── External App Proxy ──
-// proxyCache is declared above (Docker section may insert dynamic entries)
+// Supports multiple proxy modes via app.json "proxyMode" field:
+//   "hpm"     — http-proxy-middleware (best for non-standard HTTP responses, e.g. rmeira/chess)
+//   "default" — http.request with IPv4 forcing (default for all apps without proxyMode)
+
 app.use('/proxy/:appId', (req, res, next) => {
   const appId = req.params.appId.replace(/[^a-zA-Z0-9_-]/g, '');
 
-  // Check for dynamic Docker proxy first
+  // Determine target base URL and proxy mode
+  let targetBase = null;
+  let proxyMode = 'default';
+
   const dynProxy = proxyCache[appId];
   if (dynProxy && dynProxy.dynamic) {
-    if (!dynProxy.middleware) {
-      dynProxy.middleware = createProxyMiddleware({
-        target: dynProxy.target,
+    targetBase = dynProxy.target;
+    proxyMode = dynProxy.proxyMode || 'default';
+  } else {
+    const storeApps = getStoreApps();
+    const appManifest = storeApps.find(a => a.id === appId && a.type === 'external');
+    if (appManifest && appManifest.url) {
+      targetBase = appManifest.url;
+      proxyMode = appManifest.proxyMode || 'default';
+    }
+  }
+
+  if (!targetBase) return res.status(404).json({ error: 'App proxy not found' });
+
+  // ── HPM mode: use http-proxy-middleware (original simple approach) ──
+  if (proxyMode === 'hpm') {
+    const dynP = proxyCache[appId];
+    if (dynP && !dynP.middleware) {
+      dynP.middleware = createProxyMiddleware({
+        target: targetBase,
         changeOrigin: true,
         pathRewrite: (p) => p.replace(new RegExp(`^/proxy/${appId}`), ''),
         ws: true
       });
     }
-    return dynProxy.middleware(req, res, next);
+    if (dynP && dynP.middleware) return dynP.middleware(req, res, next);
   }
 
-  // Fallback to static external app from app.json
-  const storeApps = getStoreApps();
-  const appManifest = storeApps.find(a => a.id === appId && a.type === 'external');
-  if (!appManifest) return res.status(404).json({ error: 'External app not found' });
-  if (!proxyCache[appId]) {
-    proxyCache[appId] = createProxyMiddleware({
-      target: appManifest.url,
-      changeOrigin: true,
-      pathRewrite: (p) => p.replace(new RegExp(`^/proxy/${appId}`), ''),
-      ws: true
-    });
+  // ── Default mode: http.request with IPv4 forcing ──
+  const targetPath = req.originalUrl.replace(new RegExp(`^/proxy/${appId}`), '') || '/';
+  const target = new URL(targetPath, targetBase);
+  const hostname = (target.hostname === 'localhost') ? '127.0.0.1' : target.hostname;
+
+  console.log(`[PROXY] ${appId}: ${req.method} ${req.originalUrl} → ${target.href}`);
+
+  const options = {
+    hostname,
+    port: target.port || 80,
+    path: target.pathname + target.search,
+    method: req.method,
+    headers: { ...req.headers, host: target.host, connection: 'close' },
+    insecureHTTPParser: true
+  };
+  delete options.headers['authorization'];
+
+  const proxyReq = http.request(options, (proxyRes) => {
+    const resHeaders = { ...proxyRes.headers };
+    delete resHeaders['transfer-encoding'];
+    res.writeHead(proxyRes.statusCode, resHeaders);
+    proxyRes.pipe(res, { end: true });
+  });
+
+  proxyReq.on('error', (err) => {
+    console.error(`[PROXY] ${appId} error:`, err.message);
+    if (!res.headersSent) res.status(502).json({ error: 'Proxy error: ' + err.message });
+  });
+
+  if (req.method !== 'GET' && req.method !== 'HEAD' && req.readable) {
+    req.pipe(proxyReq, { end: true });
+  } else {
+    proxyReq.end();
   }
-  proxyCache[appId](req, res, next);
 });
 
 // ── Geo API (countries, cities from SQLite) ──
@@ -2161,9 +2242,40 @@ function handleWSMessage(ws, msg) {
     case 'torrent-settings':
       handleTorrentSettings(ws, msg.data || {});
       break;
+    case 'terminal-exec':
+      handleTerminalExec(ws, msg.data || {});
+      break;
     default:
       ws.send(JSON.stringify({ type: 'echo', data: msg }));
   }
+}
+
+// ── Terminal WebSocket handler ──
+function handleTerminalExec(ws, data) {
+  const { id, command } = data;
+  if (!command || !id) return;
+  const isWin = process.platform === 'win32';
+  const shell = isWin ? 'cmd.exe' : '/bin/sh';
+  const shellArgs = isWin ? ['/c', command] : ['-c', command];
+  const child = spawn(shell, shellArgs, {
+    cwd: process.env.HOME || process.env.USERPROFILE || __dirname,
+    env: { ...process.env, TERM: 'dumb', LANG: 'en_US.UTF-8' },
+    timeout: 30000,
+    stdio: ['ignore', 'pipe', 'pipe']
+  });
+  child.stdout.on('data', (chunk) => {
+    if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'terminal-stdout', data: { id, text: chunk.toString() } }));
+  });
+  child.stderr.on('data', (chunk) => {
+    if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'terminal-stderr', data: { id, text: chunk.toString() } }));
+  });
+  child.on('close', (code) => {
+    if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'terminal-exit', data: { id, code } }));
+  });
+  child.on('error', (err) => {
+    if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'terminal-stderr', data: { id, text: err.message } }));
+    if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'terminal-exit', data: { id, code: 1 } }));
+  });
 }
 
 // ── Coin Tracker (Binance) ──

@@ -4,15 +4,15 @@
     var ElMessage = (window.ElementPlus && window.ElementPlus.ElMessage) || { success:function(){}, error:function(){}, warning:function(){}, info:function(){} };
 
     var LANGS = {
-      tr: { format:'Biçimle', minify:'Küçült', validate:'Doğrula', copy:'Kopyala', clear:'Temizle', indent:'Girinti', minimap:'Minimap', treeView:'Ağaç Görünümü', editor:'Editör', split:'Bölünmüş', line:'Satır', lines:'satır', chars:'karakter', copied:'Kopyalandı', valid:'Geçerli JSON', invalid:'Geçersiz JSON', formatted:'Biçimlendirildi', minified:'Küçültüldü', cleared:'Temizlendi', openFile:'Dosya Aç', saveFile:'Kaydet', keys:'anahtar', items:'öğe' },
-      en: { format:'Format', minify:'Minify', validate:'Validate', copy:'Copy', clear:'Clear', indent:'Indent', minimap:'Minimap', treeView:'Tree View', editor:'Editor', split:'Split', line:'Line', lines:'lines', chars:'chars', copied:'Copied', valid:'Valid JSON', invalid:'Invalid JSON', formatted:'Formatted', minified:'Minified', cleared:'Cleared', openFile:'Open File', saveFile:'Save', keys:'keys', items:'items' },
-      de: { format:'Formatieren', minify:'Minimieren', validate:'Validieren', copy:'Kopieren', clear:'Leeren', indent:'Einzug', minimap:'Minimap', treeView:'Baumansicht', editor:'Editor', split:'Geteilt', line:'Zeile', lines:'Zeilen', chars:'Zeichen', copied:'Kopiert', valid:'Gültiges JSON', invalid:'Ungültiges JSON', formatted:'Formatiert', minified:'Minimiert', cleared:'Geleert', openFile:'Datei öffnen', saveFile:'Speichern', keys:'Schlüssel', items:'Elemente' },
-      fr: { format:'Formater', minify:'Minifier', validate:'Valider', copy:'Copier', clear:'Effacer', indent:'Indentation', minimap:'Minimap', treeView:'Arborescence', editor:'Éditeur', split:'Divisé', line:'Ligne', lines:'lignes', chars:'caractères', copied:'Copié', valid:'JSON valide', invalid:'JSON invalide', formatted:'Formaté', minified:'Minifié', cleared:'Effacé', openFile:'Ouvrir', saveFile:'Enregistrer', keys:'clés', items:'éléments' },
-      es: { format:'Formatear', minify:'Minificar', validate:'Validar', copy:'Copiar', clear:'Limpiar', indent:'Sangría', minimap:'Minimapa', treeView:'Vista de Árbol', editor:'Editor', split:'Dividido', line:'Línea', lines:'líneas', chars:'caracteres', copied:'Copiado', valid:'JSON válido', invalid:'JSON inválido', formatted:'Formateado', minified:'Minificado', cleared:'Limpiado', openFile:'Abrir', saveFile:'Guardar', keys:'claves', items:'elementos' },
-      ru: { format:'Форматировать', minify:'Минифицировать', validate:'Проверить', copy:'Копировать', clear:'Очистить', indent:'Отступ', minimap:'Миникарта', treeView:'Дерево', editor:'Редактор', split:'Разделить', line:'Строка', lines:'строк', chars:'символов', copied:'Скопировано', valid:'Корректный JSON', invalid:'Некорректный JSON', formatted:'Отформатировано', minified:'Минифицировано', cleared:'Очищено', openFile:'Открыть', saveFile:'Сохранить', keys:'ключей', items:'элементов' },
-      zh: { format:'格式化', minify:'压缩', validate:'验证', copy:'复制', clear:'清空', indent:'缩进', minimap:'小地图', treeView:'树视图', editor:'编辑器', split:'分屏', line:'行', lines:'行', chars:'字符', copied:'已复制', valid:'有效JSON', invalid:'无效JSON', formatted:'已格式化', minified:'已压缩', cleared:'已清空', openFile:'打开', saveFile:'保存', keys:'键', items:'项' },
-      ja: { format:'整形', minify:'圧縮', validate:'検証', copy:'コピー', clear:'クリア', indent:'インデント', minimap:'ミニマップ', treeView:'ツリー表示', editor:'エディタ', split:'分割', line:'行', lines:'行', chars:'文字', copied:'コピーしました', valid:'有効なJSON', invalid:'無効なJSON', formatted:'整形しました', minified:'圧縮しました', cleared:'クリアしました', openFile:'開く', saveFile:'保存', keys:'キー', items:'項目' },
-      it: { format:'Formatta', minify:'Minifica', validate:'Convalida', copy:'Copia', clear:'Cancella', indent:'Rientro', minimap:'Minimappa', treeView:'Vista Albero', editor:'Editor', split:'Diviso', line:'Riga', lines:'righe', chars:'caratteri', copied:'Copiato', valid:'JSON valido', invalid:'JSON non valido', formatted:'Formattato', minified:'Minificato', cleared:'Cancellato', openFile:'Apri', saveFile:'Salva', keys:'chiavi', items:'elementi' }
+      tr: { format:'Biçimle', minify:'Küçült', validate:'Doğrula', copy:'Kopyala', clear:'Temizle', indent:'Girinti', minimap:'Minimap', treeView:'Ağaç Görünümü', editor:'Editör', split:'Bölünmüş', line:'Satır', lines:'satır', chars:'karakter', copied:'Kopyalandı', valid:'Geçerli JSON', invalid:'Geçersiz JSON', formatted:'Biçimlendirildi', minified:'Küçültüldü', cleared:'Temizlendi', openFile:'Dosya Aç', saveFile:'Kaydet', saveAs:'Farklı Kaydet', openLocal:'Yerel Dosya Aç', openServer:'Sunucudan Aç', saved:'Kaydedildi', keys:'anahtar', items:'öğe' },
+      en: { format:'Format', minify:'Minify', validate:'Validate', copy:'Copy', clear:'Clear', indent:'Indent', minimap:'Minimap', treeView:'Tree View', editor:'Editor', split:'Split', line:'Line', lines:'lines', chars:'chars', copied:'Copied', valid:'Valid JSON', invalid:'Invalid JSON', formatted:'Formatted', minified:'Minified', cleared:'Cleared', openFile:'Open File', saveFile:'Save', saveAs:'Save As', openLocal:'Open Local File', openServer:'Open from Server', saved:'Saved', keys:'keys', items:'items' },
+      de: { format:'Formatieren', minify:'Minimieren', validate:'Validieren', copy:'Kopieren', clear:'Leeren', indent:'Einzug', minimap:'Minimap', treeView:'Baumansicht', editor:'Editor', split:'Geteilt', line:'Zeile', lines:'Zeilen', chars:'Zeichen', copied:'Kopiert', valid:'Gültiges JSON', invalid:'Ungültiges JSON', formatted:'Formatiert', minified:'Minimiert', cleared:'Geleert', openFile:'Datei öffnen', saveFile:'Speichern', saveAs:'Speichern unter', openLocal:'Lokale Datei öffnen', openServer:'Vom Server öffnen', saved:'Gespeichert', keys:'Schlüssel', items:'Elemente' },
+      fr: { format:'Formater', minify:'Minifier', validate:'Valider', copy:'Copier', clear:'Effacer', indent:'Indentation', minimap:'Minimap', treeView:'Arborescence', editor:'Éditeur', split:'Divisé', line:'Ligne', lines:'lignes', chars:'caractères', copied:'Copié', valid:'JSON valide', invalid:'JSON invalide', formatted:'Formaté', minified:'Minifié', cleared:'Effacé', openFile:'Ouvrir', saveFile:'Enregistrer', saveAs:'Enregistrer sous', openLocal:'Ouvrir un fichier local', openServer:'Ouvrir depuis le serveur', saved:'Enregistré', keys:'clés', items:'éléments' },
+      es: { format:'Formatear', minify:'Minificar', validate:'Validar', copy:'Copiar', clear:'Limpiar', indent:'Sangría', minimap:'Minimapa', treeView:'Vista de Árbol', editor:'Editor', split:'Dividido', line:'Línea', lines:'líneas', chars:'caracteres', copied:'Copiado', valid:'JSON válido', invalid:'JSON inválido', formatted:'Formateado', minified:'Minificado', cleared:'Limpiado', openFile:'Abrir', saveFile:'Guardar', saveAs:'Guardar como', openLocal:'Abrir archivo local', openServer:'Abrir desde servidor', saved:'Guardado', keys:'claves', items:'elementos' },
+      ru: { format:'Форматировать', minify:'Минифицировать', validate:'Проверить', copy:'Копировать', clear:'Очистить', indent:'Отступ', minimap:'Миникарта', treeView:'Дерево', editor:'Редактор', split:'Разделить', line:'Строка', lines:'строк', chars:'символов', copied:'Скопировано', valid:'Корректный JSON', invalid:'Некорректный JSON', formatted:'Отформатировано', minified:'Минифицировано', cleared:'Очищено', openFile:'Открыть', saveFile:'Сохранить', saveAs:'Сохранить как', openLocal:'Открыть локальный файл', openServer:'Открыть с сервера', saved:'Сохранено', keys:'ключей', items:'элементов' },
+      zh: { format:'格式化', minify:'压缩', validate:'验证', copy:'复制', clear:'清空', indent:'缩进', minimap:'小地图', treeView:'树视图', editor:'编辑器', split:'分屏', line:'行', lines:'行', chars:'字符', copied:'已复制', valid:'有效JSON', invalid:'无效JSON', formatted:'已格式化', minified:'已压缩', cleared:'已清空', openFile:'打开', saveFile:'保存', saveAs:'另存为', openLocal:'打开本地文件', openServer:'从服务器打开', saved:'已保存', keys:'键', items:'项' },
+      ja: { format:'整形', minify:'圧縮', validate:'検証', copy:'コピー', clear:'クリア', indent:'インデント', minimap:'ミニマップ', treeView:'ツリー表示', editor:'エディタ', split:'分割', line:'行', lines:'行', chars:'文字', copied:'コピーしました', valid:'有効なJSON', invalid:'無効なJSON', formatted:'整形しました', minified:'圧縮しました', cleared:'クリアしました', openFile:'開く', saveFile:'保存', saveAs:'名前を付けて保存', openLocal:'ローカルファイルを開く', openServer:'サーバーから開く', saved:'保存しました', keys:'キー', items:'項目' },
+      it: { format:'Formatta', minify:'Minifica', validate:'Convalida', copy:'Copia', clear:'Cancella', indent:'Rientro', minimap:'Minimappa', treeView:'Vista Albero', editor:'Editor', split:'Diviso', line:'Riga', lines:'righe', chars:'caratteri', copied:'Copiato', valid:'JSON valido', invalid:'JSON non valido', formatted:'Formattato', minified:'Minificato', cleared:'Cancellato', openFile:'Apri', saveFile:'Salva', saveAs:'Salva con nome', openLocal:'Apri file locale', openServer:'Apri dal server', saved:'Salvato', keys:'chiavi', items:'elementi' }
     };
 
     function getLocale() {
@@ -34,6 +34,14 @@
     var minimapRef = ref(null);
     var minimapCanvas = ref(null);
     var treeRef = ref(null);
+    var currentFilePath = ref('');
+    var showOpenMenu = ref(false);
+    var showSaveMenu = ref(false);
+
+    var JSON_FILTERS = [
+      { label: 'JSON Files', extensions: ['.json'] },
+      { label: 'All Files', extensions: ['*'] }
+    ];
 
     var lineCount = computed(function() { return rawJson.value.split('\n').length; });
 
@@ -283,7 +291,8 @@
     }
 
     // ── File Operations ──
-    function openFile() {
+    function openLocalFile() {
+      showOpenMenu.value = false;
       var input = document.createElement('input');
       input.type = 'file';
       input.accept = '.json,application/json,.txt';
@@ -293,6 +302,7 @@
         var reader = new FileReader();
         reader.onload = function(ev) {
           rawJson.value = ev.target.result;
+          currentFilePath.value = '';
           onInput();
         };
         reader.readAsText(file);
@@ -300,14 +310,65 @@
       input.click();
     }
 
-    function saveFile() {
+    async function openServerFile() {
+      showOpenMenu.value = false;
+      if (!window.FileDialog) { ElMessage.error('FileDialog not available'); return; }
+      var result = await window.FileDialog.open({ title: '📂 ' + t('openFile'), filters: JSON_FILTERS });
+      if (!result) return;
+      rawJson.value = result.content;
+      currentFilePath.value = result.path;
+      onInput();
+    }
+
+    function openFile() {
+      showOpenMenu.value = !showOpenMenu.value;
+      showSaveMenu.value = false;
+    }
+
+    async function saveFile() {
+      showSaveMenu.value = false;
+      if (currentFilePath.value) {
+        if (!window.FileDialog) { ElMessage.error('FileDialog not available'); return; }
+        var r = await window.FileDialog.writeFile(currentFilePath.value, rawJson.value);
+        if (r) ElMessage.success(t('saved') + ' ✓');
+      } else {
+        await saveFileAs();
+      }
+    }
+
+    async function saveFileAs() {
+      showSaveMenu.value = false;
+      if (!window.FileDialog) { ElMessage.error('FileDialog not available'); return; }
+      var result = await window.FileDialog.save({ title: '💾 ' + t('saveAs'), defaultName: currentFilePath.value ? currentFilePath.value.split('/').pop() : 'data.json', filters: JSON_FILTERS });
+      if (!result) return;
+      var r = await window.FileDialog.writeFile(result.path, rawJson.value);
+      if (r) {
+        currentFilePath.value = result.path;
+        ElMessage.success(t('saved') + ' ✓');
+      }
+    }
+
+    function saveLocal() {
+      showSaveMenu.value = false;
       var blob = new Blob([rawJson.value], { type: 'application/json' });
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
-      a.download = 'data.json';
+      a.download = currentFilePath.value ? currentFilePath.value.split('/').pop() : 'data.json';
       a.click();
       URL.revokeObjectURL(url);
+    }
+
+    function showSaveOptions() {
+      showSaveMenu.value = !showSaveMenu.value;
+      showOpenMenu.value = false;
+    }
+
+    function closeMenus(e) {
+      if (!e.target.closest('.jv-dropdown-wrap')) {
+        showOpenMenu.value = false;
+        showSaveMenu.value = false;
+      }
     }
 
     // ── Watchers ──
@@ -316,6 +377,7 @@
 
     onMounted(function() {
       window.addEventListener('locale-changed', onLocaleChanged);
+      document.addEventListener('click', closeMenus);
       parseJson(rawJson.value);
       nextTick(function() {
         drawMinimap();
@@ -333,15 +395,18 @@
 
     onUnmounted(function() {
       window.removeEventListener('locale-changed', onLocaleChanged);
+      document.removeEventListener('click', closeMenus);
     });
 
     return {
       t, rawJson, indentSize, showMinimap, viewMode, jsonError, errorLine, isValid,
       editorRef, lineNumsRef, minimapRef, minimapCanvas, treeRef,
       lineCount, parsedSize, minimapViewport, treeError, treeHtml,
+      currentFilePath, showOpenMenu, showSaveMenu,
       onInput, formatJson, reformat, minifyJson, validateJson,
       copyToClipboard, clearAll, goToErrorLine, syncScroll, minimapClick,
-      openFile, saveFile
+      openFile, openLocalFile, openServerFile,
+      saveFile, saveFileAs, saveLocal, showSaveOptions
     };
   }
 })

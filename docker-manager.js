@@ -134,6 +134,33 @@ const containers = {}; // { appId: { containerId, containerName, port } }
 // ── Health check ──
 app.get('/health', (req, res) => res.json({ ok: true, service: 'docker-manager' }));
 
+// ── Build image from Dockerfile content ──
+app.post('/build', authCheck, async (req, res) => {
+  const { dockerfile, tag } = req.body;
+  console.log(`[BUILD] Request: tag=${tag} dockerfile=${dockerfile ? dockerfile.length + ' bytes' : 'missing'}`);
+  if (!dockerfile || !tag) {
+    return res.status(400).json({ error: 'dockerfile and tag required' });
+  }
+  if (!/^[a-zA-Z0-9_\-./]+:[a-zA-Z0-9_.\-]*$|^[a-zA-Z0-9_\-./]+$/.test(tag)) {
+    return res.status(400).json({ error: 'Invalid tag name' });
+  }
+  // Create temp build context with the Dockerfile
+  const tmpDir = path.join('/tmp', 'docker-build-' + Date.now());
+  try {
+    fs.mkdirSync(tmpDir, { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, 'Dockerfile'), dockerfile, 'utf8');
+    await dockerExec(['build', '-t', tag, tmpDir], 600000);
+    console.log(`[BUILD] OK: ${tag}`);
+    res.json({ ok: true, message: `Image ${tag} built successfully` });
+  } catch (e) {
+    console.error(`[BUILD] FAILED: ${tag} — ${e.message}`);
+    res.status(500).json({ error: e.message });
+  } finally {
+    // Cleanup temp dir
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+  }
+});
+
 // ── Pull image ──
 app.post('/pull', authCheck, async (req, res) => {
   const { image } = req.body;
