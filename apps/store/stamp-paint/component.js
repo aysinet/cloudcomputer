@@ -7,7 +7,7 @@
     tr: {
       paint:'Boya', stamp:'Damga', lines:'Çizgi', shapes:'Şekiller', text:'Metin',
       magic:'Sihir', eraser:'Silgi', undo:'Geri Al', redo:'Yinele',
-      newCanvas:'Yeni', save:'Kaydet', open:'Aç',
+      newCanvas:'Yeni', save:'Kaydet', saveAs:'Farklı Kaydet', open:'Aç', saved:'Kaydedildi', error:'Hata',
       brushSize:'Fırça Boyutu', color:'Renk', stampSize:'Damga Boyutu',
       animals:'Hayvanlar', nature:'Doğa', food:'Yiyecek', transport:'Ulaşım',
       faces:'Yüzler', objects:'Nesneler', weather:'Hava', music:'Müzik',
@@ -25,7 +25,7 @@
     en: {
       paint:'Paint', stamp:'Stamp', lines:'Lines', shapes:'Shapes', text:'Text',
       magic:'Magic', eraser:'Eraser', undo:'Undo', redo:'Redo',
-      newCanvas:'New', save:'Save', open:'Open',
+      newCanvas:'New', save:'Save', saveAs:'Save As', open:'Open', saved:'Saved', error:'Error',
       brushSize:'Brush Size', color:'Color', stampSize:'Stamp Size',
       animals:'Animals', nature:'Nature', food:'Food', transport:'Transport',
       faces:'Faces', objects:'Objects', weather:'Weather', music:'Music',
@@ -43,7 +43,7 @@
     de: {
       paint:'Malen', stamp:'Stempel', lines:'Linien', shapes:'Formen', text:'Text',
       magic:'Magie', eraser:'Radierer', undo:'Rückgängig', redo:'Wiederholen',
-      newCanvas:'Neu', save:'Speichern', open:'Öffnen',
+      newCanvas:'Neu', save:'Speichern', saveAs:'Speichern unter', open:'Öffnen', saved:'Gespeichert', error:'Fehler',
       brushSize:'Pinselgröße', color:'Farbe', stampSize:'Stempelgröße',
       animals:'Tiere', nature:'Natur', food:'Essen', transport:'Transport',
       faces:'Gesichter', objects:'Objekte', weather:'Wetter', music:'Musik',
@@ -61,7 +61,7 @@
     fr: {
       paint:'Peindre', stamp:'Tampon', lines:'Lignes', shapes:'Formes', text:'Texte',
       magic:'Magie', eraser:'Gomme', undo:'Annuler', redo:'Rétablir',
-      newCanvas:'Nouveau', save:'Enregistrer', open:'Ouvrir',
+      newCanvas:'Nouveau', save:'Enregistrer', saveAs:'Enregistrer sous', open:'Ouvrir', saved:'Enregistré', error:'Erreur',
       brushSize:'Taille du pinceau', color:'Couleur', stampSize:'Taille du tampon',
       animals:'Animaux', nature:'Nature', food:'Nourriture', transport:'Transport',
       faces:'Visages', objects:'Objets', weather:'Météo', music:'Musique',
@@ -79,7 +79,7 @@
     es: {
       paint:'Pintar', stamp:'Sello', lines:'Líneas', shapes:'Formas', text:'Texto',
       magic:'Magia', eraser:'Borrador', undo:'Deshacer', redo:'Rehacer',
-      newCanvas:'Nuevo', save:'Guardar', open:'Abrir',
+      newCanvas:'Nuevo', save:'Guardar', saveAs:'Guardar como', open:'Abrir', saved:'Guardado', error:'Error',
       brushSize:'Tamaño', color:'Color', stampSize:'Tamaño del sello',
       animals:'Animales', nature:'Naturaleza', food:'Comida', transport:'Transporte',
       faces:'Caras', objects:'Objetos', weather:'Clima', music:'Música',
@@ -97,7 +97,7 @@
     ru: {
       paint:'Кисть', stamp:'Штамп', lines:'Линии', shapes:'Фигуры', text:'Текст',
       magic:'Магия', eraser:'Ластик', undo:'Отмена', redo:'Повтор',
-      newCanvas:'Новый', save:'Сохранить', open:'Открыть',
+      newCanvas:'Новый', save:'Сохранить', saveAs:'Сохранить как', open:'Открыть', saved:'Сохранено', error:'Ошибка',
       brushSize:'Размер кисти', color:'Цвет', stampSize:'Размер штампа',
       animals:'Животные', nature:'Природа', food:'Еда', transport:'Транспорт',
       faces:'Лица', objects:'Предметы', weather:'Погода', music:'Музыка',
@@ -112,9 +112,9 @@
       download:'Скачать (PNG)', clear:'Очистить',
       fontFamily:'Шрифт', fontSize:'Размер шрифта'
     },
-    zh: { paint:'画笔', stamp:'印章', lines:'线条', shapes:'形状', text:'文字', magic:'魔法', eraser:'橡皮擦', undo:'撤销', redo:'重做', newCanvas:'新建', save:'保存', open:'打开', brushSize:'画笔大小', color:'颜色', stampSize:'印章大小', animals:'动物', nature:'自然', food:'食物', transport:'交通', faces:'表情', objects:'物品', weather:'天气', music:'音乐', sports:'运动', flags:'旗帜', symbols:'符号', fantasy:'幻想', rainbow:'彩虹', blur:'模糊', sparkle:'闪光', mirror:'镜像', negative:'负片', grayscale:'灰度', pixelate:'像素化', emboss:'浮雕', darken:'变暗', lighten:'变亮', smudge:'涂抹', kaleidoscope:'万花筒', line:'直线', rect:'矩形', ellipse:'椭圆', triangle:'三角形', star:'星形', heart:'心形', arrow:'箭头', diamond:'菱形', filled:'填充', outline:'轮廓', small:'小', medium:'中', large:'大', download:'下载(PNG)', clear:'清除', fontFamily:'字体', fontSize:'字号' },
-    ja: { paint:'ペイント', stamp:'スタンプ', lines:'線', shapes:'図形', text:'テキスト', magic:'マジック', eraser:'消しゴム', undo:'元に戻す', redo:'やり直し', newCanvas:'新規', save:'保存', open:'開く', brushSize:'ブラシサイズ', color:'色', stampSize:'スタンプサイズ', animals:'動物', nature:'自然', food:'食べ物', transport:'乗り物', faces:'顔', objects:'もの', weather:'天気', music:'音楽', sports:'スポーツ', flags:'旗', symbols:'記号', fantasy:'ファンタジー', rainbow:'虹', blur:'ぼかし', sparkle:'きらめき', mirror:'ミラー', negative:'ネガ', grayscale:'グレー', pixelate:'ピクセル', emboss:'エンボス', darken:'暗く', lighten:'明るく', smudge:'にじみ', kaleidoscope:'万華鏡', line:'直線', rect:'四角', ellipse:'楕円', triangle:'三角', star:'星', heart:'ハート', arrow:'矢印', diamond:'ひし形', filled:'塗りつぶし', outline:'枠線', small:'小', medium:'中', large:'大', download:'ダウンロード(PNG)', clear:'クリア', fontFamily:'フォント', fontSize:'サイズ' },
-    it: { paint:'Pennello', stamp:'Timbro', lines:'Linee', shapes:'Forme', text:'Testo', magic:'Magia', eraser:'Gomma', undo:'Annulla', redo:'Ripeti', newCanvas:'Nuovo', save:'Salva', open:'Apri', brushSize:'Dimensione pennello', color:'Colore', stampSize:'Dimensione timbro', animals:'Animali', nature:'Natura', food:'Cibo', transport:'Trasporto', faces:'Facce', objects:'Oggetti', weather:'Meteo', music:'Musica', sports:'Sport', flags:'Bandiere', symbols:'Simboli', fantasy:'Fantasia', rainbow:'Arcobaleno', blur:'Sfocatura', sparkle:'Scintilla', mirror:'Specchio', negative:'Negativo', grayscale:'Scala di grigi', pixelate:'Pixelizzare', emboss:'Rilievo', darken:'Scurire', lighten:'Schiarire', smudge:'Macchia', kaleidoscope:'Caleidoscopio', line:'Linea', rect:'Rettangolo', ellipse:'Ellisse', triangle:'Triangolo', star:'Stella', heart:'Cuore', arrow:'Freccia', diamond:'Diamante', filled:'Pieno', outline:'Contorno', small:'Piccolo', medium:'Medio', large:'Grande', download:'Scarica (PNG)', clear:'Cancella', fontFamily:'Font', fontSize:'Dimensione' }
+    zh: { paint:'画笔', stamp:'印章', lines:'线条', shapes:'形状', text:'文字', magic:'魔法', eraser:'橡皮擦', undo:'撤销', redo:'重做', newCanvas:'新建', save:'保存', saveAs:'另存为', open:'打开', saved:'已保存', error:'错误', brushSize:'画笔大小', color:'颜色', stampSize:'印章大小', animals:'动物', nature:'自然', food:'食物', transport:'交通', faces:'表情', objects:'物品', weather:'天气', music:'音乐', sports:'运动', flags:'旗帜', symbols:'符号', fantasy:'幻想', rainbow:'彩虹', blur:'模糊', sparkle:'闪光', mirror:'镜像', negative:'负片', grayscale:'灰度', pixelate:'像素化', emboss:'浮雕', darken:'变暗', lighten:'变亮', smudge:'涂抹', kaleidoscope:'万花筒', line:'直线', rect:'矩形', ellipse:'椭圆', triangle:'三角形', star:'星形', heart:'心形', arrow:'箭头', diamond:'菱形', filled:'填充', outline:'轮廓', small:'小', medium:'中', large:'大', download:'下载(PNG)', clear:'清除', fontFamily:'字体', fontSize:'字号' },
+    ja: { paint:'ペイント', stamp:'スタンプ', lines:'線', shapes:'図形', text:'テキスト', magic:'マジック', eraser:'消しゴム', undo:'元に戻す', redo:'やり直し', newCanvas:'新規', save:'保存', saveAs:'名前を付けて保存', open:'開く', saved:'保存済み', error:'エラー', brushSize:'ブラシサイズ', color:'色', stampSize:'スタンプサイズ', animals:'動物', nature:'自然', food:'食べ物', transport:'乗り物', faces:'顔', objects:'もの', weather:'天気', music:'音楽', sports:'スポーツ', flags:'旗', symbols:'記号', fantasy:'ファンタジー', rainbow:'虹', blur:'ぼかし', sparkle:'きらめき', mirror:'ミラー', negative:'ネガ', grayscale:'グレー', pixelate:'ピクセル', emboss:'エンボス', darken:'暗く', lighten:'明るく', smudge:'にじみ', kaleidoscope:'万華鏡', line:'直線', rect:'四角', ellipse:'楕円', triangle:'三角', star:'星', heart:'ハート', arrow:'矢印', diamond:'ひし形', filled:'塗りつぶし', outline:'枠線', small:'小', medium:'中', large:'大', download:'ダウンロード(PNG)', clear:'クリア', fontFamily:'フォント', fontSize:'サイズ' },
+    it: { paint:'Pennello', stamp:'Timbro', lines:'Linee', shapes:'Forme', text:'Testo', magic:'Magia', eraser:'Gomma', undo:'Annulla', redo:'Ripeti', newCanvas:'Nuovo', save:'Salva', saveAs:'Salva con nome', open:'Apri', saved:'Salvato', error:'Errore', brushSize:'Dimensione pennello', color:'Colore', stampSize:'Dimensione timbro', animals:'Animali', nature:'Natura', food:'Cibo', transport:'Trasporto', faces:'Facce', objects:'Oggetti', weather:'Meteo', music:'Musica', sports:'Sport', flags:'Bandiere', symbols:'Simboli', fantasy:'Fantasia', rainbow:'Arcobaleno', blur:'Sfocatura', sparkle:'Scintilla', mirror:'Specchio', negative:'Negativo', grayscale:'Scala di grigi', pixelate:'Pixelizzare', emboss:'Rilievo', darken:'Scurire', lighten:'Schiarire', smudge:'Macchia', kaleidoscope:'Caleidoscopio', line:'Linea', rect:'Rettangolo', ellipse:'Ellisse', triangle:'Triangolo', star:'Stella', heart:'Cuore', arrow:'Freccia', diamond:'Diamante', filled:'Pieno', outline:'Contorno', small:'Piccolo', medium:'Medio', large:'Grande', download:'Scarica (PNG)', clear:'Cancella', fontFamily:'Font', fontSize:'Dimensione' }
   };
 
   /* ── Stamp Data (emoji-based) ── */
@@ -552,41 +552,104 @@
         }
       }
 
+      // ── State for file path ──
+      var currentFilePath = ref('');
+      var currentFileName = ref('');
+
+      var IMG_FILTERS = [
+        { label: 'Images', extensions: ['.png', '.jpg', '.jpeg', '.bmp', '.gif', '.webp'] }
+      ];
+
+      function authToken() {
+        return localStorage.getItem('auth_token') || localStorage.getItem('token') || '';
+      }
+
       // ── File ops ──
       function newCanvas() {
         if (!ctx) return;
         ctx.fillStyle = bgColor.value;
         ctx.fillRect(0, 0, canvasW, canvasH);
+        currentFilePath.value = '';
+        currentFileName.value = '';
         pushHistory();
       }
 
       function downloadPNG() {
         var link = document.createElement('a');
-        link.download = 'stamppaint_' + Date.now() + '.png';
+        link.download = currentFileName.value || 'stamppaint_' + Date.now() + '.png';
         link.href = mainCanvas.value.toDataURL('image/png');
         link.click();
       }
 
-      function openFile() {
-        var input = document.createElement('input');
-        input.type = 'file'; input.accept = 'image/*';
-        input.onchange = function(e) {
-          var file = e.target.files[0]; if (!file) return;
-          var reader = new FileReader();
-          reader.onload = function(ev) {
-            var img = new Image();
-            img.onload = function() {
-              ctx.clearRect(0, 0, canvasW, canvasH);
-              ctx.fillStyle = bgColor.value;
-              ctx.fillRect(0, 0, canvasW, canvasH);
-              ctx.drawImage(img, 0, 0, canvasW, canvasH);
-              pushHistory();
-            };
-            img.src = ev.target.result;
+      async function openFile() {
+        if (!window.FileDialog) return;
+        var result = await window.FileDialog.open({
+          title: '📂 ' + t('open'),
+          filters: IMG_FILTERS
+        });
+        if (!result) return;
+        try {
+          var resp = await fetch('/api/fs/read-binary?path=' + encodeURIComponent(result.path), {
+            headers: { 'Authorization': 'Bearer ' + authToken() }
+          });
+          if (!resp.ok) { ElMessage.error(t('error')); return; }
+          var data = await resp.json();
+          var ext = (result.name.split('.').pop() || 'png').toLowerCase();
+          var mimeMap = { png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', bmp:'image/bmp', gif:'image/gif', webp:'image/webp' };
+          var mime = mimeMap[ext] || 'image/png';
+          var img = new Image();
+          img.onload = function() {
+            ctx.clearRect(0, 0, canvasW, canvasH);
+            ctx.fillStyle = bgColor.value;
+            ctx.fillRect(0, 0, canvasW, canvasH);
+            ctx.drawImage(img, 0, 0, canvasW, canvasH);
+            pushHistory();
           };
-          reader.readAsDataURL(file);
-        };
-        input.click();
+          img.src = 'data:' + mime + ';base64,' + data.content;
+          currentFilePath.value = result.path;
+          currentFileName.value = result.name;
+        } catch (e) { ElMessage.error(t('error')); }
+      }
+
+      async function saveFile() {
+        if (currentFilePath.value) {
+          await saveToPath(currentFilePath.value);
+        } else {
+          await saveFileAs();
+        }
+      }
+
+      async function saveFileAs() {
+        if (!window.FileDialog || !mainCanvas.value) return;
+        var result = await window.FileDialog.save({
+          title: '💾 ' + t('saveAs'),
+          defaultName: currentFileName.value || 'stamppaint_' + Date.now() + '.png',
+          filters: [
+            { label: 'PNG', extensions: ['.png'] },
+            { label: 'JPEG', extensions: ['.jpg', '.jpeg'] }
+          ]
+        });
+        if (!result) return;
+        currentFilePath.value = result.path;
+        currentFileName.value = result.name;
+        await saveToPath(result.path);
+      }
+
+      async function saveToPath(filePath) {
+        if (!mainCanvas.value) return;
+        try {
+          var ext = (filePath.split('.').pop() || 'png').toLowerCase();
+          var mime = (ext === 'jpg' || ext === 'jpeg') ? 'image/jpeg' : 'image/png';
+          var dataUrl = mainCanvas.value.toDataURL(mime);
+          var b64 = dataUrl.split(',')[1];
+          var resp = await fetch('/api/fs/write-binary', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + authToken(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filePath: filePath, content: b64 })
+          });
+          if (resp.ok) { ElMessage.success(t('saved')); }
+          else { ElMessage.error(t('error')); }
+        } catch (e) { ElMessage.error(t('error')); }
       }
 
       // ── Lifecycle ──
@@ -608,7 +671,8 @@
         canUndo, canRedo, palette,
         MAGIC_EFFECTS, SHAPE_TYPES,
         onPointerDown, onPointerMove, onPointerUp,
-        undo, redo, newCanvas, downloadPNG, openFile
+        currentFileName,
+        undo, redo, newCanvas, downloadPNG, openFile, saveFile, saveFileAs
       };
     }
   };

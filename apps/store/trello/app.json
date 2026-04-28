@@ -1,0 +1,52 @@
+{
+  "id": "trello",
+  "name": "Trello",
+  "icon": "📋",
+  "color": "linear-gradient(135deg,#0079bf,#026aa7)",
+  "type": "internal",
+  "size": {
+    "w": 1000,
+    "h": 680
+  },
+  "global": false,
+  "description": "Trello pano yönetimi — kartlar, listeler, sürükle-bırak",
+  "lang": {
+    "tr": {
+      "name": "Trello",
+      "description": "Trello pano yönetimi — kartlar, listeler, sürükle-bırak"
+    },
+    "en": {
+      "name": "Trello",
+      "description": "Trello board management — cards, lists, drag & drop"
+    },
+    "de": {
+      "name": "Trello",
+      "description": "Trello-Board-Verwaltung — Karten, Listen, Drag & Drop"
+    },
+    "fr": {
+      "name": "Trello",
+      "description": "Gestion de tableaux Trello — cartes, listes, glisser-déposer"
+    },
+    "es": {
+      "name": "Trello",
+      "description": "Gestión de tableros Trello — tarjetas, listas, arrastrar y soltar"
+    },
+    "ru": {
+      "name": "Trello",
+      "description": "Управление досками Trello — карточки, списки, перетаскивание"
+    },
+    "zh": {
+      "name": "Trello",
+      "description": "Trello看板管理 — 卡片、列表、拖放"
+    },
+    "ja": {
+      "name": "Trello",
+      "description": "Trelloボード管理 — カード、リスト、ドラッグ＆ドロップ"
+    },
+    "it": {
+      "name": "Trello",
+      "description": "Gestione bacheche Trello — schede, liste, trascina e rilascia"
+    }
+  },
+  "category": "productivity"
+}

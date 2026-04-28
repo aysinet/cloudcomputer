@@ -1,0 +1,174 @@
+<div class="trello-app">
+  <!-- ═══ Settings View ═══ -->
+  <template v-if="view === 'settings'">
+    <div class="tr-settings">
+      <div class="tr-settings-header">
+        <span class="tr-logo">📋</span>
+        <h2>Trello</h2>
+      </div>
+      <p class="tr-settings-info">{{ t('configure') }}</p>
+
+      <div class="tr-field">
+        <label>{{ t('apiKey') }}</label>
+        <el-input v-model="apiKey" placeholder="API Key" size="default" />
+        <a class="tr-link" href="https://trello.com/power-ups/admin" target="_blank">🔑 {{ t('getKey') }}</a>
+      </div>
+      <div class="tr-field">
+        <label>{{ t('token') }}</label>
+        <el-input v-model="apiToken" placeholder="Token" type="password" show-password size="default" />
+        <a v-if="apiKey" class="tr-link"
+          :href="'https://trello.com/1/authorize?expiration=never&scope=read,write&response_type=token&key=' + apiKey"
+          target="_blank">🔐 {{ t('authToken') }}</a>
+      </div>
+      <div class="tr-settings-actions">
+        <el-button type="primary" @click="saveSettings">{{ t('save') }}</el-button>
+        <el-button v-if="hasCredentials()" @click="view = 'boards'; loadBoards()">{{ t('cancel') }}</el-button>
+      </div>
+    </div>
+  </template>
+
+  <!-- ═══ Boards View ═══ -->
+  <template v-else-if="view === 'boards'">
+    <div class="tr-topbar">
+      <div class="tr-topbar-left">
+        <span class="tr-logo-sm">📋</span>
+        <span class="tr-topbar-title">{{ t('boards') }}</span>
+      </div>
+      <div class="tr-topbar-right">
+        <el-button size="small" @click="loadBoards" :loading="loading" circle>🔄</el-button>
+        <el-button size="small" @click="view = 'settings'" circle>⚙️</el-button>
+      </div>
+    </div>
+    <div class="tr-boards-content">
+      <div v-if="loading" class="tr-loading">{{ t('loading') }}</div>
+      <div v-else-if="boards.length === 0" class="tr-empty">{{ t('noBoards') }}</div>
+      <div v-else class="tr-boards-grid">
+        <div v-for="b in boards" :key="b.id" class="tr-board-card"
+          :style="'background:' + getBoardColor(b)"
+          @click="openBoard(b)">
+          <div class="tr-board-name">{{ b.name }}</div>
+          <div v-if="b.desc" class="tr-board-desc">{{ b.desc }}</div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- ═══ Board View (Kanban) ═══ -->
+  <template v-else-if="view === 'board'">
+    <div class="tr-topbar">
+      <div class="tr-topbar-left">
+        <el-button size="small" @click="goBoards" circle>⬅️</el-button>
+        <span class="tr-topbar-title">{{ currentBoard ? currentBoard.name : '' }}</span>
+      </div>
+      <div class="tr-topbar-right">
+        <el-button size="small" @click="openAddList" type="primary" plain>＋ {{ t('addList') }}</el-button>
+        <el-button size="small" @click="loadBoardData(currentBoard.id)" :loading="loading" circle>🔄</el-button>
+        <el-button size="small" @click="openInTrello" circle>↗️</el-button>
+        <el-button size="small" @click="view = 'settings'" circle>⚙️</el-button>
+      </div>
+    </div>
+    <div class="tr-kanban" v-if="!loading">
+      <div v-for="list in lists" :key="list.id" class="tr-list"
+        @dragover.prevent="onDragOver($event, list.id)"
+        @dragleave="onDragLeave($event, list.id)"
+        @drop="onDrop($event, list.id)"
+        :class="{ 'drag-over': dragOverList === list.id }">
+        <div class="tr-list-header">
+          <span class="tr-list-name">{{ list.name }}</span>
+          <span class="tr-list-count">{{ (cardsByList[list.id] || []).length }}</span>
+        </div>
+        <div class="tr-list-cards">
+          <div v-for="card in (cardsByList[list.id] || [])" :key="card.id"
+            class="tr-card"
+            draggable="true"
+            @dragstart="onDragStart($event, card)"
+            @click="openCardDetail(card)">
+            <div v-if="card.labels && card.labels.length" class="tr-card-labels">
+              <span v-for="label in card.labels" :key="label.id" class="tr-label"
+                :style="'background:' + getLabelColor(label)"
+                :title="label.name">{{ label.name }}</span>
+            </div>
+            <div class="tr-card-name">{{ card.name }}</div>
+            <div class="tr-card-meta">
+              <span v-if="card.due" class="tr-card-due" :class="{ 'overdue': !card.dueComplete && new Date(card.due) < new Date(), 'done': card.dueComplete }">
+                🕐 {{ formatDue(card.due) }}
+              </span>
+              <span v-if="card.desc" class="tr-card-has-desc">📝</span>
+              <span v-if="card.members && card.members.length" class="tr-card-members">
+                <span v-for="m in card.members" :key="m.id" class="tr-member-avatar" :title="m.fullName">
+                  {{ m.fullName ? m.fullName.charAt(0) : '?' }}
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="tr-list-add" @click="openAddCard(list.id)">＋ {{ t('addCard') }}</div>
+      </div>
+      <!-- Add list placeholder -->
+      <div class="tr-list tr-list-add-new" @click="openAddList">
+        ＋ {{ t('addList') }}
+      </div>
+    </div>
+    <div v-else class="tr-loading">{{ t('loading') }}</div>
+  </template>
+
+  <!-- ═══ Add List Dialog ═══ -->
+  <el-dialog v-model="showAddList" :title="t('addList')" width="400px" append-to-body>
+    <el-input v-model="newListName" :placeholder="t('listName')" @keyup.enter="createList" autofocus />
+    <template #footer>
+      <el-button @click="showAddList = false">{{ t('cancel') }}</el-button>
+      <el-button type="primary" @click="createList" :disabled="!newListName.trim()">{{ t('save') }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ═══ Add Card Dialog ═══ -->
+  <el-dialog v-model="showAddCard" :title="t('addCard')" width="440px" append-to-body>
+    <div class="tr-dialog-fields">
+      <el-input v-model="newCardName" :placeholder="t('cardName')" @keyup.enter="createCard" autofocus />
+      <el-input v-model="newCardDesc" :placeholder="t('description')" type="textarea" :rows="3" />
+    </div>
+    <template #footer>
+      <el-button @click="showAddCard = false">{{ t('cancel') }}</el-button>
+      <el-button type="primary" @click="createCard" :disabled="!newCardName.trim()">{{ t('save') }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ═══ Card Detail Dialog ═══ -->
+  <el-dialog v-model="showCardDetail" :title="t('cardDetail')" width="520px" append-to-body>
+    <div class="tr-dialog-fields" v-if="detailCard">
+      <div class="tr-field">
+        <label>{{ t('cardName') }}</label>
+        <el-input v-model="editingCardName" />
+      </div>
+      <div class="tr-field">
+        <label>{{ t('description') }}</label>
+        <el-input v-model="editingCardDesc" type="textarea" :rows="4" />
+      </div>
+      <div class="tr-field">
+        <label>{{ t('dueDate') }}</label>
+        <el-date-picker v-model="editingCardDue" type="date" value-format="YYYY-MM-DD" style="width:100%" />
+      </div>
+      <div v-if="detailCard.labels && detailCard.labels.length" class="tr-field">
+        <label>{{ t('labels') }}</label>
+        <div class="tr-detail-labels">
+          <span v-for="label in detailCard.labels" :key="label.id" class="tr-label"
+            :style="'background:' + getLabelColor(label)">{{ label.name || label.color }}</span>
+        </div>
+      </div>
+      <div v-if="detailCard.members && detailCard.members.length" class="tr-field">
+        <label>{{ t('members') }}</label>
+        <div class="tr-detail-members">
+          <span v-for="m in detailCard.members" :key="m.id" class="tr-member-chip">{{ m.fullName }}</span>
+        </div>
+      </div>
+      <div v-if="detailCard.shortUrl" class="tr-field">
+        <a :href="detailCard.shortUrl" target="_blank" class="tr-link">↗️ {{ t('open') }}</a>
+      </div>
+    </div>
+    <template #footer>
+      <el-button type="danger" plain @click="archiveCard(detailCard.id)" style="float:left">🗑 {{ t('deleteCard') }}</el-button>
+      <el-button @click="showCardDetail = false">{{ t('cancel') }}</el-button>
+      <el-button type="primary" @click="saveCardChanges">{{ t('save') }}</el-button>
+    </template>
+  </el-dialog>
+</div>

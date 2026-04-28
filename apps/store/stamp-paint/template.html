@@ -13,7 +13,9 @@
     <button class="sp-tool-btn" @click="redo" :disabled="!canRedo" title="">↪️<span>{{ t('redo') }}</span></button>
     <button class="sp-tool-btn" @click="newCanvas" title="">📄<span>{{ t('newCanvas') }}</span></button>
     <button class="sp-tool-btn" @click="openFile" title="">📂<span>{{ t('open') }}</span></button>
-    <button class="sp-tool-btn" @click="downloadPNG" title="">💾<span>{{ t('save') }}</span></button>
+    <button class="sp-tool-btn" @click="saveFile" title="">💾<span>{{ t('save') }}</span></button>
+    <button class="sp-tool-btn" @click="saveFileAs" title="">📑<span>{{ t('saveAs') }}</span></button>
+    <button class="sp-tool-btn" @click="downloadPNG" title="">⬇️<span>{{ t('download') }}</span></button>
   </div>
 
   <!-- Center: Canvas -->
