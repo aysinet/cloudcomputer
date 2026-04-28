@@ -132,10 +132,29 @@ function authMiddleware(req, res, next) {
   next();
 }
 
+// ── User settings helpers ──
+function getUserSettingsPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  return path.join(DATA_DIR, safe, 'settings.json');
+}
+
+function readUserSettings(username) {
+  const p = getUserSettingsPath(username);
+  if (!fs.existsSync(p)) return null;
+  try { return JSON.parse(fs.readFileSync(p, 'utf-8')); } catch { return null; }
+}
+
+function writeUserSettings(username, settings) {
+  const p = getUserSettingsPath(username);
+  const dir = path.dirname(p);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(p, JSON.stringify(settings, null, 2));
+}
+
 // ── Setup check ──
 function needsSetup() {
-  // If config has credentials, setup is done
-  if (config.auth.username && config.auth.password) return false;
+  // If config has users, setup is done
+  if (Array.isArray(config.auth.users) && config.auth.users.length > 0) return false;
   // Even if config is empty, check if any user directory exists (recovery)
   try {
     const entries = fs.readdirSync(DATA_DIR, { withFileTypes: true });
@@ -256,8 +275,10 @@ app.post('/api/setup', (req, res) => {
 
   // 2. Update config in memory & on disk
   const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-  config.auth.username = username;
-  config.auth.password = hashedPassword;
+  if (!Array.isArray(config.auth.users)) config.auth.users = [];
+  if (!config.auth.users.includes(username)) config.auth.users.push(username);
+  delete config.auth.username;
+  delete config.auth.password;
   if (config.auth.jwtSecret === 'vue-desktop-jwt-secret-change-me') {
     config.auth.jwtSecret = crypto.randomBytes(32).toString('hex');
   }
@@ -267,16 +288,16 @@ app.post('/api/setup', (req, res) => {
     return res.status(500).json({ error: 'Failed to save config: ' + e.message });
   }
 
-  // 3. Create user directory & settings
+  // 3. Create user directory & settings (password hash in settings.json)
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const userDir = path.join(DATA_DIR, safe);
   if (!fs.existsSync(userDir)) fs.mkdirSync(userDir, { recursive: true });
   const filesDir = path.join(userDir, 'files');
   if (!fs.existsSync(filesDir)) fs.mkdirSync(filesDir, { recursive: true });
 
-  // 4. Save initial settings
-  const settings = { locale: locale || 'en', country: country || '', city: city || '' };
-  fs.writeFileSync(path.join(userDir, 'settings.json'), JSON.stringify(settings, null, 2));
+  // 4. Save initial settings with password hash
+  const settings = { locale: locale || 'en', country: country || '', city: city || '', passwordHash: hashedPassword };
+  writeUserSettings(username, settings);
 
   // 5. Initialize user appdata db
   getUserDb(username);
@@ -290,9 +311,17 @@ app.post('/api/setup', (req, res) => {
 // ── Auth Routes (public) ──
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
+  if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+
+  // Look up user from settings.json
+  const settings = readUserSettings(username);
+  if (!settings || !settings.passwordHash) {
+    return res.status(401).json({ error: 'Geçersiz kullanıcı adı veya şifre' });
+  }
+
   // Support both plaintext (legacy) and SHA-256 hashed passwords
   const inputHash = crypto.createHash('sha256').update(password).digest('hex');
-  if (username === config.auth.username && (password === config.auth.password || inputHash === config.auth.password)) {
+  if (password === settings.passwordHash || inputHash === settings.passwordHash) {
     const token = signToken({ username });
     res.setHeader('Set-Cookie', `token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400`);
     res.json({ ok: true, token, user: { username } });
@@ -1130,12 +1159,23 @@ function getUserDb(username) {
     );
     CREATE INDEX IF NOT EXISTS idx_cal_date ON calendar_events(date);
 
+    CREATE TABLE IF NOT EXISTS todo_groups (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      color TEXT DEFAULT '#667eea',
+      sort_order INTEGER DEFAULT 0
+    );
+
     CREATE TABLE IF NOT EXISTS todos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       text TEXT NOT NULL,
       done INTEGER DEFAULT 0,
       sort_order INTEGER DEFAULT 0,
-      created_at TEXT DEFAULT (datetime('now'))
+      color TEXT DEFAULT '',
+      priority INTEGER DEFAULT 0,
+      group_id INTEGER DEFAULT NULL,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (group_id) REFERENCES todo_groups(id) ON DELETE CASCADE
     );
 
     CREATE TABLE IF NOT EXISTS notifications (
@@ -1325,28 +1365,83 @@ app.delete('/api/calendar/holidays', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Todo Groups API ──
+app.get('/api/todo-groups', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  try { db.prepare('SELECT 1 FROM todo_groups LIMIT 1').get(); } catch {
+    db.exec(`CREATE TABLE IF NOT EXISTS todo_groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, color TEXT DEFAULT '#667eea', sort_order INTEGER DEFAULT 0)`);
+  }
+  const rows = db.prepare('SELECT * FROM todo_groups ORDER BY sort_order ASC, id ASC').all();
+  res.json(rows);
+});
+
+app.post('/api/todo-groups', authMiddleware, (req, res) => {
+  const { name, color } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: 'name required' });
+  const db = getUserDb(req.user.username);
+  try { db.prepare('SELECT 1 FROM todo_groups LIMIT 1').get(); } catch {
+    db.exec(`CREATE TABLE IF NOT EXISTS todo_groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, color TEXT DEFAULT '#667eea', sort_order INTEGER DEFAULT 0)`);
+  }
+  const maxOrder = db.prepare('SELECT MAX(sort_order) as m FROM todo_groups').get();
+  const order = (maxOrder && maxOrder.m != null) ? maxOrder.m + 1 : 0;
+  const info = db.prepare('INSERT INTO todo_groups (name, color, sort_order) VALUES (?, ?, ?)').run(name.trim(), color || '#667eea', order);
+  res.json({ ok: true, id: info.lastInsertRowid, name: name.trim(), color: color || '#667eea', sort_order: order });
+});
+
+app.put('/api/todo-groups/:id', authMiddleware, (req, res) => {
+  const { name, color } = req.body;
+  const db = getUserDb(req.user.username);
+  if (name !== undefined) db.prepare('UPDATE todo_groups SET name = ? WHERE id = ?').run(name, req.params.id);
+  if (color !== undefined) db.prepare('UPDATE todo_groups SET color = ? WHERE id = ?').run(color, req.params.id);
+  res.json({ ok: true });
+});
+
+app.delete('/api/todo-groups/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM todos WHERE group_id = ?').run(req.params.id);
+  db.prepare('DELETE FROM todo_groups WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
 // ── Todos API ──
 app.get('/api/todos', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
-  const rows = db.prepare('SELECT id, text, done, sort_order FROM todos ORDER BY sort_order ASC, id DESC').all();
-  res.json(rows.map(r => ({ id: r.id, text: r.text, done: !!r.done, sort_order: r.sort_order })));
+  // Migrate: add missing columns if needed
+  try { db.prepare('SELECT color FROM todos LIMIT 1').get(); } catch { db.exec('ALTER TABLE todos ADD COLUMN color TEXT DEFAULT ""'); }
+  try { db.prepare('SELECT priority FROM todos LIMIT 1').get(); } catch { db.exec('ALTER TABLE todos ADD COLUMN priority INTEGER DEFAULT 0'); }
+  try { db.prepare('SELECT group_id FROM todos LIMIT 1').get(); } catch { db.exec('ALTER TABLE todos ADD COLUMN group_id INTEGER DEFAULT NULL'); }
+  const groupId = req.query.group_id;
+  let rows;
+  if (groupId) {
+    rows = db.prepare('SELECT id, text, done, sort_order, color, priority, group_id FROM todos WHERE group_id = ? ORDER BY sort_order ASC, id DESC').all(groupId);
+  } else {
+    rows = db.prepare('SELECT id, text, done, sort_order, color, priority, group_id FROM todos ORDER BY sort_order ASC, id DESC').all();
+  }
+  res.json(rows.map(r => ({ ...r, done: !!r.done })));
 });
 
 app.post('/api/todos', authMiddleware, (req, res) => {
-  const { text } = req.body;
+  const { text, color, priority, group_id } = req.body;
   if (!text || !text.trim()) return res.status(400).json({ error: 'text required' });
   const db = getUserDb(req.user.username);
+  // Migrate: add missing columns if needed
+  try { db.prepare('SELECT color FROM todos LIMIT 1').get(); } catch { db.exec('ALTER TABLE todos ADD COLUMN color TEXT DEFAULT ""'); }
+  try { db.prepare('SELECT priority FROM todos LIMIT 1').get(); } catch { db.exec('ALTER TABLE todos ADD COLUMN priority INTEGER DEFAULT 0'); }
+  try { db.prepare('SELECT group_id FROM todos LIMIT 1').get(); } catch { db.exec('ALTER TABLE todos ADD COLUMN group_id INTEGER DEFAULT NULL'); }
   const minOrder = db.prepare('SELECT MIN(sort_order) as m FROM todos').get();
   const order = (minOrder && minOrder.m != null) ? minOrder.m - 1 : 0;
-  const info = db.prepare('INSERT INTO todos (text, done, sort_order) VALUES (?, 0, ?)').run(text.trim(), order);
+  const info = db.prepare('INSERT INTO todos (text, done, sort_order, color, priority, group_id) VALUES (?, 0, ?, ?, ?, ?)').run(text.trim(), order, color || '', priority || 0, group_id || null);
   res.json({ ok: true, id: info.lastInsertRowid, sort_order: order });
 });
 
 app.put('/api/todos/:id', authMiddleware, (req, res) => {
-  const { text, done } = req.body;
+  const { text, done, color, priority, group_id } = req.body;
   const db = getUserDb(req.user.username);
   if (text !== undefined) db.prepare('UPDATE todos SET text = ? WHERE id = ?').run(text, req.params.id);
   if (done !== undefined) db.prepare('UPDATE todos SET done = ? WHERE id = ?').run(done ? 1 : 0, req.params.id);
+  if (color !== undefined) db.prepare('UPDATE todos SET color = ? WHERE id = ?').run(color, req.params.id);
+  if (priority !== undefined) db.prepare('UPDATE todos SET priority = ? WHERE id = ?').run(priority, req.params.id);
+  if (group_id !== undefined) db.prepare('UPDATE todos SET group_id = ? WHERE id = ?').run(group_id, req.params.id);
   res.json({ ok: true });
 });
 

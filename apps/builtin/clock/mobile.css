@@ -1,4 +1,2 @@
 /* Clock: center vertically */
 .clock-root{padding:20px;justify-content:center}
-.clock-root canvas{width:240px !important;height:240px !important}
-.clock-digital{font-size:32px}

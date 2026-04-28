@@ -1,0 +1,55 @@
+{
+  "id": "json-viewer",
+  "name": "JSON Görüntüleyici",
+  "icon": "🔎",
+  "color": "linear-gradient(135deg,#1e1e3a,#3b82f6)",
+  "type": "internal",
+  "size": {
+    "w": 860,
+    "h": 580,
+    "minWidth": 480,
+    "minHeight": 360
+  },
+  "hasStyle": true,
+  "global": false,
+  "description": "JSON düzenleyici ve görüntüleyici — pretty print, hata kontrolü, minimap",
+  "lang": {
+    "tr": {
+      "name": "JSON Görüntüleyici",
+      "description": "JSON düzenleyici ve görüntüleyici — pretty print, hata kontrolü, minimap"
+    },
+    "en": {
+      "name": "JSON Viewer",
+      "description": "JSON editor and viewer — pretty print, error checking, minimap"
+    },
+    "de": {
+      "name": "JSON-Betrachter",
+      "description": "JSON-Editor und -Betrachter — Pretty-Print, Fehlerprüfung, Minimap"
+    },
+    "fr": {
+      "name": "Visionneuse JSON",
+      "description": "Éditeur et visionneuse JSON — mise en forme, vérification d'erreurs, minimap"
+    },
+    "es": {
+      "name": "Visor JSON",
+      "description": "Editor y visor JSON — formato bonito, verificación de errores, minimapa"
+    },
+    "ru": {
+      "name": "Просмотр JSON",
+      "description": "Редактор и просмотр JSON — форматирование, проверка ошибок, миникарта"
+    },
+    "zh": {
+      "name": "JSON 查看器",
+      "description": "JSON 编辑器和查看器 — 格式化, 错误检查, 小地图"
+    },
+    "ja": {
+      "name": "JSONビューア",
+      "description": "JSONエディタとビューア — 整形表示、エラーチェック、ミニマップ"
+    },
+    "it": {
+      "name": "Visualizzatore JSON",
+      "description": "Editor e visualizzatore JSON — formattazione, controllo errori, minimap"
+    }
+  },
+  "category": "development"
+}

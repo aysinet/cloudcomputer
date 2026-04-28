@@ -1,5 +1,5 @@
-.clock-root{width:100%;height:100%;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Segoe UI',sans-serif;color:#fff}
-.clock-root canvas{margin-bottom:20px}
-.clock-digital{font-size:36px;font-weight:200;letter-spacing:.1em;text-shadow:0 0 20px rgba(150,120,255,.5)}
-.clock-date-str{font-size:14px;opacity:.6;margin-top:8px;letter-spacing:.04em}
-.clock-tz-label{font-size:12px;opacity:.4;margin-top:4px;letter-spacing:.02em}
+.clock-root{width:100%;height:100%;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Segoe UI',sans-serif;color:#fff;overflow:hidden}
+.clock-root canvas{margin-bottom:12px;display:block}
+.clock-digital{font-weight:200;letter-spacing:.1em;text-shadow:0 0 20px rgba(150,120,255,.5);line-height:1.2}
+.clock-date-str{opacity:.6;margin-top:6px;letter-spacing:.04em;text-align:center;padding:0 12px}
+.clock-tz-label{opacity:.4;margin-top:4px;letter-spacing:.02em}

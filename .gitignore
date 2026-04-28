@@ -139,3 +139,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 /backups
 /data/users
+package-lock.json
+yarn.lock
+/data/appdata
+data/appdata/admin.db-shm

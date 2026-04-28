@@ -1,0 +1,72 @@
+<div class="jv-app">
+  <!-- Toolbar -->
+  <div class="jv-toolbar">
+    <div class="jv-toolbar-left">
+      <button class="jv-tb-btn" @click="openFile" title="📂">📂</button>
+      <button class="jv-tb-btn" @click="saveFile" title="💾">💾</button>
+      <span class="jv-sep"></span>
+      <button class="jv-tb-btn" @click="formatJson" :title="t('format')">✨ {{t('format')}}</button>
+      <button class="jv-tb-btn" @click="minifyJson" :title="t('minify')">📦 {{t('minify')}}</button>
+      <button class="jv-tb-btn" @click="validateJson" :title="t('validate')">✅ {{t('validate')}}</button>
+      <span class="jv-sep"></span>
+      <button class="jv-tb-btn" @click="copyToClipboard" :title="t('copy')">📋</button>
+      <button class="jv-tb-btn" @click="clearAll" :title="t('clear')">🗑️</button>
+    </div>
+    <div class="jv-toolbar-right">
+      <span class="jv-tb-label">{{t('indent')}}:</span>
+      <el-radio-group v-model="indentSize" size="small" @change="reformat">
+        <el-radio-button :value="2">2</el-radio-button>
+        <el-radio-button :value="4">4</el-radio-button>
+        <el-radio-button :value="8">8</el-radio-button>
+        <el-radio-button value="tab">Tab</el-radio-button>
+      </el-radio-group>
+      <span class="jv-sep"></span>
+      <el-switch v-model="showMinimap" size="small" :active-text="t('minimap')" />
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="jv-main">
+    <!-- Editor -->
+    <div class="jv-editor-pane" :class="{ 'with-tree': viewMode === 'split' }">
+      <div class="jv-editor-wrap">
+        <div class="jv-line-numbers" ref="lineNumsRef">
+          <div v-for="n in lineCount" :key="n" class="jv-ln" :class="{ 'jv-ln-err': errorLine === n }">{{n}}</div>
+        </div>
+        <textarea ref="editorRef" v-model="rawJson" class="jv-textarea" @input="onInput" @scroll="syncScroll" :style="{ tabSize: indentSize === 'tab' ? 4 : indentSize }" spellcheck="false"></textarea>
+      </div>
+      <!-- Minimap -->
+      <div v-if="showMinimap" class="jv-minimap" ref="minimapRef" @mousedown="minimapClick">
+        <canvas ref="minimapCanvas"></canvas>
+        <div class="jv-minimap-viewport" :style="minimapViewport"></div>
+      </div>
+    </div>
+
+    <!-- Tree View -->
+    <div v-if="viewMode === 'split'" class="jv-tree-pane">
+      <div class="jv-tree-header">🌲 {{t('treeView')}}</div>
+      <div class="jv-tree-body" ref="treeRef">
+        <div v-if="treeError" class="jv-tree-error">{{treeError}}</div>
+        <div v-else v-html="treeHtml" class="jv-tree-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error bar -->
+  <div v-if="jsonError" class="jv-error-bar">
+    <span class="jv-error-icon">❌</span>
+    <span class="jv-error-text">{{jsonError}}</span>
+    <span v-if="errorLine" class="jv-error-line" @click="goToErrorLine">{{t('line')}} {{errorLine}}</span>
+  </div>
+
+  <!-- Status bar -->
+  <div class="jv-statusbar">
+    <span :class="isValid ? 'jv-status-ok' : 'jv-status-err'">{{isValid ? '✅ Valid JSON' : '❌ Invalid'}}</span>
+    <span>{{lineCount}} {{t('lines')}}</span>
+    <span>{{rawJson.length}} {{t('chars')}}</span>
+    <span v-if="parsedSize">{{parsedSize}}</span>
+    <span style="flex:1"></span>
+    <button class="jv-tb-btn small" :class="{ active: viewMode === 'editor' }" @click="viewMode='editor'">{{t('editor')}}</button>
+    <button class="jv-tb-btn small" :class="{ active: viewMode === 'split' }" @click="viewMode='split'">{{t('split')}}</button>
+  </div>
+</div>

@@ -11,7 +11,8 @@
     @keyframes gradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
     .glass { background: rgba(255,255,255,.08); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,.12); }
     input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px #1e1e3a inset !important; -webkit-text-fill-color: #fff !important; }
-    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; border-radius: 10px; }
+    select option { background: #1e1e3a; color: #fff; }
     .step { display: none; } .step.active { display: block; }
     .lang-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .lang-btn { padding: 10px 8px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 2px solid transparent; cursor: pointer; text-align: center; transition: 0.2s; color: #fff; }
@@ -88,14 +89,14 @@
       <div class="mb-4">
         <label class="block text-white/50 text-xs font-medium mb-1.5 uppercase tracking-wider" id="lblCountry"></label>
         <select id="selCountry"
-          class="w-full h-11 px-4 rounded-lg bg-white/5 border border-white/10 text-white text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition pr-8">
+          class="w-full h-11 px-4 bg-white/5 border border-white/10 text-white text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition pr-8">
           <option value=""></option>
         </select>
       </div>
       <div class="mb-4">
         <label class="block text-white/50 text-xs font-medium mb-1.5 uppercase tracking-wider" id="lblCity"></label>
         <select id="selCity" disabled
-          class="w-full h-11 px-4 rounded-lg bg-white/5 border border-white/10 text-white text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition pr-8 disabled:opacity-40">
+          class="w-full h-11 px-4 bg-white/5 border border-white/10 text-white text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition pr-8 disabled:opacity-40">
           <option value=""></option>
         </select>
       </div>
@@ -124,13 +125,6 @@
 
 <script>
 const LANGS = {
-  tr: { flag:'🇹🇷', label:'Türkçe', subtitle:'İlk kurulumu tamamlayın', langTitle:'Dil Seçin',
-    userTitle:'Yönetici Hesabı', username:'Kullanıcı Adı', password:'Şifre', passwordConfirm:'Şifre (Tekrar)',
-    locTitle:'Konum Ayarları', country:'Ülke', city:'Şehir', back:'Geri', next:'İleri', finish:'Kurulumu Tamamla',
-    finishing:'Kuruluyor...', errRequired:'Tüm alanlar zorunludur', errPasswordMatch:'Şifreler eşleşmiyor',
-    errPasswordMin:'Şifre en az 4 karakter olmalı', errUsername:'Kullanıcı adı en az 3 karakter olmalı',
-    errUsernameChars:'Kullanıcı adı sadece harf, rakam, _ ve - içerebilir',
-    selectCountry:'Ülke seçin', selectCity:'Şehir seçin' },
   en: { flag:'🇬🇧', label:'English', subtitle:'Complete the initial setup', langTitle:'Select Language',
     userTitle:'Administrator Account', username:'Username', password:'Password', passwordConfirm:'Confirm Password',
     locTitle:'Location Settings', country:'Country', city:'City', back:'Back', next:'Next', finish:'Complete Setup',
@@ -145,6 +139,13 @@ const LANGS = {
     errPasswordMin:'Passwort muss mindestens 4 Zeichen lang sein', errUsername:'Benutzername muss mindestens 3 Zeichen lang sein',
     errUsernameChars:'Benutzername darf nur Buchstaben, Zahlen, _ und - enthalten',
     selectCountry:'Land wählen', selectCity:'Stadt wählen' },
+  tr: { flag:'🇹🇷', label:'Türkçe', subtitle:'İlk kurulumu tamamlayın', langTitle:'Dil Seçin',
+    userTitle:'Yönetici Hesabı', username:'Kullanıcı Adı', password:'Şifre', passwordConfirm:'Şifre (Tekrar)',
+    locTitle:'Konum Ayarları', country:'Ülke', city:'Şehir', back:'Geri', next:'İleri', finish:'Kurulumu Tamamla',
+    finishing:'Kuruluyor...', errRequired:'Tüm alanlar zorunludur', errPasswordMatch:'Şifreler eşleşmiyor',
+    errPasswordMin:'Şifre en az 4 karakter olmalı', errUsername:'Kullanıcı adı en az 3 karakter olmalı',
+    errUsernameChars:'Kullanıcı adı sadece harf, rakam, _ ve - içerebilir',
+    selectCountry:'Ülke seçin', selectCity:'Şehir seçin' },
   fr: { flag:'🇫🇷', label:'Français', subtitle:'Terminez la configuration initiale', langTitle:'Choisir la langue',
     userTitle:'Compte administrateur', username:'Nom d\'utilisateur', password:'Mot de passe', passwordConfirm:'Confirmer le mot de passe',
     locTitle:'Paramètres de localisation', country:'Pays', city:'Ville', back:'Retour', next:'Suivant', finish:'Terminer la configuration',

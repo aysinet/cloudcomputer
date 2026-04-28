@@ -4,10 +4,11 @@
     "host": "0.0.0.0"
   },
   "auth": {
-    "username": "admin",
-    "password": "admin",
-    "jwtSecret": "vue-desktop-jwt-secret-change-me",
-    "jwtExpiresIn": "24h"
+    "jwtSecret": "62cc267bce025bfe314d22028b6a064741ace4caa5a214718543c794ae25ebde",
+    "jwtExpiresIn": "24h",
+    "users": [
+      "scorpio"
+    ]
   },
   "docker": {
     "managerUrl": "http://localhost:9800",

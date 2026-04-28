@@ -440,20 +440,62 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 
 <script type="text/template" id="TodoApp">
   <div class="todo-root">
-    <div class="todo-header">
-      <h2>{{t('todoTitle')}}</h2>
-      <div class="sub">{{done}}/{{todos.length}} {{t('todoCompleted')}}</div>
+    <!-- Sidebar: Groups -->
+    <div class="todo-sidebar">
+      <div class="todo-sidebar-header">
+        <span class="todo-sidebar-title">{{t('todoGroups')}}</span>
+        <button class="todo-sidebar-add" @click="showAddGroup=!showAddGroup" :title="t('todoAddGroup')">＋</button>
+      </div>
+      <div v-if="showAddGroup" class="todo-group-form">
+        <input v-model="newGroupName" @keyup.enter="addGroup" :placeholder="t('todoGroupName')" class="todo-group-input">
+        <div class="todo-group-colors">
+          <span v-for="c in groupColors" :key="c" class="todo-color-dot" :style="{background:c}" :class="{active:newGroupColor===c}" @click="newGroupColor=c"></span>
+        </div>
+        <button class="todo-group-save" @click="addGroup">{{t('todoAdd')}}</button>
+      </div>
+      <div class="todo-group-list">
+        <div class="todo-group-item" :class="{active:activeGroup===null}" @click="selectGroup(null)">
+          <span class="todo-group-dot" style="background:#667eea"></span>
+          <span class="todo-group-name">{{t('todoAll')}}</span>
+          <span class="todo-group-count">{{todos.length}}</span>
+        </div>
+        <div v-for="g in groups" :key="g.id" class="todo-group-item" :class="{active:activeGroup===g.id}" @click="selectGroup(g.id)" @contextmenu.prevent="groupCtx=$event, ctxGroup=g">
+          <span class="todo-group-dot" :style="{background:g.color}"></span>
+          <span class="todo-group-name">{{g.name}}</span>
+          <span class="todo-group-count">{{groupCount(g.id)}}</span>
+          <button class="todo-group-del" @click.stop="removeGroup(g)" :title="t('todoDeleteGroup')">✕</button>
+        </div>
+      </div>
     </div>
-    <div class="todo-add-row">
-      <input v-model="input" @keyup.enter="add" :placeholder="t('todoPlaceholder')">
-      <button @click="add">{{t('todoAdd')}}</button>
-    </div>
-    <div class="todo-list">
-      <div v-if="!todos.length" class="todo-empty">{{t('todoEmpty')}}</div>
-      <div v-for="(td,i) in todos" :key="td.id" class="todo-item" :class="{done:td.done}">
-        <input type="checkbox" :checked="td.done" @change="toggleDone(td)">
-        <span>{{td.text}}</span>
-        <button class="del" @click="remove(i)">✕</button>
+    <!-- Main content -->
+    <div class="todo-main">
+      <div class="todo-header" :style="{background: activeGroupObj ? `linear-gradient(135deg, ${activeGroupObj.color}, ${activeGroupObj.color}dd)` : ''}">
+        <h2>{{activeGroupObj ? activeGroupObj.name : t('todoTitle')}}</h2>
+        <div class="sub">{{done}}/{{filtered.length}} {{t('todoCompleted')}}</div>
+      </div>
+      <div class="todo-add-row">
+        <input v-model="input" @keyup.enter="add" :placeholder="t('todoPlaceholder')">
+        <div class="todo-add-options">
+          <div class="todo-color-picker">
+            <span v-for="c in taskColors" :key="c" class="todo-color-dot sm" :style="{background:c}" :class="{active:newColor===c}" @click="newColor=newColor===c?'':c"></span>
+          </div>
+          <select v-model="newPriority" class="todo-priority-sel">
+            <option value="0">―</option>
+            <option value="1">{{t('todoPriorityLow')}}</option>
+            <option value="2">{{t('todoPriorityMed')}}</option>
+            <option value="3">{{t('todoPriorityHigh')}}</option>
+          </select>
+        </div>
+        <button @click="add">{{t('todoAdd')}}</button>
+      </div>
+      <div class="todo-list">
+        <div v-if="!filtered.length" class="todo-empty">{{t('todoEmpty')}}</div>
+        <div v-for="(td,i) in filtered" :key="td.id" class="todo-item" :class="{done:td.done, ['p'+td.priority]:td.priority}" :style="td.color?{borderLeft:'4px solid '+td.color}:{}">
+          <input type="checkbox" :checked="td.done" @change="toggleDone(td)">
+          <span class="todo-text">{{td.text}}</span>
+          <span v-if="td.priority" class="todo-badge" :class="'bp'+td.priority">{{priorityLabel(td.priority)}}</span>
+          <button class="del" @click="remove(td)">✕</button>
+        </div>
       </div>
     </div>
   </div>
@@ -666,11 +708,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 </script>
 
 <script type="text/template" id="ClockApp">
-  <div class="clock-root">
-    <canvas ref="canvasRef" width="200" height="200"></canvas>
-    <div class="clock-digital">{{digitalTime}}</div>
-    <div class="clock-date-str">{{dateStr}}</div>
-    <div v-if="tzLabel" class="clock-tz-label">{{tzLabel}}</div>
+  <div class="clock-root" ref="rootRef">
+    <canvas ref="canvasRef"></canvas>
+    <div class="clock-digital" :style="{fontSize: digitalFontSize + 'px'}">{{digitalTime}}</div>
+    <div class="clock-date-str" :style="{fontSize: dateFontSize + 'px'}">{{dateStr}}</div>
+    <div v-if="tzLabel" class="clock-tz-label" :style="{fontSize: tzFontSize + 'px'}">{{tzLabel}}</div>
   </div>
 </script>
 
@@ -793,7 +835,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         </thead>
         <tbody>
           <tr v-for="week in calendarGrid">
-            <td v-for="cell in week" @click="selectDate(cell.date)" style="border:1px solid #e4e7ed;vertical-align:top;width:14.28%;height:68px;padding:4px;cursor:pointer;transition:background .15s" :style="{background:cell.isToday?'#ecf5ff':cell.isCurrentMonth?'#fff':'#fafafa'}" @mouseenter="$event.target.style.background='#e8f0fe'" @mouseleave="$event.target.style.background=cell.isToday?'#ecf5ff':cell.isCurrentMonth?'#fff':'#fafafa'">
+            <td v-for="cell in week" @click="selectDate(cell.date)" style="border:1px solid #e4e7ed;vertical-align:top;width:14.28%;height:68px;padding:4px;cursor:pointer;transition:background .15s" :style="{background: isInRange(cell.date) ? '#d9ecff' : cell.isToday?'#ecf5ff':cell.isCurrentMonth?'#fff':'#fafafa'}" @mouseenter="$event.target.style.background= isInRange(cell.date) ? '#c6e2ff' : '#e8f0fe'" @mouseleave="$event.target.style.background= isInRange(cell.date) ? '#d9ecff' : cell.isToday?'#ecf5ff':cell.isCurrentMonth?'#fff':'#fafafa'">
               <div style="margin-bottom:2px">
                 <span :class="{'cal-day-num':true, today:cell.isToday}" :style="{color:cell.isCurrentMonth?'#303133':'#c0c4cc'}">{{cell.day}}</span>
               </div>
@@ -806,8 +848,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         </tbody>
       </table>
     </div>
-    <el-dialog v-model="showDialog" :title="dialogDate" width="360px" :close-on-click-modal="true">
+    <el-dialog v-model="showDialog" :title="dialogDate" width="380px" :close-on-click-modal="true">
       <div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+          <span style="font-size:12px;color:#909399;white-space:nowrap">📅</span>
+          <input type="date" v-model="selectedDate" style="height:28px;border:1px solid #dcdfe6;border-radius:4px;padding:0 6px;font-size:12px;color:#606266;outline:none;flex:1">
+          <span style="font-size:12px;color:#c0c4cc">–</span>
+          <input type="date" v-model="selectedDateEnd" style="height:28px;border:1px solid #dcdfe6;border-radius:4px;padding:0 6px;font-size:12px;color:#606266;outline:none;flex:1">
+          <span v-if="rangeDayCount > 1" style="font-size:11px;color:#409eff;white-space:nowrap;font-weight:600">{{rangeDayCount}} {{t('calDays')}}</span>
+        </div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
           <el-input v-model="newTitle" :placeholder="t('calEventPlaceholder')" size="small" @keyup.enter="addEvent" style="flex:1"></el-input>
           <el-select v-model="newColor" size="small" style="width:90px">
@@ -818,6 +867,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
             <el-option :label="t('calPurple')" value="purple"></el-option>
           </el-select>
           <el-button size="small" type="primary" @click="addEvent">{{t('calAdd')}}</el-button>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+          <span style="font-size:12px;color:#909399;white-space:nowrap">🕐</span>
+          <input type="time" v-model="newStartTime" style="height:28px;border:1px solid #dcdfe6;border-radius:4px;padding:0 6px;font-size:12px;color:#606266;outline:none;width:100px" :placeholder="t('calStartTime')">
+          <span style="font-size:12px;color:#c0c4cc">–</span>
+          <input type="time" v-model="newEndTime" style="height:28px;border:1px solid #dcdfe6;border-radius:4px;padding:0 6px;font-size:12px;color:#606266;outline:none;width:100px" :placeholder="t('calEndTime')">
+          <span style="font-size:11px;color:#c0c4cc;white-space:nowrap">({{t('calOptional')}})</span>
         </div>
         <div class="cal-dialog-events">
           <div v-if="!selectedEvents.length" style="text-align:center;color:#aaa;padding:16px;font-size:13px">{{t('calNoEvents')}}</div>
@@ -1760,11 +1816,14 @@ Object.assign(I18N.tr, {
   start:'Başlat', fullscreen:'Tam Ekran', fullscreenExit:'Tam Ekrandan Çık',
   notepadClear:'Temizle', notepadCopy:'Kopyala', notepadPlaceholder:'Yazmaya başlayın...', notepadChars:'karakter', notepadWords:'kelime',
   todoTitle:'Görev Listesi', todoCompleted:'tamamlandı', todoPlaceholder:'Yeni görev ekle...', todoAdd:'Ekle', todoEmpty:'Henüz görev yok 🎉',
+  todoGroups:'Gruplar', todoAddGroup:'Grup Ekle', todoGroupName:'Grup adı...', todoAll:'Tümü', todoDeleteGroup:'Grubu Sil',
+  todoPriorityLow:'Düşük', todoPriorityMed:'Orta', todoPriorityHigh:'Yüksek',
   fmDesktop:'Masaüstü', fmDocuments:'Belgeler', fmDownloads:'İndirmeler', fmPictures:'Resimler', fmMusic:'Müzik', fmTrash:'Çöp Kutusu',
   fmItems:'öğe', fmSelected:'seçili', fmOpening:'açılıyor...', fmPathPrefix:'C:\\Kullanıcılar\\Kullanıcı\\',
   weatherNow:'Şu an', weatherHumidity:'Nem', weatherWind:'Rüzgar', weatherFeelsLike:'Hissedilen', weatherHourly:'Saatlik Tahmin', weatherUnknown:'Bilinmiyor',
   calToday:'Bugün', calAddEvent:'+ Etkinlik', calEventPlaceholder:'Etkinlik adı...', calAdd:'Ekle', calNoEvents:'Bu tarihte etkinlik yok', calMore:'daha',
   calBlue:'Mavi', calGreen:'Yeşil', calOrange:'Turuncu', calRed:'Kırmızı', calPurple:'Mor',
+  calStartTime:'Başlangıç', calEndTime:'Bitiş', calOptional:'opsiyonel',
   calHolidays:'Tatiller', calDays:'gün', calAddHoliday:'Ekle', calClearHolidays:'Tüm tatilleri temizle', calHolidaysAdded:'tatil eklendi',
   termBarTitle:'bash - kullanıcı@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Komutlar: help, ls, date, clear, echo [metin]',
   termHelpText:'Komutlar: help, ls, date, clear, echo [metin], whoami, pwd', termNotFound:'Komut bulunamadı', termHelpHint:'"help" yazın.',
@@ -1784,11 +1843,14 @@ Object.assign(I18N.en, {
   start:'Start', fullscreen:'Fullscreen', fullscreenExit:'Exit Fullscreen',
   notepadClear:'Clear', notepadCopy:'Copy', notepadPlaceholder:'Start typing...', notepadChars:'characters', notepadWords:'words',
   todoTitle:'To-Do List', todoCompleted:'completed', todoPlaceholder:'Add new task...', todoAdd:'Add', todoEmpty:'No tasks yet 🎉',
+  todoGroups:'Groups', todoAddGroup:'Add Group', todoGroupName:'Group name...', todoAll:'All', todoDeleteGroup:'Delete Group',
+  todoPriorityLow:'Low', todoPriorityMed:'Medium', todoPriorityHigh:'High',
   fmDesktop:'Desktop', fmDocuments:'Documents', fmDownloads:'Downloads', fmPictures:'Pictures', fmMusic:'Music', fmTrash:'Trash',
   fmItems:'items', fmSelected:'selected', fmOpening:'opening...', fmPathPrefix:'C:\\Users\\User\\',
   weatherNow:'Now', weatherHumidity:'Humidity', weatherWind:'Wind', weatherFeelsLike:'Feels Like', weatherHourly:'Hourly Forecast', weatherUnknown:'Unknown',
   calToday:'Today', calAddEvent:'+ Event', calEventPlaceholder:'Event name...', calAdd:'Add', calNoEvents:'No events on this date', calMore:'more',
   calBlue:'Blue', calGreen:'Green', calOrange:'Orange', calRed:'Red', calPurple:'Purple',
+  calStartTime:'Start', calEndTime:'End', calOptional:'optional',
   calHolidays:'Holidays', calDays:'days', calAddHoliday:'Add', calClearHolidays:'Clear all holidays', calHolidaysAdded:'holidays added',
   termBarTitle:'bash - user@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Commands: help, ls, date, clear, echo [text]',
   termHelpText:'Commands: help, ls, date, clear, echo [text], whoami, pwd', termNotFound:'Command not found', termHelpHint:'Type "help".',
@@ -1806,11 +1868,14 @@ Object.assign(I18N.de, {
   start:'Start', fullscreen:'Vollbild', fullscreenExit:'Vollbild beenden',
   notepadClear:'Löschen', notepadCopy:'Kopieren', notepadPlaceholder:'Schreiben Sie...', notepadChars:'Zeichen', notepadWords:'Wörter',
   todoTitle:'Aufgabenliste', todoCompleted:'erledigt', todoPlaceholder:'Neue Aufgabe...', todoAdd:'Hinzufügen', todoEmpty:'Noch keine Aufgaben 🎉',
+  todoGroups:'Gruppen', todoAddGroup:'Gruppe hinzufügen', todoGroupName:'Gruppenname...', todoAll:'Alle', todoDeleteGroup:'Gruppe löschen',
+  todoPriorityLow:'Niedrig', todoPriorityMed:'Mittel', todoPriorityHigh:'Hoch',
   fmDesktop:'Desktop', fmDocuments:'Dokumente', fmDownloads:'Downloads', fmPictures:'Bilder', fmMusic:'Musik', fmTrash:'Papierkorb',
   fmItems:'Elemente', fmSelected:'ausgewählt', fmOpening:'wird geöffnet...', fmPathPrefix:'C:\\Benutzer\\Benutzer\\',
   weatherNow:'Jetzt', weatherHumidity:'Feuchtigkeit', weatherWind:'Wind', weatherFeelsLike:'Gefühlt', weatherHourly:'Stündliche Vorhersage', weatherUnknown:'Unbekannt',
   calToday:'Heute', calAddEvent:'+ Ereignis', calEventPlaceholder:'Ereignisname...', calAdd:'Hinzufügen', calNoEvents:'Keine Ereignisse', calMore:'mehr',
   calBlue:'Blau', calGreen:'Grün', calOrange:'Orange', calRed:'Rot', calPurple:'Lila',
+  calStartTime:'Beginn', calEndTime:'Ende', calOptional:'optional',
   calHolidays:'Feiertage', calDays:'Tage', calAddHoliday:'Hinzufügen', calClearHolidays:'Alle Feiertage löschen', calHolidaysAdded:'Feiertage hinzugefügt',
   termBarTitle:'bash - benutzer@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Befehle: help, ls, date, clear, echo [text]',
   termHelpText:'Befehle: help, ls, date, clear, echo [text], whoami, pwd', termNotFound:'Befehl nicht gefunden', termHelpHint:'"help" eingeben.',
@@ -1828,11 +1893,14 @@ Object.assign(I18N.fr, {
   start:'Démarrer', fullscreen:'Plein écran', fullscreenExit:'Quitter le plein écran',
   notepadClear:'Effacer', notepadCopy:'Copier', notepadPlaceholder:'Commencez à écrire...', notepadChars:'caractères', notepadWords:'mots',
   todoTitle:'Liste de tâches', todoCompleted:'terminées', todoPlaceholder:'Ajouter une tâche...', todoAdd:'Ajouter', todoEmpty:'Aucune tâche 🎉',
+  todoGroups:'Groupes', todoAddGroup:'Ajouter un groupe', todoGroupName:'Nom du groupe...', todoAll:'Tous', todoDeleteGroup:'Supprimer le groupe',
+  todoPriorityLow:'Faible', todoPriorityMed:'Moyen', todoPriorityHigh:'Élevé',
   fmDesktop:'Bureau', fmDocuments:'Documents', fmDownloads:'Téléchargements', fmPictures:'Images', fmMusic:'Musique', fmTrash:'Corbeille',
   fmItems:'éléments', fmSelected:'sélectionné', fmOpening:'ouverture...', fmPathPrefix:'C:\\Utilisateurs\\Utilisateur\\',
   weatherNow:'Maintenant', weatherHumidity:'Humidité', weatherWind:'Vent', weatherFeelsLike:'Ressenti', weatherHourly:'Prévisions horaires', weatherUnknown:'Inconnu',
   calToday:'Aujourd\'hui', calAddEvent:'+ Événement', calEventPlaceholder:'Nom de l\'événement...', calAdd:'Ajouter', calNoEvents:'Aucun événement', calMore:'de plus',
   calBlue:'Bleu', calGreen:'Vert', calOrange:'Orange', calRed:'Rouge', calPurple:'Violet',
+  calStartTime:'Début', calEndTime:'Fin', calOptional:'optionnel',
   calHolidays:'Jours fériés', calDays:'jours', calAddHoliday:'Ajouter', calClearHolidays:'Effacer tous les jours fériés', calHolidaysAdded:'jours fériés ajoutés',
   termBarTitle:'bash - utilisateur@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Commandes: help, ls, date, clear, echo [texte]',
   termHelpText:'Commandes: help, ls, date, clear, echo [texte], whoami, pwd', termNotFound:'Commande introuvable', termHelpHint:'Tapez "help".',
@@ -1850,11 +1918,14 @@ Object.assign(I18N.es, {
   start:'Inicio', fullscreen:'Pantalla completa', fullscreenExit:'Salir de pantalla completa',
   notepadClear:'Limpiar', notepadCopy:'Copiar', notepadPlaceholder:'Empiece a escribir...', notepadChars:'caracteres', notepadWords:'palabras',
   todoTitle:'Lista de tareas', todoCompleted:'completadas', todoPlaceholder:'Añadir tarea...', todoAdd:'Añadir', todoEmpty:'Sin tareas aún 🎉',
+  todoGroups:'Grupos', todoAddGroup:'Añadir grupo', todoGroupName:'Nombre del grupo...', todoAll:'Todos', todoDeleteGroup:'Eliminar grupo',
+  todoPriorityLow:'Baja', todoPriorityMed:'Media', todoPriorityHigh:'Alta',
   fmDesktop:'Escritorio', fmDocuments:'Documentos', fmDownloads:'Descargas', fmPictures:'Imágenes', fmMusic:'Música', fmTrash:'Papelera',
   fmItems:'elementos', fmSelected:'seleccionado', fmOpening:'abriendo...', fmPathPrefix:'C:\\Usuarios\\Usuario\\',
   weatherNow:'Ahora', weatherHumidity:'Humedad', weatherWind:'Viento', weatherFeelsLike:'Sensación', weatherHourly:'Pronóstico por hora', weatherUnknown:'Desconocido',
   calToday:'Hoy', calAddEvent:'+ Evento', calEventPlaceholder:'Nombre del evento...', calAdd:'Añadir', calNoEvents:'Sin eventos en esta fecha', calMore:'más',
   calBlue:'Azul', calGreen:'Verde', calOrange:'Naranja', calRed:'Rojo', calPurple:'Morado',
+  calStartTime:'Inicio', calEndTime:'Fin', calOptional:'opcional',
   calHolidays:'Festivos', calDays:'días', calAddHoliday:'Agregar', calClearHolidays:'Borrar todos los festivos', calHolidaysAdded:'festivos añadidos',
   termBarTitle:'bash - usuario@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Comandos: help, ls, date, clear, echo [texto]',
   termHelpText:'Comandos: help, ls, date, clear, echo [texto], whoami, pwd', termNotFound:'Comando no encontrado', termHelpHint:'Escriba "help".',
@@ -1872,11 +1943,14 @@ Object.assign(I18N.ru, {
   start:'Пуск', fullscreen:'Полный экран', fullscreenExit:'Выйти из полного экрана',
   notepadClear:'Очистить', notepadCopy:'Копировать', notepadPlaceholder:'Начните вводить...', notepadChars:'символов', notepadWords:'слов',
   todoTitle:'Список задач', todoCompleted:'выполнено', todoPlaceholder:'Добавить задачу...', todoAdd:'Добавить', todoEmpty:'Задач пока нет 🎉',
+  todoGroups:'Группы', todoAddGroup:'Добавить группу', todoGroupName:'Название группы...', todoAll:'Все', todoDeleteGroup:'Удалить группу',
+  todoPriorityLow:'Низкий', todoPriorityMed:'Средний', todoPriorityHigh:'Высокий',
   fmDesktop:'Рабочий стол', fmDocuments:'Документы', fmDownloads:'Загрузки', fmPictures:'Изображения', fmMusic:'Музыка', fmTrash:'Корзина',
   fmItems:'элементов', fmSelected:'выбрано', fmOpening:'открывается...', fmPathPrefix:'C:\\Пользователи\\Пользователь\\',
   weatherNow:'Сейчас', weatherHumidity:'Влажность', weatherWind:'Ветер', weatherFeelsLike:'Ощущается', weatherHourly:'Почасовой прогноз', weatherUnknown:'Неизвестно',
   calToday:'Сегодня', calAddEvent:'+ Событие', calEventPlaceholder:'Название события...', calAdd:'Добавить', calNoEvents:'Нет событий на дату', calMore:'ещё',
   calBlue:'Синий', calGreen:'Зелёный', calOrange:'Оранжевый', calRed:'Красный', calPurple:'Фиолетовый',
+  calStartTime:'Начало', calEndTime:'Конец', calOptional:'необязательно',
   calHolidays:'Праздники', calDays:'дней', calAddHoliday:'Добавить', calClearHolidays:'Удалить все праздники', calHolidaysAdded:'праздников добавлено',
   termBarTitle:'bash - пользователь@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Команды: help, ls, date, clear, echo [текст]',
   termHelpText:'Команды: help, ls, date, clear, echo [текст], whoami, pwd', termNotFound:'Команда не найдена', termHelpHint:'Введите "help".',
@@ -1894,11 +1968,14 @@ Object.assign(I18N.zh, {
   start:'开始', fullscreen:'全屏', fullscreenExit:'退出全屏',
   notepadClear:'清除', notepadCopy:'复制', notepadPlaceholder:'开始输入...', notepadChars:'字符', notepadWords:'字',
   todoTitle:'待办事项', todoCompleted:'已完成', todoPlaceholder:'添加新任务...', todoAdd:'添加', todoEmpty:'暂无任务 🎉',
+  todoGroups:'分组', todoAddGroup:'添加分组', todoGroupName:'分组名称...', todoAll:'全部', todoDeleteGroup:'删除分组',
+  todoPriorityLow:'低', todoPriorityMed:'中', todoPriorityHigh:'高',
   fmDesktop:'桌面', fmDocuments:'文档', fmDownloads:'下载', fmPictures:'图片', fmMusic:'音乐', fmTrash:'回收站',
   fmItems:'项', fmSelected:'已选', fmOpening:'正在打开...', fmPathPrefix:'C:\\用户\\用户\\',
   weatherNow:'现在', weatherHumidity:'湿度', weatherWind:'风', weatherFeelsLike:'体感', weatherHourly:'逐时预报', weatherUnknown:'未知',
   calToday:'今天', calAddEvent:'+ 事件', calEventPlaceholder:'事件名称...', calAdd:'添加', calNoEvents:'此日期无事件', calMore:'更多',
   calBlue:'蓝色', calGreen:'绿色', calOrange:'橙色', calRed:'红色', calPurple:'紫色',
+  calStartTime:'开始', calEndTime:'结束', calOptional:'可选',
   calHolidays:'节假日', calDays:'天', calAddHoliday:'添加', calClearHolidays:'清除所有节假日', calHolidaysAdded:'个节假日已添加',
   termBarTitle:'bash - 用户@vuedesktop', termWelcome:'Vue Desktop 终端 v1.0 — 命令: help, ls, date, clear, echo [文本]',
   termHelpText:'命令: help, ls, date, clear, echo [文本], whoami, pwd', termNotFound:'未找到命令', termHelpHint:'输入 "help"。',
@@ -1916,11 +1993,14 @@ Object.assign(I18N.ja, {
   start:'スタート', fullscreen:'全画面', fullscreenExit:'全画面終了',
   notepadClear:'クリア', notepadCopy:'コピー', notepadPlaceholder:'入力を開始...', notepadChars:'文字', notepadWords:'語',
   todoTitle:'ToDoリスト', todoCompleted:'完了', todoPlaceholder:'新しいタスクを追加...', todoAdd:'追加', todoEmpty:'タスクはまだありません 🎉',
+  todoGroups:'グループ', todoAddGroup:'グループ追加', todoGroupName:'グループ名...', todoAll:'すべて', todoDeleteGroup:'グループ削除',
+  todoPriorityLow:'低', todoPriorityMed:'中', todoPriorityHigh:'高',
   fmDesktop:'デスクトップ', fmDocuments:'ドキュメント', fmDownloads:'ダウンロード', fmPictures:'画像', fmMusic:'ミュージック', fmTrash:'ゴミ箱',
   fmItems:'項目', fmSelected:'選択中', fmOpening:'開いています...', fmPathPrefix:'C:\\ユーザー\\ユーザー\\',
   weatherNow:'現在', weatherHumidity:'湿度', weatherWind:'風', weatherFeelsLike:'体感', weatherHourly:'時間ごとの予報', weatherUnknown:'不明',
   calToday:'今日', calAddEvent:'+ イベント', calEventPlaceholder:'イベント名...', calAdd:'追加', calNoEvents:'この日にイベントはありません', calMore:'他',
   calBlue:'青', calGreen:'緑', calOrange:'オレンジ', calRed:'赤', calPurple:'紫',
+  calStartTime:'開始', calEndTime:'終了', calOptional:'任意',
   calHolidays:'祝日', calDays:'日', calAddHoliday:'追加', calClearHolidays:'すべての祝日を削除', calHolidaysAdded:'件の祝日を追加',
   termBarTitle:'bash - ユーザー@vuedesktop', termWelcome:'Vue Desktop ターミナル v1.0 — コマンド: help, ls, date, clear, echo [テキスト]',
   termHelpText:'コマンド: help, ls, date, clear, echo [テキスト], whoami, pwd', termNotFound:'コマンドが見つかりません', termHelpHint:'"help"と入力してください。',
@@ -1938,11 +2018,14 @@ Object.assign(I18N.it, {
   start:'Avvia', fullscreen:'Schermo intero', fullscreenExit:'Esci da schermo intero',
   notepadClear:'Cancella', notepadCopy:'Copia', notepadPlaceholder:'Inizia a scrivere...', notepadChars:'caratteri', notepadWords:'parole',
   todoTitle:'Lista attività', todoCompleted:'completate', todoPlaceholder:'Aggiungi attività...', todoAdd:'Aggiungi', todoEmpty:'Nessuna attività 🎉',
+  todoGroups:'Gruppi', todoAddGroup:'Aggiungi gruppo', todoGroupName:'Nome gruppo...', todoAll:'Tutti', todoDeleteGroup:'Elimina gruppo',
+  todoPriorityLow:'Bassa', todoPriorityMed:'Media', todoPriorityHigh:'Alta',
   fmDesktop:'Scrivania', fmDocuments:'Documenti', fmDownloads:'Download', fmPictures:'Immagini', fmMusic:'Musica', fmTrash:'Cestino',
   fmItems:'elementi', fmSelected:'selezionati', fmOpening:'apertura...', fmPathPrefix:'C:\\Utenti\\Utente\\',
   weatherNow:'Ora', weatherHumidity:'Umidità', weatherWind:'Vento', weatherFeelsLike:'Percepita', weatherHourly:'Previsioni orarie', weatherUnknown:'Sconosciuto',
   calToday:'Oggi', calAddEvent:'+ Evento', calEventPlaceholder:'Nome evento...', calAdd:'Aggiungi', calNoEvents:'Nessun evento in questa data', calMore:'altri',
   calBlue:'Blu', calGreen:'Verde', calOrange:'Arancione', calRed:'Rosso', calPurple:'Viola',
+  calStartTime:'Inizio', calEndTime:'Fine', calOptional:'opzionale',
   calHolidays:'Festività', calDays:'giorni', calAddHoliday:'Aggiungi', calClearHolidays:'Cancella tutte le festività', calHolidaysAdded:'festività aggiunte',
   termBarTitle:'bash - utente@vuedesktop', termWelcome:'Vue Desktop Terminale v1.0 — Comandi: help, ls, date, clear, echo [testo]',
   termHelpText:'Comandi: help, ls, date, clear, echo [testo], whoami, pwd', termNotFound:'Comando non trovato', termHelpHint:'Digita "help".',
@@ -2060,12 +2143,12 @@ const APPS = [
 ];
 
 const SIZES = {
-  calc:{w:300,h:460},notepad:{w:520,h:420},fileman:{w:580,h:420},
-  todo:{w:360,h:440},weather:{w:340,h:480},settings:{w:480,h:400},
-  terminal:{w:560,h:380},clock:{w:280,h:280},
-  calendar:{w:560,h:480},
+  calc:{w:300,h:450,minWidth: 200, minHeight:450},notepad:{w:520,h:420},fileman:{w:580,h:420},
+  todo:{w:580,h:460},weather:{w:340,h:480},settings:{w:480,h:400,minWidth: 600, minHeight: 450},
+  terminal:{w:560,h:380},clock:{w:280,h:280,minWidth: 250, minHeight:320},
+  calendar:{w:560,h:480, minWidth: 520, minHeight:530},
   notifications:{w:380,h:440},
-  appstore:{w:440,h:460},
+  appstore:{w:440,h:460,minWidth: 300, minHeight:500},
   browser:{w:900,h:620},
   screenkeyboard:{w:640,h:360},
   contacts:{w:420,h:520}
@@ -2117,43 +2200,74 @@ const TodoApp = {
   emits: [],
   setup(props, { emit }) {
     const todos = ref([]);
+    const groups = ref([]);
     const input = ref('');
-    const done = computed(() => todos.value.filter(td => td.done).length);
+    const activeGroup = ref(null);
+    const showAddGroup = ref(false);
+    const newGroupName = ref('');
+    const newGroupColor = ref('#667eea');
+    const newColor = ref('');
+    const newPriority = ref(0);
+    const groupColors = ['#667eea','#764ba2','#22c55e','#f59e0b','#ef4444','#06b6d4','#ec4899','#8b5cf6'];
+    const taskColors = ['#ef4444','#f59e0b','#22c55e','#3b82f6','#8b5cf6','#ec4899','#06b6d4','#6b7280'];
 
+    const filtered = computed(() => {
+      if (activeGroup.value === null) return todos.value;
+      return todos.value.filter(td => td.group_id === activeGroup.value);
+    });
+    const done = computed(() => filtered.value.filter(td => td.done).length);
+    const activeGroupObj = computed(() => activeGroup.value === null ? null : groups.value.find(g => g.id === activeGroup.value));
+
+    function groupCount(gid) { return todos.value.filter(td => td.group_id === gid).length; }
+    function priorityLabel(p) { return [,'!','!!','!!!'][p] || ''; }
+
+    async function loadGroups() {
+      try { const r = await fetch('/api/todo-groups', { headers: authHeaders() }); if (r.ok) groups.value = await r.json(); } catch {}
+    }
     async function loadTodos() {
+      try { const r = await fetch('/api/todos', { headers: authHeaders() }); if (r.ok) todos.value = await r.json(); } catch {}
+    }
+
+    async function addGroup() {
+      if (!newGroupName.value.trim()) return;
       try {
-        const res = await fetch('/api/todos', { headers: authHeaders() });
-        if (res.ok) todos.value = await res.json();
+        const r = await fetch('/api/todo-groups', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: newGroupName.value.trim(), color: newGroupColor.value }) });
+        if (r.ok) { const g = await r.json(); groups.value.push(g); newGroupName.value = ''; showAddGroup.value = false; }
       } catch {}
     }
+    async function removeGroup(g) {
+      try { await fetch('/api/todo-groups/' + g.id, { method: 'DELETE', headers: authHeaders() }); } catch {}
+      groups.value = groups.value.filter(x => x.id !== g.id);
+      todos.value = todos.value.filter(td => td.group_id !== g.id);
+      if (activeGroup.value === g.id) activeGroup.value = null;
+    }
+    function selectGroup(gid) { activeGroup.value = gid; }
 
     async function add() {
       if (!input.value.trim()) return;
+      const body = { text: input.value.trim(), color: newColor.value, priority: Number(newPriority.value) || 0 };
+      if (activeGroup.value !== null) body.group_id = activeGroup.value;
       try {
-        const res = await fetch('/api/todos', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ text: input.value.trim() }) });
-        if (res.ok) {
-          const { id, sort_order } = await res.json();
-          todos.value.unshift({ id, text: input.value.trim(), done: false, sort_order });
+        const r = await fetch('/api/todos', { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+        if (r.ok) {
+          const data = await r.json();
+          todos.value.unshift({ id: data.id, text: body.text, done: false, sort_order: data.sort_order, color: body.color, priority: body.priority, group_id: body.group_id || null });
           input.value = '';
         }
       } catch {}
     }
-
     async function toggleDone(td) {
       td.done = !td.done;
       try { await fetch('/api/todos/' + td.id, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ done: td.done }) }); } catch {}
     }
-
-    async function remove(i) {
-      const td = todos.value[i];
-      if (!td) return;
+    async function remove(td) {
       try { await fetch('/api/todos/' + td.id, { method: 'DELETE', headers: authHeaders() }); } catch {}
-      todos.value.splice(i, 1);
+      todos.value = todos.value.filter(x => x.id !== td.id);
     }
 
-    onMounted(() => loadTodos());
+    onMounted(() => { loadGroups(); loadTodos(); });
 
-    return { todos, input, done, add, toggleDone, remove, t };
+    return { todos, groups, input, activeGroup, activeGroupObj, showAddGroup, newGroupName, newGroupColor, newColor, newPriority, groupColors, taskColors, filtered, done, groupCount, priorityLabel, addGroup, removeGroup, selectGroup, add, toggleDone, remove, t };
   }
 };
 
@@ -2548,10 +2662,18 @@ const ClockApp = {
   template: '#ClockApp',
   setup() {
     const settingsStore = useSettingsStore();
+    const rootRef = ref(null);
     const canvasRef = ref(null);
     const digitalTime = ref('00:00:00');
     const dateStr = ref('');
     const tzLabel = ref(settingsStore.timezone || '');
+    const scale = ref(1);
+    const digitalFontSize = computed(() => Math.max(16, Math.round(36 * scale.value)));
+    const dateFontSize = computed(() => Math.max(10, Math.round(14 * scale.value)));
+    const tzFontSize = computed(() => Math.max(9, Math.round(12 * scale.value)));
+
+    // Event markers on the clock face
+    const clockMarkers = ref([]); // { h, m, color, type:'dot' } or { h1, m1, h2, m2, color, type:'arc' }
 
     function getNow() {
       if (settingsStore.timezone) {
@@ -2561,26 +2683,125 @@ const ClockApp = {
       return new Date();
     }
 
+    function todayStr() {
+      const n = getNow();
+      return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+    }
+
+    // Parse time patterns from event title: "14:00 Meeting", "09:00-11:30 Workshop"
+    const TIME_RE = /^(\d{1,2}):(\d{2})(?:\s*[-–]\s*(\d{1,2}):(\d{2}))?\s+/;
+
+    async function loadMarkers() {
+      const markers = [];
+      const today = todayStr();
+      try {
+        const r = await fetch('/api/calendar/events', { headers: authHeaders() });
+        if (r.ok) {
+          const all = await r.json();
+          const dayEvents = all[today] || [];
+          for (const ev of dayEvents) {
+            const m = TIME_RE.exec(ev.title);
+            if (!m) continue;
+            const c = ev.color || '#667eea';
+            if (m[3] !== undefined) {
+              markers.push({ type: 'arc', h1: +m[1], m1: +m[2], h2: +m[3], m2: +m[4], color: c });
+            } else {
+              markers.push({ type: 'dot', h: +m[1], m: +m[2], color: c });
+            }
+          }
+        }
+      } catch {}
+      try {
+        const r = await fetch('/api/reminders', { headers: authHeaders() });
+        if (r.ok) {
+          const rems = await r.json();
+          for (const rem of rems) {
+            if (!rem.enabled || !rem.datetime) continue;
+            const dt = new Date(rem.datetime);
+            const remDate = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+            if (remDate !== today) continue;
+            markers.push({ type: 'dot', h: dt.getHours(), m: dt.getMinutes(), color: '#f59e0b' });
+          }
+        }
+      } catch {}
+      clockMarkers.value = markers;
+    }
+
+    function timeToAngle(h, m) {
+      return ((h % 12) / 12 + m / 720) * 2 * Math.PI - Math.PI / 2;
+    }
+
+    function updateSize() {
+      const root = rootRef.value;
+      const canvas = canvasRef.value;
+      if (!root || !canvas) return;
+      const w = root.clientWidth, h = root.clientHeight;
+      const canvasSpace = Math.min(w * 0.85, h * 0.55);
+      const sz = Math.max(80, Math.floor(canvasSpace));
+      canvas.width = sz;
+      canvas.height = sz;
+      canvas.style.width = sz + 'px';
+      canvas.style.height = sz + 'px';
+      scale.value = sz / 200;
+    }
+
     function draw() {
       const canvas = canvasRef.value;
       if (!canvas) return;
-      const ctx = canvas.getContext('2d'), cx = 100, cy = 100, r = 90;
+      const sz = canvas.width;
+      const s = sz / 200;
+      const ctx = canvas.getContext('2d'), cx = sz / 2, cy = sz / 2, r = 90 * s;
       const now = getNow();
-      ctx.clearRect(0, 0, 200, 200);
-      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 2; ctx.stroke();
-      for (let i = 0; i < 12; i++) {
-        const a = i * Math.PI / 6, x = cx + Math.cos(a - Math.PI / 2) * 78, y = cy + Math.sin(a - Math.PI / 2) * 78;
-        ctx.beginPath(); ctx.arc(x, y, 3, 0, 2 * Math.PI); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fill();
+      ctx.clearRect(0, 0, sz, sz);
+
+      // Draw event arcs (behind the clock face)
+      for (const mk of clockMarkers.value) {
+        if (mk.type !== 'arc') continue;
+        const a1 = timeToAngle(mk.h1, mk.m1);
+        const a2 = timeToAngle(mk.h2, mk.m2);
+        ctx.beginPath();
+        ctx.arc(cx, cy, r - 6 * s, a1, a2);
+        ctx.strokeStyle = mk.color;
+        ctx.lineWidth = 5 * s;
+        ctx.globalAlpha = 0.45;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
       }
+
+      // Clock circle
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 2 * s; ctx.stroke();
+
+      // Hour dots
+      for (let i = 0; i < 12; i++) {
+        const a = i * Math.PI / 6, x = cx + Math.cos(a - Math.PI / 2) * 78 * s, y = cy + Math.sin(a - Math.PI / 2) * 78 * s;
+        ctx.beginPath(); ctx.arc(x, y, 3 * s, 0, 2 * Math.PI); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fill();
+      }
+
+      // Event dot markers (on the outer ring)
+      for (const mk of clockMarkers.value) {
+        if (mk.type !== 'dot') continue;
+        const a = timeToAngle(mk.h, mk.m);
+        const dx = cx + Math.cos(a) * (r + 4 * s);
+        const dy = cy + Math.sin(a) * (r + 4 * s);
+        ctx.beginPath(); ctx.arc(dx, dy, 4 * s, 0, 2 * Math.PI);
+        ctx.fillStyle = mk.color; ctx.globalAlpha = 0.85; ctx.fill();
+        ctx.globalAlpha = 1;
+        // glow
+        ctx.beginPath(); ctx.arc(dx, dy, 7 * s, 0, 2 * Math.PI);
+        ctx.fillStyle = mk.color; ctx.globalAlpha = 0.2; ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      // Hands
       const hr = now.getHours() % 12, mn = now.getMinutes(), sc = now.getSeconds();
       function hand(a, len, w, color) {
-        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
-        ctx.strokeStyle = color; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * len * s, cy + Math.sin(a) * len * s);
+        ctx.strokeStyle = color; ctx.lineWidth = w * s; ctx.lineCap = 'round'; ctx.stroke();
       }
       hand((hr / 12 + mn / 720) * 2 * Math.PI - Math.PI / 2, 58, 4, 'rgba(255,255,255,.9)');
       hand((mn / 60 + sc / 3600) * 2 * Math.PI - Math.PI / 2, 75, 3, 'rgba(255,255,255,.85)');
       hand(sc / 60 * 2 * Math.PI - Math.PI / 2, 82, 1.5, '#a78bfa');
-      ctx.beginPath(); ctx.arc(cx, cy, 5, 0, 2 * Math.PI); ctx.fillStyle = '#a78bfa'; ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, 5 * s, 0, 2 * Math.PI); ctx.fillStyle = '#a78bfa'; ctx.fill();
 
       digitalTime.value = [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
       dateStr.value = now.toLocaleDateString(getIntlLocale(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -2591,13 +2812,18 @@ const ClockApp = {
     });
 
     let timer = null;
+    let ro = null;
     onMounted(() => {
+      updateSize();
+      loadMarkers();
       draw();
       timer = setInterval(draw, 1000);
+      ro = new ResizeObserver(() => { updateSize(); draw(); });
+      if (rootRef.value) ro.observe(rootRef.value);
     });
-    onUnmounted(() => clearInterval(timer));
+    onUnmounted(() => { clearInterval(timer); if (ro) ro.disconnect(); });
 
-    return { canvasRef, digitalTime, dateStr, tzLabel };
+    return { rootRef, canvasRef, digitalTime, dateStr, tzLabel, digitalFontSize, dateFontSize, tzFontSize };
   }
 };
 
@@ -2780,8 +3006,11 @@ const CalendarApp = {
     const month = ref(new Date().getMonth());
     const showDialog = ref(false);
     const selectedDate = ref('');
+    const selectedDateEnd = ref('');
     const newTitle = ref('');
     const newColor = ref('');
+    const newStartTime = ref('');
+    const newEndTime = ref('');
     const events = ref({});
     const showBirthdays = ref(true);
     const birthdayContacts = ref([]);
@@ -2853,16 +3082,44 @@ const CalendarApp = {
 
     function getEvents(dateStr) { return [...(events.value[dateStr] || []), ...getBirthdayEvents(dateStr)]; }
 
+    function isInRange(dateStr) {
+      if (!selectedDate.value || !selectedDateEnd.value) return false;
+      return dateStr >= selectedDate.value && dateStr <= selectedDateEnd.value;
+    }
+
+    const rangeDayCount = computed(() => {
+      if (!selectedDate.value || !selectedDateEnd.value || selectedDateEnd.value <= selectedDate.value) return 1;
+      const d1 = new Date(selectedDate.value), d2 = new Date(selectedDateEnd.value);
+      return Math.round((d2 - d1) / 86400000) + 1;
+    });
+
     const dialogDate = computed(() => {
       if (!selectedDate.value) return '';
       const [y, m, d] = selectedDate.value.split('-');
-      return parseInt(d) + ' ' + monthNames.value[parseInt(m)-1] + ' ' + y;
+      let label = parseInt(d) + ' ' + monthNames.value[parseInt(m)-1] + ' ' + y;
+      if (selectedDateEnd.value && selectedDateEnd.value > selectedDate.value) {
+        const [y2, m2, d2] = selectedDateEnd.value.split('-');
+        label += ' – ' + parseInt(d2) + ' ' + monthNames.value[parseInt(m2)-1] + ' ' + y2;
+      }
+      return label;
     });
 
     const selectedEvents = computed(() => [...(events.value[selectedDate.value] || []), ...getBirthdayEvents(selectedDate.value)]);
 
     function selectDate(dateStr) {
+      if (showDialog.value && selectedDate.value && !selectedDateEnd.value) {
+        // Second click while dialog open: set range end
+        if (dateStr > selectedDate.value) {
+          selectedDateEnd.value = dateStr;
+          return;
+        } else if (dateStr < selectedDate.value) {
+          selectedDateEnd.value = selectedDate.value;
+          selectedDate.value = dateStr;
+          return;
+        }
+      }
       selectedDate.value = dateStr;
+      selectedDateEnd.value = '';
       showDialog.value = true;
     }
 
@@ -2874,15 +3131,36 @@ const CalendarApp = {
 
     async function addEvent() {
       if (!newTitle.value.trim()) return;
+      let title = '';
+      if (newStartTime.value) {
+        title += newStartTime.value;
+        if (newEndTime.value) title += '-' + newEndTime.value;
+        title += ' ';
+      }
+      title += newTitle.value.trim();
+
+      // Build list of dates to add event to
+      const dates = [];
+      const start = new Date(selectedDate.value);
+      const end = (selectedDateEnd.value && selectedDateEnd.value > selectedDate.value) ? new Date(selectedDateEnd.value) : start;
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        dates.push([d.getFullYear(), String(d.getMonth()+1).padStart(2,'0'), String(d.getDate()).padStart(2,'0')].join('-'));
+      }
+
       try {
-        const res = await fetch('/api/calendar/events', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ date: selectedDate.value, title: newTitle.value.trim(), color: newColor.value }) });
-        if (res.ok) {
-          const { id } = await res.json();
-          if (!events.value[selectedDate.value]) events.value[selectedDate.value] = [];
-          events.value[selectedDate.value].push({ id, title: newTitle.value.trim(), color: newColor.value, holiday: false });
-          newTitle.value = '';
-          newColor.value = '';
+        for (const date of dates) {
+          const res = await fetch('/api/calendar/events', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ date, title, color: newColor.value }) });
+          if (res.ok) {
+            const { id } = await res.json();
+            if (!events.value[date]) events.value[date] = [];
+            events.value[date].push({ id, title, color: newColor.value, holiday: false });
+          }
         }
+        newTitle.value = '';
+        newColor.value = '';
+        newStartTime.value = '';
+        newEndTime.value = '';
+        selectedDateEnd.value = '';
       } catch {}
     }
 
@@ -2931,7 +3209,7 @@ const CalendarApp = {
 
     onMounted(() => { loadEvents(); loadBirthdayContacts(); });
 
-    return { year, month, showDialog, selectedDate, newTitle, newColor, events, colorMap, dayNames, monthLabel, calendarGrid, getEvents, dialogDate, selectedEvents, selectDate, openAdd, addEvent, removeEvent, prevMonth, nextMonth, goToday, showHolidayDialog, holidayCountries, addHolidays, clearHolidays, showBirthdays, t };
+    return { year, month, showDialog, selectedDate, selectedDateEnd, newTitle, newColor, newStartTime, newEndTime, events, colorMap, dayNames, monthLabel, calendarGrid, getEvents, isInRange, rangeDayCount, dialogDate, selectedEvents, selectDate, openAdd, addEvent, removeEvent, prevMonth, nextMonth, goToday, showHolidayDialog, holidayCountries, addHolidays, clearHolidays, showBirthdays, t };
   }
 };
 
@@ -3906,8 +4184,12 @@ createApp({
       const sz = SIZES[app.id] || { w: 480, h: 380 };
       const saved = JSON.parse(localStorage.getItem('wb_' + app.id) || 'null');
       const vw = window.innerWidth, vh = window.innerHeight - 56;
-      const wbW = saved ? saved.w : sz.w;
-      const wbH = saved ? saved.h : sz.h;
+      let wbW = saved ? saved.w : sz.w;
+      let wbH = saved ? saved.h : sz.h;
+      if (sz.minWidth) wbW = Math.max(wbW, sz.minWidth);
+      if (sz.minHeight) wbH = Math.max(wbH, sz.minHeight);
+      if (sz.maxWidth) wbW = Math.min(wbW, sz.maxWidth);
+      if (sz.maxHeight) wbH = Math.min(wbH, sz.maxHeight);
       const x = saved ? saved.x : Math.max(20, Math.floor(Math.random() * (vw - sz.w - 40)));
       const y = saved ? saved.y : Math.max(20, Math.floor(Math.random() * (vh - sz.h - 40)));
 
@@ -3915,7 +4197,7 @@ createApp({
       openWindows.value.forEach(w => w.focused = false);
       openWindows.value.push(win);
 
-      const wb = new WinBox({
+      const wbOpts = {
         title: app.icon + ' ' + appName(app),
         width: wbW,
         height: wbH,
@@ -3949,7 +4231,14 @@ createApp({
           const w = openWindows.value.find(w => w.id === app.id);
           if (w) { w.minimized = false; }
         }
-      });
+      };
+      if (sz.minWidth) wbOpts.minwidth = sz.minWidth;
+      if (sz.minHeight) wbOpts.minheight = sz.minHeight;
+      if (sz.maxWidth) wbOpts.maxwidth = sz.maxWidth;
+      if (sz.maxHeight) wbOpts.maxheight = sz.maxHeight;
+      if (sz.resize === false) { wbOpts.class = ['no-full', 'no-resize']; }
+
+      const wb = new WinBox(wbOpts);
       wbMap[app.id] = wb;
 
       // Mount content into WinBox body

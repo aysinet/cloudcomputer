@@ -1,6 +1,15 @@
-/* Todo: bigger inputs */
-.todo-add-row{padding:14px}
-.todo-add-row input{height:42px;font-size:15px}
-.todo-add-row button{height:42px;padding:0 18px;font-size:14px}
+/* Todo mobile: hide sidebar, stack layout */
+.todo-root{flex-direction:column}
+.todo-sidebar{width:100%;max-height:120px;border-right:none;border-bottom:1px solid #e8e8f0;overflow-y:auto}
+.todo-sidebar-header{padding:10px 12px 6px}
+.todo-group-list{display:flex;flex-wrap:wrap;gap:4px;padding:4px 10px 8px}
+.todo-group-item{padding:6px 10px;border-radius:16px;background:#f0f4ff}
+.todo-group-item.active{background:#667eea;color:#fff}
+.todo-group-item.active .todo-group-name{color:#fff}
+.todo-group-item.active .todo-group-count{color:rgba(255,255,255,.7)}
+.todo-group-del{display:none!important}
+.todo-add-row{padding:10px}
+.todo-add-row>input{height:42px;font-size:15px}
+.todo-add-row>button{height:42px;padding:0 18px;font-size:14px}
 .todo-item{padding:14px}
-.todo-item span{font-size:15px}
+.todo-text{font-size:15px}
