@@ -1,0 +1,149 @@
+<div class="auth-root">
+  <!-- Main View -->
+  <div class="auth-header">
+    <div class="auth-title">🔑 {{ L('title') }}</div>
+    <div class="auth-header-actions">
+      <el-button size="small" type="primary" @click="showAddDialog = true">+ {{ L('addAccount') }}</el-button>
+      <el-button size="small" @click="showImportDialog = true">📥 {{ L('import') }}</el-button>
+      <el-button size="small" @click="exportAccounts">📤 {{ L('export') }}</el-button>
+    </div>
+  </div>
+
+  <div class="auth-search" v-if="accounts.length > 3">
+    <el-input v-model="search" size="small" :placeholder="L('searchPlaceholder')" clearable prefix-icon="Search" />
+  </div>
+
+  <!-- Empty State -->
+  <div v-if="!accounts.length" class="auth-empty">
+    <div class="auth-empty-icon">🔐</div>
+    <div class="auth-empty-text">{{ L('noAccounts') }}</div>
+    <div class="auth-empty-sub">{{ L('noAccountsSub') }}</div>
+    <el-button type="primary" @click="showAddDialog = true" style="margin-top:16px">+ {{ L('addAccount') }}</el-button>
+  </div>
+
+  <!-- Accounts List -->
+  <div v-else class="auth-list">
+    <div v-for="acc in filteredAccounts" :key="acc.id" class="auth-card">
+      <div class="auth-card-top">
+        <div class="auth-card-icon" :style="{ background: acc.color }">{{ acc.issuer ? acc.issuer[0].toUpperCase() : '?' }}</div>
+        <div class="auth-card-info">
+          <div class="auth-card-issuer">{{ acc.issuer || L('unknown') }}</div>
+          <div class="auth-card-account">{{ acc.account }}</div>
+        </div>
+        <div class="auth-card-actions">
+          <el-button size="small" text @click="editAccount(acc)" title="Edit">✏️</el-button>
+          <el-button size="small" text @click="confirmDelete(acc)" title="Delete">🗑️</el-button>
+        </div>
+      </div>
+      <div class="auth-card-code-row">
+        <div class="auth-card-code" @click="copyCode(acc)">{{ formatCode(acc.currentCode) }}</div>
+        <div class="auth-card-timer">
+          <svg class="auth-timer-svg" viewBox="0 0 36 36">
+            <circle class="auth-timer-bg" cx="18" cy="18" r="15.5" />
+            <circle class="auth-timer-fg" cx="18" cy="18" r="15.5"
+              :style="{ strokeDashoffset: timerOffset, stroke: timerColor }" />
+          </svg>
+          <span class="auth-timer-text" :style="{ color: timerColor }">{{ remaining }}</span>
+        </div>
+      </div>
+      <div v-if="copiedId === acc.id" class="auth-copied">{{ L('copied') }}</div>
+    </div>
+  </div>
+
+  <!-- Add / Edit Dialog -->
+  <el-dialog v-model="showAddDialog" :title="editingAccount ? L('editTitle') : L('addTitle')" width="380px" :close-on-click-modal="false" append-to-body @close="resetForm">
+    <el-tabs v-model="addTab" v-if="!editingAccount">
+      <el-tab-pane :label="L('manual')" name="manual" />
+      <el-tab-pane :label="L('qrScan')" name="qrscan" />
+      <el-tab-pane :label="L('qrPaste')" name="qr" />
+    </el-tabs>
+
+    <el-form v-if="addTab === 'manual' || editingAccount" label-position="top" size="small">
+      <el-form-item :label="L('lblIssuer')">
+        <el-input v-model="form.issuer" :placeholder="L('issuerPlaceholder')" />
+      </el-form-item>
+      <el-form-item :label="L('lblAccount')">
+        <el-input v-model="form.account" :placeholder="L('accountPlaceholder')" />
+      </el-form-item>
+      <el-form-item :label="L('lblSecret')">
+        <el-input v-model="form.secret" :placeholder="L('secretPlaceholder')" :disabled="!!editingAccount" />
+      </el-form-item>
+      <el-form-item :label="L('lblPeriod')">
+        <el-select v-model="form.period" style="width:100%">
+          <el-option :label="'30 ' + L('seconds')" :value="30" />
+          <el-option :label="'60 ' + L('seconds')" :value="60" />
+        </el-select>
+      </el-form-item>
+      <el-form-item :label="L('lblDigits')">
+        <el-select v-model="form.digits" style="width:100%">
+          <el-option label="6" :value="6" />
+          <el-option label="8" :value="8" />
+        </el-select>
+      </el-form-item>
+      <el-form-item :label="L('lblAlgorithm')">
+        <el-select v-model="form.algorithm" style="width:100%">
+          <el-option label="SHA-1" value="SHA-1" />
+          <el-option label="SHA-256" value="SHA-256" />
+          <el-option label="SHA-512" value="SHA-512" />
+        </el-select>
+      </el-form-item>
+    </el-form>
+
+    <!-- QR Image scan -->
+    <div v-if="addTab === 'qrscan' && !editingAccount">
+      <div class="auth-qr-drop"
+           :class="{ dragover: qrDragover }"
+           @dragover.prevent="qrDragover = true"
+           @dragleave="qrDragover = false"
+           @drop.prevent="onQrDrop($event)"
+           @click="$refs.qrFileInput.click()">
+        <div v-if="qrScanning" class="auth-qr-scanning">⏳ {{ L('qrScanning') }}</div>
+        <template v-else-if="!qrPreview">
+          <div class="auth-qr-drop-icon">📷</div>
+          <div class="auth-qr-drop-text">{{ L('qrDropText') }}</div>
+          <div class="auth-qr-drop-sub">{{ L('qrDropSub') }}</div>
+        </template>
+        <template v-else>
+          <img :src="qrPreview" class="auth-qr-preview" />
+        </template>
+      </div>
+      <input ref="qrFileInput" type="file" accept="image/*" style="display:none" @change="onQrFile($event)" />
+      <div v-if="qrSuccess" class="auth-qr-success">✅ {{ qrSuccess }}</div>
+      <div v-if="qrError" class="auth-uri-error">{{ qrError }}</div>
+    </div>
+
+    <!-- URI paste -->
+    <div v-if="addTab === 'qr' && !editingAccount">
+      <div class="auth-uri-info">{{ L('uriInfo') }}</div>
+      <el-input v-model="uriInput" type="textarea" :rows="3" :placeholder="L('uriPlaceholder')" />
+      <el-button type="primary" size="small" @click="parseUri" style="margin-top:10px;width:100%">{{ L('parseUri') }}</el-button>
+      <div v-if="uriError" class="auth-uri-error">{{ uriError }}</div>
+    </div>
+
+    <template #footer>
+      <el-button @click="showAddDialog = false" size="small">{{ L('cancel') }}</el-button>
+      <el-button type="primary" @click="saveAccount" size="small" :disabled="!form.secret">{{ L('save') }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- Import Dialog -->
+  <el-dialog v-model="showImportDialog" :title="L('importTitle')" width="400px" append-to-body>
+    <div class="auth-uri-info">{{ L('importInfo') }}</div>
+    <el-input v-model="importData" type="textarea" :rows="6" :placeholder="L('importPlaceholder')" />
+    <div v-if="importError" class="auth-uri-error">{{ importError }}</div>
+    <template #footer>
+      <el-button @click="showImportDialog = false" size="small">{{ L('cancel') }}</el-button>
+      <el-button type="primary" @click="doImport" size="small">{{ L('importBtn') }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- Delete Confirm -->
+  <el-dialog v-model="showDeleteDialog" :title="L('deleteTitle')" width="340px" append-to-body>
+    <div>{{ L('deleteConfirm') }}</div>
+    <div v-if="deletingAccount" style="margin-top:8px;font-weight:600">{{ deletingAccount.issuer }} — {{ deletingAccount.account }}</div>
+    <template #footer>
+      <el-button @click="showDeleteDialog = false" size="small">{{ L('cancel') }}</el-button>
+      <el-button type="danger" @click="doDelete" size="small">{{ L('delete') }}</el-button>
+    </template>
+  </el-dialog>
+</div>

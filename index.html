@@ -25,7 +25,7 @@
 ::-webkit-scrollbar-thumb:hover{background:#3a3f4b}
 ::-webkit-scrollbar-corner{background:transparent}
 html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-serif}
-#app{width:100vw;height:100vh;display:flex;flex-direction:column;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%)}
+#app{width:100vw;height:100vh;display:flex;flex-direction:column;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%);transform-origin:0 0}
 .desktop{flex:1;position:relative;overflow:hidden}
 .wallpaper-grid{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
 .desktop-icons{display:flex;flex-direction:column;flex-wrap:wrap;gap:16px;padding:20px;max-height:calc(100vh - 56px);align-content:flex-start}
@@ -678,7 +678,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
             <div><div class="lbl">{{row.label}}</div><div v-if="row.sub" class="sub">{{row.sub}}</div></div>
             <div class="ctrl">
               <template v-if="row.type==='toggle'"><label class="settings-toggle"><input type="checkbox" v-model="row.val"><span class="settings-slider"></span></label></template>
-              <template v-else-if="row.type==='range'"><input type="range" :min="row.min" :max="row.max" v-model="row.val"> <span style="font-size:12px;margin-left:6px">{{row.val}}</span></template>
+              <template v-else-if="row.type==='range'"><input type="range" :min="row.min" :max="row.max" :step="row.step||1" v-model="row.val" @input="row.onChange && row.onChange(row.val)"> <span style="font-size:12px;margin-left:6px">{{row.val}}{{row.suffix||''}}</span></template>
               <template v-else-if="row.type==='select'"><select v-model="row.val"><option v-for="o in row.options">{{o}}</option></select></template>
             </div>
           </div>
@@ -1127,7 +1127,8 @@ const useSettingsStore = defineStore('settings', {
     wallpaperMode: 'all',
     restoreSession: false,
     showKeyboardTray: false,
-    showMagnifierTray: false
+    showMagnifierTray: false,
+    zoom: 100
   }),
   actions: {
     async load() {
@@ -1148,6 +1149,7 @@ const useSettingsStore = defineStore('settings', {
         if (s.restoreSession !== undefined) this.restoreSession = s.restoreSession;
         if (s.showKeyboardTray !== undefined) this.showKeyboardTray = s.showKeyboardTray;
         if (s.showMagnifierTray !== undefined) this.showMagnifierTray = s.showMagnifierTray;
+        if (s.zoom) { this.zoom = s.zoom; window.__applyZoom && window.__applyZoom(s.zoom); }
       } catch {}
     },
     async save(data) {
@@ -1474,7 +1476,7 @@ const I18N = {
     // Settings
     settingsDisplay: 'Ekran', settingsLocation: 'Konum', settingsSound: 'Ses',
     settingsNetwork: 'Ağ', settingsAbout: 'Hakkında', settingsLanguage: 'Dil',
-    brightness: 'Parlaklık', brightnessDesc: 'Ekran parlaklığını ayarla',
+    zoom: 'Yakınlaştırma', zoomDesc: 'Sayfa yakınlaştırma seviyesini ayarla',
     darkMode: 'Karanlık Mod', darkModeDesc: 'Koyu tema kullan',
     resolution: 'Çözünürlük', mainVolume: 'Ana Ses', systemSound: 'Sistem Sesi',
     notifSound: 'Bildirim Sesi', wifi: 'Wi-Fi', wifiDesc: 'Kablosuz ağ bağlantısı',
@@ -1512,7 +1514,7 @@ const I18N = {
     mute: 'Mute', unmute: 'Unmute',
     settingsDisplay: 'Display', settingsLocation: 'Location', settingsSound: 'Sound',
     settingsNetwork: 'Network', settingsAbout: 'About', settingsLanguage: 'Language',
-    brightness: 'Brightness', brightnessDesc: 'Adjust screen brightness',
+    zoom: 'Zoom', zoomDesc: 'Adjust page zoom level',
     darkMode: 'Dark Mode', darkModeDesc: 'Use dark theme',
     resolution: 'Resolution', mainVolume: 'Master Volume', systemSound: 'System Sound',
     notifSound: 'Notification Sound', wifi: 'Wi-Fi', wifiDesc: 'Wireless network connection',
@@ -1546,7 +1548,7 @@ const I18N = {
     mute: 'Stumm', unmute: 'Ton an',
     settingsDisplay: 'Anzeige', settingsLocation: 'Standort', settingsSound: 'Ton',
     settingsNetwork: 'Netzwerk', settingsAbout: 'Über', settingsLanguage: 'Sprache',
-    brightness: 'Helligkeit', brightnessDesc: 'Bildschirmhelligkeit anpassen',
+    zoom: 'Zoom', zoomDesc: 'Seitenzoom anpassen',
     darkMode: 'Dunkelmodus', darkModeDesc: 'Dunkles Design verwenden',
     resolution: 'Auflösung', mainVolume: 'Hauptlautstärke', systemSound: 'Systemton',
     notifSound: 'Benachrichtigungston', wifi: 'WLAN', wifiDesc: 'Drahtlose Netzwerkverbindung',
@@ -1580,7 +1582,7 @@ const I18N = {
     mute: 'Muet', unmute: 'Son activé',
     settingsDisplay: 'Affichage', settingsLocation: 'Localisation', settingsSound: 'Son',
     settingsNetwork: 'Réseau', settingsAbout: 'À propos', settingsLanguage: 'Langue',
-    brightness: 'Luminosité', brightnessDesc: 'Régler la luminosité de l\'écran',
+    zoom: 'Zoom', zoomDesc: 'Régler le niveau de zoom de la page',
     darkMode: 'Mode sombre', darkModeDesc: 'Utiliser le thème sombre',
     resolution: 'Résolution', mainVolume: 'Volume principal', systemSound: 'Son système',
     notifSound: 'Son de notification', wifi: 'Wi-Fi', wifiDesc: 'Connexion réseau sans fil',
@@ -1614,7 +1616,7 @@ const I18N = {
     mute: 'Silenciar', unmute: 'Activar sonido',
     settingsDisplay: 'Pantalla', settingsLocation: 'Ubicación', settingsSound: 'Sonido',
     settingsNetwork: 'Red', settingsAbout: 'Acerca de', settingsLanguage: 'Idioma',
-    brightness: 'Brillo', brightnessDesc: 'Ajustar brillo de pantalla',
+    zoom: 'Zoom', zoomDesc: 'Ajustar el nivel de zoom de la página',
     darkMode: 'Modo oscuro', darkModeDesc: 'Usar tema oscuro',
     resolution: 'Resolución', mainVolume: 'Volumen principal', systemSound: 'Sonido del sistema',
     notifSound: 'Sonido de notificación', wifi: 'Wi-Fi', wifiDesc: 'Conexión de red inalámbrica',
@@ -1648,7 +1650,7 @@ const I18N = {
     mute: 'Отключить звук', unmute: 'Включить звук',
     settingsDisplay: 'Экран', settingsLocation: 'Местоположение', settingsSound: 'Звук',
     settingsNetwork: 'Сеть', settingsAbout: 'О системе', settingsLanguage: 'Язык',
-    brightness: 'Яркость', brightnessDesc: 'Настроить яркость экрана',
+    zoom: 'Масштаб', zoomDesc: 'Настроить масштаб страницы',
     darkMode: 'Тёмный режим', darkModeDesc: 'Использовать тёмную тему',
     resolution: 'Разрешение', mainVolume: 'Общая громкость', systemSound: 'Системный звук',
     notifSound: 'Звук уведомлений', wifi: 'Wi-Fi', wifiDesc: 'Беспроводное подключение',
@@ -1682,7 +1684,7 @@ const I18N = {
     mute: '静音', unmute: '取消静音',
     settingsDisplay: '显示', settingsLocation: '位置', settingsSound: '声音',
     settingsNetwork: '网络', settingsAbout: '关于', settingsLanguage: '语言',
-    brightness: '亮度', brightnessDesc: '调整屏幕亮度',
+    zoom: '缩放', zoomDesc: '调整页面缩放级别',
     darkMode: '深色模式', darkModeDesc: '使用深色主题',
     resolution: '分辨率', mainVolume: '主音量', systemSound: '系统声音',
     notifSound: '通知声音', wifi: 'Wi-Fi', wifiDesc: '无线网络连接',
@@ -1716,7 +1718,7 @@ const I18N = {
     mute: 'ミュート', unmute: 'ミュート解除',
     settingsDisplay: 'ディスプレイ', settingsLocation: '場所', settingsSound: 'サウンド',
     settingsNetwork: 'ネットワーク', settingsAbout: '情報', settingsLanguage: '言語',
-    brightness: '明るさ', brightnessDesc: '画面の明るさを調整',
+    zoom: 'ズーム', zoomDesc: 'ページのズームレベルを調整',
     darkMode: 'ダークモード', darkModeDesc: 'ダークテーマを使用',
     resolution: '解像度', mainVolume: 'マスター音量', systemSound: 'システムサウンド',
     notifSound: '通知音', wifi: 'Wi-Fi', wifiDesc: 'ワイヤレスネットワーク接続',
@@ -1750,7 +1752,7 @@ const I18N = {
     mute: 'Muto', unmute: 'Riattiva audio',
     settingsDisplay: 'Schermo', settingsLocation: 'Posizione', settingsSound: 'Audio',
     settingsNetwork: 'Rete', settingsAbout: 'Informazioni', settingsLanguage: 'Lingua',
-    brightness: 'Luminosità', brightnessDesc: 'Regola la luminosità dello schermo',
+    zoom: 'Zoom', zoomDesc: 'Regola il livello di zoom della pagina',
     darkMode: 'Modalità scura', darkModeDesc: 'Usa il tema scuro',
     resolution: 'Risoluzione', mainVolume: 'Volume principale', systemSound: 'Suono di sistema',
     notifSound: 'Suono notifica', wifi: 'Wi-Fi', wifiDesc: 'Connessione di rete wireless',
@@ -1784,7 +1786,7 @@ const I18N = {
     mute: 'كتم', unmute: 'إلغاء الكتم',
     settingsDisplay: 'العرض', settingsLocation: 'الموقع', settingsSound: 'الصوت',
     settingsNetwork: 'الشبكة', settingsAbout: 'حول', settingsLanguage: 'اللغة',
-    brightness: 'السطوع', brightnessDesc: 'ضبط سطوع الشاشة',
+    zoom: 'التكبير', zoomDesc: 'ضبط مستوى تكبير الصفحة',
     darkMode: 'الوضع الداكن', darkModeDesc: 'استخدام السمة الداكنة',
     resolution: 'الدقة', mainVolume: 'مستوى الصوت الرئيسي', systemSound: 'صوت النظام',
     notifSound: 'صوت الإشعار', wifi: 'واي فاي', wifiDesc: 'اتصال الشبكة اللاسلكية',
@@ -1818,7 +1820,7 @@ const I18N = {
     mute: '음소거', unmute: '음소거 해제',
     settingsDisplay: '디스플레이', settingsLocation: '위치', settingsSound: '소리',
     settingsNetwork: '네트워크', settingsAbout: '정보', settingsLanguage: '언어',
-    brightness: '밝기', brightnessDesc: '화면 밝기 조절',
+    zoom: '확대/축소', zoomDesc: '페이지 확대/축소 수준 조절',
     darkMode: '다크 모드', darkModeDesc: '다크 테마 사용',
     resolution: '해상도', mainVolume: '기본 볼륨', systemSound: '시스템 소리',
     notifSound: '알림 소리', wifi: 'Wi-Fi', wifiDesc: '무선 네트워크 연결',
@@ -1852,7 +1854,7 @@ const I18N = {
     mute: 'म्यूट', unmute: 'अनम्यूट',
     settingsDisplay: 'डिस्प्ले', settingsLocation: 'स्थान', settingsSound: 'ध्वनि',
     settingsNetwork: 'नेटवर्क', settingsAbout: 'के बारे में', settingsLanguage: 'भाषा',
-    brightness: 'चमक', brightnessDesc: 'स्क्रीन की चमक समायोजित करें',
+    zoom: 'ज़ूम', zoomDesc: 'पेज ज़ूम स्तर समायोजित करें',
     darkMode: 'डार्क मोड', darkModeDesc: 'डार्क थीम का उपयोग करें',
     resolution: 'रिज़ॉल्यूशन', mainVolume: 'मुख्य वॉल्यूम', systemSound: 'सिस्टम ध्वनि',
     notifSound: 'सूचना ध्वनि', wifi: 'वाई-फ़ाई', wifiDesc: 'वायरलेस नेटवर्क कनेक्शन',
@@ -1886,7 +1888,7 @@ const I18N = {
     mute: 'Silenciar', unmute: 'Ativar Som',
     settingsDisplay: 'Tela', settingsLocation: 'Localização', settingsSound: 'Som',
     settingsNetwork: 'Rede', settingsAbout: 'Sobre', settingsLanguage: 'Idioma',
-    brightness: 'Brilho', brightnessDesc: 'Ajustar brilho da tela',
+    zoom: 'Zoom', zoomDesc: 'Ajustar o nível de zoom da página',
     darkMode: 'Modo Escuro', darkModeDesc: 'Usar tema escuro',
     resolution: 'Resolução', mainVolume: 'Volume Principal', systemSound: 'Som do Sistema',
     notifSound: 'Som de Notificação', wifi: 'Wi-Fi', wifiDesc: 'Conexão de rede sem fio',
@@ -2580,7 +2582,7 @@ const SettingsApp = {
     ]);
     const allRows = computed(() => ({
       display: [
-        { label: t('brightness'), sub: t('brightnessDesc'), type: 'range', min: 10, max: 100, val: ref(75) },
+        { label: t('zoom'), sub: t('zoomDesc'), type: 'range', min: 50, max: 200, step: 10, val: ref(settingsStore.zoom), suffix: '%', onChange(v) { const n = Number(v); window.__applyZoom && window.__applyZoom(n); settingsStore.save({ zoom: n }); } },
         { label: t('darkMode'), sub: t('darkModeDesc'), type: 'toggle', val: ref(false) },
         { label: t('resolution'), type: 'select', options: ['1920×1080', '1366×768', '2560×1440'], val: ref('1920×1080') }
       ],
@@ -5039,6 +5041,14 @@ createApp({
 }).use(pinia).use(ElementPlus, EP_LOCALES[localStorage.getItem('sys_locale') || 'tr'] || EP_LOCALES.en).mount('#app');
 
 // Load settings store at boot
+window.__applyZoom = function(z) {
+  const el = document.getElementById('app');
+  if (!el) return;
+  const s = z / 100;
+  el.style.transform = s === 1 ? '' : 'scale(' + s + ')';
+  el.style.width = s === 1 ? '100vw' : (100 / s) + 'vw';
+  el.style.height = s === 1 ? '100vh' : (100 / s) + 'vh';
+};
 const _bootStore = useSettingsStore();
 _bootStore.load().then(() => {
   if (window._applyWallpaper) window._applyWallpaper();

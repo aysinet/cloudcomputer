@@ -1,0 +1,68 @@
+{
+  "id": "authenticator",
+  "name": "Doğrulayıcı",
+  "icon": "🔑",
+  "color": "linear-gradient(135deg,#1565c0,#0d47a1)",
+  "type": "internal",
+  "size": {
+    "w": 420,
+    "h": 560
+  },
+  "global": false,
+  "description": "İki faktörlü kimlik doğrulama (2FA) — TOTP kod üretici",
+  "lang": {
+    "tr": {
+      "name": "Doğrulayıcı",
+      "description": "İki faktörlü kimlik doğrulama (2FA) — TOTP kod üretici"
+    },
+    "en": {
+      "name": "Authenticator",
+      "description": "Two-factor authentication (2FA) — TOTP code generator"
+    },
+    "de": {
+      "name": "Authentifikator",
+      "description": "Zwei-Faktor-Authentifizierung (2FA) — TOTP-Code-Generator"
+    },
+    "fr": {
+      "name": "Authentificateur",
+      "description": "Authentification à deux facteurs (2FA) — générateur de codes TOTP"
+    },
+    "es": {
+      "name": "Autenticador",
+      "description": "Autenticación de dos factores (2FA) — generador de códigos TOTP"
+    },
+    "ru": {
+      "name": "Аутентификатор",
+      "description": "Двухфакторная аутентификация (2FA) — генератор TOTP-кодов"
+    },
+    "zh": {
+      "name": "身份验证器",
+      "description": "双因素认证 (2FA) — TOTP 代码生成器"
+    },
+    "ja": {
+      "name": "認証アプリ",
+      "description": "二要素認証 (2FA) — TOTPコードジェネレーター"
+    },
+    "it": {
+      "name": "Autenticatore",
+      "description": "Autenticazione a due fattori (2FA) — generatore di codici TOTP"
+    },
+    "ar": {
+      "name": "المصادق",
+      "description": "المصادقة الثنائية (2FA) — مولد رموز TOTP"
+    },
+    "ko": {
+      "name": "인증기",
+      "description": "이중 인증 (2FA) — TOTP 코드 생성기"
+    },
+    "hi": {
+      "name": "प्रमाणक",
+      "description": "दो-कारक प्रमाणीकरण (2FA) — TOTP कोड जनरेटर"
+    },
+    "pt": {
+      "name": "Autenticador",
+      "description": "Autenticação de dois fatores (2FA) — gerador de códigos TOTP"
+    }
+  },
+  "category": "tools"
+}
