@@ -1,0 +1,52 @@
+{
+  "id": "stamp-paint",
+  "name": "Stamp Paint",
+  "icon": "🖍️",
+  "color": "linear-gradient(135deg,#6c5ce7,#fd79a8)",
+  "type": "internal",
+  "size": {
+    "w": 960,
+    "h": 680
+  },
+  "global": false,
+  "description": "TuxPaint tarzı çocuk dostu çizim uygulaması — damgalar, sihirli efektler, fırçalar",
+  "lang": {
+    "tr": {
+      "name": "Stamp Paint",
+      "description": "TuxPaint tarzı çizim — damgalar, sihirli efektler, fırçalar"
+    },
+    "en": {
+      "name": "Stamp Paint",
+      "description": "TuxPaint-style drawing — stamps, magic effects, brushes"
+    },
+    "de": {
+      "name": "Stamp Paint",
+      "description": "TuxPaint-Stil — Stempel, magische Effekte, Pinsel"
+    },
+    "fr": {
+      "name": "Stamp Paint",
+      "description": "Dessin style TuxPaint — tampons, effets magiques, pinceaux"
+    },
+    "es": {
+      "name": "Stamp Paint",
+      "description": "Dibujo estilo TuxPaint — sellos, efectos mágicos, pinceles"
+    },
+    "ru": {
+      "name": "Stamp Paint",
+      "description": "Рисование в стиле TuxPaint — штампы, магические эффекты, кисти"
+    },
+    "zh": {
+      "name": "Stamp Paint",
+      "description": "TuxPaint风格绘画 — 印章、魔法效果、画笔"
+    },
+    "ja": {
+      "name": "Stamp Paint",
+      "description": "TuxPaintスタイルのお絵かき — スタンプ、魔法効果、ブラシ"
+    },
+    "it": {
+      "name": "Stamp Paint",
+      "description": "Disegno stile TuxPaint — timbri, effetti magici, pennelli"
+    }
+  },
+  "category": "productivity"
+}

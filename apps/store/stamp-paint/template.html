@@ -1,0 +1,130 @@
+<div class="sp-app">
+  <!-- Left Toolbar: Main Tools -->
+  <div class="sp-left-bar">
+    <button :class="['sp-tool-btn', activeTool === 'paint' ? 'active' : '']" @click="activeTool = 'paint'" title="">🖌️<span>{{ t('paint') }}</span></button>
+    <button :class="['sp-tool-btn', activeTool === 'stamp' ? 'active' : '']" @click="activeTool = 'stamp'" title="">🎨<span>{{ t('stamp') }}</span></button>
+    <button :class="['sp-tool-btn', activeTool === 'lines' ? 'active' : '']" @click="activeTool = 'lines'" title="">📏<span>{{ t('lines') }}</span></button>
+    <button :class="['sp-tool-btn', activeTool === 'shapes' ? 'active' : '']" @click="activeTool = 'shapes'" title="">⬜<span>{{ t('shapes') }}</span></button>
+    <button :class="['sp-tool-btn', activeTool === 'text' ? 'active' : '']" @click="activeTool = 'text'" title="">🔤<span>{{ t('text') }}</span></button>
+    <button :class="['sp-tool-btn', activeTool === 'magic' ? 'active' : '']" @click="activeTool = 'magic'" title="">✨<span>{{ t('magic') }}</span></button>
+    <button :class="['sp-tool-btn', activeTool === 'eraser' ? 'active' : '']" @click="activeTool = 'eraser'" title="">🧹<span>{{ t('eraser') }}</span></button>
+    <div class="sp-tool-sep"></div>
+    <button class="sp-tool-btn" @click="undo" :disabled="!canUndo" title="">↩️<span>{{ t('undo') }}</span></button>
+    <button class="sp-tool-btn" @click="redo" :disabled="!canRedo" title="">↪️<span>{{ t('redo') }}</span></button>
+    <button class="sp-tool-btn" @click="newCanvas" title="">📄<span>{{ t('newCanvas') }}</span></button>
+    <button class="sp-tool-btn" @click="openFile" title="">📂<span>{{ t('open') }}</span></button>
+    <button class="sp-tool-btn" @click="downloadPNG" title="">💾<span>{{ t('save') }}</span></button>
+  </div>
+
+  <!-- Center: Canvas -->
+  <div class="sp-center">
+    <div class="sp-canvas-wrap" ref="canvasWrap">
+      <canvas ref="mainCanvas" class="sp-canvas"
+        @mousedown="onPointerDown" @mousemove="onPointerMove" @mouseup="onPointerUp" @mouseleave="onPointerUp"
+        @touchstart.prevent="onPointerDown" @touchmove.prevent="onPointerMove" @touchend="onPointerUp"
+      ></canvas>
+      <canvas ref="prevCanvas" class="sp-canvas sp-preview-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Right Panel: Sub-tools -->
+  <div class="sp-right-panel">
+    <!-- Paint options -->
+    <template v-if="activeTool === 'paint' || activeTool === 'eraser' || activeTool === 'lines'">
+      <div class="sp-panel-title">{{ t('brushSize') }}</div>
+      <input type="range" min="1" max="40" v-model.number="brushSize" class="sp-slider" />
+      <div class="sp-panel-val">{{ brushSize }}px</div>
+    </template>
+
+    <!-- Stamp options -->
+    <template v-if="activeTool === 'stamp'">
+      <div class="sp-panel-title">{{ t('stampSize') }}</div>
+      <input type="range" min="20" max="96" v-model.number="stampSize" class="sp-slider" />
+      <div class="sp-panel-val">{{ stampSize }}px</div>
+      <div class="sp-stamp-cats">
+        <button v-for="cat in stampCategories" :key="cat"
+          :class="['sp-cat-btn', stampCategory === cat ? 'active' : '']"
+          @click="stampCategory = cat">
+          {{ t(cat) }}
+        </button>
+      </div>
+      <div class="sp-stamp-grid">
+        <span v-for="s in currentStamps" :key="s"
+          :class="['sp-stamp-item', selectedStamp === s ? 'active' : '']"
+          @click="selectedStamp = s">{{ s }}</span>
+      </div>
+    </template>
+
+    <!-- Shape options -->
+    <template v-if="activeTool === 'shapes'">
+      <div class="sp-panel-title">{{ t('shapes') }}</div>
+      <div class="sp-shape-grid">
+        <button v-for="sh in SHAPE_TYPES" :key="sh.id"
+          :class="['sp-shape-btn', shapeType === sh.id ? 'active' : '']"
+          @click="shapeType = sh.id">
+          {{ sh.icon }}
+        </button>
+      </div>
+      <div class="sp-fill-toggle">
+        <button :class="['sp-fill-btn', shapeFilled ? 'active' : '']" @click="shapeFilled = true">{{ t('filled') }}</button>
+        <button :class="['sp-fill-btn', !shapeFilled ? 'active' : '']" @click="shapeFilled = false">{{ t('outline') }}</button>
+      </div>
+      <div class="sp-panel-title">{{ t('brushSize') }}</div>
+      <input type="range" min="1" max="20" v-model.number="brushSize" class="sp-slider" />
+    </template>
+
+    <!-- Magic options -->
+    <template v-if="activeTool === 'magic'">
+      <div class="sp-panel-title">{{ t('magic') }}</div>
+      <div class="sp-magic-grid">
+        <button v-for="m in MAGIC_EFFECTS" :key="m.id"
+          :class="['sp-magic-btn', magicEffect === m.id ? 'active' : '']"
+          @click="magicEffect = m.id">
+          <span class="sp-magic-icon">{{ m.icon }}</span>
+          <span class="sp-magic-label">{{ t(m.id) }}</span>
+        </button>
+      </div>
+      <template v-if="magicEffect === 'rainbow' || magicEffect === 'sparkle'">
+        <div class="sp-panel-title">{{ t('brushSize') }}</div>
+        <input type="range" min="2" max="30" v-model.number="brushSize" class="sp-slider" />
+      </template>
+    </template>
+
+    <!-- Text options -->
+    <template v-if="activeTool === 'text'">
+      <div class="sp-panel-title">{{ t('text') }}</div>
+      <input type="text" v-model="textContent" class="sp-text-input" :placeholder="t('text') + '...'" />
+      <div class="sp-panel-title">{{ t('fontSize') }}</div>
+      <input type="range" min="12" max="72" v-model.number="textFontSize" class="sp-slider" />
+      <div class="sp-panel-val">{{ textFontSize }}px</div>
+      <div class="sp-panel-title">{{ t('fontFamily') }}</div>
+      <select v-model="textFont" class="sp-font-select">
+        <option value="sans-serif">Sans Serif</option>
+        <option value="serif">Serif</option>
+        <option value="monospace">Monospace</option>
+        <option value="cursive">Cursive</option>
+        <option value="fantasy">Fantasy</option>
+      </select>
+    </template>
+  </div>
+
+  <!-- Bottom: Color palette -->
+  <div class="sp-bottom-bar">
+    <div class="sp-color-current">
+      <div class="sp-color-fg" :style="'background:' + fgColor" @click="$refs.fgInput.click()"></div>
+      <input type="color" ref="fgInput" v-model="fgColor" class="sp-hidden-input" />
+    </div>
+    <div class="sp-palette">
+      <span v-for="c in palette" :key="c" class="sp-palette-swatch"
+        :style="'background:' + c"
+        :class="{ active: fgColor === c }"
+        @click="fgColor = c"
+      ></span>
+    </div>
+    <div class="sp-color-bg-wrap">
+      <span class="sp-bg-label">BG</span>
+      <div class="sp-color-bg" :style="'background:' + bgColor" @click="$refs.bgInput.click()"></div>
+      <input type="color" ref="bgInput" v-model="bgColor" class="sp-hidden-input" />
+    </div>
+  </div>
+</div>
