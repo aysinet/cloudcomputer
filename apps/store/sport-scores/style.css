@@ -1,0 +1,167 @@
+.ss-root {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  background: #0d1117; color: #c9d1d9;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+/* Header */
+.ss-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; background: #161b22; border-bottom: 1px solid #30363d;
+  gap: 10px; flex-shrink: 0;
+}
+.ss-title { font-size: 15px; font-weight: 700; color: #e6edf3; white-space: nowrap; }
+.ss-date-nav { display: flex; align-items: center; gap: 4px; }
+.ss-nav-btn {
+  background: #21262d; border: 1px solid #30363d; color: #c9d1d9;
+  width: 30px; height: 30px; border-radius: 6px; cursor: pointer;
+  font-size: 18px; display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.ss-nav-btn:hover { background: #30363d; }
+.ss-date-btn {
+  background: #21262d; border: 1px solid #30363d; color: #e6edf3;
+  padding: 4px 12px; border-radius: 6px; cursor: pointer;
+  font-size: 13px; font-weight: 600; transition: background .15s;
+}
+.ss-date-btn:hover { background: #30363d; }
+.ss-date-btn.ss-today { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+.ss-refresh-btn {
+  background: none; border: none; cursor: pointer; font-size: 16px;
+  padding: 4px; border-radius: 4px; transition: opacity .15s;
+}
+.ss-refresh-btn:disabled { opacity: .4; }
+
+/* Tabs */
+.ss-tabs {
+  display: flex; flex-direction: column; gap: 0;
+  background: #161b22; border-bottom: 1px solid #30363d; flex-shrink: 0;
+}
+.ss-sport-tabs, .ss-filter-tabs {
+  display: flex; gap: 2px; padding: 4px 10px;
+}
+.ss-tab, .ss-filter {
+  background: transparent; border: none; color: #8b949e; cursor: pointer;
+  padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;
+  transition: all .15s; white-space: nowrap;
+}
+.ss-tab:hover, .ss-filter:hover { color: #c9d1d9; background: #21262d; }
+.ss-tab.active { color: #e6edf3; background: #1f6feb; }
+.ss-filter.active { color: #e6edf3; background: #30363d; }
+.ss-live-dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: #f85149; margin-right: 4px; animation: ss-blink 1s infinite;
+}
+.ss-live-count {
+  background: #f85149; color: #fff; font-size: 10px; font-weight: 700;
+  padding: 1px 5px; border-radius: 8px; margin-left: 4px;
+}
+
+/* Loading */
+.ss-loading {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px; color: #8b949e;
+}
+.ss-spinner {
+  width: 28px; height: 28px; border: 3px solid #30363d;
+  border-top-color: #1f6feb; border-radius: 50%; animation: ss-spin 0.7s linear infinite;
+}
+.ss-empty {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  color: #484f58; font-size: 14px;
+}
+
+/* Content */
+.ss-content {
+  flex: 1; overflow-y: auto; padding: 6px 0;
+}
+.ss-content::-webkit-scrollbar { width: 6px; }
+.ss-content::-webkit-scrollbar-track { background: transparent; }
+.ss-content::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+
+/* Competition Group */
+.ss-group { margin-bottom: 2px; }
+.ss-comp-header {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; background: #161b22;
+  font-size: 12px; font-weight: 600; color: #8b949e;
+  position: sticky; top: 0; z-index: 2;
+  border-bottom: 1px solid #21262d;
+}
+.ss-comp-flag { font-size: 14px; }
+.ss-comp-country { color: #58a6ff; }
+.ss-comp-sep { color: #484f58; }
+.ss-comp-name { color: #c9d1d9; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ss-comp-sport { font-size: 12px; }
+
+/* Match Row */
+.ss-match {
+  display: grid;
+  grid-template-columns: 60px 1fr 70px;
+  align-items: center; padding: 6px 14px;
+  border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+  transition: background .1s; min-height: 44px;
+}
+.ss-match:hover { background: rgba(31, 111, 235, 0.06); }
+.ss-match-live { background: rgba(248, 81, 73, 0.04); }
+.ss-match-live:hover { background: rgba(248, 81, 73, 0.08); }
+
+/* Status */
+.ss-match-status {
+  font-size: 11px; font-weight: 600; text-align: center;
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+}
+.ss-state-pre { color: #8b949e; }
+.ss-state-live { color: #f85149; }
+.ss-state-post { color: #3fb950; }
+.ss-pulse {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #f85149; animation: ss-blink 1s infinite;
+}
+
+/* Teams */
+.ss-match-teams { display: flex; flex-direction: column; gap: 2px; padding: 0 8px; }
+.ss-team {
+  display: flex; align-items: center; gap: 6px; font-size: 13px;
+  color: #c9d1d9; line-height: 1.3;
+}
+.ss-team-logo { width: 16px; height: 16px; object-fit: contain; border-radius: 2px; flex-shrink: 0; }
+.ss-team-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+.ss-winner .ss-team-name { color: #e6edf3; font-weight: 700; }
+
+/* Score */
+.ss-match-score { text-align: center; }
+.ss-score-main {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  font-size: 15px; font-weight: 700; font-family: 'SF Mono', 'Cascadia Code', monospace;
+}
+.ss-score-home, .ss-score-away { min-width: 18px; }
+.ss-score-sep { color: #484f58; font-weight: 400; }
+.ss-score-ht { font-size: 10px; color: #6e7681; margin-top: 1px; }
+.ss-match-time { font-size: 12px; color: #8b949e; font-weight: 500; }
+
+/* Tennis */
+.ss-match-tennis {
+  grid-template-columns: 60px 1fr auto;
+}
+.ss-tennis-teams { padding: 0 8px; }
+.ss-tennis-sets {
+  display: flex; gap: 2px; align-items: center;
+}
+.ss-set {
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 20px; font-size: 12px; font-weight: 600;
+  font-family: 'SF Mono', 'Cascadia Code', monospace;
+  background: #21262d; border-radius: 3px; padding: 2px 3px;
+}
+.ss-set-score { line-height: 1.4; color: #c9d1d9; }
+
+/* Animations */
+@keyframes ss-spin { to { transform: rotate(360deg); } }
+@keyframes ss-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* Red cards */
+.ss-match-live .ss-score-main { color: #f85149; }
+.ss-match .ss-state-post .ss-score-main { color: #e6edf3; }

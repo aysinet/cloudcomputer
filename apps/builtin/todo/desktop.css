@@ -1,7 +1,16 @@
-.todo-root{width:100%;height:100%;background:#f0f4ff;display:flex;font-family:'Segoe UI',sans-serif}
+.todo-root{width:100%;height:100%;background:#f0f4ff;display:flex;font-family:'Segoe UI',sans-serif;position:relative;overflow:hidden}
 
-/* Sidebar */
-.todo-sidebar{width:200px;background:#fff;border-right:1px solid #e8e8f0;display:flex;flex-direction:column;flex-shrink:0}
+/* Drawer overlay */
+.todo-drawer-overlay{position:absolute;inset:0;background:rgba(0,0,0,.25);z-index:10;animation:todo-fade-in .2s ease}
+@keyframes todo-fade-in{from{opacity:0}to{opacity:1}}
+
+/* Sidebar as Drawer */
+.todo-sidebar{width:220px;background:#fff;border-right:1px solid #e8e8f0;display:flex;flex-direction:column;flex-shrink:0;position:absolute;left:0;top:0;bottom:0;z-index:11;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:4px 0 20px rgba(0,0,0,.12)}
+.todo-sidebar.open{transform:translateX(0)}
+
+/* Drawer toggle button */
+.todo-drawer-toggle{width:32px;height:32px;border:none;background:rgba(255,255,255,.2);color:#fff;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:10px;transition:background .15s}
+.todo-drawer-toggle:hover{background:rgba(255,255,255,.35)}
 .todo-sidebar-header{display:flex;align-items:center;justify-content:space-between;padding:14px 12px 8px;border-bottom:1px solid #eee}
 .todo-sidebar-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#999}
 .todo-sidebar-add{width:26px;height:26px;border:none;background:#667eea14;color:#667eea;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}

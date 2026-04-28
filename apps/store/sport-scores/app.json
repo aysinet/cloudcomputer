@@ -1,0 +1,52 @@
+{
+  "id": "sport-scores",
+  "name": "Sport Scores",
+  "icon": "⚽",
+  "color": "linear-gradient(135deg,#1b5e20,#2e7d32)",
+  "type": "internal",
+  "size": {
+    "w": 850,
+    "h": 700
+  },
+  "global": false,
+  "description": "Canlı spor sonuçları — futbol, basketbol, tenis",
+  "lang": {
+    "tr": {
+      "name": "Spor Skorları",
+      "description": "Canlı spor sonuçları — futbol, basketbol, tenis"
+    },
+    "en": {
+      "name": "Sport Scores",
+      "description": "Live sport scores — soccer, basketball, tennis"
+    },
+    "de": {
+      "name": "Sport Ergebnisse",
+      "description": "Live-Sportergebnisse — Fußball, Basketball, Tennis"
+    },
+    "fr": {
+      "name": "Scores Sportifs",
+      "description": "Résultats sportifs en direct — football, basketball, tennis"
+    },
+    "es": {
+      "name": "Resultados Deportivos",
+      "description": "Resultados deportivos en vivo — fútbol, baloncesto, tenis"
+    },
+    "ru": {
+      "name": "Спортивные результаты",
+      "description": "Спортивные результаты в прямом эфире"
+    },
+    "zh": {
+      "name": "体育比分",
+      "description": "实时体育比分 — 足球、篮球、网球"
+    },
+    "ja": {
+      "name": "スポーツスコア",
+      "description": "ライブスポーツスコア — サッカー、バスケ、テニス"
+    },
+    "it": {
+      "name": "Risultati Sportivi",
+      "description": "Risultati sportivi in diretta — calcio, basket, tennis"
+    }
+  },
+  "category": "tools"
+}

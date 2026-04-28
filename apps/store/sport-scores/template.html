@@ -1,0 +1,111 @@
+<div class="ss-root">
+  <!-- Header -->
+  <div class="ss-header">
+    <div class="ss-title">{{ sportIcon('S') }} {{ L('title') }}</div>
+    <div class="ss-date-nav">
+      <button class="ss-nav-btn" @click="prevDay" title="←">‹</button>
+      <button class="ss-date-btn" :class="{ 'ss-today': isToday }" @click="goToday">{{ dateDisplay }}</button>
+      <button class="ss-nav-btn" @click="nextDay" title="→">›</button>
+    </div>
+    <button class="ss-refresh-btn" @click="fetchScores" :disabled="loading" :title="L('refresh')">🔄</button>
+  </div>
+
+  <!-- Sport Tabs -->
+  <div class="ss-tabs">
+    <div class="ss-sport-tabs">
+      <button :class="['ss-tab', sport === 'all' && 'active']" @click="sport = 'all'">{{ L('all') }}</button>
+      <button :class="['ss-tab', sport === 'S' && 'active']" @click="sport = 'S'">⚽ {{ L('soccer') }}</button>
+      <button :class="['ss-tab', sport === 'B' && 'active']" @click="sport = 'B'">🏀 {{ L('basketball') }}</button>
+      <button :class="['ss-tab', sport === 'T' && 'active']" @click="sport = 'T'">🎾 {{ L('tennis') }}</button>
+    </div>
+    <div class="ss-filter-tabs">
+      <button :class="['ss-filter', filter === 'all' && 'active']" @click="filter = 'all'">{{ L('all') }}</button>
+      <button :class="['ss-filter', filter === 'live' && 'active']" @click="filter = 'live'">
+        <span class="ss-live-dot" v-if="liveCount > 0"></span>{{ L('live') }}
+        <span class="ss-live-count" v-if="liveCount > 0">{{ liveCount }}</span>
+      </button>
+      <button :class="['ss-filter', filter === 'finished' && 'active']" @click="filter = 'finished'">{{ L('finished') }}</button>
+      <button :class="['ss-filter', filter === 'upcoming' && 'active']" @click="filter = 'upcoming'">{{ L('upcoming') }}</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div v-if="loading && groupedMatches.length === 0" class="ss-loading">
+    <div class="ss-spinner"></div>
+    <div>{{ L('loading') }}</div>
+  </div>
+
+  <!-- Match List -->
+  <div class="ss-content" v-else>
+    <div v-if="groupedMatches.length === 0" class="ss-empty">{{ L('noMatches') }}</div>
+
+    <div v-for="group in groupedMatches" :key="group.competition.id" class="ss-group">
+      <!-- Competition Header -->
+      <div class="ss-comp-header">
+        <span class="ss-comp-flag">{{ countryFlag(group.competition) }}</span>
+        <span class="ss-comp-country">{{ group.competition.country ? group.competition.country.name : '' }}</span>
+        <span class="ss-comp-sep">–</span>
+        <span class="ss-comp-name">{{ group.competition.name }}</span>
+        <span class="ss-comp-sport">{{ sportIcon(group.competition.sport) }}</span>
+      </div>
+
+      <!-- Soccer/Basketball Matches -->
+      <template v-if="group.competition.sport !== 'T'">
+        <div v-for="m in group.matches" :key="m.id" :class="['ss-match', m.state === 'live' && 'ss-match-live']">
+          <div class="ss-match-status" :class="['ss-state-' + m.state]">
+            <span v-if="m.state === 'live'" class="ss-pulse"></span>
+            {{ getMatchStatus(m) }}
+          </div>
+          <div class="ss-match-teams">
+            <div class="ss-team ss-team-home" :class="{ 'ss-winner': m.state === 'post' && m.winner === 'home' }">
+              <img :src="teamLogo(m.homeTeam && m.homeTeam.id)" class="ss-team-logo" @error="onImgError" loading="lazy" />
+              <span class="ss-team-name">{{ m.homeTeam ? m.homeTeam.name : '' }}</span>
+            </div>
+            <div class="ss-team ss-team-away" :class="{ 'ss-winner': m.state === 'post' && m.winner === 'away' }">
+              <img :src="teamLogo(m.awayTeam && m.awayTeam.id)" class="ss-team-logo" @error="onImgError" loading="lazy" />
+              <span class="ss-team-name">{{ m.awayTeam ? m.awayTeam.name : '' }}</span>
+            </div>
+          </div>
+          <div class="ss-match-score" v-if="m.state !== 'pre'">
+            <div class="ss-score-main">
+              <span class="ss-score-home">{{ getScore(m).home }}</span>
+              <span class="ss-score-sep">-</span>
+              <span class="ss-score-away">{{ getScore(m).away }}</span>
+            </div>
+            <div class="ss-score-ht" v-if="getHalfTimeScore(m)">{{ getHalfTimeScore(m) }}</div>
+          </div>
+          <div class="ss-match-score ss-match-time" v-else>
+            <span>{{ getMatchTime(m) }}</span>
+          </div>
+        </div>
+      </template>
+
+      <!-- Tennis Matches -->
+      <template v-else>
+        <div v-for="m in group.matches" :key="m.id" :class="['ss-match ss-match-tennis', m.state === 'live' && 'ss-match-live']">
+          <div class="ss-match-status" :class="['ss-state-' + m.state]">
+            <span v-if="m.state === 'live'" class="ss-pulse"></span>
+            {{ getMatchStatus(m) }}
+          </div>
+          <div class="ss-match-teams ss-tennis-teams">
+            <div class="ss-team ss-team-home" :class="{ 'ss-winner': m.state === 'post' && m.winner === 'home' }">
+              <span class="ss-team-name">{{ m.homeTeam ? m.homeTeam.name : '' }}</span>
+            </div>
+            <div class="ss-team ss-team-away" :class="{ 'ss-winner': m.state === 'post' && m.winner === 'away' }">
+              <span class="ss-team-name">{{ m.awayTeam ? m.awayTeam.name : '' }}</span>
+            </div>
+          </div>
+          <div class="ss-tennis-sets" v-if="getTennisScore(m).length > 0">
+            <div v-for="(s, si) in getTennisScore(m)" :key="si" class="ss-set">
+              <span class="ss-set-score">{{ s.home }}</span>
+              <span class="ss-set-score">{{ s.away }}</span>
+            </div>
+          </div>
+          <div class="ss-match-score ss-match-time" v-else-if="m.state === 'pre'">
+            <span>{{ getMatchTime(m) }}</span>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+</div>

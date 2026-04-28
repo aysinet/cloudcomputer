@@ -440,8 +440,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 
 <script type="text/template" id="TodoApp">
   <div class="todo-root">
-    <!-- Sidebar: Groups -->
-    <div class="todo-sidebar">
+    <!-- Drawer overlay -->
+    <div class="todo-drawer-overlay" v-if="drawerOpen" @click="drawerOpen=false"></div>
+    <!-- Drawer: Groups -->
+    <div class="todo-sidebar" :class="{open: drawerOpen}">
       <div class="todo-sidebar-header">
         <span class="todo-sidebar-title">{{t('todoGroups')}}</span>
         <button class="todo-sidebar-add" @click="showAddGroup=!showAddGroup" :title="t('todoAddGroup')">＋</button>
@@ -454,12 +456,12 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         <button class="todo-group-save" @click="addGroup">{{t('todoAdd')}}</button>
       </div>
       <div class="todo-group-list">
-        <div class="todo-group-item" :class="{active:activeGroup===null}" @click="selectGroup(null)">
+        <div class="todo-group-item" :class="{active:activeGroup===null}" @click="selectGroup(null); drawerOpen=false">
           <span class="todo-group-dot" style="background:#667eea"></span>
           <span class="todo-group-name">{{t('todoAll')}}</span>
           <span class="todo-group-count">{{todos.length}}</span>
         </div>
-        <div v-for="g in groups" :key="g.id" class="todo-group-item" :class="{active:activeGroup===g.id}" @click="selectGroup(g.id)" @contextmenu.prevent="groupCtx=$event, ctxGroup=g">
+        <div v-for="g in groups" :key="g.id" class="todo-group-item" :class="{active:activeGroup===g.id}" @click="selectGroup(g.id); drawerOpen=false" @contextmenu.prevent="groupCtx=$event, ctxGroup=g">
           <span class="todo-group-dot" :style="{background:g.color}"></span>
           <span class="todo-group-name">{{g.name}}</span>
           <span class="todo-group-count">{{groupCount(g.id)}}</span>
@@ -470,6 +472,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
     <!-- Main content -->
     <div class="todo-main">
       <div class="todo-header" :style="{background: activeGroupObj ? `linear-gradient(135deg, ${activeGroupObj.color}, ${activeGroupObj.color}dd)` : ''}">
+        <button class="todo-drawer-toggle" @click="drawerOpen=!drawerOpen" :title="t('todoGroups')">☰</button>
         <h2>{{activeGroupObj ? activeGroupObj.name : t('todoTitle')}}</h2>
         <div class="sub">{{done}}/{{filtered.length}} {{t('todoCompleted')}}</div>
       </div>
@@ -2265,9 +2268,16 @@ const TodoApp = {
       todos.value = todos.value.filter(x => x.id !== td.id);
     }
 
-    onMounted(() => { loadGroups(); loadTodos(); });
+    const drawerOpen = ref(false);
 
-    return { todos, groups, input, activeGroup, activeGroupObj, showAddGroup, newGroupName, newGroupColor, newColor, newPriority, groupColors, taskColors, filtered, done, groupCount, priorityLabel, addGroup, removeGroup, selectGroup, add, toggleDone, remove, t };
+    onMounted(() => {
+      loadGroups(); loadTodos();
+      // Auto-open drawer briefly so user discovers it
+      setTimeout(() => { drawerOpen.value = true; }, 400);
+      setTimeout(() => { drawerOpen.value = false; }, 1800);
+    });
+
+    return { todos, groups, input, activeGroup, activeGroupObj, showAddGroup, newGroupName, newGroupColor, newColor, newPriority, groupColors, taskColors, filtered, done, groupCount, priorityLabel, addGroup, removeGroup, selectGroup, add, toggleDone, remove, drawerOpen, t };
   }
 };
 
