@@ -1,0 +1,52 @@
+{
+  "id": "rock-paper-scissors",
+  "name": "Taş Kağıt Makas",
+  "icon": "✊",
+  "color": "linear-gradient(135deg,#6c5ce7,#a29bfe)",
+  "type": "internal",
+  "size": {
+    "w": 420,
+    "h": 520
+  },
+  "global": false,
+  "category": "games",
+  "description": "Klasik Taş Kağıt Makas oyunu — bilgisayara karşı oyna, skor takibi",
+  "lang": {
+    "tr": {
+      "name": "Taş Kağıt Makas",
+      "description": "Klasik Taş Kağıt Makas oyunu — bilgisayara karşı oyna, skor takibi"
+    },
+    "en": {
+      "name": "Rock Paper Scissors",
+      "description": "Classic Rock Paper Scissors — play against computer, score tracking"
+    },
+    "de": {
+      "name": "Schere Stein Papier",
+      "description": "Klassisches Schere Stein Papier — gegen Computer spielen"
+    },
+    "fr": {
+      "name": "Pierre Feuille Ciseaux",
+      "description": "Pierre Feuille Ciseaux classique — jouez contre l'ordinateur"
+    },
+    "es": {
+      "name": "Piedra Papel Tijera",
+      "description": "Piedra Papel Tijera clásico — juega contra la computadora"
+    },
+    "ru": {
+      "name": "Камень Ножницы Бумага",
+      "description": "Классическая игра Камень Ножницы Бумага — играйте против компьютера"
+    },
+    "zh": {
+      "name": "石头剪刀布",
+      "description": "经典石头剪刀布游戏 — 与电脑对战"
+    },
+    "ja": {
+      "name": "じゃんけん",
+      "description": "クラシックなじゃんけんゲーム — コンピュータと対戦"
+    },
+    "it": {
+      "name": "Sasso Carta Forbice",
+      "description": "Classico Sasso Carta Forbice — gioca contro il computer"
+    }
+  }
+}

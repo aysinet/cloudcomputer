@@ -1,0 +1,87 @@
+<div class="rps-root" ref="rootEl" tabindex="0" @keydown="onKeyDown">
+  <!-- Header / Scoreboard -->
+  <div class="rps-header">
+    <div class="rps-score-block rps-player-score">
+      <span class="rps-score-label">{{ L('you') }}</span>
+      <span class="rps-score-val">{{ playerScore }}</span>
+    </div>
+    <div class="rps-score-block rps-draw-score">
+      <span class="rps-score-label">{{ L('draw') }}</span>
+      <span class="rps-score-val">{{ draws }}</span>
+    </div>
+    <div class="rps-score-block rps-cpu-score">
+      <span class="rps-score-label">{{ L('cpu') }}</span>
+      <span class="rps-score-val">{{ cpuScore }}</span>
+    </div>
+  </div>
+
+  <!-- Arena -->
+  <div class="rps-arena">
+    <!-- Player hand -->
+    <div class="rps-hand-col">
+      <div class="rps-hand" :class="{ 'rps-shake': shaking, ['rps-result-' + result]: result && !shaking }">
+        <span class="rps-emoji">{{ playerEmoji }}</span>
+      </div>
+      <span class="rps-hand-label">{{ L('you') }}</span>
+    </div>
+
+    <!-- VS -->
+    <div class="rps-vs">
+      <span v-if="!result && !shaking">VS</span>
+      <span v-else-if="shaking" class="rps-vs-dots">...</span>
+      <div v-else class="rps-result-badge" :class="'rps-result-' + result">
+        {{ L(result) }}
+      </div>
+    </div>
+
+    <!-- CPU hand -->
+    <div class="rps-hand-col">
+      <div class="rps-hand rps-hand-cpu" :class="{ 'rps-shake': shaking, ['rps-result-' + cpuResult]: cpuResult && !shaking }">
+        <span class="rps-emoji">{{ cpuEmoji }}</span>
+      </div>
+      <span class="rps-hand-label">{{ L('cpu') }}</span>
+    </div>
+  </div>
+
+  <!-- Round info -->
+  <div class="rps-round-info" v-if="round > 0">
+    {{ L('round') }} {{ round }} / {{ totalRounds }}
+  </div>
+  <div class="rps-round-info" v-if="matchResult">
+    <span class="rps-match-result" :class="'rps-match-' + matchResult">{{ L(matchResult + 'Match') }}</span>
+  </div>
+
+  <!-- Choices -->
+  <div class="rps-choices">
+    <button class="rps-choice" :class="{ active: playerChoice === 'rock' }"
+      @click="play('rock')" :disabled="shaking || !!matchResult">
+      <span class="rps-choice-emoji">✊</span>
+      <span class="rps-choice-text">{{ L('rock') }}</span>
+    </button>
+    <button class="rps-choice" :class="{ active: playerChoice === 'paper' }"
+      @click="play('paper')" :disabled="shaking || !!matchResult">
+      <span class="rps-choice-emoji">✋</span>
+      <span class="rps-choice-text">{{ L('paper') }}</span>
+    </button>
+    <button class="rps-choice" :class="{ active: playerChoice === 'scissors' }"
+      @click="play('scissors')" :disabled="shaking || !!matchResult">
+      <span class="rps-choice-emoji">✌️</span>
+      <span class="rps-choice-text">{{ L('scissors') }}</span>
+    </button>
+  </div>
+
+  <!-- Footer controls -->
+  <div class="rps-footer">
+    <div class="rps-rounds-select">
+      <span class="rps-rounds-label">{{ L('bestOf') }}</span>
+      <select v-model.number="totalRounds" @change="resetMatch" class="rps-select" :disabled="round > 0 && !matchResult">
+        <option :value="3">3</option>
+        <option :value="5">5</option>
+        <option :value="7">7</option>
+        <option :value="10">10</option>
+      </select>
+    </div>
+    <el-button size="small" type="primary" @click="resetMatch">{{ L('newGame') }}</el-button>
+    <el-button size="small" @click="resetAll">{{ L('resetAll') }}</el-button>
+  </div>
+</div>
