@@ -143,3 +143,4 @@ package-lock.json
 yarn.lock
 /data/appdata
 data/appdata/admin.db-shm
+/data/appdata

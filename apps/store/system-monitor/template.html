@@ -1,0 +1,102 @@
+<div class="sysmon-app">
+  <!-- Toolbar -->
+  <div class="sysmon-toolbar">
+    <div class="sysmon-tabs-bar">
+      <button :class="['sysmon-tab-btn', activeTab === 'server' ? 'active' : '']" @click="activeTab = 'server'; redrawGraphs()">🖥️ {{ t('server') }}</button>
+      <button :class="['sysmon-tab-btn', activeTab === 'client' ? 'active' : '']" @click="activeTab = 'client'; redrawGraphs()">💻 {{ t('client') }}</button>
+    </div>
+    <div class="sysmon-controls">
+      <select class="sysmon-select" :value="pollInterval" @change="setInterval2(Number($event.target.value))">
+        <option :value="1000">1s</option>
+        <option :value="2000">2s</option>
+        <option :value="5000">5s</option>
+        <option :value="10000">10s</option>
+      </select>
+      <button class="sysmon-ctrl-btn" @click="togglePause">{{ paused ? '▶' : '⏸' }}</button>
+    </div>
+  </div>
+
+  <!-- Server Tab -->
+  <div v-if="activeTab === 'server'" class="sysmon-content">
+    <!-- Gauges -->
+    <div class="sysmon-gauges">
+      <div class="sysmon-gauge">
+        <div class="sysmon-gauge-ring" :style="'background: conic-gradient(#00b894 ' + (serverCpu * 3.6) + 'deg, #2d3436 0deg)'">
+          <div class="sysmon-gauge-inner">
+            <span class="sysmon-gauge-val">{{ serverCpu.toFixed(1) }}%</span>
+            <span class="sysmon-gauge-label">{{ t('cpu') }}</span>
+          </div>
+        </div>
+        <div class="sysmon-gauge-sub" v-if="serverInfo">{{ serverInfo.cpu.cores }} {{ t('cores') }}</div>
+      </div>
+      <div class="sysmon-gauge">
+        <div class="sysmon-gauge-ring" :style="'background: conic-gradient(#0984e3 ' + (serverMem * 3.6) + 'deg, #2d3436 0deg)'">
+          <div class="sysmon-gauge-inner">
+            <span class="sysmon-gauge-val">{{ serverMem.toFixed(1) }}%</span>
+            <span class="sysmon-gauge-label">{{ t('memory') }}</span>
+          </div>
+        </div>
+        <div class="sysmon-gauge-sub" v-if="serverInfo">{{ formatBytes(serverInfo.memory.used) }} / {{ formatBytes(serverInfo.memory.total) }}</div>
+      </div>
+    </div>
+
+    <!-- Graphs -->
+    <div class="sysmon-graphs">
+      <div class="sysmon-graph-box">
+        <canvas ref="serverCpuCanvas" class="sysmon-canvas"></canvas>
+      </div>
+      <div class="sysmon-graph-box">
+        <canvas ref="serverMemCanvas" class="sysmon-canvas"></canvas>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="sysmon-info" v-if="serverInfo">
+      <div class="sysmon-info-row"><span>{{ t('model') }}</span><span>{{ serverInfo.cpu.model }}</span></div>
+      <div class="sysmon-info-row"><span>{{ t('platform') }}</span><span>{{ serverInfo.platform }} ({{ serverInfo.arch }})</span></div>
+      <div class="sysmon-info-row"><span>{{ t('hostname') }}</span><span>{{ serverInfo.hostname }}</span></div>
+      <div class="sysmon-info-row"><span>{{ t('uptime') }}</span><span>{{ formatUptime(serverInfo.uptime) }}</span></div>
+    </div>
+  </div>
+
+  <!-- Client Tab -->
+  <div v-if="activeTab === 'client'" class="sysmon-content">
+    <div class="sysmon-gauges">
+      <div class="sysmon-gauge">
+        <div class="sysmon-gauge-ring" :style="'background: conic-gradient(#fdcb6e ' + ((clientCpuHistory.length ? clientCpuHistory[clientCpuHistory.length-1] : 0) * 3.6) + 'deg, #2d3436 0deg)'">
+          <div class="sysmon-gauge-inner">
+            <span class="sysmon-gauge-val">{{ clientCpuHistory.length ? clientCpuHistory[clientCpuHistory.length-1].toFixed(1) : '0.0' }}%</span>
+            <span class="sysmon-gauge-label">{{ t('cpu') }}</span>
+          </div>
+        </div>
+        <div class="sysmon-gauge-sub">{{ clientInfo.cores || '?' }} {{ t('cores') }}</div>
+      </div>
+      <div class="sysmon-gauge">
+        <div class="sysmon-gauge-ring" :style="'background: conic-gradient(#6c5ce7 ' + (clientMem * 3.6) + 'deg, #2d3436 0deg)'">
+          <div class="sysmon-gauge-inner">
+            <span class="sysmon-gauge-val">{{ clientMem.toFixed(1) }}%</span>
+            <span class="sysmon-gauge-label">{{ t('memory') }}</span>
+          </div>
+        </div>
+        <div class="sysmon-gauge-sub" v-if="clientInfo.deviceMemory">~{{ clientInfo.deviceMemory }} RAM</div>
+      </div>
+    </div>
+
+    <div class="sysmon-graphs">
+      <div class="sysmon-graph-box">
+        <canvas ref="clientCpuCanvas" class="sysmon-canvas"></canvas>
+      </div>
+      <div class="sysmon-graph-box">
+        <canvas ref="clientMemCanvas" class="sysmon-canvas"></canvas>
+      </div>
+    </div>
+
+    <div class="sysmon-info">
+      <div class="sysmon-info-row"><span>{{ t('cores') }}</span><span>{{ clientInfo.cores || '?' }}</span></div>
+      <div class="sysmon-info-row" v-if="clientInfo.deviceMemory"><span>{{ t('memory') }}</span><span>~{{ clientInfo.deviceMemory }}</span></div>
+    </div>
+  </div>
+
+  <!-- Paused overlay -->
+  <div v-if="paused" class="sysmon-paused">⏸ {{ t('paused') }}</div>
+</div>

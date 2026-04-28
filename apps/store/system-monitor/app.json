@@ -1,0 +1,52 @@
+{
+  "id": "system-monitor",
+  "name": "System Monitor",
+  "icon": "📊",
+  "color": "linear-gradient(135deg,#00b894,#0984e3)",
+  "type": "internal",
+  "size": {
+    "w": 820,
+    "h": 560
+  },
+  "global": false,
+  "description": "Sunucu ve istemci sistem kaynaklarını izleme",
+  "lang": {
+    "tr": {
+      "name": "Sistem Monitörü",
+      "description": "Sunucu ve istemci CPU/RAM kullanımını grafik olarak izleyin"
+    },
+    "en": {
+      "name": "System Monitor",
+      "description": "Monitor server and client CPU/RAM usage with graphs"
+    },
+    "de": {
+      "name": "Systemmonitor",
+      "description": "Server- und Client-CPU/RAM-Nutzung grafisch überwachen"
+    },
+    "fr": {
+      "name": "Moniteur Système",
+      "description": "Surveiller l'utilisation CPU/RAM serveur et client avec des graphiques"
+    },
+    "es": {
+      "name": "Monitor del Sistema",
+      "description": "Monitorear el uso de CPU/RAM del servidor y cliente con gráficos"
+    },
+    "ru": {
+      "name": "Системный монитор",
+      "description": "Мониторинг CPU/RAM сервера и клиента с графиками"
+    },
+    "zh": {
+      "name": "系统监控",
+      "description": "通过图表监控服务器和客户端CPU/RAM使用情况"
+    },
+    "ja": {
+      "name": "システムモニター",
+      "description": "サーバーとクライアントのCPU/RAMをグラフで監視"
+    },
+    "it": {
+      "name": "Monitor di Sistema",
+      "description": "Monitora l'utilizzo CPU/RAM di server e client con grafici"
+    }
+  },
+  "category": "utilities"
+}
