@@ -16,6 +16,12 @@
       const availableFiles = ref({ public: [], user: [] });
       const uploading = ref(false);
 
+      // ── Multi-playlist state ──
+      const playlists = ref([]);
+      const activePlaylistId = ref(null);
+      const showPlaylists = ref(false);
+      const newPlName = ref('');
+
       // Visualizer state
       const vizActive = ref(false);
       const vizMode = ref('bars'); // bars | wave | circle
@@ -160,6 +166,95 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ playlist: tracks.value })
           });
+        } catch {}
+        // Also sync to active multi-playlist
+        if (activePlaylistId.value) {
+          try {
+            await fetch('/api/music/playlists/' + activePlaylistId.value, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tracks: tracks.value })
+            });
+            const pl = playlists.value.find(p => p.id === activePlaylistId.value);
+            if (pl) pl.tracks = [...tracks.value];
+          } catch {}
+        }
+      }
+
+      // ── Multi-playlist management ──
+      async function loadPlaylists() {
+        try {
+          const res = await fetch('/api/music/playlists');
+          if (res.ok) playlists.value = await res.json();
+        } catch {}
+      }
+
+      async function createPlaylist(name) {
+        if (!name || !name.trim()) return;
+        try {
+          const res = await fetch('/api/music/playlists', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name.trim(), tracks: [] })
+          });
+          if (res.ok) {
+            const pl = await res.json();
+            playlists.value.push(pl);
+          }
+        } catch {}
+      }
+
+      async function renamePlaylist(pl) {
+        const name = prompt('', pl.name);
+        if (!name || !name.trim() || name === pl.name) return;
+        try {
+          await fetch('/api/music/playlists/' + pl.id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name.trim() })
+          });
+          pl.name = name.trim();
+        } catch {}
+      }
+
+      async function deletePlaylist(pl) {
+        try {
+          await fetch('/api/music/playlists/' + pl.id, { method: 'DELETE' });
+          playlists.value = playlists.value.filter(p => p.id !== pl.id);
+          if (activePlaylistId.value === pl.id) activePlaylistId.value = null;
+        } catch {}
+      }
+
+      function switchPlaylist(pl) {
+        // Stop playback
+        if (audio) { audio.pause(); audio.src = ''; }
+        playing.value = false;
+        index.value = -1;
+        elapsed.value = 0;
+        duration.value = 0;
+        // Load playlist tracks
+        tracks.value = pl.tracks ? [...pl.tracks] : [];
+        activePlaylistId.value = pl.id;
+        showPlaylists.value = false;
+        // Also save as current active playlist
+        savePlaylist();
+      }
+
+      async function saveCurrentAsPlaylist() {
+        if (!tracks.value.length) return;
+        const name = prompt('');
+        if (!name || !name.trim()) return;
+        try {
+          const res = await fetch('/api/music/playlists', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name.trim(), tracks: [...tracks.value] })
+          });
+          if (res.ok) {
+            const pl = await res.json();
+            playlists.value.push(pl);
+            activePlaylistId.value = pl.id;
+          }
         } catch {}
       }
 
@@ -367,6 +462,7 @@
         createAudio();
         await loadPlaylist();
         await loadFiles();
+        await loadPlaylists();
         loading.value = false;
         if (volStore && mediaHandlers) volStore.registerMedia(mediaHandlers);
         vizResizeHandler = () => resizeVizCanvas();
@@ -401,10 +497,13 @@
         tab, availableFiles, uploading, linkUrl,
         currentTrack, progress,
         vizActive, vizMode,
+        playlists, activePlaylistId, showPlaylists, newPlName,
         play, toggle, next, prev, seek, setVolume, formatTime,
         addToPlaylist, removeFromPlaylist, moveTrack,
         triggerUpload, deleteFile, isInPlaylist, addFromUrl,
-        toggleVisualizer, cycleVizMode
+        toggleVisualizer, cycleVizMode,
+        loadPlaylists, createPlaylist, renamePlaylist, deletePlaylist,
+        switchPlaylist, saveCurrentAsPlaylist
       };
     }
   };

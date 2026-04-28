@@ -2569,7 +2569,7 @@ app.delete('/api/music/file/:filename', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// Playlist CRUD
+// Playlist CRUD (single / legacy)
 app.get('/api/music/playlist', authMiddleware, (req, res) => {
   res.json(getUserPlaylist(req.user.username));
 });
@@ -2578,6 +2578,68 @@ app.post('/api/music/playlist', authMiddleware, (req, res) => {
   const { playlist } = req.body;
   if (!Array.isArray(playlist)) return res.status(400).json({ error: 'playlist array required' });
   saveUserPlaylist(req.user.username, playlist);
+  res.json({ ok: true });
+});
+
+// ── Multi-Playlist API ──
+function getUserPlaylistsPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'playlists.json');
+}
+
+function getUserPlaylists(username) {
+  const p = getUserPlaylistsPath(username);
+  if (!fs.existsSync(p)) {
+    // Migrate legacy playlist.json if exists
+    const legacy = getUserPlaylist(username);
+    if (legacy.length) {
+      const playlists = [{ id: 1, name: 'Default', tracks: legacy }];
+      fs.writeFileSync(p, JSON.stringify(playlists, null, 2));
+      return playlists;
+    }
+    return [];
+  }
+  try { return JSON.parse(fs.readFileSync(p, 'utf-8')); } catch { return []; }
+}
+
+function saveUserPlaylists(username, data) {
+  fs.writeFileSync(getUserPlaylistsPath(username), JSON.stringify(data, null, 2));
+}
+
+app.get('/api/music/playlists', authMiddleware, (req, res) => {
+  res.json(getUserPlaylists(req.user.username));
+});
+
+app.post('/api/music/playlists', authMiddleware, (req, res) => {
+  const { name, tracks } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: 'name required' });
+  const playlists = getUserPlaylists(req.user.username);
+  const maxId = playlists.reduce((m, p) => Math.max(m, p.id || 0), 0);
+  const pl = { id: maxId + 1, name: name.trim(), tracks: Array.isArray(tracks) ? tracks : [] };
+  playlists.push(pl);
+  saveUserPlaylists(req.user.username, playlists);
+  res.json(pl);
+});
+
+app.put('/api/music/playlists/:id', authMiddleware, (req, res) => {
+  const id = parseInt(req.params.id);
+  const playlists = getUserPlaylists(req.user.username);
+  const pl = playlists.find(p => p.id === id);
+  if (!pl) return res.status(404).json({ error: 'Not found' });
+  const { name, tracks } = req.body;
+  if (name !== undefined) pl.name = name;
+  if (Array.isArray(tracks)) pl.tracks = tracks;
+  saveUserPlaylists(req.user.username, playlists);
+  res.json(pl);
+});
+
+app.delete('/api/music/playlists/:id', authMiddleware, (req, res) => {
+  const id = parseInt(req.params.id);
+  let playlists = getUserPlaylists(req.user.username);
+  playlists = playlists.filter(p => p.id !== id);
+  saveUserPlaylists(req.user.username, playlists);
   res.json({ ok: true });
 });
 
