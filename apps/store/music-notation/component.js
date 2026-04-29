@@ -227,16 +227,37 @@
       const scoreClef = ref('G');
 
       // ── OSMD init ──
+      function loadOSMDScript() {
+        return new Promise((resolve, reject) => {
+          if (window.opensheetmusicdisplay) return resolve();
+          const s = document.createElement('script');
+          s.src = 'https://unpkg.com/opensheetmusicdisplay@1.9.7/build/opensheetmusicdisplay.min.js';
+          s.onload = () => resolve();
+          s.onerror = () => reject(new Error('Script load failed'));
+          document.head.appendChild(s);
+        });
+      }
+
+      async function waitForOSMD(retries = 30) {
+        for (let i = 0; i < retries; i++) {
+          if (window.opensheetmusicdisplay) return true;
+          await new Promise(r => setTimeout(r, 500));
+        }
+        return false;
+      }
+
       async function initOSMD() {
+        status.value = t.value.loading;
         if (!window.opensheetmusicdisplay) {
-          status.value = t.value.noOsmd;
-          return;
+          try { await loadOSMDScript(); } catch(e) { /* ignore */ }
+          const ok = await waitForOSMD();
+          if (!ok) { status.value = t.value.noOsmd; return; }
         }
         await nextTick();
         const container = osmdContainer.value;
         if (!container) return;
         try {
-          osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(container, {
+          osmd = new window.opensheetmusicdisplay.OpenSheetMusicDisplay(container, {
             autoResize: true,
             drawTitle: true,
             drawComposer: true,
