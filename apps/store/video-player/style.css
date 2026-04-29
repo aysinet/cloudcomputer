@@ -110,6 +110,8 @@
   transition: .12s;
 }
 .vp-cb:hover { background: rgba(255,255,255,.22); }
+.vp-pip-active { background: rgba(124,77,255,.3); color: #7c4dff; }
+.vp-pip-active:hover { background: rgba(124,77,255,.45); }
 .vp-time-text { font-size: 11px; opacity: .7; margin-left: 4px; }
 .vp-vol-icon { font-size: 14px; cursor: pointer; }
 .vp-vol-bar {

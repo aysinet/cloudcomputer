@@ -2,8 +2,29 @@
   const { ref, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
   const { useVolumeStore } = window.__volumeStore || {};
 
+  const LANGS = {
+    tr: { loading:'Yükleniyor...', selectTrack:'Parça seçin', prev:'Önceki', next:'Sonraki', visualizer:'Görselleştirici', urlPlaceholder:'Ses URL\'si yapıştır (mp3, wav, ogg...)', add:'+ Ekle', playlist:'Çalma Listesi', myLists:'Listelerim', files:'Dosyalar', save:'Kaydet', emptyPlaylist:'Çalma listesi boş', addFromFiles:'Dosyalar sekmesinden parça ekleyin', newListPlaceholder:'Yeni liste adı...', create:'Oluştur', noSavedLists:'Kayıtlı çalma listesi yok', tracks:'parça', emptyList:'Boş liste', publicMusic:'Ortak Müzikler', myFiles:'Dosyalarım', noPublic:'Ortak müzik dosyası yok', noUser:'Henüz dosya yüklenmedi', uploading:'Yükleniyor...', upload:'Yükle', up:'Yukarı', down:'Aşağı', remove:'Çıkar', load:'Yükle', rename:'Yeniden adlandır', delete:'Sil', urlTrack:'URL Parça' },
+    en: { loading:'Loading...', selectTrack:'Select a track', prev:'Previous', next:'Next', visualizer:'Visualizer', urlPlaceholder:'Paste audio URL (mp3, wav, ogg...)', add:'+ Add', playlist:'Playlist', myLists:'My Lists', files:'Files', save:'Save', emptyPlaylist:'Playlist is empty', addFromFiles:'Add tracks from Files tab', newListPlaceholder:'New list name...', create:'Create', noSavedLists:'No saved playlists', tracks:'tracks', emptyList:'Empty list', publicMusic:'Public Music', myFiles:'My Files', noPublic:'No public music files', noUser:'No files uploaded yet', uploading:'Uploading...', upload:'Upload', up:'Up', down:'Down', remove:'Remove', load:'Load', rename:'Rename', delete:'Delete', urlTrack:'URL Track' },
+    de: { loading:'Laden...', selectTrack:'Titel auswählen', prev:'Vorheriger', next:'Nächster', visualizer:'Visualisierung', urlPlaceholder:'Audio-URL einfügen (mp3, wav, ogg...)', add:'+ Hinzufügen', playlist:'Wiedergabeliste', myLists:'Meine Listen', files:'Dateien', save:'Speichern', emptyPlaylist:'Wiedergabeliste ist leer', addFromFiles:'Titel aus Dateien hinzufügen', newListPlaceholder:'Neuer Listenname...', create:'Erstellen', noSavedLists:'Keine gespeicherten Listen', tracks:'Titel', emptyList:'Leere Liste', publicMusic:'Öffentliche Musik', myFiles:'Meine Dateien', noPublic:'Keine öffentliche Musik', noUser:'Noch keine Dateien', uploading:'Wird hochgeladen...', upload:'Hochladen', up:'Hoch', down:'Runter', remove:'Entfernen', load:'Laden', rename:'Umbenennen', delete:'Löschen', urlTrack:'URL-Titel' },
+    fr: { loading:'Chargement...', selectTrack:'Sélectionner un morceau', prev:'Précédent', next:'Suivant', visualizer:'Visualiseur', urlPlaceholder:'Coller l\'URL audio (mp3, wav, ogg...)', add:'+ Ajouter', playlist:'Playlist', myLists:'Mes listes', files:'Fichiers', save:'Enregistrer', emptyPlaylist:'Playlist vide', addFromFiles:'Ajoutez des morceaux depuis Fichiers', newListPlaceholder:'Nom de la liste...', create:'Créer', noSavedLists:'Aucune playlist sauvegardée', tracks:'morceaux', emptyList:'Liste vide', publicMusic:'Musique publique', myFiles:'Mes fichiers', noPublic:'Pas de musique publique', noUser:'Aucun fichier téléchargé', uploading:'Téléchargement...', upload:'Télécharger', up:'Haut', down:'Bas', remove:'Retirer', load:'Charger', rename:'Renommer', delete:'Supprimer', urlTrack:'URL Morceau' },
+    es: { loading:'Cargando...', selectTrack:'Seleccionar pista', prev:'Anterior', next:'Siguiente', visualizer:'Visualizador', urlPlaceholder:'Pegar URL de audio (mp3, wav, ogg...)', add:'+ Añadir', playlist:'Lista de reproducción', myLists:'Mis listas', files:'Archivos', save:'Guardar', emptyPlaylist:'Lista vacía', addFromFiles:'Agregue pistas desde Archivos', newListPlaceholder:'Nombre de la lista...', create:'Crear', noSavedLists:'Sin listas guardadas', tracks:'pistas', emptyList:'Lista vacía', publicMusic:'Música pública', myFiles:'Mis archivos', noPublic:'Sin música pública', noUser:'Sin archivos', uploading:'Subiendo...', upload:'Subir', up:'Arriba', down:'Abajo', remove:'Quitar', load:'Cargar', rename:'Renombrar', delete:'Eliminar', urlTrack:'Pista URL' },
+    ru: { loading:'Загрузка...', selectTrack:'Выберите трек', prev:'Предыдущий', next:'Следующий', visualizer:'Визуализатор', urlPlaceholder:'Вставьте URL аудио (mp3, wav, ogg...)', add:'+ Добавить', playlist:'Плейлист', myLists:'Мои списки', files:'Файлы', save:'Сохранить', emptyPlaylist:'Плейлист пуст', addFromFiles:'Добавьте треки из вкладки Файлы', newListPlaceholder:'Имя списка...', create:'Создать', noSavedLists:'Нет сохранённых списков', tracks:'треков', emptyList:'Пустой список', publicMusic:'Общая музыка', myFiles:'Мои файлы', noPublic:'Нет общей музыки', noUser:'Файлы не загружены', uploading:'Загрузка...', upload:'Загрузить', up:'Вверх', down:'Вниз', remove:'Убрать', load:'Загрузить', rename:'Переименовать', delete:'Удалить', urlTrack:'URL Трек' },
+    zh: { loading:'加载中...', selectTrack:'选择曲目', prev:'上一首', next:'下一首', visualizer:'可视化', urlPlaceholder:'粘贴音频URL (mp3, wav, ogg...)', add:'+ 添加', playlist:'播放列表', myLists:'我的列表', files:'文件', save:'保存', emptyPlaylist:'播放列表为空', addFromFiles:'从文件选项卡添加', newListPlaceholder:'新列表名称...', create:'创建', noSavedLists:'无已保存列表', tracks:'首曲目', emptyList:'空列表', publicMusic:'公共音乐', myFiles:'我的文件', noPublic:'无公共音乐', noUser:'尚未上传文件', uploading:'上传中...', upload:'上传', up:'上移', down:'下移', remove:'移除', load:'加载', rename:'重命名', delete:'删除', urlTrack:'URL曲目' },
+    ja: { loading:'読み込み中...', selectTrack:'トラックを選択', prev:'前へ', next:'次へ', visualizer:'ビジュアライザー', urlPlaceholder:'音声URLを貼り付け (mp3, wav, ogg...)', add:'+ 追加', playlist:'プレイリスト', myLists:'マイリスト', files:'ファイル', save:'保存', emptyPlaylist:'プレイリストが空です', addFromFiles:'ファイルタブから追加', newListPlaceholder:'新しいリスト名...', create:'作成', noSavedLists:'保存済みリストなし', tracks:'曲', emptyList:'空のリスト', publicMusic:'公開音楽', myFiles:'マイファイル', noPublic:'公開音楽なし', noUser:'ファイル未アップロード', uploading:'アップロード中...', upload:'アップロード', up:'上へ', down:'下へ', remove:'削除', load:'読込', rename:'名前変更', delete:'削除', urlTrack:'URLトラック' },
+    it: { loading:'Caricamento...', selectTrack:'Seleziona un brano', prev:'Precedente', next:'Successivo', visualizer:'Visualizzatore', urlPlaceholder:'Incolla URL audio (mp3, wav, ogg...)', add:'+ Aggiungi', playlist:'Playlist', myLists:'Le mie liste', files:'File', save:'Salva', emptyPlaylist:'Playlist vuota', addFromFiles:'Aggiungi brani dalla scheda File', newListPlaceholder:'Nome nuova lista...', create:'Crea', noSavedLists:'Nessuna playlist salvata', tracks:'brani', emptyList:'Lista vuota', publicMusic:'Musica pubblica', myFiles:'I miei file', noPublic:'Nessuna musica pubblica', noUser:'Nessun file caricato', uploading:'Caricamento...', upload:'Carica', up:'Su', down:'Giù', remove:'Rimuovi', load:'Carica', rename:'Rinomina', delete:'Elimina', urlTrack:'Brano URL' },
+    ar: { loading:'جارٍ التحميل...', selectTrack:'اختر مقطوعة', prev:'السابق', next:'التالي', visualizer:'مرئيات', urlPlaceholder:'الصق رابط صوتي (mp3, wav, ogg...)', add:'+ إضافة', playlist:'قائمة التشغيل', myLists:'قوائمي', files:'الملفات', save:'حفظ', emptyPlaylist:'قائمة التشغيل فارغة', addFromFiles:'أضف مقاطع من الملفات', newListPlaceholder:'اسم القائمة الجديدة...', create:'إنشاء', noSavedLists:'لا توجد قوائم محفوظة', tracks:'مقاطع', emptyList:'قائمة فارغة', publicMusic:'موسيقى عامة', myFiles:'ملفاتي', noPublic:'لا توجد موسيقى عامة', noUser:'لم يتم رفع ملفات', uploading:'جارٍ الرفع...', upload:'رفع', up:'أعلى', down:'أسفل', remove:'إزالة', load:'تحميل', rename:'إعادة تسمية', delete:'حذف', urlTrack:'مقطوعة URL' },
+    ko: { loading:'로딩 중...', selectTrack:'트랙 선택', prev:'이전', next:'다음', visualizer:'시각화', urlPlaceholder:'오디오 URL 붙여넣기 (mp3, wav, ogg...)', add:'+ 추가', playlist:'재생목록', myLists:'내 목록', files:'파일', save:'저장', emptyPlaylist:'재생목록이 비어있습니다', addFromFiles:'파일 탭에서 트랙 추가', newListPlaceholder:'새 목록 이름...', create:'만들기', noSavedLists:'저장된 목록 없음', tracks:'트랙', emptyList:'빈 목록', publicMusic:'공개 음악', myFiles:'내 파일', noPublic:'공개 음악 없음', noUser:'업로드된 파일 없음', uploading:'업로드 중...', upload:'업로드', up:'위로', down:'아래로', remove:'제거', load:'불러오기', rename:'이름 변경', delete:'삭제', urlTrack:'URL 트랙' },
+    hi: { loading:'लोड हो रहा है...', selectTrack:'ट्रैक चुनें', prev:'पिछला', next:'अगला', visualizer:'विज़ुअलाइज़र', urlPlaceholder:'ऑडियो URL चिपकाएं (mp3, wav, ogg...)', add:'+ जोड़ें', playlist:'प्लेलिस्ट', myLists:'मेरी सूचियां', files:'फ़ाइलें', save:'सहेजें', emptyPlaylist:'प्लेलिस्ट खाली है', addFromFiles:'फ़ाइलें टैब से ट्रैक जोड़ें', newListPlaceholder:'नई सूची का नाम...', create:'बनाएं', noSavedLists:'कोई सहेजी गई सूची नहीं', tracks:'ट्रैक', emptyList:'खाली सूची', publicMusic:'सार्वजनिक संगीत', myFiles:'मेरी फ़ाइलें', noPublic:'कोई सार्वजनिक संगीत नहीं', noUser:'कोई फ़ाइल अपलोड नहीं', uploading:'अपलोड हो रहा है...', upload:'अपलोड', up:'ऊपर', down:'नीचे', remove:'हटाएं', load:'लोड', rename:'नाम बदलें', delete:'हटाएं', urlTrack:'URL ट्रैक' },
+    pt: { loading:'Carregando...', selectTrack:'Selecione uma faixa', prev:'Anterior', next:'Próximo', visualizer:'Visualizador', urlPlaceholder:'Colar URL de áudio (mp3, wav, ogg...)', add:'+ Adicionar', playlist:'Playlist', myLists:'Minhas listas', files:'Arquivos', save:'Salvar', emptyPlaylist:'Playlist vazia', addFromFiles:'Adicione faixas da aba Arquivos', newListPlaceholder:'Nome da nova lista...', create:'Criar', noSavedLists:'Nenhuma playlist salva', tracks:'faixas', emptyList:'Lista vazia', publicMusic:'Música pública', myFiles:'Meus arquivos', noPublic:'Sem música pública', noUser:'Nenhum arquivo enviado', uploading:'Enviando...', upload:'Enviar', up:'Acima', down:'Abaixo', remove:'Remover', load:'Carregar', rename:'Renomear', delete:'Excluir', urlTrack:'Faixa URL' }
+  };
+  function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
+
   return {
     setup() {
+      const locale = ref(getLocale());
+      function t(k) { return (LANGS[locale.value] || LANGS.tr)[k] || LANGS.tr[k] || k; }
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
+
       const volStore = typeof useVolumeStore === 'function' ? useVolumeStore() : null;
       const tracks = ref([]);
       const index = ref(-1);
@@ -467,6 +488,7 @@
         if (volStore && mediaHandlers) volStore.registerMedia(mediaHandlers);
         vizResizeHandler = () => resizeVizCanvas();
         window.addEventListener('resize', vizResizeHandler);
+        window.addEventListener('locale-changed', onLocaleChanged);
       });
 
       // ── URL link ──
@@ -478,7 +500,7 @@
         if (tracks.value.some(t => t.url === url)) { linkUrl.value = ''; return; }
         let name = url;
         try { name = decodeURIComponent(url.split('/').pop().split('?')[0].replace(/\.[^.]+$/, '')); } catch {}
-        tracks.value.push({ title: name || 'URL Parça', filename: '', url, source: 'url', icon: '🔗' });
+        tracks.value.push({ title: name || t('urlTrack'), filename: '', url, source: 'url', icon: '🔗' });
         linkUrl.value = '';
         savePlaylist();
       }
@@ -490,12 +512,13 @@
         if (vizResizeHandler) window.removeEventListener('resize', vizResizeHandler);
         if (audioCtx) { audioCtx.close().catch(() => {}); audioCtx = null; }
         if (volStore && mediaHandlers) volStore.unregisterMedia(mediaHandlers);
+        window.removeEventListener('locale-changed', onLocaleChanged);
       });
 
       return {
         tracks, index, playing, elapsed, duration, volume, loading,
         tab, availableFiles, uploading, linkUrl,
-        currentTrack, progress,
+        currentTrack, progress, t,
         vizActive, vizMode,
         playlists, activePlaylistId, showPlaylists, newPlName,
         play, toggle, next, prev, seek, setVolume, formatTime,

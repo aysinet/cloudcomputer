@@ -31,7 +31,7 @@
          :class="{active: highlighted===code}"
          @mouseenter="highlighted=code" @mouseleave="highlighted=null">
       <span class="pt-legend-color" :style="{background: info.color}"></span>
-      <span class="pt-legend-text">{{info.name}}</span>
+      <span class="pt-legend-text">{{info.name[lang] || info.name.en}}</span>
     </div>
   </div>
 

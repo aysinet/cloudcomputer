@@ -7,7 +7,7 @@
         style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset .5s"/>
     </svg>
     <div class="pom-time">{{display}}</div>
-    <div class="pom-label">{{isBreak ? 'Mola' : 'Odaklan'}}</div>
+    <div class="pom-label">{{isBreak ? t('break') : t('focus')}}</div>
   </div>
   <div class="pom-controls">
     <button class="pom-btn" @click="toggle">{{running ? '⏸' : '▶'}}</button>
@@ -15,11 +15,11 @@
     <button class="pom-btn" @click="skip">⏭</button>
   </div>
   <div class="pom-stats">
-    <div class="pom-stat"><span class="pom-stat-val">{{sessions}}</span><span class="pom-stat-lbl">Oturum</span></div>
-    <div class="pom-stat"><span class="pom-stat-val">{{workMin}}</span><span class="pom-stat-lbl">dk</span></div>
+    <div class="pom-stat"><span class="pom-stat-val">{{sessions}}</span><span class="pom-stat-lbl">{{t('session')}}</span></div>
+    <div class="pom-stat"><span class="pom-stat-val">{{workMin}}</span><span class="pom-stat-lbl">{{t('min')}}</span></div>
   </div>
   <div class="pom-settings">
-    <label>Odak: <input type="number" v-model.number="workDuration" min="1" max="60" :disabled="running"> dk</label>
-    <label>Mola: <input type="number" v-model.number="breakDuration" min="1" max="30" :disabled="running"> dk</label>
+    <label>{{t('focusLabel')}} <input type="number" v-model.number="workDuration" min="1" max="60" :disabled="running"> {{t('min')}}</label>
+    <label>{{t('breakLabel')}} <input type="number" v-model.number="breakDuration" min="1" max="30" :disabled="running"> {{t('min')}}</label>
   </div>
 </div>

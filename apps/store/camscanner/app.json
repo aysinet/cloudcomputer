@@ -1,0 +1,26 @@
+{
+  "id": "camscanner",
+  "name": "CamScanner",
+  "icon": "📄",
+  "color": "linear-gradient(135deg,#667eea,#764ba2)",
+  "type": "internal",
+  "size": { "w": 820, "h": 600 },
+  "global": false,
+  "description": "Belge tarayıcı — kamera ile çek, filtre uygula, PDF olarak kaydet",
+  "category": "productivity",
+  "lang": {
+    "tr": { "name": "CamScanner", "description": "Belge tarayıcı — kamera ile çek, filtre uygula, PDF olarak kaydet" },
+    "en": { "name": "CamScanner", "description": "Document scanner — capture with camera, apply filters, save as PDF" },
+    "de": { "name": "CamScanner", "description": "Dokumentenscanner — mit Kamera aufnehmen, Filter anwenden, als PDF speichern" },
+    "fr": { "name": "CamScanner", "description": "Scanner de documents — capturer avec la caméra, appliquer des filtres, enregistrer en PDF" },
+    "es": { "name": "CamScanner", "description": "Escáner de documentos — capturar con cámara, aplicar filtros, guardar como PDF" },
+    "ru": { "name": "CamScanner", "description": "Сканер документов — снимайте камерой, применяйте фильтры, сохраняйте как PDF" },
+    "zh": { "name": "CamScanner", "description": "文档扫描仪 — 用相机拍摄、应用滤镜、保存为PDF" },
+    "ja": { "name": "CamScanner", "description": "ドキュメントスキャナー — カメラで撮影、フィルター適用、PDFで保存" },
+    "it": { "name": "CamScanner", "description": "Scanner documenti — cattura con fotocamera, applica filtri, salva come PDF" },
+    "ar": { "name": "CamScanner", "description": "ماسح المستندات — التقط بالكاميرا، طبّق الفلاتر، احفظ كـ PDF" },
+    "ko": { "name": "CamScanner", "description": "문서 스캐너 — 카메라로 촬영, 필터 적용, PDF로 저장" },
+    "hi": { "name": "CamScanner", "description": "दस्तावेज़ स्कैनर — कैमरे से कैप्चर करें, फ़िल्टर लगाएं, PDF के रूप में सहेजें" },
+    "pt": { "name": "CamScanner", "description": "Scanner de documentos — capture com câmera, aplique filtros, salve como PDF" }
+  }
+}

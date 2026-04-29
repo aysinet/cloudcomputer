@@ -2,8 +2,29 @@
   const { ref, computed, onMounted, onUnmounted, watch } = Vue;
   const { useVolumeStore } = window.__volumeStore || {};
 
+  const LANGS = {
+    tr: { loading:'Yükleniyor...', placeholder:'Video seçin veya dosya yükleyin', fullscreen:'Tam Ekran', pip:'Pencerede Oynat', urlPlaceholder:'Video URL\'si yapıştır (mp4, webm...)', add:'+ Ekle', playlist:'Liste', files:'Dosyalar', emptyList:'Liste boş — Dosyalar sekmesinden video ekleyin', publicVideos:'Ortak Videolar', myVideos:'Videolarım', noPublic:'Ortak video dosyası yok', noUser:'Henüz video yüklenmedi', uploading:'Yükleniyor...', upload:'Yükle' },
+    en: { loading:'Loading...', placeholder:'Select a video or upload a file', fullscreen:'Fullscreen', pip:'Picture in Picture', urlPlaceholder:'Paste video URL (mp4, webm...)', add:'+ Add', playlist:'Playlist', files:'Files', emptyList:'Playlist empty — Add videos from Files tab', publicVideos:'Public Videos', myVideos:'My Videos', noPublic:'No public video files', noUser:'No videos uploaded yet', uploading:'Uploading...', upload:'Upload' },
+    de: { loading:'Laden...', placeholder:'Video auswählen oder Datei hochladen', fullscreen:'Vollbild', pip:'Bild-in-Bild', urlPlaceholder:'Video-URL einfügen (mp4, webm...)', add:'+ Hinzufügen', playlist:'Liste', files:'Dateien', emptyList:'Liste leer — Videos aus Dateien hinzufügen', publicVideos:'Öffentliche Videos', myVideos:'Meine Videos', noPublic:'Keine öffentlichen Videos', noUser:'Noch keine Videos hochgeladen', uploading:'Wird hochgeladen...', upload:'Hochladen' },
+    fr: { loading:'Chargement...', placeholder:'Sélectionner une vidéo ou télécharger', fullscreen:'Plein écran', pip:'Image dans l\'image', urlPlaceholder:'Coller l\'URL vidéo (mp4, webm...)', add:'+ Ajouter', playlist:'Liste', files:'Fichiers', emptyList:'Liste vide — Ajoutez des vidéos depuis Fichiers', publicVideos:'Vidéos publiques', myVideos:'Mes vidéos', noPublic:'Aucune vidéo publique', noUser:'Aucune vidéo téléchargée', uploading:'Téléchargement...', upload:'Télécharger' },
+    es: { loading:'Cargando...', placeholder:'Seleccione un video o suba un archivo', fullscreen:'Pantalla completa', pip:'Imagen en imagen', urlPlaceholder:'Pegar URL de video (mp4, webm...)', add:'+ Añadir', playlist:'Lista', files:'Archivos', emptyList:'Lista vacía — Agregue videos desde Archivos', publicVideos:'Videos públicos', myVideos:'Mis videos', noPublic:'Sin videos públicos', noUser:'Aún no hay videos', uploading:'Subiendo...', upload:'Subir' },
+    ru: { loading:'Загрузка...', placeholder:'Выберите видео или загрузите файл', fullscreen:'Полный экран', pip:'Картинка в картинке', urlPlaceholder:'Вставьте URL видео (mp4, webm...)', add:'+ Добавить', playlist:'Список', files:'Файлы', emptyList:'Список пуст — Добавьте видео из вкладки Файлы', publicVideos:'Общие видео', myVideos:'Мои видео', noPublic:'Нет общих видео', noUser:'Видео ещё не загружены', uploading:'Загрузка...', upload:'Загрузить' },
+    zh: { loading:'加载中...', placeholder:'选择视频或上传文件', fullscreen:'全屏', pip:'画中画', urlPlaceholder:'粘贴视频URL (mp4, webm...)', add:'+ 添加', playlist:'播放列表', files:'文件', emptyList:'列表为空 — 从文件选项卡添加', publicVideos:'公共视频', myVideos:'我的视频', noPublic:'无公共视频', noUser:'尚未上传视频', uploading:'上传中...', upload:'上传' },
+    ja: { loading:'読み込み中...', placeholder:'動画を選択またはアップロード', fullscreen:'全画面', pip:'ピクチャインピクチャ', urlPlaceholder:'動画URLを貼り付け (mp4, webm...)', add:'+ 追加', playlist:'プレイリスト', files:'ファイル', emptyList:'リストが空です — ファイルタブから追加', publicVideos:'公開動画', myVideos:'マイ動画', noPublic:'公開動画なし', noUser:'動画未アップロード', uploading:'アップロード中...', upload:'アップロード' },
+    it: { loading:'Caricamento...', placeholder:'Seleziona un video o carica un file', fullscreen:'Schermo intero', pip:'Picture in Picture', urlPlaceholder:'Incolla URL video (mp4, webm...)', add:'+ Aggiungi', playlist:'Lista', files:'File', emptyList:'Lista vuota — Aggiungi video dalla scheda File', publicVideos:'Video pubblici', myVideos:'I miei video', noPublic:'Nessun video pubblico', noUser:'Nessun video caricato', uploading:'Caricamento...', upload:'Carica' },
+    ar: { loading:'جارٍ التحميل...', placeholder:'اختر فيديو أو ارفع ملف', fullscreen:'ملء الشاشة', pip:'صورة في صورة', urlPlaceholder:'الصق رابط الفيديو (mp4, webm...)', add:'+ إضافة', playlist:'القائمة', files:'الملفات', emptyList:'القائمة فارغة — أضف فيديو من الملفات', publicVideos:'فيديوهات عامة', myVideos:'فيديوهاتي', noPublic:'لا توجد فيديوهات عامة', noUser:'لم يتم رفع فيديو بعد', uploading:'جارٍ الرفع...', upload:'رفع' },
+    ko: { loading:'로딩 중...', placeholder:'비디오를 선택하거나 파일을 업로드하세요', fullscreen:'전체 화면', pip:'화면 속 화면', urlPlaceholder:'비디오 URL 붙여넣기 (mp4, webm...)', add:'+ 추가', playlist:'재생목록', files:'파일', emptyList:'목록이 비어있습니다 — 파일 탭에서 추가', publicVideos:'공개 비디오', myVideos:'내 비디오', noPublic:'공개 비디오 없음', noUser:'업로드된 비디오 없음', uploading:'업로드 중...', upload:'업로드' },
+    hi: { loading:'लोड हो रहा है...', placeholder:'वीडियो चुनें या फ़ाइल अपलोड करें', fullscreen:'पूर्ण स्क्रीन', pip:'पिक्चर इन पिक्चर', urlPlaceholder:'वीडियो URL चिपकाएं (mp4, webm...)', add:'+ जोड़ें', playlist:'सूची', files:'फ़ाइलें', emptyList:'सूची खाली है — फ़ाइलें टैब से जोड़ें', publicVideos:'सार्वजनिक वीडियो', myVideos:'मेरे वीडियो', noPublic:'कोई सार्वजनिक वीडियो नहीं', noUser:'अभी तक कोई वीडियो अपलोड नहीं', uploading:'अपलोड हो रहा है...', upload:'अपलोड' },
+    pt: { loading:'Carregando...', placeholder:'Selecione um vídeo ou envie um arquivo', fullscreen:'Tela cheia', pip:'Picture in Picture', urlPlaceholder:'Colar URL do vídeo (mp4, webm...)', add:'+ Adicionar', playlist:'Lista', files:'Arquivos', emptyList:'Lista vazia — Adicione vídeos da aba Arquivos', publicVideos:'Vídeos públicos', myVideos:'Meus vídeos', noPublic:'Sem vídeos públicos', noUser:'Nenhum vídeo enviado', uploading:'Enviando...', upload:'Enviar' }
+  };
+  function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
+
   return {
     setup() {
+      const locale = ref(getLocale());
+      function t(k) { return (LANGS[locale.value] || LANGS.tr)[k] || LANGS.tr[k] || k; }
+      function onLocaleChanged(e) { locale.value = e.detail || getLocale(); }
+
       const volStore = typeof useVolumeStore === 'function' ? useVolumeStore() : null;
       const tracks = ref([]);
       const index = ref(-1);
@@ -18,6 +39,8 @@
       const uploading = ref(false);
       const showControls = ref(true);
       const videoEl = ref(null);
+      const isPip = ref(false);
+      const pipSupported = ref(false);
 
       let hideTimer = null;
 
@@ -129,6 +152,19 @@
         if (document.fullscreenElement) document.exitFullscreen();
         else el.requestFullscreen().catch(() => {});
       }
+
+      function togglePip() {
+        const v = videoEl.value;
+        if (!v) return;
+        if (document.pictureInPictureElement) {
+          document.exitPictureInPicture().catch(() => {});
+        } else {
+          v.requestPictureInPicture().catch(() => {});
+        }
+      }
+
+      function onEnterPip() { isPip.value = true; }
+      function onLeavePip() { isPip.value = false; }
 
       function startHideTimer() {
         showControls.value = true;
@@ -249,7 +285,15 @@
         await loadPlaylist();
         await loadFiles();
         loadingInit.value = false;
+        pipSupported.value = 'pictureInPictureEnabled' in document && document.pictureInPictureEnabled;
         if (volStore && mediaHandlers) volStore.registerMedia(mediaHandlers);
+        window.addEventListener('locale-changed', onLocaleChanged);
+        // PiP events
+        const v = videoEl.value;
+        if (v) {
+          v.addEventListener('enterpictureinpicture', onEnterPip);
+          v.addEventListener('leavepictureinpicture', onLeavePip);
+        }
         // Add mousemove listener to player area
         setTimeout(() => {
           const el = videoEl.value?.closest('.vp-player');
@@ -273,18 +317,25 @@
 
       onUnmounted(() => {
         const v = videoEl.value;
-        if (v) { v.pause(); v.src = ''; }
+        if (v) {
+          v.removeEventListener('enterpictureinpicture', onEnterPip);
+          v.removeEventListener('leavepictureinpicture', onLeavePip);
+          if (document.pictureInPictureElement === v) document.exitPictureInPicture().catch(() => {});
+          v.pause(); v.src = '';
+        }
         if (hideTimer) clearTimeout(hideTimer);
         const el = v?.closest('.vp-player');
         if (el) el.removeEventListener('mousemove', onMouseMove);
         if (volStore && mediaHandlers) volStore.unregisterMedia(mediaHandlers);
+        window.removeEventListener('locale-changed', onLocaleChanged);
       });
 
       return {
         tracks, index, playing, elapsed, duration, volume, muted, loadingInit,
         tab, availableFiles, uploading, showControls, videoEl, linkUrl,
-        currentTrack, progress,
-        play, toggle, next, prev, seek, setVolume, toggleMute, toggleFullscreen,
+        isPip, pipSupported,
+        currentTrack, progress, t,
+        play, toggle, next, prev, seek, setVolume, toggleMute, toggleFullscreen, togglePip,
         onMeta, onTime, onError,
         formatTime, formatSize,
         addToPlaylist, removeFromPlaylist, moveTrack, isInPlaylist,

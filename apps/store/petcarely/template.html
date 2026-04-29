@@ -1,0 +1,372 @@
+<div class="pc-root">
+  <!-- Toast -->
+  <div v-if="toast" class="pc-toast">{{toast}}</div>
+
+  <!-- LIST VIEW -->
+  <template v-if="view==='list'">
+    <div class="pc-toolbar">
+      <span class="pc-toolbar-title">🐾 {{L('myPets')}}</span>
+      <span style="flex:1"></span>
+      <button class="pc-btn pc-btn-primary" @click="openAddForm">+ {{L('addPet')}}</button>
+    </div>
+    <div class="pc-list">
+      <div v-if="!pets.length" class="pc-empty">
+        <div class="pc-empty-icon">🐾</div>
+        <div>{{L('noPets')}}</div>
+        <div class="pc-empty-hint">{{L('addFirst')}}</div>
+      </div>
+      <div v-for="pet in pets" :key="pet.id" class="pc-pet-card" @click="openDetail(pet)">
+        <div class="pc-pet-avatar">
+          <img v-if="pet.profile_photo_url" :src="pet.profile_photo_url" />
+          <span v-else class="pc-avatar-icon">{{speciesIcon(pet.species)}}</span>
+        </div>
+        <div class="pc-pet-info">
+          <div class="pc-pet-name">{{pet.name}}</div>
+          <div class="pc-pet-meta">
+            {{speciesIcon(pet.species)}} {{L(pet.species)||pet.species}}
+            <span v-if="pet.breed"> · {{pet.breed}}</span>
+          </div>
+          <div v-if="pet.birth_date" class="pc-pet-age">{{calcAge(pet.birth_date)}}</div>
+        </div>
+        <div class="pc-pet-actions">
+          <button class="pc-icon-btn" @click.stop="openEditForm(pet)" :title="L('editPet')">✏️</button>
+          <button class="pc-icon-btn pc-icon-danger" @click.stop="deletePet(pet.id)" :title="L('deletePet')">🗑</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- DETAIL VIEW -->
+  <template v-if="view==='detail' && selectedPet">
+    <div class="pc-toolbar">
+      <button class="pc-btn pc-btn-ghost" @click="goList">← {{L('myPets')}}</button>
+      <span class="pc-toolbar-petname">{{speciesIcon(selectedPet.species)}} {{selectedPet.name}}</span>
+      <span style="flex:1"></span>
+      <button class="pc-btn" @click="openEditForm(selectedPet)">✏️ {{L('editPet')}}</button>
+      <button class="pc-btn" @click="shareProfile" :title="L('shareProfile')">📤 {{L('shareProfile')}}</button>
+    </div>
+
+    <!-- Detail Tabs -->
+    <div class="pc-tabs">
+      <button class="pc-tab" :class="{active:activeTab==='profile'}" @click="activeTab='profile'">📋 {{L('profile')}}</button>
+      <button class="pc-tab" :class="{active:activeTab==='physical'}" @click="activeTab='physical'">📏 {{L('physical')}}</button>
+      <button class="pc-tab" :class="{active:activeTab==='behavior'}" @click="activeTab='behavior'">🧠 {{L('behavior')}}</button>
+      <button class="pc-tab" :class="{active:activeTab==='health'}" @click="activeTab='health'">❤️ {{L('health')}}</button>
+      <button class="pc-tab" :class="{active:activeTab==='media'}" @click="activeTab='media'">📷 {{L('media')}}</button>
+    </div>
+
+    <div class="pc-detail-body">
+      <!-- Profile Tab -->
+      <div v-if="activeTab==='profile'" class="pc-detail-content">
+        <div class="pc-detail-header">
+          <div class="pc-detail-avatar">
+            <img v-if="selectedPet.profile_photo_url" :src="selectedPet.profile_photo_url" />
+            <span v-else class="pc-avatar-icon-lg">{{speciesIcon(selectedPet.species)}}</span>
+          </div>
+          <div class="pc-detail-headline">
+            <div class="pc-detail-name">{{selectedPet.name}}</div>
+            <div class="pc-detail-species">{{L(selectedPet.species)}} <span v-if="selectedPet.breed">· {{selectedPet.breed}}</span></div>
+            <div v-if="selectedPet.birth_date" class="pc-detail-age">📅 {{selectedPet.birth_date}} — {{calcAge(selectedPet.birth_date)}}</div>
+          </div>
+        </div>
+
+        <div class="pc-info-grid">
+          <div class="pc-info-item" v-if="selectedPet.gender"><span class="pc-label">{{L('gender')}}</span><span class="pc-value">{{L(selectedPet.gender)}}</span></div>
+          <div class="pc-info-item" v-if="selectedPet.color"><span class="pc-label">{{L('color')}}</span><span class="pc-value">{{selectedPet.color}}</span></div>
+          <div class="pc-info-item" v-if="selectedPet.weight"><span class="pc-label">{{L('weight')}}</span><span class="pc-value">{{selectedPet.weight}} {{L('weightUnit')}}</span></div>
+          <div class="pc-info-item" v-if="selectedPet.microchip_id"><span class="pc-label">{{L('microchipId')}}</span><span class="pc-value">{{selectedPet.microchip_id}}</span></div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="pc-quick-actions">
+          <button class="pc-action-btn" @click="openReminderDlg('vaccination')">💉 {{L('vaccinationReminder')}}</button>
+          <button class="pc-action-btn" @click="openReminderDlg('vet')">🏥 {{L('vetVisit')}}</button>
+          <button class="pc-action-btn" @click="openReminderDlg('feeding')">🍖 {{L('feedingTime')}}</button>
+          <button class="pc-action-btn" @click="openReminderDlg('grooming')">✂️ {{L('groomingTime')}}</button>
+          <button class="pc-action-btn" @click="openReminderDlg('medication')">💊 {{L('medicationTime')}}</button>
+          <button v-if="selectedPet.birth_date" class="pc-action-btn pc-action-cal" @click="addBirthdayToCalendar">📅 {{L('addToCalendar')}}</button>
+        </div>
+      </div>
+
+      <!-- Physical Tab -->
+      <div v-if="activeTab==='physical'" class="pc-detail-content">
+        <div class="pc-info-grid">
+          <div class="pc-info-item"><span class="pc-label">{{L('size')}}</span><span class="pc-value">{{L(selectedPet.size || 'medium')}}</span></div>
+          <div class="pc-info-item"><span class="pc-label">{{L('coatType')}}</span><span class="pc-value">{{L(selectedPet.coat_type || 'short')}}</span></div>
+          <div class="pc-info-item" v-if="selectedPet.eye_color"><span class="pc-label">{{L('eyeColor')}}</span><span class="pc-value">{{selectedPet.eye_color}}</span></div>
+          <div class="pc-info-item" v-if="selectedPet.color"><span class="pc-label">{{L('color')}}</span><span class="pc-value">{{selectedPet.color}}</span></div>
+          <div class="pc-info-item" v-if="selectedPet.weight"><span class="pc-label">{{L('weight')}}</span><span class="pc-value">{{selectedPet.weight}} {{L('weightUnit')}}</span></div>
+        </div>
+        <div v-if="selectedPet.distinctive_marks" class="pc-marks-box">
+          <div class="pc-label">{{L('distinctiveMarks')}}</div>
+          <div class="pc-marks-text">{{selectedPet.distinctive_marks}}</div>
+        </div>
+      </div>
+
+      <!-- Behavior Tab -->
+      <div v-if="activeTab==='behavior'" class="pc-detail-content">
+        <div class="pc-info-grid">
+          <div class="pc-info-item"><span class="pc-label">{{L('temperament')}}</span><span class="pc-value">{{L(selectedPet.temperament || 'friendly')}}</span></div>
+          <div class="pc-info-item"><span class="pc-label">{{L('activityLevel')}}</span><span class="pc-value">{{L(selectedPet.activity_level || 'medium')}}</span></div>
+          <div class="pc-info-item"><span class="pc-label">{{L('trainingLevel')}}</span><span class="pc-value">{{L(selectedPet.training_level || 'basic')}}</span></div>
+        </div>
+        <div class="pc-social-box">
+          <div class="pc-label">{{L('socialBehavior')}}</div>
+          <div class="pc-social-chips">
+            <span class="pc-chip" :class="{active: selectedPet.good_with_kids}">👶 {{L('goodWithKids')}}</span>
+            <span class="pc-chip" :class="{active: selectedPet.good_with_pets}">🐾 {{L('goodWithPets')}}</span>
+            <span class="pc-chip" :class="{active: selectedPet.good_with_strangers}">👋 {{L('goodWithStrangers')}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Health Tab -->
+      <div v-if="activeTab==='health'" class="pc-detail-content">
+        <div class="pc-info-grid">
+          <div class="pc-info-item">
+            <span class="pc-label">{{L('neuteredSpayed')}}</span>
+            <span class="pc-value">{{selectedPet.neutered_spayed ? L('yes') : L('no')}}</span>
+          </div>
+        </div>
+        <div class="pc-health-section">
+          <div class="pc-label">{{L('allergies')}}</div>
+          <div v-if="safeParseArr(selectedPet.allergies).length" class="pc-tag-list">
+            <span v-for="(a,i) in safeParseArr(selectedPet.allergies)" :key="i" class="pc-tag">{{a}}</span>
+          </div>
+          <div v-else class="pc-no-data">—</div>
+        </div>
+        <div class="pc-health-section">
+          <div class="pc-label">{{L('chronicConditions')}}</div>
+          <div v-if="safeParseArr(selectedPet.chronic_conditions).length" class="pc-tag-list">
+            <span v-for="(c,i) in safeParseArr(selectedPet.chronic_conditions)" :key="i" class="pc-tag pc-tag-red">{{c}}</span>
+          </div>
+          <div v-else class="pc-no-data">—</div>
+        </div>
+      </div>
+
+      <!-- Media Tab -->
+      <div v-if="activeTab==='media'" class="pc-detail-content">
+        <div v-if="selectedPet.profile_photo_url" class="pc-media-profile">
+          <div class="pc-label">{{L('profilePhoto')}}</div>
+          <img :src="selectedPet.profile_photo_url" class="pc-media-profile-img" />
+        </div>
+        <div class="pc-label" style="margin-top:8px">{{L('photos')}}</div>
+        <div v-if="safeParseArr(selectedPet.additional_photos).length" class="pc-photo-grid">
+          <img v-for="(url,i) in safeParseArr(selectedPet.additional_photos)" :key="i" :src="url" class="pc-photo-thumb" />
+        </div>
+        <div v-else class="pc-no-data">{{L('noPhotos')}}</div>
+      </div>
+    </div>
+  </template>
+
+  <!-- FORM VIEW -->
+  <template v-if="view==='form'">
+    <div class="pc-toolbar">
+      <button class="pc-btn pc-btn-ghost" @click="view = selectedPetId ? 'detail' : 'list'">← {{L('cancel')}}</button>
+      <span class="pc-toolbar-petname">{{formMode==='add' ? L('addPet') : L('editPet')}}</span>
+      <span style="flex:1"></span>
+      <button class="pc-btn pc-btn-primary" @click="savePet" :disabled="!form.name.trim()">💾 {{L('save')}}</button>
+    </div>
+
+    <!-- Form Tabs -->
+    <div class="pc-tabs">
+      <button class="pc-tab" :class="{active:activeTab==='profile'}" @click="activeTab='profile'">📋 {{L('profile')}}</button>
+      <button class="pc-tab" :class="{active:activeTab==='physical'}" @click="activeTab='physical'">📏 {{L('physical')}}</button>
+      <button class="pc-tab" :class="{active:activeTab==='behavior'}" @click="activeTab='behavior'">🧠 {{L('behavior')}}</button>
+      <button class="pc-tab" :class="{active:activeTab==='health'}" @click="activeTab='health'">❤️ {{L('health')}}</button>
+      <button class="pc-tab" :class="{active:activeTab==='media'}" @click="activeTab='media'">📷 {{L('media')}}</button>
+    </div>
+
+    <div class="pc-form-body">
+      <!-- Profile Form -->
+      <div v-if="activeTab==='profile'" class="pc-form-content">
+        <div class="pc-field">
+          <label class="pc-field-label">{{L('name')}} *</label>
+          <input class="pc-input" v-model="form.name" :placeholder="L('name')" />
+        </div>
+        <div class="pc-field-row">
+          <div class="pc-field">
+            <label class="pc-field-label">{{L('species')}}</label>
+            <select class="pc-select" v-model="form.species">
+              <option v-for="sp in ['dog','cat','bird','fish','rabbit','hamster','turtle','snake','horse','other']" :key="sp" :value="sp">{{speciesIcon(sp)}} {{L(sp)}}</option>
+            </select>
+          </div>
+          <div class="pc-field">
+            <label class="pc-field-label">{{L('breed')}}</label>
+            <input class="pc-input" v-model="form.breed" :placeholder="L('breed')" />
+          </div>
+        </div>
+        <div class="pc-field-row">
+          <div class="pc-field">
+            <label class="pc-field-label">{{L('gender')}}</label>
+            <select class="pc-select" v-model="form.gender">
+              <option value="male">{{L('male')}}</option>
+              <option value="female">{{L('female')}}</option>
+              <option value="unknown">{{L('unknown')}}</option>
+            </select>
+          </div>
+          <div class="pc-field">
+            <label class="pc-field-label">{{L('birthDate')}}</label>
+            <input class="pc-input" type="date" v-model="form.birth_date" />
+          </div>
+        </div>
+        <div class="pc-field-row">
+          <div class="pc-field">
+            <label class="pc-field-label">{{L('color')}}</label>
+            <input class="pc-input" v-model="form.color" :placeholder="L('color')" />
+          </div>
+          <div class="pc-field">
+            <label class="pc-field-label">{{L('weight')}} ({{L('weightUnit')}})</label>
+            <input class="pc-input" type="number" step="0.1" min="0" v-model="form.weight" />
+          </div>
+        </div>
+        <div class="pc-field">
+          <label class="pc-field-label">{{L('microchipId')}}</label>
+          <input class="pc-input" v-model="form.microchip_id" :placeholder="L('microchipId')" />
+        </div>
+      </div>
+
+      <!-- Physical Form -->
+      <div v-if="activeTab==='physical'" class="pc-form-content">
+        <div class="pc-field-row">
+          <div class="pc-field">
+            <label class="pc-field-label">{{L('size')}}</label>
+            <select class="pc-select" v-model="form.size">
+              <option value="small">{{L('small')}}</option>
+              <option value="medium">{{L('medium')}}</option>
+              <option value="large">{{L('large')}}</option>
+            </select>
+          </div>
+          <div class="pc-field">
+            <label class="pc-field-label">{{L('coatType')}}</label>
+            <select class="pc-select" v-model="form.coat_type">
+              <option value="short">{{L('short')}}</option>
+              <option value="long">{{L('long')}}</option>
+              <option value="curly">{{L('curly')}}</option>
+              <option value="hairless">{{L('hairless')}}</option>
+              <option value="wire">{{L('wire')}}</option>
+            </select>
+          </div>
+        </div>
+        <div class="pc-field">
+          <label class="pc-field-label">{{L('eyeColor')}}</label>
+          <input class="pc-input" v-model="form.eye_color" :placeholder="L('eyeColor')" />
+        </div>
+        <div class="pc-field">
+          <label class="pc-field-label">{{L('distinctiveMarks')}}</label>
+          <textarea class="pc-textarea" v-model="form.distinctive_marks" :placeholder="L('distinctiveMarks')" rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- Behavior Form -->
+      <div v-if="activeTab==='behavior'" class="pc-form-content">
+        <div class="pc-field">
+          <label class="pc-field-label">{{L('temperament')}}</label>
+          <select class="pc-select" v-model="form.temperament">
+            <option v-for="t in ['friendly','aggressive','shy','calm','playful','protective']" :key="t" :value="t">{{L(t)}}</option>
+          </select>
+        </div>
+        <div class="pc-field-row">
+          <div class="pc-field">
+            <label class="pc-field-label">{{L('activityLevel')}}</label>
+            <select class="pc-select" v-model="form.activity_level">
+              <option value="low">{{L('low')}}</option>
+              <option value="medium">{{L('medium')}}</option>
+              <option value="high">{{L('high')}}</option>
+            </select>
+          </div>
+          <div class="pc-field">
+            <label class="pc-field-label">{{L('trainingLevel')}}</label>
+            <select class="pc-select" v-model="form.training_level">
+              <option value="untrained">{{L('untrained')}}</option>
+              <option value="basic">{{L('basic')}}</option>
+              <option value="advanced">{{L('advanced')}}</option>
+            </select>
+          </div>
+        </div>
+        <div class="pc-field">
+          <label class="pc-field-label">{{L('socialBehavior')}}</label>
+          <div class="pc-check-group">
+            <label class="pc-checkbox"><input type="checkbox" v-model="form.good_with_kids" /> 👶 {{L('goodWithKids')}}</label>
+            <label class="pc-checkbox"><input type="checkbox" v-model="form.good_with_pets" /> 🐾 {{L('goodWithPets')}}</label>
+            <label class="pc-checkbox"><input type="checkbox" v-model="form.good_with_strangers" /> 👋 {{L('goodWithStrangers')}}</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Health Form -->
+      <div v-if="activeTab==='health'" class="pc-form-content">
+        <div class="pc-field">
+          <label class="pc-checkbox"><input type="checkbox" v-model="form.neutered_spayed" /> {{L('neuteredSpayed')}}</label>
+        </div>
+        <div class="pc-field">
+          <label class="pc-field-label">{{L('allergies')}}</label>
+          <div class="pc-tag-input-row">
+            <input class="pc-input pc-input-sm" v-model="allergyInput" @keyup.enter="addAllergy" :placeholder="L('allergies')" />
+            <button class="pc-btn pc-btn-sm" @click="addAllergy">{{L('addItem')}}</button>
+          </div>
+          <div class="pc-tag-list" v-if="form.allergies.length">
+            <span v-for="(a,i) in form.allergies" :key="i" class="pc-tag">{{a}} <span class="pc-tag-rm" @click="removeAllergy(i)">✕</span></span>
+          </div>
+        </div>
+        <div class="pc-field">
+          <label class="pc-field-label">{{L('chronicConditions')}}</label>
+          <div class="pc-tag-input-row">
+            <input class="pc-input pc-input-sm" v-model="conditionInput" @keyup.enter="addCondition" :placeholder="L('chronicConditions')" />
+            <button class="pc-btn pc-btn-sm" @click="addCondition">{{L('addItem')}}</button>
+          </div>
+          <div class="pc-tag-list" v-if="form.chronic_conditions.length">
+            <span v-for="(c,i) in form.chronic_conditions" :key="i" class="pc-tag pc-tag-red">{{c}} <span class="pc-tag-rm" @click="removeCondition(i)">✕</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Media Form -->
+      <div v-if="activeTab==='media'" class="pc-form-content">
+        <div class="pc-field">
+          <label class="pc-field-label">{{L('profilePhoto')}}</label>
+          <div class="pc-profile-photo-row">
+            <div class="pc-profile-photo-preview">
+              <img v-if="form.profile_photo_url" :src="form.profile_photo_url" />
+              <span v-else class="pc-avatar-icon">{{speciesIcon(form.species)}}</span>
+            </div>
+            <button class="pc-btn" @click="uploadProfilePhoto">📷 {{L('uploadPhoto')}}</button>
+          </div>
+        </div>
+        <div class="pc-field">
+          <label class="pc-field-label">{{L('photos')}}</label>
+          <button class="pc-btn" @click="uploadAdditionalPhotos" style="margin-bottom:8px">📷 {{L('uploadPhoto')}}</button>
+          <div v-if="form.additional_photos.length" class="pc-photo-grid">
+            <div v-for="(url,i) in form.additional_photos" :key="i" class="pc-photo-edit-wrap">
+              <img :src="url" class="pc-photo-thumb" />
+              <div class="pc-photo-overlay">
+                <button class="pc-photo-btn" @click="setAsProfile(url)" :title="L('setAsProfile')">🖼</button>
+                <button class="pc-photo-btn pc-photo-btn-rm" @click="removeAdditionalPhoto(i)" :title="L('deletePhoto')">✕</button>
+              </div>
+            </div>
+          </div>
+          <div v-else class="pc-no-data">{{L('noPhotos')}}</div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Reminder Dialog -->
+  <div v-if="reminderDlg" class="pc-dialog-overlay" @click.self="reminderDlg=false">
+    <div class="pc-dialog">
+      <div class="pc-dialog-title">🔔 {{L('addReminder')}}</div>
+      <div class="pc-field">
+        <label class="pc-field-label">{{L('reminderTitle')}}</label>
+        <input class="pc-input" v-model="reminderForm.title" />
+      </div>
+      <div class="pc-field">
+        <label class="pc-field-label">{{L('reminderDate')}}</label>
+        <input class="pc-input" type="datetime-local" v-model="reminderForm.datetime" />
+      </div>
+      <div class="pc-dialog-actions">
+        <button class="pc-btn" @click="reminderDlg=false">{{L('cancel')}}</button>
+        <button class="pc-btn pc-btn-primary" @click="submitReminder">✓ {{L('save')}}</button>
+      </div>
+    </div>
+  </div>
+</div>

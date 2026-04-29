@@ -1,5 +1,5 @@
 <div class="mp-root">
-  <div v-if="loading" class="mp-loading">Yükleniyor...</div>
+  <div v-if="loading" class="mp-loading">{{t('loading')}}</div>
   <template v-else>
     <!-- Visualizer Fullscreen Overlay -->
     <div v-if="vizActive" class="mp-viz-overlay" @dblclick="toggleVisualizer">
@@ -25,7 +25,7 @@
     <div class="mp-now">
       <div class="mp-art" :class="{ spinning: playing }">{{currentTrack ? (currentTrack.icon || '🎵') : '🎵'}}</div>
       <div class="mp-now-info">
-        <div class="mp-title">{{currentTrack ? currentTrack.title : 'Parça seçin'}}</div>
+        <div class="mp-title">{{currentTrack ? currentTrack.title : t('selectTrack')}}</div>
         <div class="mp-progress-wrap">
           <span class="mp-time-label">{{formatTime(elapsed)}}</span>
           <div class="mp-bar" @click="seek($event)">
@@ -38,10 +38,10 @@
 
     <!-- Controls -->
     <div class="mp-controls">
-      <button class="mp-btn" @click="prev" title="Önceki">⏮</button>
+      <button class="mp-btn" @click="prev" :title="t('prev')">⏮</button>
       <button class="mp-btn mp-play" @click="toggle">{{playing ? '⏸' : '▶'}}</button>
-      <button class="mp-btn" @click="next" title="Sonraki">⏭</button>
-      <button class="mp-btn mp-viz-toggle" :class="{active: vizActive}" @click="toggleVisualizer" title="Görselleştirici">🎆</button>
+      <button class="mp-btn" @click="next" :title="t('next')">⏭</button>
+      <button class="mp-btn mp-viz-toggle" :class="{active: vizActive}" @click="toggleVisualizer" :title="t('visualizer')">🎆</button>
       <div class="mp-vol">
         <span class="mp-vol-icon">{{volume > 50 ? '🔊' : volume > 0 ? '🔉' : '🔇'}}</span>
         <div class="mp-vol-bar" @click="setVolume($event)">
@@ -52,36 +52,36 @@
 
     <!-- Link Input -->
     <div class="mp-link-bar">
-      <input class="mp-link-input" v-model="linkUrl" placeholder="Ses URL'si yapıştır (mp3, wav, ogg...)" @keyup.enter="addFromUrl" />
-      <button class="mp-link-btn" @click="addFromUrl" :disabled="!linkUrl.trim()">+ Ekle</button>
+      <input class="mp-link-input" v-model="linkUrl" :placeholder="t('urlPlaceholder')" @keyup.enter="addFromUrl" />
+      <button class="mp-link-btn" @click="addFromUrl" :disabled="!linkUrl.trim()">{{t('add')}}</button>
     </div>
 
     <!-- Tabs -->
     <div class="mp-tabs">
-      <button class="mp-tab" :class="{active: tab==='playlist'}" @click="tab='playlist'">📋 Çalma Listesi ({{tracks.length}})</button>
-      <button class="mp-tab" :class="{active: tab==='playlists'}" @click="tab='playlists'; loadPlaylists()">💾 Listelerim</button>
-      <button class="mp-tab" :class="{active: tab==='files'}" @click="tab='files'; ">📂 Dosyalar</button>
+      <button class="mp-tab" :class="{active: tab==='playlist'}" @click="tab='playlist'">📋 {{t('playlist')}} ({{tracks.length}})</button>
+      <button class="mp-tab" :class="{active: tab==='playlists'}" @click="tab='playlists'; loadPlaylists()">💾 {{t('myLists')}}</button>
+      <button class="mp-tab" :class="{active: tab==='files'}" @click="tab='files'; ">📂 {{t('files')}}</button>
     </div>
 
     <!-- Playlist Tab -->
     <div v-if="tab==='playlist'" class="mp-list">
       <div class="mp-pl-toolbar">
         <span v-if="activePlaylistId" class="mp-pl-active-name">📋 {{playlists.find(p=>p.id===activePlaylistId)?.name || ''}}</span>
-        <button class="mp-pl-save-btn" @click="saveCurrentAsPlaylist" :disabled="!tracks.length" title="Mevcut listeyi kaydet">💾 Kaydet</button>
+        <button class="mp-pl-save-btn" @click="saveCurrentAsPlaylist" :disabled="!tracks.length">💾 {{t('save')}}</button>
       </div>
       <div v-if="!tracks.length" class="mp-empty">
         <div style="font-size:32px;margin-bottom:6px">🎶</div>
-        <div>Çalma listesi boş</div>
-        <div style="font-size:11px;opacity:.5;margin-top:4px">Dosyalar sekmesinden parça ekleyin</div>
+        <div>{{t('emptyPlaylist')}}</div>
+        <div style="font-size:11px;opacity:.5;margin-top:4px">{{t('addFromFiles')}}</div>
       </div>
-      <div v-for="(t,i) in tracks" :key="i" class="mp-track" :class="{active: i===index}" @click="play(i)">
+      <div v-for="(tr,i) in tracks" :key="i" class="mp-track" :class="{active: i===index}" @click="play(i)">
         <span class="mp-tr-num">{{i+1}}</span>
-        <span class="mp-tr-icon">{{t.icon || '🎵'}}</span>
-        <span class="mp-tr-title">{{t.title}}</span>
+        <span class="mp-tr-icon">{{tr.icon || '🎵'}}</span>
+        <span class="mp-tr-title">{{tr.title}}</span>
         <div class="mp-tr-actions">
-          <button v-if="i > 0" class="mp-tr-btn" @click.stop="moveTrack(i, i-1)" title="Yukarı">↑</button>
-          <button v-if="i < tracks.length-1" class="mp-tr-btn" @click.stop="moveTrack(i, i+1)" title="Aşağı">↓</button>
-          <button class="mp-tr-btn mp-tr-rm" @click.stop="removeFromPlaylist(i)" title="Çıkar">✕</button>
+          <button v-if="i > 0" class="mp-tr-btn" @click.stop="moveTrack(i, i-1)" :title="t('up')">↑</button>
+          <button v-if="i < tracks.length-1" class="mp-tr-btn" @click.stop="moveTrack(i, i+1)" :title="t('down')">↓</button>
+          <button class="mp-tr-btn mp-tr-rm" @click.stop="removeFromPlaylist(i)" :title="t('remove')">✕</button>
         </div>
       </div>
     </div>
@@ -89,31 +89,31 @@
     <!-- Playlists Tab -->
     <div v-if="tab==='playlists'" class="mp-list">
       <div class="mp-pl-toolbar">
-        <input class="mp-pl-name-input" v-model="newPlName" placeholder="Yeni liste adı..." @keyup.enter="createPlaylist(newPlName); newPlName=''" />
-        <button class="mp-pl-save-btn" @click="createPlaylist(newPlName); newPlName=''" :disabled="!newPlName">+ Oluştur</button>
+        <input class="mp-pl-name-input" v-model="newPlName" :placeholder="t('newListPlaceholder')" @keyup.enter="createPlaylist(newPlName); newPlName=''" />
+        <button class="mp-pl-save-btn" @click="createPlaylist(newPlName); newPlName=''" :disabled="!newPlName">+ {{t('create')}}</button>
       </div>
       <div v-if="!playlists.length" class="mp-empty">
         <div style="font-size:32px;margin-bottom:6px">💾</div>
-        <div>Kayıtlı çalma listesi yok</div>
+        <div>{{t('noSavedLists')}}</div>
       </div>
       <div v-for="pl in playlists" :key="pl.id" class="mp-pl-item" :class="{active: pl.id === activePlaylistId}">
         <div class="mp-pl-item-header" @click="pl._expanded = !pl._expanded">
           <span class="mp-pl-icon">{{pl.id === activePlaylistId ? '🔊' : '📋'}}</span>
           <span class="mp-pl-name">{{pl.name}}</span>
-          <span class="mp-pl-count">{{(pl.tracks||[]).length}} parça</span>
+          <span class="mp-pl-count">{{(pl.tracks||[]).length}} {{t('tracks')}}</span>
           <span class="mp-pl-expand">{{pl._expanded ? '▼' : '▶'}}</span>
         </div>
         <div class="mp-pl-actions">
-          <button class="mp-tr-btn" @click.stop="switchPlaylist(pl)" title="Yükle">▶</button>
-          <button class="mp-tr-btn" @click.stop="renamePlaylist(pl)" title="Yeniden adlandır">✏️</button>
-          <button class="mp-tr-btn mp-tr-rm" @click.stop="deletePlaylist(pl)" title="Sil">🗑</button>
+          <button class="mp-tr-btn" @click.stop="switchPlaylist(pl)" :title="t('load')">▶</button>
+          <button class="mp-tr-btn" @click.stop="renamePlaylist(pl)" :title="t('rename')">✏️</button>
+          <button class="mp-tr-btn mp-tr-rm" @click.stop="deletePlaylist(pl)" :title="t('delete')">🗑</button>
         </div>
         <div v-if="pl._expanded" class="mp-pl-tracks">
-          <div v-if="!pl.tracks || !pl.tracks.length" class="mp-file-empty">Boş liste</div>
-          <div v-for="(t, ti) in (pl.tracks||[])" :key="ti" class="mp-pl-track-row">
+          <div v-if="!pl.tracks || !pl.tracks.length" class="mp-file-empty">{{t('emptyList')}}</div>
+          <div v-for="(tr, ti) in (pl.tracks||[])" :key="ti" class="mp-pl-track-row">
             <span class="mp-tr-num">{{ti+1}}</span>
-            <span class="mp-tr-icon">{{t.icon || '🎵'}}</span>
-            <span class="mp-tr-title">{{t.title}}</span>
+            <span class="mp-tr-icon">{{tr.icon || '🎵'}}</span>
+            <span class="mp-tr-title">{{tr.title}}</span>
           </div>
         </div>
       </div>
@@ -122,9 +122,9 @@
     <!-- Files Tab -->
     <div v-if="tab==='files'" class="mp-list">
       <div class="mp-file-header">
-        <span class="mp-file-section">🌐 Ortak Müzikler</span>
+        <span class="mp-file-section">🌐 {{t('publicMusic')}}</span>
       </div>
-      <div v-if="!availableFiles.public.length" class="mp-file-empty">Ortak müzik dosyası yok</div>
+      <div v-if="!availableFiles.public.length" class="mp-file-empty">{{t('noPublic')}}</div>
       <div v-for="f in availableFiles.public" :key="'p_'+f.filename" class="mp-file-row">
         <span class="mp-file-name">{{f.name}}</span>
         <span class="mp-file-ext">{{f.ext}}</span>
@@ -133,18 +133,18 @@
       </div>
 
       <div class="mp-file-header" style="margin-top:8px">
-        <span class="mp-file-section">👤 Dosyalarım</span>
+        <span class="mp-file-section">👤 {{t('myFiles')}}</span>
         <button class="mp-upload-btn" @click="triggerUpload" :disabled="uploading">
-          {{uploading ? '⏳ Yükleniyor...' : '📤 Yükle'}}
+          {{uploading ? '⏳ ' + t('uploading') : '📤 ' + t('upload')}}
         </button>
       </div>
-      <div v-if="!availableFiles.user.length" class="mp-file-empty">Henüz dosya yüklenmedi</div>
+      <div v-if="!availableFiles.user.length" class="mp-file-empty">{{t('noUser')}}</div>
       <div v-for="f in availableFiles.user" :key="'u_'+f.filename" class="mp-file-row">
         <span class="mp-file-name">{{f.name}}</span>
         <span class="mp-file-ext">{{f.ext}}</span>
         <button v-if="!isInPlaylist(f)" class="mp-tr-btn mp-tr-add" @click="addToPlaylist(f, 'user')">+</button>
         <span v-else class="mp-file-added">✓</span>
-        <button class="mp-tr-btn mp-tr-rm" @click="deleteFile(f)" title="Sil">🗑</button>
+        <button class="mp-tr-btn mp-tr-rm" @click="deleteFile(f)" :title="t('delete')">🗑</button>
       </div>
     </div>
   </template>

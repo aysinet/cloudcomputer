@@ -428,6 +428,16 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 
 <script type="text/template" id="NotepadApp">
   <div class="notepad-root">
+    <div class="notepad-tabs-bar">
+      <div class="notepad-tabs-scroll">
+        <div v-for="(tab, i) in tabs" :key="tab.id" class="notepad-tab" :class="{active: activeTab === i}" @click="activeTab = i">
+          <span class="notepad-tab-name">{{tab.name}}</span>
+          <span v-if="tab.modified" class="notepad-tab-dot">●</span>
+          <button v-if="tabs.length > 1" class="notepad-tab-close" @click.stop="closeTab(i)">✕</button>
+        </div>
+      </div>
+      <button class="notepad-tab-add" @click="addTab" title="+">＋</button>
+    </div>
     <div class="notepad-toolbar">
       <select v-model="font">
         <option value="'Segoe UI',sans-serif">Segoe UI</option>
@@ -439,11 +449,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       <button class="notepad-tb-btn" @click="bold=!bold" :style="{fontWeight:'bold',background:bold?'#ddd':'#fff'}">B</button>
       <button class="notepad-tb-btn" @click="italic=!italic" :style="{fontStyle:'italic',background:italic?'#ddd':'#fff'}">I</button>
       <div class="notepad-sep"></div>
-      <button class="notepad-tb-btn" @click="text=''">{{t('notepadClear')}}</button>
+      <button class="notepad-tb-btn" @click="clearCurrent">{{t('notepadClear')}}</button>
       <button class="notepad-tb-btn" @click="copy">{{t('notepadCopy')}}</button>
     </div>
-    <textarea v-model="text" :placeholder="t('notepadPlaceholder')" :style="{fontFamily:font,fontSize:size+'px',fontWeight:bold?'bold':'normal',fontStyle:italic?'italic':'normal'}"></textarea>
-    <div class="notepad-status">{{text.length}} {{t('notepadChars')}} · {{wordCount}} {{t('notepadWords')}}</div>
+    <textarea v-model="currentText" :placeholder="t('notepadPlaceholder')" :style="{fontFamily:font,fontSize:size+'px',fontWeight:bold?'bold':'normal',fontStyle:italic?'italic':'normal'}"></textarea>
+    <div class="notepad-status">{{currentText.length}} {{t('notepadChars')}} · {{wordCount}} {{t('notepadWords')}} · {{currentTab.name}}</div>
   </div>
 </script>
 
@@ -2356,10 +2366,32 @@ const NotepadApp = {
   props: [],
   emits: [],
   setup(props, { emit }) {
-    const text = ref(''), font = ref("'Segoe UI',sans-serif"), size = ref(14), bold = ref(false), italic = ref(false);
-    const wordCount = computed(() => text.value.trim() ? text.value.trim().split(/\s+/).length : 0);
-    function copy() { navigator.clipboard.writeText(text.value) }
-    return { text, font, size, bold, italic, wordCount, copy, t };
+    let nextId = 2;
+    const tabs = ref([{ id: 1, name: t('notepad') + ' 1', text: '', modified: false }]);
+    const activeTab = ref(0);
+    const font = ref("'Segoe UI',sans-serif"), size = ref(14), bold = ref(false), italic = ref(false);
+
+    const currentTab = computed(() => tabs.value[activeTab.value] || tabs.value[0]);
+    const currentText = computed({
+      get: () => currentTab.value.text,
+      set: (v) => { currentTab.value.text = v; currentTab.value.modified = v.length > 0; }
+    });
+    const wordCount = computed(() => currentText.value.trim() ? currentText.value.trim().split(/\s+/).length : 0);
+
+    function addTab() {
+      tabs.value.push({ id: nextId, name: t('notepad') + ' ' + nextId, text: '', modified: false });
+      activeTab.value = tabs.value.length - 1;
+      nextId++;
+    }
+    function closeTab(i) {
+      if (tabs.value.length <= 1) return;
+      tabs.value.splice(i, 1);
+      if (activeTab.value >= tabs.value.length) activeTab.value = tabs.value.length - 1;
+    }
+    function clearCurrent() { currentTab.value.text = ''; currentTab.value.modified = false; }
+    function copy() { navigator.clipboard.writeText(currentText.value); }
+
+    return { tabs, activeTab, currentTab, currentText, font, size, bold, italic, wordCount, addTab, closeTab, clearCurrent, copy, t };
   }
 };
 

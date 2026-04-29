@@ -1,5 +1,5 @@
 (function(Vue) {
-  const { ref, computed } = Vue;
+  const { ref, computed, onMounted, onUnmounted } = Vue;
 
   // [english, emoji, {tr,en,de,fr,es,ru,zh,ja,it}, difficulty 1-3]
   const WORDS = [
@@ -191,7 +191,103 @@
     ['bellicose','',{tr:'kavgacı',de:'kriegerisch',fr:'belliqueux',es:'belicoso',ru:'воинственный',zh:'好战的',ja:'好戦的な',it:'bellicoso',ar:'محارب',ko:'호전적인',hi:'लड़ाकू',pt:'belicoso'},3],
     ['capitulate','🏳️',{tr:'teslim olmak',de:'kapitulieren',fr:'capituler',es:'capitular',ru:'капитулировать',zh:'投降',ja:'降伏する',it:'capitolare',ar:'استسلام',ko:'항복하다',hi:'समर्पण करना',pt:'capitular'},3],
     ['demagogue','',{tr:'demagog',de:'Demagoge',fr:'démagogue',es:'demagogo',ru:'демагог',zh:'煽动者',ja:'煽動者',it:'demagogo',ar:'ديماغوجي',ko:'선동가',hi:'जनोत्तेजक',pt:'demagogo'},3],
-    ['exacerbate','',{tr:'kötüleştirmek',de:'verschlimmern',fr:'exacerber',es:'exacerbar',ru:'обострять',zh:'加剧',ja:'悪化させる',it:'esacerbare',ar:'تفاقم',ko:'악화시키다',hi:'बिगाड़ना',pt:'exacerbar'},3]
+    ['exacerbate','',{tr:'kötüleştirmek',de:'verschlimmern',fr:'exacerber',es:'exacerbar',ru:'обострять',zh:'加剧',ja:'悪化させる',it:'esacerbare',ar:'تفاقم',ko:'악화시키다',hi:'बिगाड़ना',pt:'exacerbar'},3],
+    // ── Beginner Set 3 (1) ──
+    ['tiger','🐯',{tr:'kaplan',de:'Tiger',fr:'tigre',es:'tigre',ru:'тигр',zh:'老虎',ja:'虎',it:'tigre',ar:'نمر',ko:'호랑이',hi:'बाघ',pt:'tigre'},1],
+    ['bear','🐻',{tr:'ayı',de:'Bär',fr:'ours',es:'oso',ru:'медведь',zh:'熊',ja:'熊',it:'orso',ar:'دب',ko:'곰',hi:'भालू',pt:'urso'},1],
+    ['monkey','🐒',{tr:'maymun',de:'Affe',fr:'singe',es:'mono',ru:'обезьяна',zh:'猴子',ja:'猿',it:'scimmia',ar:'قرد',ko:'원숭이',hi:'बंदर',pt:'macaco'},1],
+    ['snake','🐍',{tr:'yılan',de:'Schlange',fr:'serpent',es:'serpiente',ru:'змея',zh:'蛇',ja:'蛇',it:'serpente',ar:'ثعبان',ko:'뱀',hi:'सांप',pt:'cobra'},1],
+    ['spider','🕷️',{tr:'örümcek',de:'Spinne',fr:'araignée',es:'araña',ru:'паук',zh:'蜘蛛',ja:'蜘蛛',it:'ragno',ar:'عنكبوت',ko:'거미',hi:'मकड़ी',pt:'aranha'},1],
+    ['rabbit','🐰',{tr:'tavşan',de:'Kaninchen',fr:'lapin',es:'conejo',ru:'кролик',zh:'兔子',ja:'ウサギ',it:'coniglio',ar:'أرنب',ko:'토끼',hi:'खरगोश',pt:'coelho'},1],
+    ['elephant','🐘',{tr:'fil',de:'Elefant',fr:'éléphant',es:'elefante',ru:'слон',zh:'大象',ja:'象',it:'elefante',ar:'فيل',ko:'코끼리',hi:'हाथी',pt:'elefante'},1],
+    ['wolf','🐺',{tr:'kurt',de:'Wolf',fr:'loup',es:'lobo',ru:'волк',zh:'狼',ja:'狼',it:'lupo',ar:'ذئب',ko:'늑대',hi:'भेड़िया',pt:'lobo'},1],
+    ['train','🚂',{tr:'tren',de:'Zug',fr:'train',es:'tren',ru:'поезд',zh:'火车',ja:'電車',it:'treno',ar:'قطار',ko:'기차',hi:'ट्रेन',pt:'trem'},1],
+    ['airplane','✈️',{tr:'uçak',de:'Flugzeug',fr:'avion',es:'avión',ru:'самолёт',zh:'飞机',ja:'飛行機',it:'aereo',ar:'طائرة',ko:'비행기',hi:'हवाई जहाज़',pt:'avião'},1],
+    ['bicycle','🚲',{tr:'bisiklet',de:'Fahrrad',fr:'vélo',es:'bicicleta',ru:'велосипед',zh:'自行车',ja:'自転車',it:'bicicletta',ar:'دراجة',ko:'자전거',hi:'साइकिल',pt:'bicicleta'},1],
+    ['boat','⛵',{tr:'tekne',de:'Boot',fr:'bateau',es:'barco',ru:'лодка',zh:'船',ja:'船',it:'barca',ar:'قارب',ko:'배',hi:'नाव',pt:'barco'},1],
+    ['umbrella','☂️',{tr:'şemsiye',de:'Regenschirm',fr:'parapluie',es:'paraguas',ru:'зонт',zh:'雨伞',ja:'傘',it:'ombrello',ar:'مظلة',ko:'우산',hi:'छाता',pt:'guarda-chuva'},1],
+    ['camera','📷',{tr:'kamera',de:'Kamera',fr:'caméra',es:'cámara',ru:'камера',zh:'相机',ja:'カメラ',it:'fotocamera',ar:'كاميرا',ko:'카메라',hi:'कैमरा',pt:'câmera'},1],
+    ['guitar','🎸',{tr:'gitar',de:'Gitarre',fr:'guitare',es:'guitarra',ru:'гитара',zh:'吉他',ja:'ギター',it:'chitarra',ar:'غيتار',ko:'기타',hi:'गिटार',pt:'guitarra'},1],
+    ['bridge','🌉',{tr:'köprü',de:'Brücke',fr:'pont',es:'puente',ru:'мост',zh:'桥',ja:'橋',it:'ponte',ar:'جسر',ko:'다리',hi:'पुल',pt:'ponte'},1],
+    ['beach','🏖️',{tr:'plaj',de:'Strand',fr:'plage',es:'playa',ru:'пляж',zh:'海滩',ja:'ビーチ',it:'spiaggia',ar:'شاطئ',ko:'해변',hi:'समुद्र तट',pt:'praia'},1],
+    ['winter','❄️',{tr:'kış',de:'Winter',fr:'hiver',es:'invierno',ru:'зима',zh:'冬天',ja:'冬',it:'inverno',ar:'شتاء',ko:'겨울',hi:'सर्दी',pt:'inverno'},1],
+    ['summer','☀️',{tr:'yaz',de:'Sommer',fr:'été',es:'verano',ru:'лето',zh:'夏天',ja:'夏',it:'estate',ar:'صيف',ko:'여름',hi:'गर्मी',pt:'verão'},1],
+    ['spring','🌷',{tr:'ilkbahar',de:'Frühling',fr:'printemps',es:'primavera',ru:'весна',zh:'春天',ja:'春',it:'primavera',ar:'ربيع',ko:'봄',hi:'वसंत',pt:'primavera'},1],
+    ['autumn','🍂',{tr:'sonbahar',de:'Herbst',fr:'automne',es:'otoño',ru:'осень',zh:'秋天',ja:'秋',it:'autunno',ar:'خريف',ko:'가을',hi:'पतझड़',pt:'outono'},1],
+    ['nose','👃',{tr:'burun',de:'Nase',fr:'nez',es:'nariz',ru:'нос',zh:'鼻子',ja:'鼻',it:'naso',ar:'أنف',ko:'코',hi:'नाक',pt:'nariz'},1],
+    ['finger','☝️',{tr:'parmak',de:'Finger',fr:'doigt',es:'dedo',ru:'палец',zh:'手指',ja:'指',it:'dito',ar:'إصبع',ko:'손가락',hi:'उंगली',pt:'dedo'},1],
+    ['neck','',{tr:'boyun',de:'Hals',fr:'cou',es:'cuello',ru:'шея',zh:'脖子',ja:'首',it:'collo',ar:'رقبة',ko:'목',hi:'गर्दन',pt:'pescoço'},1],
+    ['shoulder','💪',{tr:'omuz',de:'Schulter',fr:'épaule',es:'hombro',ru:'плечо',zh:'肩膀',ja:'肩',it:'spalla',ar:'كتف',ko:'어깨',hi:'कंधा',pt:'ombro'},1],
+    ['stomach','',{tr:'mide',de:'Magen',fr:'estomac',es:'estómago',ru:'желудок',zh:'胃',ja:'胃',it:'stomaco',ar:'معدة',ko:'위',hi:'पेट',pt:'estômago'},1],
+    ['banana','🍌',{tr:'muz',de:'Banane',fr:'banane',es:'plátano',ru:'банан',zh:'香蕉',ja:'バナナ',it:'banana',ar:'موز',ko:'바나나',hi:'केला',pt:'banana'},1],
+    ['orange','🍊',{tr:'portakal',de:'Orange',fr:'orange',es:'naranja',ru:'апельсин',zh:'橙子',ja:'オレンジ',it:'arancia',ar:'برتقال',ko:'오렌지',hi:'संतरा',pt:'laranja'},1],
+    ['grape','🍇',{tr:'üzüm',de:'Traube',fr:'raisin',es:'uva',ru:'виноград',zh:'葡萄',ja:'ブドウ',it:'uva',ar:'عنب',ko:'포도',hi:'अंगूर',pt:'uva'},1],
+    ['tomato','🍅',{tr:'domates',de:'Tomate',fr:'tomate',es:'tomate',ru:'помидор',zh:'番茄',ja:'トマト',it:'pomodoro',ar:'طماطم',ko:'토마토',hi:'टमाटर',pt:'tomate'},1],
+    ['onion','🧅',{tr:'soğan',de:'Zwiebel',fr:'oignon',es:'cebolla',ru:'лук',zh:'洋葱',ja:'タマネギ',it:'cipolla',ar:'بصل',ko:'양파',hi:'प्याज',pt:'cebola'},1],
+    ['potato','🥔',{tr:'patates',de:'Kartoffel',fr:'pomme de terre',es:'patata',ru:'картофель',zh:'土豆',ja:'ジャガイモ',it:'patata',ar:'بطاطس',ko:'감자',hi:'आलू',pt:'batata'},1],
+    ['chicken','🐔',{tr:'tavuk',de:'Huhn',fr:'poulet',es:'pollo',ru:'курица',zh:'鸡',ja:'鶏',it:'pollo',ar:'دجاج',ko:'닭',hi:'मुर्गी',pt:'frango'},1],
+    ['butter','🧈',{tr:'tereyağı',de:'Butter',fr:'beurre',es:'mantequilla',ru:'масло',zh:'黄油',ja:'バター',it:'burro',ar:'زبدة',ko:'버터',hi:'मक्खन',pt:'manteiga'},1],
+    // ── Intermediate Set 3 (2) ──
+    ['ambition','🎯',{tr:'hırs',de:'Ehrgeiz',fr:'ambition',es:'ambición',ru:'амбиция',zh:'抱负',ja:'野心',it:'ambizione',ar:'طموح',ko:'야망',hi:'महत्वाकांक्षा',pt:'ambição'},2],
+    ['revenge','⚔️',{tr:'intikam',de:'Rache',fr:'vengeance',es:'venganza',ru:'месть',zh:'复仇',ja:'復讐',it:'vendetta',ar:'انتقام',ko:'복수',hi:'बदला',pt:'vingança'},2],
+    ['destiny','🔮',{tr:'kader',de:'Schicksal',fr:'destin',es:'destino',ru:'судьба',zh:'命运',ja:'運命',it:'destino',ar:'قدر',ko:'운명',hi:'भाग्य',pt:'destino'},2],
+    ['poverty','',{tr:'yoksulluk',de:'Armut',fr:'pauvreté',es:'pobreza',ru:'бедность',zh:'贫困',ja:'貧困',it:'povertà',ar:'فقر',ko:'빈곤',hi:'गरीबी',pt:'pobreza'},2],
+    ['wealth','💎',{tr:'zenginlik',de:'Reichtum',fr:'richesse',es:'riqueza',ru:'богатство',zh:'财富',ja:'富',it:'ricchezza',ar:'ثروة',ko:'부',hi:'धन',pt:'riqueza'},2],
+    ['gravity','🌍',{tr:'yerçekimi',de:'Schwerkraft',fr:'gravité',es:'gravedad',ru:'гравитация',zh:'重力',ja:'重力',it:'gravità',ar:'جاذبية',ko:'중력',hi:'गुरुत्वाकर्षण',pt:'gravidade'},2],
+    ['oxygen','💨',{tr:'oksijen',de:'Sauerstoff',fr:'oxygène',es:'oxígeno',ru:'кислород',zh:'氧气',ja:'酸素',it:'ossigeno',ar:'أكسجين',ko:'산소',hi:'ऑक्सीजन',pt:'oxigênio'},2],
+    ['atmosphere','🌐',{tr:'atmosfer',de:'Atmosphäre',fr:'atmosphère',es:'atmósfera',ru:'атмосфера',zh:'大气',ja:'大気',it:'atmosfera',ar:'غلاف جوي',ko:'대기',hi:'वायुमंडल',pt:'atmosfera'},2],
+    ['skeleton','💀',{tr:'iskelet',de:'Skelett',fr:'squelette',es:'esqueleto',ru:'скелет',zh:'骨骼',ja:'骸骨',it:'scheletro',ar:'هيكل عظمي',ko:'골격',hi:'कंकाल',pt:'esqueleto'},2],
+    ['manuscript','📜',{tr:'el yazması',de:'Manuskript',fr:'manuscrit',es:'manuscrito',ru:'рукопись',zh:'手稿',ja:'原稿',it:'manoscritto',ar:'مخطوطة',ko:'원고',hi:'पांडुलिपि',pt:'manuscrito'},2],
+    ['telescope','🔭',{tr:'teleskop',de:'Teleskop',fr:'télescope',es:'telescopio',ru:'телескоп',zh:'望远镜',ja:'望遠鏡',it:'telescopio',ar:'تلسكوب',ko:'망원경',hi:'दूरबीन',pt:'telescópio'},2],
+    ['cathedral','⛪',{tr:'katedral',de:'Kathedrale',fr:'cathédrale',es:'catedral',ru:'собор',zh:'大教堂',ja:'大聖堂',it:'cattedrale',ar:'كاتدرائية',ko:'대성당',hi:'गिरजाघर',pt:'catedral'},2],
+    ['currency','💵',{tr:'para birimi',de:'Währung',fr:'monnaie',es:'moneda',ru:'валюта',zh:'货币',ja:'通貨',it:'valuta',ar:'عملة',ko:'통화',hi:'मुद्रा',pt:'moeda'},2],
+    ['continent','🗺️',{tr:'kıta',de:'Kontinent',fr:'continent',es:'continente',ru:'континент',zh:'大陆',ja:'大陸',it:'continente',ar:'قارة',ko:'대륙',hi:'महाद्वीप',pt:'continente'},2],
+    ['pyramid','🔺',{tr:'piramit',de:'Pyramide',fr:'pyramide',es:'pirámide',ru:'пирамида',zh:'金字塔',ja:'ピラミッド',it:'piramide',ar:'هرم',ko:'피라미드',hi:'पिरामिड',pt:'pirâmide'},2],
+    ['compass','🧭',{tr:'pusula',de:'Kompass',fr:'boussole',es:'brújula',ru:'компас',zh:'指南针',ja:'コンパス',it:'bussola',ar:'بوصلة',ko:'나침반',hi:'दिशासूचक',pt:'bússola'},2],
+    ['universe','🌌',{tr:'evren',de:'Universum',fr:'univers',es:'universo',ru:'вселенная',zh:'宇宙',ja:'宇宙',it:'universo',ar:'كون',ko:'우주',hi:'ब्रह्मांड',pt:'universo'},2],
+    ['earthquake','🌍',{tr:'deprem',de:'Erdbeben',fr:'tremblement de terre',es:'terremoto',ru:'землетрясение',zh:'地震',ja:'地震',it:'terremoto',ar:'زلزال',ko:'지진',hi:'भूकंप',pt:'terremoto'},2],
+    ['hurricane','🌪️',{tr:'kasırga',de:'Hurrikan',fr:'ouragan',es:'huracán',ru:'ураган',zh:'飓风',ja:'ハリケーン',it:'uragano',ar:'إعصار',ko:'허리케인',hi:'तूफ़ान',pt:'furacão'},2],
+    ['revolution','✊',{tr:'devrim',de:'Revolution',fr:'révolution',es:'revolución',ru:'революция',zh:'革命',ja:'革命',it:'rivoluzione',ar:'ثورة',ko:'혁명',hi:'क्रांति',pt:'revolução'},2],
+    ['epidemic','🦠',{tr:'salgın',de:'Epidemie',fr:'épidémie',es:'epidemia',ru:'эпидемия',zh:'流行病',ja:'流行病',it:'epidemia',ar:'وباء',ko:'전염병',hi:'महामारी',pt:'epidemia'},2],
+    ['monument','🗽',{tr:'anıt',de:'Denkmal',fr:'monument',es:'monumento',ru:'памятник',zh:'纪念碑',ja:'記念碑',it:'monumento',ar:'نصب تذكاري',ko:'기념비',hi:'स्मारक',pt:'monumento'},2],
+    ['democracy','🗳️',{tr:'demokrasi',de:'Demokratie',fr:'démocratie',es:'democracia',ru:'демократия',zh:'民主',ja:'民主主義',it:'democrazia',ar:'ديمقراطية',ko:'민주주의',hi:'लोकतंत्र',pt:'democracia'},2],
+    ['evolution','🧬',{tr:'evrim',de:'Evolution',fr:'évolution',es:'evolución',ru:'эволюция',zh:'进化',ja:'進化',it:'evoluzione',ar:'تطور',ko:'진화',hi:'विकास',pt:'evolução'},2],
+    ['archaeology','🏺',{tr:'arkeoloji',de:'Archäologie',fr:'archéologie',es:'arqueología',ru:'археология',zh:'考古学',ja:'考古学',it:'archeologia',ar:'علم الآثار',ko:'고고학',hi:'पुरातत्व',pt:'arqueologia'},2],
+    ['mythology','🏛️',{tr:'mitoloji',de:'Mythologie',fr:'mythologie',es:'mitología',ru:'мифология',zh:'神话',ja:'神話',it:'mitologia',ar:'أساطير',ko:'신화',hi:'पौराणिक कथा',pt:'mitologia'},2],
+    ['philosophy','📖',{tr:'felsefe',de:'Philosophie',fr:'philosophie',es:'filosofía',ru:'философия',zh:'哲学',ja:'哲学',it:'filosofia',ar:'فلسفة',ko:'철학',hi:'दर्शनशास्त्र',pt:'filosofia'},2],
+    // ── Advanced Set 3 (3) ──
+    ['acquiesce','',{tr:'kabullenmek',de:'einwilligen',fr:'acquiescer',es:'consentir',ru:'уступать',zh:'默许',ja:'黙認する',it:'acconsentire',ar:'إذعان',ko:'묵인하다',hi:'मान लेना',pt:'aquiescer'},3],
+    ['cacophony','🔊',{tr:'kakofoni',de:'Kakophonie',fr:'cacophonie',es:'cacofonía',ru:'какофония',zh:'刺耳声',ja:'不協和音',it:'cacofonia',ar:'نشاز',ko:'불협화음',hi:'कर्कश ध्वनि',pt:'cacofonia'},3],
+    ['debilitate','',{tr:'zayıflatmak',de:'schwächen',fr:'débiliter',es:'debilitar',ru:'ослаблять',zh:'使衰弱',ja:'衰弱させる',it:'debilitare',ar:'إضعاف',ko:'약화시키다',hi:'कमज़ोर करना',pt:'debilitar'},3],
+    ['ebullient','🎉',{tr:'coşkulu',de:'überschwänglich',fr:'exubérant',es:'eufórico',ru:'кипучий',zh:'热情洋溢',ja:'熱狂的な',it:'esuberante',ar:'متحمس',ko:'열정적인',hi:'उत्साही',pt:'efervescente'},3],
+    ['fallacious','',{tr:'yanıltıcı',de:'trügerisch',fr:'fallacieux',es:'falaz',ru:'ложный',zh:'谬误的',ja:'誤った',it:'fallace',ar:'مغالط',ko:'오류의',hi:'भ्रामक',pt:'falacioso'},3],
+    ['galvanize','⚡',{tr:'harekete geçirmek',de:'galvanisieren',fr:'galvaniser',es:'galvanizar',ru:'вдохновлять',zh:'激励',ja:'鼓舞する',it:'galvanizzare',ar:'تحفيز',ko:'자극하다',hi:'प्रेरित करना',pt:'galvanizar'},3],
+    ['hubris','',{tr:'kibir',de:'Hybris',fr:'hubris',es:'arrogancia',ru:'высокомерие',zh:'傲慢',ja:'傲慢',it:'arroganza',ar:'غطرسة',ko:'오만',hi:'अहंकार',pt:'arrogância'},3],
+    ['impervious','🛡️',{tr:'etkilenmez',de:'undurchlässig',fr:'imperméable',es:'impermeable',ru:'непроницаемый',zh:'不受影响',ja:'影響されない',it:'impermeabile',ar:'منيع',ko:'영향받지 않는',hi:'अप्रभावित',pt:'impermeável'},3],
+    ['jettison','',{tr:'fırlatmak',de:'abwerfen',fr:'jeter',es:'deshacerse',ru:'выбрасывать',zh:'抛弃',ja:'投棄する',it:'gettare',ar:'التخلص من',ko:'내던지다',hi:'फेंक देना',pt:'descartar'},3],
+    ['laconic','',{tr:'az sözlü',de:'lakonisch',fr:'laconique',es:'lacónico',ru:'лаконичный',zh:'简洁的',ja:'簡潔な',it:'laconico',ar:'مقتضب',ko:'간결한',hi:'संक्षिप्त',pt:'lacônico'},3],
+    ['machination','',{tr:'entrika',de:'Machenschaft',fr:'machination',es:'maquinación',ru:'махинация',zh:'阴谋',ja:'策略',it:'macchinazione',ar:'مكيدة',ko:'음모',hi:'षड्यंत्र',pt:'maquinação'},3],
+    ['nefarious','',{tr:'habis',de:'ruchlos',fr:'néfaste',es:'nefasto',ru:'гнусный',zh:'邪恶的',ja:'極悪な',it:'nefando',ar:'شنيع',ko:'사악한',hi:'दुष्ट',pt:'nefário'},3],
+    ['obsequious','',{tr:'yaltakçı',de:'unterwürfig',fr:'obséquieux',es:'servil',ru:'подобострастный',zh:'谄媚的',ja:'卑屈な',it:'ossequioso',ar:'متذلل',ko:'아첨하는',hi:'खुशामदी',pt:'obsequioso'},3],
+    ['pernicious','',{tr:'zararlı',de:'verderblich',fr:'pernicieux',es:'pernicioso',ru:'пагубный',zh:'有害的',ja:'有害な',it:'pernicioso',ar:'مؤذي',ko:'해로운',hi:'हानिकारक',pt:'pernicioso'},3],
+    ['quixotic','',{tr:'hayalperest',de:'quixotisch',fr:'quichottesque',es:'quijotesco',ru:'донкихотский',zh:'不切实际',ja:'空想的な',it:'donchisciottesco',ar:'خيالي',ko:'비현실적인',hi:'कल्पनाप्रवण',pt:'quixotesco'},3],
+    ['recondite','',{tr:'anlaşılmaz',de:'abstruse',fr:'abscons',es:'recóndito',ru:'сокровенный',zh:'深奥的',ja:'難解な',it:'recondito',ar:'غامض',ko:'심오한',hi:'गूढ़',pt:'recôndito'},3],
+    ['sanguine','😊',{tr:'iyimser',de:'zuversichtlich',fr:'optimiste',es:'sanguíneo',ru:'оптимистичный',zh:'乐观的',ja:'楽観的な',it:'ottimista',ar:'متفائل',ko:'낙관적인',hi:'आशावादी',pt:'otimista'},3],
+    ['truculent','',{tr:'saldırgan',de:'streitlustig',fr:'truculent',es:'truculento',ru:'свирепый',zh:'凶暴的',ja:'攻撃的な',it:'truculento',ar:'شرس',ko:'호전적인',hi:'उग्र',pt:'truculento'},3],
+    ['ubiquitous','🌐',{tr:'her yerde bulunan',de:'allgegenwärtig',fr:'omniprésent',es:'ubicuo',ru:'вездесущий',zh:'无处不在',ja:'遍在する',it:'onnipresente',ar:'في كل مكان',ko:'어디에나 있는',hi:'सर्वव्यापी',pt:'onipresente'},3],
+    ['verisimilitude','',{tr:'gerçeğe yakınlık',de:'Wahrscheinlichkeit',fr:'vraisemblance',es:'verosimilitud',ru:'правдоподобие',zh:'逼真',ja:'迫真性',it:'verosimiglianza',ar:'مصداقية',ko:'사실성',hi:'यथार्थता',pt:'verossimilhança'},3],
+    ['weltanschauung','',{tr:'dünya görüşü',de:'Weltanschauung',fr:'vision du monde',es:'cosmovisión',ru:'мировоззрение',zh:'世界观',ja:'世界観',it:'visione del mondo',ar:'نظرة للعالم',ko:'세계관',hi:'विश्वदृष्टि',pt:'visão de mundo'},3],
+    ['xeric','🏜️',{tr:'kurak',de:'trocken',fr:'xérique',es:'xérico',ru:'засушливый',zh:'干旱的',ja:'乾燥した',it:'xerico',ar:'جاف',ko:'건조한',hi:'शुष्क',pt:'xérico'},3],
+    ['zealot','',{tr:'fanatik',de:'Eiferer',fr:'zélote',es:'fanático',ru:'фанатик',zh:'狂热者',ja:'熱狂者',it:'fanatico',ar:'متعصب',ko:'광신자',hi:'कट्टर',pt:'fanático'},3],
+    ['apocryphal','',{tr:'uydurma',de:'apokryph',fr:'apocryphe',es:'apócrifo',ru:'апокрифический',zh:'伪经的',ja:'外典の',it:'apocrifo',ar:'ملفق',ko:'위경의',hi:'संदिग्ध',pt:'apócrifo'},3],
+    ['blandishment','',{tr:'pohpoh',de:'Schmeichelei',fr:'cajolerie',es:'halago',ru:'лесть',zh:'奉承',ja:'お世辞',it:'lusinghe',ar:'تملق',ko:'감언이설',hi:'चापलूसी',pt:'lisonja'},3],
+    ['corroborate','',{tr:'doğrulamak',de:'bestätigen',fr:'corroborer',es:'corroborar',ru:'подтверждать',zh:'证实',ja:'裏付ける',it:'corroborare',ar:'تأكيد',ko:'확증하다',hi:'पुष्टि करना',pt:'corroborar'},3],
+    ['diatribe','',{tr:'ağır eleştiri',de:'Hetzrede',fr:'diatribe',es:'diatriba',ru:'диатриба',zh:'抨击',ja:'痛烈な批判',it:'diatriba',ar:'خطبة هجومية',ko:'통렬한 비판',hi:'कटु भाषण',pt:'diatribe'},3],
+    ['enervate','',{tr:'güçsüzleştirmek',de:'entkräften',fr:'énerver',es:'enervar',ru:'обессилить',zh:'使无力',ja:'衰弱させる',it:'snervare',ar:'إنهاك',ko:'기력을 빼다',hi:'शक्तिहीन करना',pt:'enervar'},3],
+    ['fractious','',{tr:'huysuz',de:'widerspenstig',fr:'récalcitrant',es:'díscolo',ru:'вздорный',zh:'易怒的',ja:'気難しい',it:'irascibile',ar:'سريع الغضب',ko:'성마른',hi:'चिड़चिड़ा',pt:'irascível'},3],
+    ['grandiloquent','',{tr:'tumturaklı',de:'großsprecherisch',fr:'grandiloquent',es:'grandilocuente',ru:'напыщенный',zh:'夸大的',ja:'大げさな',it:'magniloquente',ar:'متفخم',ko:'거창한',hi:'आडंबरपूर्ण',pt:'grandiloquente'},3],
+    ['hermetic','',{tr:'sızdırmaz',de:'hermetisch',fr:'hermétique',es:'hermético',ru:'герметичный',zh:'密封的',ja:'密閉された',it:'ermetico',ar:'محكم',ko:'밀봉된',hi:'वायुरोधी',pt:'hermético'},3],
+    ['inscrutable','',{tr:'anlaşılmaz',de:'unergründlich',fr:'inscrutable',es:'inescrutable',ru:'непостижимый',zh:'高深莫测',ja:'不可解な',it:'imperscrutabile',ar:'غامض',ko:'헤아릴 수 없는',hi:'अगम्य',pt:'inescrutável'},3]
   ];
 
   const DIFF_LABELS = {
@@ -199,7 +295,15 @@
     en: { 1:'Easy', 2:'Medium', 3:'Hard', all:'All', known:'I Know', unknown:"Don't Know", flip:'Flip', next:'Next', prev:'Previous', score:'Score', of:'/', reset:'Reset', title:'English Cards' },
     de: { 1:'Leicht', 2:'Mittel', 3:'Schwer', all:'Alle', known:'Weiß ich', unknown:'Weiß nicht', flip:'Umdrehen', next:'Nächste', prev:'Vorherige', score:'Punkte', of:'/', reset:'Zurücksetzen', title:'Englisch-Karten' },
     fr: { 1:'Facile', 2:'Moyen', 3:'Difficile', all:'Tout', known:'Je sais', unknown:'Je ne sais pas', flip:'Retourner', next:'Suivant', prev:'Précédent', score:'Score', of:'/', reset:'Réinitialiser', title:'Cartes Anglais' },
-    es: { 1:'Fácil', 2:'Medio', 3:'Difícil', all:'Todos', known:'Lo sé', unknown:'No sé', flip:'Voltear', next:'Siguiente', prev:'Anterior', score:'Puntos', of:'/', reset:'Reiniciar', title:'Tarjetas Inglés' }
+    es: { 1:'Fácil', 2:'Medio', 3:'Difícil', all:'Todos', known:'Lo sé', unknown:'No sé', flip:'Voltear', next:'Siguiente', prev:'Anterior', score:'Puntos', of:'/', reset:'Reiniciar', title:'Tarjetas Inglés' },
+    ru: { 1:'Легко', 2:'Средне', 3:'Сложно', all:'Все', known:'Знаю', unknown:'Не знаю', flip:'Перевернуть', next:'Следующая', prev:'Предыдущая', score:'Счёт', of:'/', reset:'Сброс', title:'Английские карточки' },
+    zh: { 1:'简单', 2:'中等', 3:'困难', all:'全部', known:'我知道', unknown:'不知道', flip:'翻转', next:'下一个', prev:'上一个', score:'分数', of:'/', reset:'重置', title:'英语卡片' },
+    ja: { 1:'簡単', 2:'普通', 3:'難しい', all:'全て', known:'知ってる', unknown:'知らない', flip:'めくる', next:'次へ', prev:'前へ', score:'スコア', of:'/', reset:'リセット', title:'英語カード' },
+    it: { 1:'Facile', 2:'Medio', 3:'Difficile', all:'Tutti', known:'Lo so', unknown:'Non so', flip:'Gira', next:'Successiva', prev:'Precedente', score:'Punteggio', of:'/', reset:'Ripristina', title:'Carte Inglese' },
+    ar: { 1:'سهل', 2:'متوسط', 3:'صعب', all:'الكل', known:'أعرف', unknown:'لا أعرف', flip:'اقلب', next:'التالي', prev:'السابق', score:'النتيجة', of:'/', reset:'إعادة', title:'بطاقات إنجليزية' },
+    ko: { 1:'쉬움', 2:'보통', 3:'어려움', all:'전체', known:'알아요', unknown:'몰라요', flip:'뒤집기', next:'다음', prev:'이전', score:'점수', of:'/', reset:'초기화', title:'영어 카드' },
+    hi: { 1:'आसान', 2:'मध्यम', 3:'कठिन', all:'सभी', known:'मुझे पता है', unknown:'नहीं पता', flip:'पलटें', next:'अगला', prev:'पिछला', score:'स्कोर', of:'/', reset:'रीसेट', title:'अंग्रेज़ी कार्ड' },
+    pt: { 1:'Fácil', 2:'Médio', 3:'Difícil', all:'Todos', known:'Eu sei', unknown:'Não sei', flip:'Virar', next:'Próximo', prev:'Anterior', score:'Pontuação', of:'/', reset:'Reiniciar', title:'Cartões de Inglês' }
   };
 
   return {
@@ -207,6 +311,8 @@
       const lang = ref((props.settings && props.settings.lang) || 'tr');
       const L = computed(() => DIFF_LABELS[lang.value] || DIFF_LABELS.en);
       const t = (k) => L.value[k] || k;
+
+      function onLocaleChanged(e) { lang.value = e.detail || 'tr'; }
 
       const difficulty = ref(0); // 0=all
       const flipped = ref(false);
@@ -251,6 +357,9 @@
         }
         reset();
       }
+
+      onMounted(() => { window.addEventListener('locale-changed', onLocaleChanged); });
+      onUnmounted(() => { window.removeEventListener('locale-changed', onLocaleChanged); });
 
       return { lang, t, difficulty, flipped, idx, known, unknown, total, current, emoji, enWord, localWord, diffLevel, filtered, setDifficulty, flip, next, prev, markKnown, markUnknown, reset, shuffle, answered };
     }

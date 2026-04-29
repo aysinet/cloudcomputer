@@ -1,0 +1,172 @@
+<div class="cs-root">
+  <!-- HOME VIEW -->
+  <template v-if="view==='home'">
+    <div class="cs-toolbar">
+      <span class="cs-toolbar-title">📄 CamScanner</span>
+      <span style="flex:1"></span>
+      <button class="cs-btn cs-btn-primary" @click="startCamera">📷 {{L('camera')}}</button>
+      <button class="cs-btn" @click="triggerUpload">📤 {{L('upload')}}</button>
+    </div>
+    <div class="cs-doc-list">
+      <div v-if="!documents.length" class="cs-empty">
+        <div class="cs-empty-icon">📄</div>
+        <div>{{L('noDocs')}}</div>
+        <div class="cs-empty-hint">{{L('scanHint')}}</div>
+      </div>
+      <div v-for="doc in documents" :key="doc.id" class="cs-doc-card" @click="openDocument(doc)">
+        <div class="cs-doc-thumb">
+          <img v-if="doc.pages.length" :src="doc.pages[0].filtered" />
+          <span v-else class="cs-doc-no-thumb">📄</span>
+        </div>
+        <div class="cs-doc-info">
+          <div class="cs-doc-title">{{doc.title}}</div>
+          <div class="cs-doc-meta">{{doc.pages.length}} {{L('pages')}}</div>
+        </div>
+        <div class="cs-doc-actions">
+          <button class="cs-icon-btn" @click.stop="startRename(doc)" :title="L('rename')">✏️</button>
+          <button class="cs-icon-btn cs-icon-danger" @click.stop="deleteDocument(doc.id)" :title="L('delete')">🗑</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- CAMERA VIEW -->
+  <template v-if="view==='camera'">
+    <div class="cs-toolbar">
+      <button class="cs-btn cs-btn-ghost" @click="goHome">← {{L('documents')}}</button>
+      <span style="flex:1"></span>
+      <button v-if="cameraActive" class="cs-btn" @click="switchCamera">🔄 {{L('switchCam')}}</button>
+    </div>
+    <div class="cs-camera-area">
+      <div v-if="cameraError" class="cs-cam-error">
+        <div>⚠️ {{cameraError}}</div>
+      </div>
+      <template v-else>
+        <video v-show="cameraActive && !capturedImage" ref="videoEl" class="cs-cam-video" autoplay playsinline muted></video>
+        <canvas ref="canvasEl" style="display:none"></canvas>
+        <img v-if="capturedImage" :src="capturedImage" class="cs-cam-preview" />
+        <div class="cs-cam-guide" v-show="cameraActive && !capturedImage">
+          <div class="cs-guide-corner cs-gc-tl"></div>
+          <div class="cs-guide-corner cs-gc-tr"></div>
+          <div class="cs-guide-corner cs-gc-bl"></div>
+          <div class="cs-guide-corner cs-gc-br"></div>
+        </div>
+      </template>
+    </div>
+    <div class="cs-cam-controls">
+      <template v-if="!capturedImage">
+        <button class="cs-capture-btn" @click="capturePhoto" :disabled="!cameraActive">
+          <span class="cs-capture-ring"></span>
+        </button>
+      </template>
+      <template v-else>
+        <button class="cs-btn" @click="retakePhoto">🔄 {{L('retake')}}</button>
+        <button class="cs-btn cs-btn-primary" @click="addCapturedToDoc">✓ {{L('scan')}}</button>
+      </template>
+    </div>
+  </template>
+
+  <!-- EDITOR VIEW -->
+  <template v-if="view==='editor' && activeDoc">
+    <div class="cs-toolbar">
+      <button class="cs-btn cs-btn-ghost" @click="goHome">← {{L('documents')}}</button>
+      <span class="cs-toolbar-doctitle">{{activeDoc.title}}</span>
+      <span style="flex:1"></span>
+      <button class="cs-btn" @click="startCamera">📷 {{L('addPage')}}</button>
+      <button class="cs-btn" @click="triggerUpload">📤</button>
+      <button class="cs-btn" @click="downloadImage" :title="L('downloadImg')">🖼 {{L('download')}}</button>
+      <button class="cs-btn cs-btn-primary" @click="downloadPdf" :title="L('downloadPdf')">📥 PDF</button>
+    </div>
+
+    <div class="cs-editor-main">
+      <!-- Page Thumbnails -->
+      <div class="cs-page-sidebar">
+        <div v-for="(pg,i) in activeDoc.pages" :key="pg.id" class="cs-page-thumb"
+             :class="{active: i===activePageIdx}" @click="selectPage(i)">
+          <img :src="pg.filtered" />
+          <span class="cs-page-num">{{i+1}}</span>
+        </div>
+      </div>
+
+      <!-- Main Preview -->
+      <div class="cs-preview-area">
+        <div v-if="processing" class="cs-processing">
+          <div class="cs-spinner"></div>
+          <div>{{L('processing')}}</div>
+        </div>
+        <div v-if="activePage" class="cs-preview-wrap"
+             @mousedown="cropMode ? onCropMouseDown($event) : null"
+             @mousemove="cropMode ? onCropMouseMove($event) : null"
+             @mouseup="cropMode ? onCropMouseUp() : null">
+          <img :src="activePage.filtered" class="cs-preview-img" />
+          <!-- Crop overlay -->
+          <template v-if="cropMode">
+            <div class="cs-crop-mask cs-crop-top" :style="{height: cropRect.y+'%'}"></div>
+            <div class="cs-crop-mask cs-crop-bottom" :style="{top: (cropRect.y+cropRect.h)+'%', height: (100-cropRect.y-cropRect.h)+'%'}"></div>
+            <div class="cs-crop-mask cs-crop-left" :style="{top: cropRect.y+'%', height: cropRect.h+'%', width: cropRect.x+'%'}"></div>
+            <div class="cs-crop-mask cs-crop-right" :style="{top: cropRect.y+'%', height: cropRect.h+'%', left: (cropRect.x+cropRect.w)+'%', width: (100-cropRect.x-cropRect.w)+'%'}"></div>
+            <div class="cs-crop-border" :style="{left: cropRect.x+'%', top: cropRect.y+'%', width: cropRect.w+'%', height: cropRect.h+'%'}"></div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Tools Panel -->
+      <div class="cs-tools-panel">
+        <div class="cs-tools-section">
+          <div class="cs-tools-label">{{L('filter')}}</div>
+          <div class="cs-filter-grid">
+            <button class="cs-filter-btn" :class="{active: currentFilter==='original'}" @click="setFilter('original')">
+              <span class="cs-filter-icon">🎨</span>
+              <span>{{L('original')}}</span>
+            </button>
+            <button class="cs-filter-btn" :class="{active: currentFilter==='grayscale'}" @click="setFilter('grayscale')">
+              <span class="cs-filter-icon">🩶</span>
+              <span>{{L('grayscale')}}</span>
+            </button>
+            <button class="cs-filter-btn" :class="{active: currentFilter==='bw'}" @click="setFilter('bw')">
+              <span class="cs-filter-icon">⬛</span>
+              <span>{{L('bw')}}</span>
+            </button>
+            <button class="cs-filter-btn" :class="{active: currentFilter==='enhanced'}" @click="setFilter('enhanced')">
+              <span class="cs-filter-icon">✨</span>
+              <span>{{L('enhanced')}}</span>
+            </button>
+            <button class="cs-filter-btn" :class="{active: currentFilter==='sharp'}" @click="setFilter('sharp')">
+              <span class="cs-filter-icon">🔍</span>
+              <span>{{L('sharp')}}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="cs-tools-section">
+          <div class="cs-tools-label">{{L('brightness')}}</div>
+          <input type="range" class="cs-range" min="30" max="200" :value="brightness" @input="brightness=+$event.target.value" @change="adjustImage" />
+          <div class="cs-tools-label">{{L('contrast')}}</div>
+          <input type="range" class="cs-range" min="30" max="200" :value="contrast" @input="contrast=+$event.target.value" @change="adjustImage" />
+        </div>
+
+        <div class="cs-tools-section">
+          <button class="cs-tool-btn" @click="rotatePage">🔄 {{L('rotate')}}</button>
+          <button v-if="!cropMode" class="cs-tool-btn" @click="startCrop">✂️ {{L('crop')}}</button>
+          <template v-if="cropMode">
+            <button class="cs-tool-btn cs-tool-ok" @click="applyCropAction">✓ {{L('applyCrop')}}</button>
+            <button class="cs-tool-btn" @click="cancelCrop">✕ {{L('cancelCrop')}}</button>
+          </template>
+          <button class="cs-tool-btn cs-tool-danger" @click="deletePage">🗑 {{L('deletePage')}}</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Rename Dialog -->
+  <div v-if="renameDialog" class="cs-dialog-overlay" @click.self="renameDialog=false">
+    <div class="cs-dialog">
+      <div class="cs-dialog-title">✏️ {{L('rename')}}</div>
+      <input class="cs-dialog-input" v-model="renameInput" :placeholder="L('title')" @keyup.enter="confirmRename" />
+      <div class="cs-dialog-actions">
+        <button class="cs-btn" @click="renameDialog=false">{{L('cancelCrop')}}</button>
+        <button class="cs-btn cs-btn-primary" @click="confirmRename">✓</button>
+      </div>
+    </div>
+  </div>
+</div>

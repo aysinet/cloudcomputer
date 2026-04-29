@@ -1,0 +1,26 @@
+{
+  "id": "petcarely",
+  "name": "PetCarely",
+  "icon": "🐾",
+  "color": "linear-gradient(135deg,#f7971e,#ffd200)",
+  "type": "internal",
+  "size": { "w": 860, "h": 620 },
+  "global": false,
+  "description": "Evcil hayvan yönetimi — profil, sağlık, davranış, hatırlatmalar, medya",
+  "category": "lifestyle",
+  "lang": {
+    "tr": { "name": "PetCarely", "description": "Evcil hayvan yönetimi — profil, sağlık, davranış, hatırlatmalar, medya" },
+    "en": { "name": "PetCarely", "description": "Pet management — profile, health, behavior, reminders, media" },
+    "de": { "name": "PetCarely", "description": "Haustierverwaltung — Profil, Gesundheit, Verhalten, Erinnerungen, Medien" },
+    "fr": { "name": "PetCarely", "description": "Gestion des animaux — profil, santé, comportement, rappels, médias" },
+    "es": { "name": "PetCarely", "description": "Gestión de mascotas — perfil, salud, comportamiento, recordatorios, medios" },
+    "ru": { "name": "PetCarely", "description": "Управление питомцами — профиль, здоровье, поведение, напоминания, медиа" },
+    "zh": { "name": "PetCarely", "description": "宠物管理 — 个人资料、健康、行为、提醒、媒体" },
+    "ja": { "name": "PetCarely", "description": "ペット管理 — プロフィール、健康、行動、リマインダー、メディア" },
+    "it": { "name": "PetCarely", "description": "Gestione animali — profilo, salute, comportamento, promemoria, media" },
+    "ar": { "name": "PetCarely", "description": "إدارة الحيوانات الأليفة — الملف الشخصي، الصحة، السلوك، التذكيرات، الوسائط" },
+    "ko": { "name": "PetCarely", "description": "반려동물 관리 — 프로필, 건강, 행동, 알림, 미디어" },
+    "hi": { "name": "PetCarely", "description": "पालतू जानवर प्रबंधन — प्रोफ़ाइल, स्वास्थ्य, व्यवहार, रिमाइंडर, मीडिया" },
+    "pt": { "name": "PetCarely", "description": "Gestão de pets — perfil, saúde, comportamento, lembretes, mídia" }
+  }
+}

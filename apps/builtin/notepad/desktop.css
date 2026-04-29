@@ -1,4 +1,16 @@
 .notepad-root{width:100%;height:100%;background:#f9f9f9;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif}
+.notepad-tabs-bar{display:flex;align-items:center;background:#e8e8e8;border-bottom:1px solid #d0d0d0;flex-shrink:0;min-height:32px}
+.notepad-tabs-scroll{display:flex;flex:1;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.notepad-tabs-scroll::-webkit-scrollbar{display:none}
+.notepad-tab{display:flex;align-items:center;gap:4px;padding:4px 10px;font-size:12px;cursor:pointer;border-right:1px solid #d0d0d0;white-space:nowrap;background:#e0e0e0;transition:background .15s;max-width:160px;min-width:0}
+.notepad-tab.active{background:#f9f9f9;border-bottom:1px solid #f9f9f9;margin-bottom:-1px;font-weight:600}
+.notepad-tab:hover:not(.active){background:#eaeaea}
+.notepad-tab-name{overflow:hidden;text-overflow:ellipsis}
+.notepad-tab-dot{color:#e6a23c;font-size:10px;flex-shrink:0}
+.notepad-tab-close{border:none;background:none;cursor:pointer;font-size:11px;color:#999;padding:0 2px;line-height:1;border-radius:3px}
+.notepad-tab-close:hover{background:#ccc;color:#333}
+.notepad-tab-add{border:none;background:none;cursor:pointer;font-size:16px;color:#666;padding:2px 8px;flex-shrink:0}
+.notepad-tab-add:hover{color:#333;background:#ddd}
 .notepad-toolbar{background:#fff;border-bottom:1px solid #e0e0e0;padding:6px 10px;display:flex;align-items:center;gap:8px;flex-shrink:0}
 .notepad-toolbar select,.notepad-toolbar input[type=number]{height:28px;border:1px solid #ddd;border-radius:4px;padding:0 6px;font-size:12px;outline:none}
 .notepad-toolbar input[type=number]{width:52px}

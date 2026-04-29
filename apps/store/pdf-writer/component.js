@@ -154,23 +154,40 @@
       var jspdfReady = ref(false);
       var jspdfError = ref('');
 
+      var JSPDF_URLS = [
+        'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js',
+        'https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js',
+        'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js'
+      ];
+
       function loadJsPDF() {
+        if (window.jspdf) { jspdfReady.value = true; return Promise.resolve(); }
+        return tryLoadScript(0);
+      }
+
+      function tryLoadScript(idx) {
+        if (idx >= JSPDF_URLS.length) {
+          jspdfError.value = t('loadFail');
+          return Promise.reject();
+        }
         return new Promise(function(resolve, reject) {
-          if (window.jspdf) { jspdfReady.value = true; resolve(); return; }
           // Bypass AMD/require define from Monaco
           var _define = window.define;
+          var _require = window.require;
           window.define = undefined;
+          try { window.require = undefined; } catch(e) {}
           var script = document.createElement('script');
-          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js';
+          script.src = JSPDF_URLS[idx];
           script.onload = function() {
             window.define = _define;
+            try { window.require = _require; } catch(e) {}
             if (window.jspdf) { jspdfReady.value = true; resolve(); }
-            else { jspdfError.value = 'jsPDF not available'; reject(); }
+            else { tryLoadScript(idx + 1).then(resolve, reject); }
           };
           script.onerror = function() {
             window.define = _define;
-            jspdfError.value = 'Failed to load jsPDF';
-            reject();
+            try { window.require = _require; } catch(e) {}
+            tryLoadScript(idx + 1).then(resolve, reject);
           };
           document.head.appendChild(script);
         });
