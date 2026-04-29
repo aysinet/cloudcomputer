@@ -1,0 +1,26 @@
+{
+  "id": "english-cards",
+  "name": "English Cards",
+  "icon": "🃏",
+  "color": "linear-gradient(135deg,#6c5ce7,#a29bfe)",
+  "type": "internal",
+  "size": { "w": 520, "h": 620 },
+  "global": false,
+  "category": "tools",
+  "description": "İngilizce kelime kartları ile öğrenme uygulaması",
+  "lang": {
+    "tr": { "name": "İngilizce Kartlar", "description": "1000 kelime ile İngilizce kelime kartları" },
+    "en": { "name": "English Cards", "description": "Learn English with 1000 flashcards" },
+    "de": { "name": "Englisch-Karten", "description": "Englisch lernen mit 1000 Karteikarten" },
+    "fr": { "name": "Cartes Anglais", "description": "Apprendre l'anglais avec 1000 cartes" },
+    "es": { "name": "Tarjetas Inglés", "description": "Aprende inglés con 1000 tarjetas" },
+    "ru": { "name": "Английские карточки", "description": "Учите английский с 1000 карточками" },
+    "zh": { "name": "英语卡片", "description": "用1000张卡片学英语" },
+    "ja": { "name": "英語カード", "description": "1000枚のカードで英語を学ぶ" },
+    "it": { "name": "Carte Inglese", "description": "Impara l'inglese con 1000 carte" },
+    "ar": { "name": "بطاقات إنجليزية", "description": "تعلم الإنجليزية مع 1000 بطاقة" },
+    "ko": { "name": "영어 카드", "description": "1000장의 카드로 영어 배우기" },
+    "hi": { "name": "अंग्रेजी कार्ड", "description": "1000 कार्ड से अंग्रेजी सीखें" },
+    "pt": { "name": "Cartas Inglês", "description": "Aprenda inglês com 1000 cartões" }
+  }
+}

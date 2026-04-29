@@ -1,0 +1,78 @@
+<div class="pt-root">
+  <!-- Main Grid -->
+  <div class="pt-grid">
+    <!-- Period labels -->
+    <div v-for="p in 7" :key="'p'+p" class="pt-period-label" :style="{gridRow:p+1, gridColumn:1}">{{p}}</div>
+    <!-- Group labels -->
+    <div v-for="g in 18" :key="'g'+g" class="pt-group-label" :style="{gridRow:1, gridColumn:g+1}">{{g}}</div>
+    <!-- Lanthanide/Actinide indicators -->
+    <div class="pt-cell pt-indicator cat-la" :style="{gridRow:7, gridColumn:4}" @click="highlighted = highlighted==='la' ? null : 'la'">57-71</div>
+    <div class="pt-cell pt-indicator cat-ac" :style="{gridRow:8, gridColumn:4}" @click="highlighted = highlighted==='ac' ? null : 'ac'">89-103</div>
+    <!-- Lanthanide/Actinide row labels -->
+    <div class="pt-la-label" :style="{gridRow:10, gridColumn:'1 / 4'}">{{t.lanthanides}}</div>
+    <div class="pt-la-label" :style="{gridRow:11, gridColumn:'1 / 4'}">{{t.actinides}}</div>
+    <!-- Element cells -->
+    <div v-for="el in elements" :key="el.z"
+         class="pt-cell" :class="['cat-'+el.c, {active: selected && selected.z===el.z, dimmed: highlighted && highlighted!==el.c}]"
+         :style="{gridRow:el.r+1, gridColumn:el.k+1}"
+         @click="select(el)"
+         @mouseenter="highlighted=el.c"
+         @mouseleave="highlighted=null"
+         :title="trName(el.s)+' ('+el.n+')'">
+      <span class="pt-z">{{el.z}}</span>
+      <span class="pt-sym">{{el.s}}</span>
+      <span class="pt-mass">{{el.m}}</span>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="pt-legend">
+    <div v-for="(info, code) in CATS" :key="code" class="pt-legend-item"
+         :class="{active: highlighted===code}"
+         @mouseenter="highlighted=code" @mouseleave="highlighted=null">
+      <span class="pt-legend-color" :style="{background: info.color}"></span>
+      <span class="pt-legend-text">{{info.name}}</span>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div v-if="selected" class="pt-overlay" @click.self="close">
+    <div class="pt-detail" :style="{'--cat-color': catInfo(selected.c).color}">
+      <button class="pt-detail-close" @click="close">✕</button>
+      <div class="pt-detail-header">
+        <div class="pt-detail-symbol" :style="{background: catInfo(selected.c).color}">{{selected.s}}</div>
+        <div class="pt-detail-title">
+          <div class="pt-detail-name">{{trName(selected.s)}}</div>
+          <div class="pt-detail-en">{{selected.n}}</div>
+        </div>
+        <div class="pt-detail-number">#{{selected.z}}</div>
+      </div>
+      <div class="pt-detail-grid">
+        <div class="pt-detail-item">
+          <span class="pt-detail-label">{{t.atomicMass}}</span>
+          <span class="pt-detail-value">{{selected.m}} u</span>
+        </div>
+        <div class="pt-detail-item">
+          <span class="pt-detail-label">{{t.category}}</span>
+          <span class="pt-detail-value" :style="{color: catInfo(selected.c).color}">{{catInfo(selected.c).name}}</span>
+        </div>
+        <div class="pt-detail-item">
+          <span class="pt-detail-label">{{t.period}}</span>
+          <span class="pt-detail-value">{{period(selected)}}</span>
+        </div>
+        <div class="pt-detail-item">
+          <span class="pt-detail-label">{{t.group}}</span>
+          <span class="pt-detail-value">{{group(selected) || '—'}}</span>
+        </div>
+        <div class="pt-detail-item">
+          <span class="pt-detail-label">{{t.phase}}</span>
+          <span class="pt-detail-value">{{phaseLabel(selected.p)}}</span>
+        </div>
+        <div class="pt-detail-item pt-detail-wide">
+          <span class="pt-detail-label">{{t.electronConfig}}</span>
+          <span class="pt-detail-value pt-detail-ec">{{selected.ec}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

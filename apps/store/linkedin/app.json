@@ -1,0 +1,68 @@
+{
+  "id": "linkedin",
+  "name": "LinkedIn",
+  "icon": "💼",
+  "color": "linear-gradient(135deg,#0a66c2,#004182)",
+  "type": "internal",
+  "size": {
+    "w": 420,
+    "h": 260
+  },
+  "global": false,
+  "category": "social",
+  "description": "LinkedIn profesyonel ağ platformu",
+  "lang": {
+    "tr": {
+      "name": "LinkedIn",
+      "description": "LinkedIn profesyonel ağ platformu"
+    },
+    "en": {
+      "name": "LinkedIn",
+      "description": "LinkedIn professional networking platform"
+    },
+    "de": {
+      "name": "LinkedIn",
+      "description": "LinkedIn professionelles Netzwerk"
+    },
+    "fr": {
+      "name": "LinkedIn",
+      "description": "Plateforme de réseau professionnel LinkedIn"
+    },
+    "es": {
+      "name": "LinkedIn",
+      "description": "Plataforma de red profesional LinkedIn"
+    },
+    "ru": {
+      "name": "LinkedIn",
+      "description": "Профессиональная сеть LinkedIn"
+    },
+    "zh": {
+      "name": "领英",
+      "description": "LinkedIn职业社交平台"
+    },
+    "ja": {
+      "name": "LinkedIn",
+      "description": "LinkedInプロフェッショナルネットワーク"
+    },
+    "it": {
+      "name": "LinkedIn",
+      "description": "Piattaforma di rete professionale LinkedIn"
+    },
+    "ar": {
+      "name": "لينكد إن",
+      "description": "منصة الشبكة المهنية لينكد إن"
+    },
+    "ko": {
+      "name": "링크드인",
+      "description": "LinkedIn 전문 네트워킹 플랫폼"
+    },
+    "hi": {
+      "name": "लिंक्डइन",
+      "description": "LinkedIn पेशेवर नेटवर्किंग प्लेटफ़ॉर्म"
+    },
+    "pt": {
+      "name": "LinkedIn",
+      "description": "Plataforma de rede profissional LinkedIn"
+    }
+  }
+}

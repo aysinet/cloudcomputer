@@ -41,16 +41,32 @@ const IS_DOCKER = process.env.IS_DOCKER === 'true';
 const INSTANCE_ID = process.env.INSTANCE_ID || 'default';
 
 // ── Volume placeholder resolution for Docker sub-containers ──
+const APPDATA_HOST_DIR = path.join(__dirname, 'data', 'appdata');
+ensureDir(APPDATA_HOST_DIR);
+
 function resolveVolumes(volumes, appId) {
   if (!Array.isArray(volumes)) return volumes;
   const volumeVars = {
     DATA_VOLUME: `cloudpc-${INSTANCE_ID}-data`,
-    APP_VOLUME: `cloudpc-${INSTANCE_ID}-${appId}`
+    APP_VOLUME: `cloudpc-${INSTANCE_ID}-${appId}`,
+    APPDATA_DIR: path.join(APPDATA_HOST_DIR, appId).replace(/\\/g, '/')
   };
   return volumes.map(v => {
     if (typeof v !== 'string') return v;
-    return v.replace(/\$\{(DATA_VOLUME|APP_VOLUME)\}/g, (_, key) => volumeVars[key] || _);
+    return v.replace(/\$\{(DATA_VOLUME|APP_VOLUME|APPDATA_DIR)\}/g, (_, key) => volumeVars[key] || _);
   });
+}
+
+// Seed default config files from store app into appdata if not present
+function seedAppConfigs(appId) {
+  const appDir = path.join(STORE_DIR, appId);
+  const dataDir = path.join(APPDATA_HOST_DIR, appId);
+  const srcConfig = path.join(appDir, 'config.json');
+  const dstConfig = path.join(dataDir, 'config.json');
+  if (fs.existsSync(srcConfig) && !fs.existsSync(dstConfig)) {
+    ensureDir(dataDir);
+    fs.copyFileSync(srcConfig, dstConfig);
+  }
 }
 
 // ── Resolve cmd template from installConfig; returns null if any var missing ──
@@ -1058,7 +1074,10 @@ app.post('/api/docker/run', authMiddleware, async (req, res) => {
   if (!/^[a-zA-Z0-9_\-./]+:[a-zA-Z0-9_.\-]*$|^[a-zA-Z0-9_\-./]+$/.test(image)) return res.status(400).json({ error: 'Invalid image name' });
   if (!/^[a-zA-Z0-9_-]+$/.test(appId)) return res.status(400).json({ error: 'Invalid appId' });
 
-  // Resolve volume placeholders (${DATA_VOLUME}, ${APP_VOLUME}) to instance-specific names
+  // Seed default config files from store app
+  seedAppConfigs(appId);
+
+  // Resolve volume placeholders (${DATA_VOLUME}, ${APP_VOLUME}, ${APPDATA_DIR}) to instance-specific names
   const resolvedVolumes = resolveVolumes(volumes, appId);
 
   try {
@@ -3632,6 +3651,251 @@ function startReminderChecker() {
   }, REMINDER_CHECK_INTERVAL);
 }
 
+// ── Scheduler System ──
+function getSchedulerPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'scheduler.json');
+}
+function getSchedulerLogPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'scheduler_log.json');
+}
+function getUserScheduler(username) {
+  const fp = getSchedulerPath(username);
+  if (!fs.existsSync(fp)) return [];
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return []; }
+}
+function saveUserScheduler(username, data) {
+  fs.writeFileSync(getSchedulerPath(username), JSON.stringify(data, null, 2));
+}
+function getSchedulerLog(username, taskId) {
+  const fp = getSchedulerLogPath(username);
+  if (!fs.existsSync(fp)) return [];
+  try {
+    const all = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+    return (all[taskId] || []).slice(-50);
+  } catch { return []; }
+}
+function appendSchedulerLog(username, taskId, entry) {
+  const fp = getSchedulerLogPath(username);
+  let all = {};
+  try { if (fs.existsSync(fp)) all = JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch {}
+  if (!all[taskId]) all[taskId] = [];
+  all[taskId].push(entry);
+  if (all[taskId].length > 50) all[taskId] = all[taskId].slice(-50);
+  fs.writeFileSync(fp, JSON.stringify(all, null, 2));
+}
+
+// Scheduler CRUD
+app.get('/api/scheduler', authMiddleware, (req, res) => {
+  res.json(getUserScheduler(req.user.username));
+});
+
+app.post('/api/scheduler', authMiddleware, (req, res) => {
+  const { name, datetime, repeat, actionType, actionData } = req.body;
+  if (!name || !datetime) return res.status(400).json({ error: 'name and datetime required' });
+  const tasks = getUserScheduler(req.user.username);
+  const task = {
+    id: crypto.randomUUID(),
+    name: String(name).slice(0, 200),
+    datetime,
+    repeat: repeat || '',
+    actionType: actionType || 'notify',
+    actionData: actionData || {},
+    enabled: true,
+    createdAt: Date.now(),
+    lastTriggered: null
+  };
+  tasks.push(task);
+  saveUserScheduler(req.user.username, tasks);
+  res.json(task);
+});
+
+app.put('/api/scheduler/:id', authMiddleware, (req, res) => {
+  const tasks = getUserScheduler(req.user.username);
+  const idx = tasks.findIndex(t => t.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ error: 'Not found' });
+  const allowed = ['name', 'datetime', 'repeat', 'actionType', 'actionData', 'enabled'];
+  for (const key of allowed) {
+    if (req.body[key] !== undefined) tasks[idx][key] = req.body[key];
+  }
+  saveUserScheduler(req.user.username, tasks);
+  res.json(tasks[idx]);
+});
+
+app.delete('/api/scheduler/:id', authMiddleware, (req, res) => {
+  let tasks = getUserScheduler(req.user.username);
+  tasks = tasks.filter(t => t.id !== req.params.id);
+  saveUserScheduler(req.user.username, tasks);
+  res.json({ ok: true });
+});
+
+app.get('/api/scheduler/:id/log', authMiddleware, (req, res) => {
+  const log = getSchedulerLog(req.user.username, req.params.id);
+  res.json(log);
+});
+
+app.post('/api/scheduler/:id/run', authMiddleware, (req, res) => {
+  const tasks = getUserScheduler(req.user.username);
+  const task = tasks.find(t => t.id === req.params.id);
+  if (!task) return res.status(404).json({ error: 'Not found' });
+  executeSchedulerTask(req.user.username, task, tasks);
+  res.json({ ok: true });
+});
+
+async function executeSchedulerTask(username, task, allTasks) {
+  const now = new Date();
+  let success = true;
+  let result = '';
+
+  try {
+    if (task.actionType === 'notify') {
+      // Send notification
+      const notif = {
+        id: crypto.randomUUID(),
+        icon: '📅',
+        bg: '#f0f0ff',
+        title: (task.actionData && task.actionData.title) || task.name,
+        text: (task.actionData && task.actionData.text) || task.name,
+        time: now.toISOString(),
+        read: false,
+        createdAt: now.getTime(),
+        action: { app: 'scheduler' }
+      };
+      addNotificationToDb(username, notif);
+      wsClients.forEach(ws => {
+        if (ws.readyState !== 1) return;
+        if (ws.user && ws.user.username === username) {
+          ws.send(JSON.stringify({ type: 'notification', data: notif }));
+        }
+      });
+      result = 'Notification sent';
+
+    } else if (task.actionType === 'app') {
+      // Send WS event to open app on client
+      const appId = task.actionData && task.actionData.appId;
+      if (appId) {
+        wsClients.forEach(ws => {
+          if (ws.readyState !== 1) return;
+          if (ws.user && ws.user.username === username) {
+            ws.send(JSON.stringify({ type: 'scheduler-open-app', data: { appId: appId } }));
+          }
+        });
+        // Also send notification
+        const notif = {
+          id: crypto.randomUUID(),
+          icon: '📂',
+          bg: '#e8f5e9',
+          title: '📅 ' + task.name,
+          text: 'App launched: ' + appId,
+          time: now.toISOString(),
+          read: false,
+          createdAt: now.getTime(),
+          action: { app: appId }
+        };
+        addNotificationToDb(username, notif);
+        wsClients.forEach(ws => {
+          if (ws.readyState !== 1) return;
+          if (ws.user && ws.user.username === username) {
+            ws.send(JSON.stringify({ type: 'notification', data: notif }));
+          }
+        });
+        result = 'App opened: ' + appId;
+      } else {
+        success = false;
+        result = 'No appId set';
+      }
+
+    } else if (task.actionType === 'webhook') {
+      const url = task.actionData && task.actionData.url;
+      if (!url) { success = false; result = 'No webhook URL'; }
+      else {
+        try {
+          const parsedUrl = new URL(url);
+          const isHttps = parsedUrl.protocol === 'https:';
+          const lib = isHttps ? require('https') : require('http');
+          const method = (task.actionData.method || 'POST').toUpperCase();
+          const extraHeaders = task.actionData.headers || {};
+          const bodyStr = (method !== 'GET' && method !== 'HEAD' && task.actionData.body) ? task.actionData.body : null;
+          const options = {
+            hostname: parsedUrl.hostname,
+            port: parsedUrl.port || (isHttps ? 443 : 80),
+            path: parsedUrl.pathname + parsedUrl.search,
+            method: method,
+            headers: Object.assign({ 'Content-Type': 'application/json' }, extraHeaders),
+            timeout: 15000
+          };
+          if (bodyStr) options.headers['Content-Length'] = Buffer.byteLength(bodyStr);
+          const webhookResult = await new Promise((resolve, reject) => {
+            const r = lib.request(options, (res) => {
+              let data = '';
+              res.on('data', chunk => data += chunk);
+              res.on('end', () => resolve({ status: res.statusCode, statusMessage: res.statusMessage }));
+            });
+            r.on('error', (e) => reject(e));
+            r.on('timeout', () => { r.destroy(); reject(new Error('Timeout')); });
+            if (bodyStr) r.write(bodyStr);
+            r.end();
+          });
+          result = 'HTTP ' + webhookResult.status + ' ' + webhookResult.statusMessage;
+          if (webhookResult.status >= 400) success = false;
+        } catch (e) {
+          success = false;
+          result = 'Webhook error: ' + e.message;
+        }
+      }
+    }
+  } catch (e) {
+    success = false;
+    result = 'Error: ' + e.message;
+  }
+
+  // Update task
+  task.lastTriggered = now.getTime();
+  if (task.repeat && task.enabled) {
+    task.datetime = computeNextOccurrence(task.datetime, task.repeat, 0);
+  } else if (!task.repeat) {
+    task.enabled = false;
+  }
+  saveUserScheduler(username, allTasks);
+
+  // Log
+  appendSchedulerLog(username, task.id, { time: now.toISOString(), success, result });
+}
+
+// Periodic scheduler check — every 60 seconds
+function startSchedulerChecker() {
+  setInterval(() => {
+    try {
+      if (!fs.existsSync(DATA_DIR)) return;
+      const userDirs = fs.readdirSync(DATA_DIR, { withFileTypes: true });
+      const now = new Date();
+      for (const d of userDirs) {
+        if (!d.isDirectory()) continue;
+        const fp = path.join(DATA_DIR, d.name, 'scheduler.json');
+        if (!fs.existsSync(fp)) continue;
+        let tasks;
+        try { tasks = JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { continue; }
+        if (!Array.isArray(tasks)) continue;
+        let changed = false;
+        for (const task of tasks) {
+          if (!task.enabled) continue;
+          const triggerTime = new Date(task.datetime);
+          if (triggerTime > now) continue;
+          if (task.lastTriggered && (now.getTime() - task.lastTriggered) < 120000) continue;
+          changed = true;
+          executeSchedulerTask(d.name, task, tasks);
+        }
+        // Save handled by executeSchedulerTask
+      }
+    } catch (e) { console.error('Scheduler check error:', e.message); }
+  }, 60 * 1000);
+}
+
 // ── ETH Wallet ──
 function getWalletPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -6100,5 +6364,6 @@ server.listen(config.server.port, config.server.host, () => {
   console.log(`WebSocket endpoint: ws://${config.server.host}:${config.server.port}/ws`);
   startRssChecker();
   startReminderChecker();
+  startSchedulerChecker();
   startMailChecker();
 });

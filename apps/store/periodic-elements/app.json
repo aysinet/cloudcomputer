@@ -1,0 +1,29 @@
+{
+  "id": "periodic-elements",
+  "name": "Periodic Table",
+  "icon": "⚛️",
+  "color": "linear-gradient(135deg,#1a1a2e,#16213e)",
+  "type": "internal",
+  "size": {
+    "w": 1150,
+    "h": 750
+  },
+  "global": false,
+  "category": "tools",
+  "description": "Periyodik element tablosu",
+  "lang": {
+    "tr": { "name": "Periyodik Tablo", "description": "Tüm elementlerin yer aldığı interaktif periyodik tablo" },
+    "en": { "name": "Periodic Table", "description": "Interactive periodic table of all elements" },
+    "de": { "name": "Periodensystem", "description": "Interaktives Periodensystem der Elemente" },
+    "fr": { "name": "Tableau Périodique", "description": "Tableau périodique interactif des éléments" },
+    "es": { "name": "Tabla Periódica", "description": "Tabla periódica interactiva de los elementos" },
+    "ru": { "name": "Периодическая таблица", "description": "Интерактивная периодическая таблица элементов" },
+    "zh": { "name": "元素周期表", "description": "交互式元素周期表" },
+    "ja": { "name": "周期表", "description": "インタラクティブ周期表" },
+    "it": { "name": "Tavola Periodica", "description": "Tavola periodica interattiva degli elementi" },
+    "ar": { "name": "الجدول الدوري", "description": "الجدول الدوري التفاعلي للعناصر" },
+    "ko": { "name": "주기율표", "description": "대화형 원소 주기율표" },
+    "hi": { "name": "आवर्त सारणी", "description": "तत्वों की इंटरैक्टिव आवर्त सारणी" },
+    "pt": { "name": "Tabela Periódica", "description": "Tabela periódica interativa dos elementos" }
+  }
+}

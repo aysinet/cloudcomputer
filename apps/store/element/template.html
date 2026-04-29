@@ -1,0 +1,48 @@
+<div class="element-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="element-status-screen">
+    <div class="element-spinner"></div>
+    <div class="element-icon-large">💬</div>
+    <div class="element-status-text">{{ pullProgress }}</div>
+    <div class="element-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="element-status-screen">
+    <div class="element-spinner"></div>
+    <div class="element-icon-large">💬</div>
+    <div class="element-status-text">Element başlatılıyor...</div>
+    <div class="element-sub-text">Docker container hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="element-status-screen element-error">
+    <div class="element-icon-large">⚠️</div>
+    <div class="element-status-text">Bir hata oluştu</div>
+    <div class="element-error-msg">{{ errorMsg }}</div>
+    <div class="element-actions">
+      <button class="element-btn element-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="element-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="element-running">
+    <div class="element-toolbar">
+      <span class="element-info">💬 Element — Port: {{ port }}</span>
+      <div class="element-toolbar-actions">
+        <button class="element-btn element-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="element-btn element-btn-small element-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="element-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="element-status-screen">
+    <div class="element-icon-large">💬</div>
+    <div class="element-status-text">Element Messenger</div>
+    <div class="element-sub-text">Matrix protokolü tabanlı güvenli mesajlaşma</div>
+    <button class="element-btn element-btn-primary element-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

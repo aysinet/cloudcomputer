@@ -35,6 +35,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .desktop-icon{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:8px;border-radius:8px;transition:.15s;width:80px;user-select:none}
 .desktop-icon:hover{background:rgba(255,255,255,.12)}
 .desktop-icon:active{background:rgba(255,255,255,.2);transform:scale(.95)}
+.desktop-icon.dragging{opacity:.35;transform:scale(.92)}
+.desktop-icon.drag-over{background:rgba(100,130,255,.25);box-shadow:inset 0 0 0 2px rgba(100,130,255,.55);border-radius:8px}
 .icon-img{width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:26px;border-radius:12px}
 .icon-label{color:#fff;font-size:11px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.8);line-height:1.3;max-width:72px;height:2.6em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;word-break:break-word}
 .taskbar{height:48px;background:rgba(15,15,30,.92);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 8px;gap:6px;z-index:9000;flex-shrink:0}
@@ -215,13 +217,17 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 </head>
 <body>
 <div id="app">
-  <div class="desktop" :style="desktopStyle" @contextmenu.self.prevent="hideIconCtx()">
+  <div class="desktop" :style="desktopStyle" @contextmenu.self.prevent="showDesktopCtx($event)" @click.self="hideDesktopCtx();hideIconCtx()">
     <div class="wallpaper-grid"></div>
-    <div class="desktop-icons">
-      <div v-for="app in desktopApps" :key="app.id" class="desktop-icon" @click="openApp(app)" @contextmenu.prevent="showIconCtx($event, app)">
+    <div class="desktop-icons" @dragover.prevent @drop.self="onIconDrop($event,-1)">
+      <div v-for="(app,idx) in desktopApps" :key="app.id" class="desktop-icon" :class="{'dragging':dragState.dragging&&dragState.appId===app.id,'drag-over':dragState.overIdx===idx&&dragState.appId!==app.id}" draggable="true" @dragstart="onIconDragStart($event,app,idx)" @dragenter.prevent="onIconDragEnter(idx)" @dragover.prevent @drop.stop="onIconDrop($event,idx)" @dragend="onIconDragEnd" @click="openApp(app)" @contextmenu.prevent="showIconCtx($event, app)">
         <div class="icon-img" :style="{background:app.color}">{{app.icon}}</div>
         <span class="icon-label" :title="appName(app)">{{appName(app)}}</span>
       </div>
+    </div>
+    <!-- Desktop Context Menu -->
+    <div v-if="desktopCtx.show" class="icon-ctx" :style="{left:desktopCtx.x+'px',top:desktopCtx.y+'px'}" @click.stop>
+      <div class="icon-ctx-item" @click="arrangeIcons()">📐 {{t('ctxArrange')}}</div>
     </div>
     <!-- Icon Context Menu -->
     <div v-if="iconCtx.show" ref="iconCtxEl" class="icon-ctx" :style="{left:iconCtx.x+'px',top:iconCtx.y+'px'}" @click.stop>
@@ -1942,10 +1948,10 @@ Object.assign(I18N.ru, { screenshot:'Снимок экрана', ssSelectRegion:
 Object.assign(I18N.zh, { screenshot:'截图', ssSelectRegion:'选择区域', ssCopied:'已复制到剪贴板', ssOpenPaint:'已在画板中打开', ssCancelled:'已取消' });
 Object.assign(I18N.ja, { screenshot:'スクリーンショット', ssSelectRegion:'領域を選択', ssCopied:'クリップボードにコピーしました', ssOpenPaint:'ペイントで開きました', ssCancelled:'キャンセルしました' });
 Object.assign(I18N.it, { screenshot:'Cattura schermo', ssSelectRegion:'Seleziona area', ssCopied:'Copiato negli appunti', ssOpenPaint:'Aperto in Paint', ssCancelled:'Annullato' });
-Object.assign(I18N.ar, { screenshot:'لقطة شاشة', ssSelectRegion:'حدد المنطقة', ssCopied:'تم النسخ إلى الحافظة', ssOpenPaint:'تم الفتح في الرسام', ssCancelled:'تم الإلغاء' });
-Object.assign(I18N.ko, { screenshot:'스크린샷', ssSelectRegion:'영역 선택', ssCopied:'클립보드에 복사됨', ssOpenPaint:'페인트에서 열림', ssCancelled:'취소됨' });
-Object.assign(I18N.hi, { screenshot:'स्क्रीनशॉट', ssSelectRegion:'क्षेत्र चुनें', ssCopied:'क्लिपबोर्ड में कॉपी किया गया', ssOpenPaint:'पेंट में खोला गया', ssCancelled:'रद्द किया गया' });
-Object.assign(I18N.pt, { screenshot:'Captura de Tela', ssSelectRegion:'Selecionar região', ssCopied:'Copiado para a área de transferência', ssOpenPaint:'Aberto no Paint', ssCancelled:'Cancelado' });
+Object.assign(I18N.ar, { screenshot:'لقطة شاشة', ssSelectRegion:'حدد المنطقة', ssCopied:'تم النسخ إلى الحافظة', ssOpenPaint:'تم الفتح في الرسام', ssCancelled:'تم الإلغاء', ctxArrange:'ترتيب الرموز' });
+Object.assign(I18N.ko, { screenshot:'스크린샷', ssSelectRegion:'영역 선택', ssCopied:'클립보드에 복사됨', ssOpenPaint:'페인트에서 열림', ssCancelled:'취소됨', ctxArrange:'아이콘 정렬' });
+Object.assign(I18N.hi, { screenshot:'स्क्रीनशॉट', ssSelectRegion:'क्षेत्र चुनें', ssCopied:'क्लिपबोर्ड में कॉपी किया गया', ssOpenPaint:'पेंट में खोला गया', ssCancelled:'रद्द किया गया', ctxArrange:'आइकन व्यवस्थित करें' });
+Object.assign(I18N.pt, { screenshot:'Captura de Tela', ssSelectRegion:'Selecionar região', ssCopied:'Copiado para a área de transferência', ssOpenPaint:'Aberto no Paint', ssCancelled:'Cancelado', ctxArrange:'Organizar ícones' });
 
 const LANG_OPTIONS = [
   { code: 'tr', label: 'Türkçe', flag: '🇹🇷' },
@@ -1968,7 +1974,7 @@ function getIntlLocale() { return LOCALE_MAP[useSettingsStore().locale] || 'tr-T
 
 // ── Extended I18N keys ──
 Object.assign(I18N.tr, {
-  ctxOpen:'Aç', ctxMove:'Taşı', ctxCopy:'Kopyala', ctxDesktop:'Masaüstü', ctxRemove:'Masaüstünden Kaldır', ctxAddDesktop:'Masaüstüne Ekle', ctxLogout:'Çıkış Yap',
+  ctxOpen:'Aç', ctxMove:'Taşı', ctxCopy:'Kopyala', ctxDesktop:'Masaüstü', ctxRemove:'Masaüstünden Kaldır', ctxAddDesktop:'Masaüstüne Ekle', ctxArrange:'Simgeleri Düzenle', ctxLogout:'Çıkış Yap',
   start:'Başlat', fullscreen:'Tam Ekran', fullscreenExit:'Tam Ekrandan Çık',
   notepadClear:'Temizle', notepadCopy:'Kopyala', notepadPlaceholder:'Yazmaya başlayın...', notepadChars:'karakter', notepadWords:'kelime',
   todoTitle:'Görev Listesi', todoCompleted:'tamamlandı', todoPlaceholder:'Yeni görev ekle...', todoAdd:'Ekle', todoEmpty:'Henüz görev yok 🎉',
@@ -1995,7 +2001,7 @@ Object.assign(I18N.tr, {
     contactsFav:'Favorilere Ekle', contactsFaved:'Favorilerde', contactsCount:'kişi', contactsPickContact:'Kişilerden Seç'
 });
 Object.assign(I18N.en, {
-  ctxOpen:'Open', ctxMove:'Move', ctxCopy:'Copy', ctxDesktop:'Desktop', ctxRemove:'Remove from Desktop', ctxAddDesktop:'Add to Desktop', ctxLogout:'Log Out',
+  ctxOpen:'Open', ctxMove:'Move', ctxCopy:'Copy', ctxDesktop:'Desktop', ctxRemove:'Remove from Desktop', ctxAddDesktop:'Add to Desktop', ctxArrange:'Arrange Icons', ctxLogout:'Log Out',
   start:'Start', fullscreen:'Fullscreen', fullscreenExit:'Exit Fullscreen',
   notepadClear:'Clear', notepadCopy:'Copy', notepadPlaceholder:'Start typing...', notepadChars:'characters', notepadWords:'words',
   todoTitle:'To-Do List', todoCompleted:'completed', todoPlaceholder:'Add new task...', todoAdd:'Add', todoEmpty:'No tasks yet 🎉',
@@ -2020,7 +2026,7 @@ Object.assign(I18N.en, {
     contactsFav:'Add to Favorites', contactsFaved:'Favorited', contactsCount:'contacts', contactsPickContact:'Pick from Contacts'
 });
 Object.assign(I18N.de, {
-  ctxOpen:'Öffnen', ctxMove:'Verschieben', ctxCopy:'Kopieren', ctxDesktop:'Desktop', ctxRemove:'Vom Desktop entfernen', ctxAddDesktop:'Zum Desktop hinzufügen', ctxLogout:'Abmelden',
+  ctxOpen:'Öffnen', ctxMove:'Verschieben', ctxCopy:'Kopieren', ctxDesktop:'Desktop', ctxRemove:'Vom Desktop entfernen', ctxAddDesktop:'Zum Desktop hinzufügen', ctxArrange:'Symbole anordnen', ctxLogout:'Abmelden',
   start:'Start', fullscreen:'Vollbild', fullscreenExit:'Vollbild beenden',
   notepadClear:'Löschen', notepadCopy:'Kopieren', notepadPlaceholder:'Schreiben Sie...', notepadChars:'Zeichen', notepadWords:'Wörter',
   todoTitle:'Aufgabenliste', todoCompleted:'erledigt', todoPlaceholder:'Neue Aufgabe...', todoAdd:'Hinzufügen', todoEmpty:'Noch keine Aufgaben 🎉',
@@ -2045,7 +2051,7 @@ Object.assign(I18N.de, {
     contactsFav:'Zu Favoriten', contactsFaved:'Favorisiert', contactsCount:'Kontakte', contactsPickContact:'Aus Kontakten wählen'
 });
 Object.assign(I18N.fr, {
-  ctxOpen:'Ouvrir', ctxMove:'Déplacer', ctxCopy:'Copier', ctxDesktop:'Bureau', ctxRemove:'Retirer du bureau', ctxAddDesktop:'Ajouter au bureau', ctxLogout:'Déconnexion',
+  ctxOpen:'Ouvrir', ctxMove:'Déplacer', ctxCopy:'Copier', ctxDesktop:'Bureau', ctxRemove:'Retirer du bureau', ctxAddDesktop:'Ajouter au bureau', ctxArrange:'Réorganiser les icônes', ctxLogout:'Déconnexion',
   start:'Démarrer', fullscreen:'Plein écran', fullscreenExit:'Quitter le plein écran',
   notepadClear:'Effacer', notepadCopy:'Copier', notepadPlaceholder:'Commencez à écrire...', notepadChars:'caractères', notepadWords:'mots',
   todoTitle:'Liste de tâches', todoCompleted:'terminées', todoPlaceholder:'Ajouter une tâche...', todoAdd:'Ajouter', todoEmpty:'Aucune tâche 🎉',
@@ -2070,7 +2076,7 @@ Object.assign(I18N.fr, {
     contactsFav:'Ajouter aux favoris', contactsFaved:'Favori', contactsCount:'contacts', contactsPickContact:'Choisir un contact'
 });
 Object.assign(I18N.es, {
-  ctxOpen:'Abrir', ctxMove:'Mover', ctxCopy:'Copiar', ctxDesktop:'Escritorio', ctxRemove:'Quitar del escritorio', ctxAddDesktop:'Añadir al escritorio', ctxLogout:'Cerrar sesión',
+  ctxOpen:'Abrir', ctxMove:'Mover', ctxCopy:'Copiar', ctxDesktop:'Escritorio', ctxRemove:'Quitar del escritorio', ctxAddDesktop:'Añadir al escritorio', ctxArrange:'Organizar iconos', ctxLogout:'Cerrar sesión',
   start:'Inicio', fullscreen:'Pantalla completa', fullscreenExit:'Salir de pantalla completa',
   notepadClear:'Limpiar', notepadCopy:'Copiar', notepadPlaceholder:'Empiece a escribir...', notepadChars:'caracteres', notepadWords:'palabras',
   todoTitle:'Lista de tareas', todoCompleted:'completadas', todoPlaceholder:'Añadir tarea...', todoAdd:'Añadir', todoEmpty:'Sin tareas aún 🎉',
@@ -2095,7 +2101,7 @@ Object.assign(I18N.es, {
     contactsFav:'Añadir a favoritos', contactsFaved:'Favorito', contactsCount:'contactos', contactsPickContact:'Elegir de contactos'
 });
 Object.assign(I18N.ru, {
-  ctxOpen:'Открыть', ctxMove:'Переместить', ctxCopy:'Копировать', ctxDesktop:'Рабочий стол', ctxRemove:'Удалить с рабочего стола', ctxAddDesktop:'Добавить на рабочий стол', ctxLogout:'Выйти',
+  ctxOpen:'Открыть', ctxMove:'Переместить', ctxCopy:'Копировать', ctxDesktop:'Рабочий стол', ctxRemove:'Удалить с рабочего стола', ctxAddDesktop:'Добавить на рабочий стол', ctxArrange:'Упорядочить значки', ctxLogout:'Выйти',
   start:'Пуск', fullscreen:'Полный экран', fullscreenExit:'Выйти из полного экрана',
   notepadClear:'Очистить', notepadCopy:'Копировать', notepadPlaceholder:'Начните вводить...', notepadChars:'символов', notepadWords:'слов',
   todoTitle:'Список задач', todoCompleted:'выполнено', todoPlaceholder:'Добавить задачу...', todoAdd:'Добавить', todoEmpty:'Задач пока нет 🎉',
@@ -2120,7 +2126,7 @@ Object.assign(I18N.ru, {
     contactsFav:'В избранное', contactsFaved:'В избранном', contactsCount:'контактов', contactsPickContact:'Выбрать из контактов'
 });
 Object.assign(I18N.zh, {
-  ctxOpen:'打开', ctxMove:'移动', ctxCopy:'复制', ctxDesktop:'桌面', ctxRemove:'从桌面移除', ctxAddDesktop:'添加到桌面', ctxLogout:'注销',
+  ctxOpen:'打开', ctxMove:'移动', ctxCopy:'复制', ctxDesktop:'桌面', ctxRemove:'从桌面移除', ctxAddDesktop:'添加到桌面', ctxArrange:'排列图标', ctxLogout:'注销',
   start:'开始', fullscreen:'全屏', fullscreenExit:'退出全屏',
   notepadClear:'清除', notepadCopy:'复制', notepadPlaceholder:'开始输入...', notepadChars:'字符', notepadWords:'字',
   todoTitle:'待办事项', todoCompleted:'已完成', todoPlaceholder:'添加新任务...', todoAdd:'添加', todoEmpty:'暂无任务 🎉',
@@ -2145,7 +2151,7 @@ Object.assign(I18N.zh, {
     contactsFav:'添加收藏', contactsFaved:'已收藏', contactsCount:'位联系人', contactsPickContact:'从联系人选择'
 });
 Object.assign(I18N.ja, {
-  ctxOpen:'開く', ctxMove:'移動', ctxCopy:'コピー', ctxDesktop:'デスクトップ', ctxRemove:'デスクトップから削除', ctxAddDesktop:'デスクトップに追加', ctxLogout:'ログアウト',
+  ctxOpen:'開く', ctxMove:'移動', ctxCopy:'コピー', ctxDesktop:'デスクトップ', ctxRemove:'デスクトップから削除', ctxAddDesktop:'デスクトップに追加', ctxArrange:'アイコンの整列', ctxLogout:'ログアウト',
   start:'スタート', fullscreen:'全画面', fullscreenExit:'全画面終了',
   notepadClear:'クリア', notepadCopy:'コピー', notepadPlaceholder:'入力を開始...', notepadChars:'文字', notepadWords:'語',
   todoTitle:'ToDoリスト', todoCompleted:'完了', todoPlaceholder:'新しいタスクを追加...', todoAdd:'追加', todoEmpty:'タスクはまだありません 🎉',
@@ -2170,7 +2176,7 @@ Object.assign(I18N.ja, {
     contactsFav:'お気に入りに追加', contactsFaved:'お気に入り', contactsCount:'件の連絡先', contactsPickContact:'連絡先から選択'
 });
 Object.assign(I18N.it, {
-  ctxOpen:'Apri', ctxMove:'Sposta', ctxCopy:'Copia', ctxDesktop:'Scrivania', ctxRemove:'Rimuovi dal desktop', ctxAddDesktop:'Aggiungi al desktop', ctxLogout:'Esci',
+  ctxOpen:'Apri', ctxMove:'Sposta', ctxCopy:'Copia', ctxDesktop:'Scrivania', ctxRemove:'Rimuovi dal desktop', ctxAddDesktop:'Aggiungi al desktop', ctxArrange:'Disponi icone', ctxLogout:'Esci',
   start:'Avvia', fullscreen:'Schermo intero', fullscreenExit:'Esci da schermo intero',
   notepadClear:'Cancella', notepadCopy:'Copia', notepadPlaceholder:'Inizia a scrivere...', notepadChars:'caratteri', notepadWords:'parole',
   todoTitle:'Lista attività', todoCompleted:'completate', todoPlaceholder:'Aggiungi attività...', todoAdd:'Aggiungi', todoEmpty:'Nessuna attività 🎉',
@@ -4199,6 +4205,9 @@ createApp({
     const openWindows = ref([]);
     const currentDesktop = ref(1);
     const iconDesktopMap = ref(JSON.parse(localStorage.getItem('iconDesktopMap') || '{}'));
+    const iconOrderMap = ref(JSON.parse(localStorage.getItem('iconOrderMap') || '{}'));
+    const dragState = ref({ dragging: false, appId: null, fromIdx: -1, overIdx: -1 });
+    const desktopCtx = ref({ show: false, x: 0, y: 0 });
     const iconCtx = ref({ show: false, x: 0, y: 0, app: null });
     const iconCtxEl = ref(null);
     const menuOpen = ref(false);
@@ -4212,6 +4221,7 @@ createApp({
     let skipFocusEvent = false;
 
     function saveIconMap() { localStorage.setItem('iconDesktopMap', JSON.stringify(iconDesktopMap.value)); }
+    function saveIconOrder() { localStorage.setItem('iconOrderMap', JSON.stringify(iconOrderMap.value)); }
 
     function getIconDesktops(appId) {
       const mapped = iconDesktopMap.value[appId];
@@ -4224,13 +4234,62 @@ createApp({
     }
 
     const desktopPriority = ['appstore', 'browser', 'settings'];
-    const desktopApps = computed(() => apps.value.filter(a => isIconOnDesktop(a.id, currentDesktop.value)).sort((a, b) => {
+    function defaultIconSort(a, b) {
       const ai = desktopPriority.indexOf(a.id), bi = desktopPriority.indexOf(b.id);
       if (ai !== -1 && bi !== -1) return ai - bi;
       if (ai !== -1) return -1;
       if (bi !== -1) return 1;
       return 0;
-    }));
+    }
+    const desktopApps = computed(() => {
+      const filtered = apps.value.filter(a => isIconOnDesktop(a.id, currentDesktop.value));
+      const savedOrder = iconOrderMap.value[currentDesktop.value];
+      if (savedOrder && savedOrder.length) {
+        const om = {};
+        savedOrder.forEach((id, i) => om[id] = i);
+        return filtered.sort((a, b) => {
+          const ai = om[a.id] !== undefined ? om[a.id] : 9999;
+          const bi = om[b.id] !== undefined ? om[b.id] : 9999;
+          if (ai !== bi) return ai - bi;
+          return defaultIconSort(a, b);
+        });
+      }
+      return filtered.sort(defaultIconSort);
+    });
+
+    // ── Drag & Drop icon reordering ──
+    function onIconDragStart(e, app, idx) {
+      dragState.value = { dragging: true, appId: app.id, fromIdx: idx, overIdx: -1 };
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', app.id);
+      hideIconCtx(); hideDesktopCtx();
+    }
+    function onIconDragEnter(idx) { dragState.value.overIdx = idx; }
+    function onIconDragLeave() {}
+    function onIconDrop(e, targetIdx) {
+      e.preventDefault();
+      const { appId, fromIdx } = dragState.value;
+      if (!appId || fromIdx === -1 || targetIdx === -1 || fromIdx === targetIdx) { onIconDragEnd(); return; }
+      const ids = desktopApps.value.map(a => a.id);
+      ids.splice(fromIdx, 1);
+      ids.splice(targetIdx, 0, appId);
+      iconOrderMap.value[currentDesktop.value] = ids;
+      saveIconOrder();
+      onIconDragEnd();
+    }
+    function onIconDragEnd() { dragState.value = { dragging: false, appId: null, fromIdx: -1, overIdx: -1 }; }
+
+    // ── Desktop context menu ──
+    function showDesktopCtx(e) {
+      hideIconCtx();
+      desktopCtx.value = { show: true, x: e.clientX, y: e.clientY };
+    }
+    function hideDesktopCtx() { desktopCtx.value.show = false; }
+    function arrangeIcons() {
+      delete iconOrderMap.value[currentDesktop.value];
+      saveIconOrder();
+      hideDesktopCtx();
+    }
 
     function showIconCtx(e, app) {
       iconCtx.value = { show: true, x: e.clientX, y: e.clientY, app };
@@ -4695,6 +4754,9 @@ createApp({
       if (iconCtx.value.show && !t.closest('.icon-ctx')) {
         iconCtx.value.show = false;
       }
+      if (desktopCtx.value.show && !t.closest('.icon-ctx')) {
+        desktopCtx.value.show = false;
+      }
       if (smCtx.value.show && !t.closest('.icon-ctx')) {
         smCtx.value.show = false;
       }
@@ -4750,6 +4812,10 @@ createApp({
           }
           if (msg.type === 'reminder-alert' && msg.data) {
             showReminderAlert(msg.data);
+          }
+          if (msg.type === 'scheduler-open-app' && msg.data && msg.data.appId) {
+            const schApp = apps.value.find(a => a.id === msg.data.appId);
+            if (schApp) openApp(schApp);
           }
         } catch {}
       };
@@ -5039,7 +5105,7 @@ createApp({
       ssCapturedCanvas = null;
     }
 
-    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, iconCtxEl, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, removeFromDesktop, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, smCtx, smCtxEl, showSmCtx, hideSmCtx, addToDesktop, doLogout, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture, smSearch, smFinderIdx, smSearchResults, smFinderDown, smFinderUp, smFinderEnter, showKeyboardTray: computed(() => settingsStore.showKeyboardTray), showMagnifierTray: computed(() => settingsStore.showMagnifierTray) };
+    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, iconCtxEl, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, removeFromDesktop, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, smCtx, smCtxEl, showSmCtx, hideSmCtx, addToDesktop, doLogout, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture, smSearch, smFinderIdx, smSearchResults, smFinderDown, smFinderUp, smFinderEnter, showKeyboardTray: computed(() => settingsStore.showKeyboardTray), showMagnifierTray: computed(() => settingsStore.showMagnifierTray), dragState, desktopCtx, onIconDragStart, onIconDragEnter, onIconDragLeave, onIconDrop, onIconDragEnd, showDesktopCtx, hideDesktopCtx, arrangeIcons };
   }
 }).use(pinia).use(ElementPlus, EP_LOCALES[localStorage.getItem('sys_locale') || 'tr'] || EP_LOCALES.en).mount('#app');
 

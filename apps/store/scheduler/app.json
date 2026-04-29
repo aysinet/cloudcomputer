@@ -1,0 +1,71 @@
+{
+  "id": "scheduler",
+  "name": "Zamanlayıcı",
+  "icon": "📅",
+  "color": "linear-gradient(135deg,#667eea,#764ba2)",
+  "type": "internal",
+  "size": {
+    "w": 600,
+    "h": 520,
+    "minWidth": 560,
+    "minHeight": 480
+  },
+  "hasStyle": true,
+  "global": false,
+  "description": "Zamanlayıcı — uygulama çalıştırma, webhook gönderme, bildirim zamanlama",
+  "lang": {
+    "tr": {
+      "name": "Zamanlayıcı",
+      "description": "Zamanlayıcı — uygulama çalıştırma, webhook gönderme, bildirim zamanlama"
+    },
+    "en": {
+      "name": "Scheduler",
+      "description": "Scheduler — run apps, send webhooks, schedule notifications"
+    },
+    "de": {
+      "name": "Planer",
+      "description": "Planer — Apps ausführen, Webhooks senden, Benachrichtigungen planen"
+    },
+    "fr": {
+      "name": "Planificateur",
+      "description": "Planificateur — lancer des apps, envoyer des webhooks, planifier des notifications"
+    },
+    "es": {
+      "name": "Programador",
+      "description": "Programador — ejecutar apps, enviar webhooks, programar notificaciones"
+    },
+    "ru": {
+      "name": "Планировщик",
+      "description": "Планировщик — запуск приложений, отправка вебхуков, планирование уведомлений"
+    },
+    "zh": {
+      "name": "调度器",
+      "description": "调度器 — 运行应用、发送Webhook、计划通知"
+    },
+    "ja": {
+      "name": "スケジューラ",
+      "description": "スケジューラ — アプリ実行、Webhook送信、通知のスケジュール"
+    },
+    "it": {
+      "name": "Pianificatore",
+      "description": "Pianificatore — avviare app, inviare webhook, pianificare notifiche"
+    },
+    "ar": {
+      "name": "المجدول",
+      "description": "المجدول — تشغيل التطبيقات، إرسال Webhooks، جدولة الإشعارات"
+    },
+    "ko": {
+      "name": "스케줄러",
+      "description": "스케줄러 — 앱 실행, 웹훅 전송, 알림 예약"
+    },
+    "hi": {
+      "name": "शेड्यूलर",
+      "description": "शेड्यूलर — ऐप चलाएं, वेबहुक भेजें, अधिसूचना शेड्यूल करें"
+    },
+    "pt": {
+      "name": "Agendador",
+      "description": "Agendador — executar apps, enviar webhooks, agendar notificações"
+    }
+  },
+  "category": "productivity"
+}

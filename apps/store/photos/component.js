@@ -81,9 +81,97 @@
       deleteCollection:'Удалить коллекцию', renameCollection:'Переименовать',
       confirmDelete:'Вы уверены, что хотите удалить это фото?'
     },
-    zh: { upload: 'Upload', searchPlaceholder: 'Search (name, tag)...', allPhotos: 'All Photos', uploaded: 'Uploaded', fromUrl: 'From URL', categories: 'Categories', collections: 'Collections', newCategory: 'New Category', newCollection: 'New Collection', emptyText: 'No photos yet — Upload or add from URL', rotation: 'Rotation', reset: 'Reset', category: 'Category', tags: 'Tags', addTag: 'Add tag...', delete: 'Delete', rotateLeft: 'Rotate Left', rotateRight: 'Rotate Right', info: 'Info', add: 'Add', cancel: 'Cancel', addToCollection: 'Add to Collection', slideshow: 'Slideshow', urlPlaceholder: 'Paste image URL (jpg, png, webp...)', library: 'Library', newCategoryTitle: 'New Category', newCollectionTitle: 'New Collection', categoryPlaceholder: 'Category name...', collectionPlaceholder: 'Collection name...', deleteCollection: 'Delete Collection', renameCollection: 'Rename', confirmDelete: 'Are you sure you want to delete this photo?' },
-    ja: { upload: 'Upload', searchPlaceholder: 'Search (name, tag)...', allPhotos: 'All Photos', uploaded: 'Uploaded', fromUrl: 'From URL', categories: 'Categories', collections: 'Collections', newCategory: 'New Category', newCollection: 'New Collection', emptyText: 'No photos yet — Upload or add from URL', rotation: 'Rotation', reset: 'Reset', category: 'Category', tags: 'Tags', addTag: 'Add tag...', delete: 'Delete', rotateLeft: 'Rotate Left', rotateRight: 'Rotate Right', info: 'Info', add: 'Add', cancel: 'Cancel', addToCollection: 'Add to Collection', slideshow: 'Slideshow', urlPlaceholder: 'Paste image URL (jpg, png, webp...)', library: 'Library', newCategoryTitle: 'New Category', newCollectionTitle: 'New Collection', categoryPlaceholder: 'Category name...', collectionPlaceholder: 'Collection name...', deleteCollection: 'Delete Collection', renameCollection: 'Rename', confirmDelete: 'Are you sure you want to delete this photo?' },
-    it: { upload: 'Upload', searchPlaceholder: 'Search (name, tag)...', allPhotos: 'All Photos', uploaded: 'Uploaded', fromUrl: 'From URL', categories: 'Categories', collections: 'Collections', newCategory: 'New Category', newCollection: 'New Collection', emptyText: 'No photos yet — Upload or add from URL', rotation: 'Rotation', reset: 'Reset', category: 'Category', tags: 'Tags', addTag: 'Add tag...', delete: 'Delete', rotateLeft: 'Rotate Left', rotateRight: 'Rotate Right', info: 'Info', add: 'Add', cancel: 'Cancel', addToCollection: 'Add to Collection', slideshow: 'Slideshow', urlPlaceholder: 'Paste image URL (jpg, png, webp...)', library: 'Library', newCategoryTitle: 'New Category', newCollectionTitle: 'New Collection', categoryPlaceholder: 'Category name...', collectionPlaceholder: 'Collection name...', deleteCollection: 'Delete Collection', renameCollection: 'Rename', confirmDelete: 'Are you sure you want to delete this photo?' }
+    zh: {
+      upload:'上传', searchPlaceholder:'搜索（名称、标签）...', allPhotos:'所有照片',
+      uploaded:'已上传', fromUrl:'从URL', categories:'分类', collections:'合集',
+      newCategory:'新建分类', newCollection:'新建合集', emptyText:'暂无照片 — 上传或从URL添加',
+      rotation:'旋转', reset:'重置', category:'分类', tags:'标签', addTag:'添加标签...',
+      delete:'删除', rotateLeft:'左旋', rotateRight:'右旋', info:'信息',
+      add:'添加', cancel:'取消', addToCollection:'添加到合集', slideshow:'幻灯片',
+      urlPlaceholder:'粘贴图片URL（jpg, png, webp...）', library:'图库',
+      newCategoryTitle:'新建分类', newCollectionTitle:'新建合集',
+      categoryPlaceholder:'分类名称...', collectionPlaceholder:'合集名称...',
+      deleteCollection:'删除合集', renameCollection:'重命名',
+      confirmDelete:'确定要删除这张照片吗？'
+    },
+    ja: {
+      upload:'アップロード', searchPlaceholder:'検索（名前、タグ）...', allPhotos:'すべての写真',
+      uploaded:'アップロード済み', fromUrl:'URLから', categories:'カテゴリ', collections:'コレクション',
+      newCategory:'新しいカテゴリ', newCollection:'新しいコレクション', emptyText:'写真がありません — アップロードまたはURLを追加',
+      rotation:'回転', reset:'リセット', category:'カテゴリ', tags:'タグ', addTag:'タグを追加...',
+      delete:'削除', rotateLeft:'左に回転', rotateRight:'右に回転', info:'情報',
+      add:'追加', cancel:'キャンセル', addToCollection:'コレクションに追加', slideshow:'スライドショー',
+      urlPlaceholder:'画像URLを貼り付け（jpg, png, webp...）', library:'ライブラリ',
+      newCategoryTitle:'新しいカテゴリ', newCollectionTitle:'新しいコレクション',
+      categoryPlaceholder:'カテゴリ名...', collectionPlaceholder:'コレクション名...',
+      deleteCollection:'コレクションを削除', renameCollection:'名前変更',
+      confirmDelete:'この写真を削除してもよいですか？'
+    },
+    it: {
+      upload:'Carica', searchPlaceholder:'Cerca (nome, tag)...', allPhotos:'Tutte le foto',
+      uploaded:'Caricate', fromUrl:'Da URL', categories:'Categorie', collections:'Collezioni',
+      newCategory:'Nuova categoria', newCollection:'Nuova collezione', emptyText:'Nessuna foto — Carica o aggiungi URL',
+      rotation:'Rotazione', reset:'Reimposta', category:'Categoria', tags:'Tag', addTag:'Aggiungi tag...',
+      delete:'Elimina', rotateLeft:'Ruota a sinistra', rotateRight:'Ruota a destra', info:'Info',
+      add:'Aggiungi', cancel:'Annulla', addToCollection:'Aggiungi alla collezione', slideshow:'Presentazione',
+      urlPlaceholder:'Incolla URL immagine (jpg, png, webp...)', library:'Libreria',
+      newCategoryTitle:'Nuova categoria', newCollectionTitle:'Nuova collezione',
+      categoryPlaceholder:'Nome categoria...', collectionPlaceholder:'Nome collezione...',
+      deleteCollection:'Elimina collezione', renameCollection:'Rinomina',
+      confirmDelete:'Sei sicuro di voler eliminare questa foto?'
+    },
+    ar: {
+      upload:'رفع', searchPlaceholder:'بحث (اسم، وسم)...', allPhotos:'جميع الصور',
+      uploaded:'المرفوعة', fromUrl:'من URL', categories:'الفئات', collections:'المجموعات',
+      newCategory:'فئة جديدة', newCollection:'مجموعة جديدة', emptyText:'لا توجد صور بعد — ارفع أو أضف URL',
+      rotation:'تدوير', reset:'إعادة تعيين', category:'الفئة', tags:'الوسوم', addTag:'إضافة وسم...',
+      delete:'حذف', rotateLeft:'تدوير لليسار', rotateRight:'تدوير لليمين', info:'معلومات',
+      add:'إضافة', cancel:'إلغاء', addToCollection:'إضافة للمجموعة', slideshow:'عرض شرائح',
+      urlPlaceholder:'لصق رابط الصورة (jpg, png, webp...)', library:'المكتبة',
+      newCategoryTitle:'فئة جديدة', newCollectionTitle:'مجموعة جديدة',
+      categoryPlaceholder:'اسم الفئة...', collectionPlaceholder:'اسم المجموعة...',
+      deleteCollection:'حذف المجموعة', renameCollection:'إعادة تسمية',
+      confirmDelete:'هل أنت متأكد من حذف هذه الصورة؟'
+    },
+    ko: {
+      upload:'업로드', searchPlaceholder:'검색 (이름, 태그)...', allPhotos:'모든 사진',
+      uploaded:'업로드됨', fromUrl:'URL에서', categories:'카테고리', collections:'컬렉션',
+      newCategory:'새 카테고리', newCollection:'새 컬렉션', emptyText:'사진 없음 — 업로드하거나 URL 추가',
+      rotation:'회전', reset:'초기화', category:'카테고리', tags:'태그', addTag:'태그 추가...',
+      delete:'삭제', rotateLeft:'왼쪽 회전', rotateRight:'오른쪽 회전', info:'정보',
+      add:'추가', cancel:'취소', addToCollection:'컬렉션에 추가', slideshow:'슬라이드쇼',
+      urlPlaceholder:'이미지 URL 붙여넣기 (jpg, png, webp...)', library:'라이브러리',
+      newCategoryTitle:'새 카테고리', newCollectionTitle:'새 컬렉션',
+      categoryPlaceholder:'카테고리 이름...', collectionPlaceholder:'컬렉션 이름...',
+      deleteCollection:'컬렉션 삭제', renameCollection:'이름 변경',
+      confirmDelete:'이 사진을 삭제하시겠습니까?'
+    },
+    hi: {
+      upload:'अपलोड', searchPlaceholder:'खोजें (नाम, टैग)...', allPhotos:'सभी फ़ोटो',
+      uploaded:'अपलोड किए गए', fromUrl:'URL से', categories:'श्रेणियाँ', collections:'संग्रह',
+      newCategory:'नई श्रेणी', newCollection:'नया संग्रह', emptyText:'अभी कोई फ़ोटो नहीं — अपलोड करें या URL जोड़ें',
+      rotation:'घुमाव', reset:'रीसेट', category:'श्रेणी', tags:'टैग', addTag:'टैग जोड़ें...',
+      delete:'हटाएं', rotateLeft:'बाएं घुमाएं', rotateRight:'दाएं घुमाएं', info:'जानकारी',
+      add:'जोड़ें', cancel:'रद्द करें', addToCollection:'संग्रह में जोड़ें', slideshow:'स्लाइडशो',
+      urlPlaceholder:'छवि URL चिपकाएं (jpg, png, webp...)', library:'लाइब्रेरी',
+      newCategoryTitle:'नई श्रेणी', newCollectionTitle:'नया संग्रह',
+      categoryPlaceholder:'श्रेणी का नाम...', collectionPlaceholder:'संग्रह का नाम...',
+      deleteCollection:'संग्रह हटाएं', renameCollection:'नाम बदलें',
+      confirmDelete:'क्या आप इस फ़ोटो को हटाना चाहते हैं?'
+    },
+    pt: {
+      upload:'Enviar', searchPlaceholder:'Pesquisar (nome, tag)...', allPhotos:'Todas as fotos',
+      uploaded:'Enviadas', fromUrl:'De URL', categories:'Categorias', collections:'Coleções',
+      newCategory:'Nova categoria', newCollection:'Nova coleção', emptyText:'Sem fotos ainda — Envie ou adicione URL',
+      rotation:'Rotação', reset:'Redefinir', category:'Categoria', tags:'Tags', addTag:'Adicionar tag...',
+      delete:'Excluir', rotateLeft:'Girar à esquerda', rotateRight:'Girar à direita', info:'Info',
+      add:'Adicionar', cancel:'Cancelar', addToCollection:'Adicionar à coleção', slideshow:'Apresentação',
+      urlPlaceholder:'Colar URL da imagem (jpg, png, webp...)', library:'Biblioteca',
+      newCategoryTitle:'Nova categoria', newCollectionTitle:'Nova coleção',
+      categoryPlaceholder:'Nome da categoria...', collectionPlaceholder:'Nome da coleção...',
+      deleteCollection:'Excluir coleção', renameCollection:'Renomear',
+      confirmDelete:'Tem certeza de que deseja excluir esta foto?'
+    }
   };
 
   function getLocale() {

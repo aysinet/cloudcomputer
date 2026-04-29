@@ -1,0 +1,61 @@
+<div class="ec-root">
+  <!-- Difficulty Selector -->
+  <div class="ec-header">
+    <span class="ec-title">🃏 {{ t('title') }}</span>
+    <div class="ec-diff-btns">
+      <button :class="{active: difficulty===0}" @click="setDifficulty(0)">{{ t('all') }}</button>
+      <button :class="{active: difficulty===1, easy: true}" @click="setDifficulty(1)">{{ t('1') }}</button>
+      <button :class="{active: difficulty===2, med: true}" @click="setDifficulty(2)">{{ t('2') }}</button>
+      <button :class="{active: difficulty===3, hard: true}" @click="setDifficulty(3)">{{ t('3') }}</button>
+      <button class="ec-shuffle" @click="shuffle" title="Shuffle">🔀</button>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="ec-progress">
+    <div class="ec-progress-bar" :style="{width: total ? ((idx+1)/total*100)+'%' : '0%'}"></div>
+  </div>
+  <div class="ec-stats">
+    <span class="ec-counter">{{ idx+1 }} {{ t('of') }} {{ total }}</span>
+    <span class="ec-score">
+      <span class="ec-known">✅ {{ known }}</span>
+      <span class="ec-unknown">❌ {{ unknown }}</span>
+    </span>
+  </div>
+
+  <!-- Card -->
+  <div class="ec-card-wrap" v-if="current" @click="flip">
+    <div class="ec-card" :class="{flipped: flipped}">
+      <div class="ec-face ec-front">
+        <div v-if="emoji" class="ec-emoji">{{ emoji }}</div>
+        <div class="ec-word-local">{{ localWord }}</div>
+        <div class="ec-diff-badge" :class="'diff-'+diffLevel">
+          {{ diffLevel === 1 ? t('1') : diffLevel === 2 ? t('2') : t('3') }}
+        </div>
+        <div class="ec-tap-hint">tap to flip</div>
+      </div>
+      <div class="ec-face ec-back">
+        <div class="ec-word-en">{{ enWord }}</div>
+        <div class="ec-diff-badge" :class="'diff-'+diffLevel">
+          {{ diffLevel === 1 ? t('1') : diffLevel === 2 ? t('2') : t('3') }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="ec-actions" v-if="current">
+    <button class="ec-btn ec-btn-unknown" @click.stop="markUnknown" :disabled="!!answered[idx]">❌ {{ t('unknown') }}</button>
+    <div class="ec-nav">
+      <button class="ec-btn ec-btn-nav" @click.stop="prev" :disabled="idx===0">◀</button>
+      <button class="ec-btn ec-btn-nav" @click.stop="next" :disabled="idx>=total-1">▶</button>
+    </div>
+    <button class="ec-btn ec-btn-known" @click.stop="markKnown" :disabled="!!answered[idx]">✅ {{ t('known') }}</button>
+  </div>
+
+  <!-- End screen -->
+  <div v-if="current && idx === total-1 && Object.keys(answered).length === total" class="ec-end">
+    <div class="ec-end-text">🎉 {{ known }} {{ t('of') }} {{ total }}</div>
+    <button class="ec-btn ec-btn-reset" @click="reset">🔄 {{ t('reset') }}</button>
+  </div>
+</div>

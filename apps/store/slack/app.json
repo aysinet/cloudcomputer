@@ -1,0 +1,29 @@
+{
+  "id": "slack",
+  "name": "Slack",
+  "icon": "💬",
+  "color": "linear-gradient(135deg,#611f69,#4a154b)",
+  "type": "internal",
+  "size": {
+    "w": 420,
+    "h": 260
+  },
+  "global": false,
+  "category": "social",
+  "description": "Slack ekip iletişim platformu",
+  "lang": {
+    "tr": { "name": "Slack", "description": "Ekip iletişim ve iş birliği platformu" },
+    "en": { "name": "Slack", "description": "Team communication and collaboration platform" },
+    "de": { "name": "Slack", "description": "Team-Kommunikations- und Kollaborationsplattform" },
+    "fr": { "name": "Slack", "description": "Plateforme de communication et collaboration d'équipe" },
+    "es": { "name": "Slack", "description": "Plataforma de comunicación y colaboración en equipo" },
+    "ru": { "name": "Slack", "description": "Платформа командного общения и совместной работы" },
+    "zh": { "name": "Slack", "description": "团队沟通与协作平台" },
+    "ja": { "name": "Slack", "description": "チームコミュニケーション＆コラボレーション" },
+    "it": { "name": "Slack", "description": "Piattaforma di comunicazione e collaborazione" },
+    "ar": { "name": "سلاك", "description": "منصة تواصل وتعاون الفريق" },
+    "ko": { "name": "슬랙", "description": "팀 커뮤니케이션 및 협업 플랫폼" },
+    "hi": { "name": "स्लैक", "description": "टीम संचार और सहयोग प्लेटफ़ॉर्म" },
+    "pt": { "name": "Slack", "description": "Plataforma de comunicação e colaboração em equipe" }
+  }
+}

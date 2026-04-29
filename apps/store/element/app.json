@@ -1,0 +1,76 @@
+{
+  "id": "element",
+  "name": "Element",
+  "icon": "💬",
+  "color": "linear-gradient(135deg,#0d9488,#0f766e)",
+  "type": "internal",
+  "size": {
+    "w": 1000,
+    "h": 720
+  },
+  "global": false,
+  "description": "Element Matrix mesajlaşma istemcisi",
+  "lang": {
+    "tr": {
+      "name": "Element Mesajlaşma",
+      "description": "Matrix protokolü tabanlı güvenli mesajlaşma uygulaması"
+    },
+    "en": {
+      "name": "Element Messenger",
+      "description": "Secure messaging app based on Matrix protocol"
+    },
+    "de": {
+      "name": "Element Messenger",
+      "description": "Sichere Messaging-App basierend auf dem Matrix-Protokoll"
+    },
+    "fr": {
+      "name": "Element Messagerie",
+      "description": "Application de messagerie sécurisée basée sur le protocole Matrix"
+    },
+    "es": {
+      "name": "Element Mensajería",
+      "description": "Aplicación de mensajería segura basada en el protocolo Matrix"
+    },
+    "ru": {
+      "name": "Element Мессенджер",
+      "description": "Безопасный мессенджер на основе протокола Matrix"
+    },
+    "zh": {
+      "name": "Element 消息",
+      "description": "基于 Matrix 协议的安全即时通讯应用"
+    },
+    "ja": {
+      "name": "Element メッセンジャー",
+      "description": "Matrixプロトコルに基づいたセキュアメッセージングアプリ"
+    },
+    "it": {
+      "name": "Element Messaggistica",
+      "description": "App di messaggistica sicura basata sul protocollo Matrix"
+    },
+    "ar": {
+      "name": "Element المراسلة",
+      "description": "تطبيق مراسلة آمن يعتمد على بروتوكول Matrix"
+    },
+    "ko": {
+      "name": "Element 메신저",
+      "description": "Matrix 프로토콜 기반 보안 메시징 앱"
+    },
+    "hi": {
+      "name": "Element मैसेंजर",
+      "description": "Matrix प्रोटोकॉल पर आधारित सुरक्षित मैसेजिंग ऐप"
+    },
+    "pt": {
+      "name": "Element Mensageiro",
+      "description": "Aplicativo de mensagens seguro baseado no protocolo Matrix"
+    }
+  },
+  "category": "social",
+  "proxyMode": "hpm",
+  "docker": {
+    "image": "vectorim/element-web",
+    "containerPort": 80,
+    "volumes": [
+      "${APPDATA_DIR}/config.json:/app/config.json"
+    ]
+  }
+}

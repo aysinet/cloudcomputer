@@ -1,0 +1,156 @@
+<div class="sch-app">
+  <!-- TOOLBAR -->
+  <div class="sch-toolbar">
+    <span class="sch-toolbar-title">📅 {{L('title')}}</span>
+    <div class="sch-toolbar-filters">
+      <button :class="['sch-filter-btn', filter==='all'&&'active']" @click="filter='all'">
+        {{L('filterAll')}} <span class="sch-badge">{{counts.all}}</span>
+      </button>
+      <button :class="['sch-filter-btn', filter==='active'&&'active']" @click="filter='active'">
+        {{L('filterActive')}} <span class="sch-badge">{{counts.active}}</span>
+      </button>
+      <button :class="['sch-filter-btn', filter==='disabled'&&'active']" @click="filter='disabled'">
+        {{L('filterDisabled')}} <span class="sch-badge">{{counts.disabled}}</span>
+      </button>
+    </div>
+    <button class="sch-add-btn" @click="openNew">＋ {{L('add')}}</button>
+  </div>
+
+  <!-- FORM PANEL -->
+  <div v-if="showForm" class="sch-form-panel">
+    <div class="sch-form-header">
+      <span>{{editingId ? L('edit') : L('add')}}</span>
+      <button class="sch-form-close" @click="resetForm">✕</button>
+    </div>
+    <div class="sch-form-body">
+      <div v-if="formError" class="sch-form-error">⚠ {{formError}}</div>
+      <!-- Task Name -->
+      <div class="sch-form-row">
+        <label>{{L('nameLabel')}}</label>
+        <input v-model="form.name" class="sch-input" maxlength="200" />
+      </div>
+      <!-- Date/Time -->
+      <div class="sch-form-row">
+        <label>{{L('dateTimeLabel')}}</label>
+        <input type="datetime-local" v-model="form.datetime" class="sch-input" />
+      </div>
+      <!-- Repeat -->
+      <div class="sch-form-row">
+        <label>{{L('repeatLabel')}}</label>
+        <select v-model="form.repeat" class="sch-input">
+          <option v-for="opt in repeatOptions" :key="opt.value" :value="opt.value">{{opt.label}}</option>
+        </select>
+      </div>
+      <!-- Action Type -->
+      <div class="sch-form-row">
+        <label>{{L('actionLabel')}}</label>
+        <div class="sch-action-tabs">
+          <button v-for="opt in actionOptions" :key="opt.value"
+            :class="['sch-action-tab', form.actionType===opt.value&&'active']"
+            @click="form.actionType=opt.value">{{opt.label}}</button>
+        </div>
+      </div>
+      <!-- Notify fields -->
+      <template v-if="form.actionType==='notify'">
+        <div class="sch-form-row">
+          <label>{{L('notifyTitle')}}</label>
+          <input v-model="form.notifyTitle" class="sch-input" maxlength="200" />
+        </div>
+        <div class="sch-form-row">
+          <label>{{L('notifyText')}}</label>
+          <textarea v-model="form.notifyText" class="sch-input sch-textarea" rows="2" maxlength="500"></textarea>
+        </div>
+      </template>
+      <!-- App fields -->
+      <template v-if="form.actionType==='app'">
+        <div class="sch-form-row">
+          <label>{{L('appSelect')}}</label>
+          <select v-model="form.appId" class="sch-input">
+            <option value="">—</option>
+            <option v-for="a in installedApps" :key="a.id" :value="a.id">{{a.icon}} {{a.name}}</option>
+          </select>
+        </div>
+      </template>
+      <!-- Webhook fields -->
+      <template v-if="form.actionType==='webhook'">
+        <div class="sch-form-row">
+          <label>{{L('webhookUrl')}}</label>
+          <input v-model="form.webhookUrl" class="sch-input" placeholder="https://..." />
+        </div>
+        <div class="sch-form-row">
+          <label>{{L('webhookMethod')}}</label>
+          <select v-model="form.webhookMethod" class="sch-input">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="PATCH">PATCH</option>
+            <option value="DELETE">DELETE</option>
+          </select>
+        </div>
+        <div class="sch-form-row">
+          <label>{{L('webhookHeaders')}}</label>
+          <input v-model="form.webhookHeaders" class="sch-input" placeholder='{"Authorization":"Bearer token"}' />
+        </div>
+        <div class="sch-form-row">
+          <label>{{L('webhookBody')}}</label>
+          <textarea v-model="form.webhookBody" class="sch-input sch-textarea" rows="3" placeholder='{"key":"value"}'></textarea>
+        </div>
+      </template>
+      <!-- Actions -->
+      <div class="sch-form-actions">
+        <button class="sch-btn sch-btn-primary" @click="saveTask">{{L('save')}}</button>
+        <button class="sch-btn sch-btn-secondary" @click="resetForm">{{L('cancel')}}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASK LIST -->
+  <div class="sch-list" v-if="filteredTasks.length && !showForm">
+    <div v-for="task in filteredTasks" :key="task.id" class="sch-card" :class="{disabled: !task.enabled}">
+      <div class="sch-card-left" @click="openEdit(task)">
+        <div class="sch-card-icon">{{actionIcon(task.actionType)}}</div>
+        <div class="sch-card-info">
+          <div class="sch-card-name">{{task.name}}</div>
+          <div class="sch-card-meta">
+            <span class="sch-card-time">🕐 {{formatDateTime(task.datetime)}}</span>
+            <span v-if="task.repeat" class="sch-card-repeat">🔁 {{repeatLabel(task)}}</span>
+          </div>
+          <div class="sch-card-action-summary">{{actionSummary(task)}}</div>
+        </div>
+      </div>
+      <div class="sch-card-right">
+        <button class="sch-card-btn run" @click.stop="runNow(task)" title="▶">▶</button>
+        <button class="sch-card-btn log" @click.stop="openHistory(task)" title="📋">📋</button>
+        <button class="sch-card-btn toggle" :class="{on: task.enabled}" @click.stop="toggleEnabled(task)">
+          {{task.enabled ? L('on') : L('off')}}
+        </button>
+        <button class="sch-card-btn delete" @click.stop="deleteTask(task.id)">🗑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPTY -->
+  <div v-if="!filteredTasks.length && !showForm" class="sch-empty">
+    <div class="sch-empty-icon">📅</div>
+    <div class="sch-empty-text">{{L('noTasks')}}</div>
+    <button class="sch-btn sch-btn-primary" @click="openNew">＋ {{L('add')}}</button>
+  </div>
+
+  <!-- LOG MODAL -->
+  <div v-if="showLog" class="sch-overlay" @click.self="closeLog">
+    <div class="sch-log-modal">
+      <div class="sch-log-header">
+        <span>📋 {{L('history')}} — {{logTask && logTask.name}}</span>
+        <button class="sch-form-close" @click="closeLog">✕</button>
+      </div>
+      <div class="sch-log-body">
+        <div v-if="!logEntries.length" class="sch-log-empty">{{L('logEmpty')}}</div>
+        <div v-for="(entry, i) in logEntries" :key="i" class="sch-log-entry" :class="{success: entry.success, failed: !entry.success}">
+          <div class="sch-log-time">{{formatDateTime(entry.time)}}</div>
+          <div class="sch-log-status">{{entry.success ? '✅ ' + L('success') : '❌ ' + L('failed')}}</div>
+          <div v-if="entry.result" class="sch-log-result">{{entry.result}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

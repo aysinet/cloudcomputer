@@ -1,0 +1,68 @@
+{
+  "id": "calendly",
+  "name": "Calendly",
+  "icon": "📅",
+  "color": "linear-gradient(135deg,#006bff,#0052cc)",
+  "type": "internal",
+  "size": {
+    "w": 420,
+    "h": 260
+  },
+  "global": false,
+  "category": "tools",
+  "description": "Calendly randevu planlama uygulaması",
+  "lang": {
+    "tr": {
+      "name": "Calendly",
+      "description": "Online randevu planlama uygulaması"
+    },
+    "en": {
+      "name": "Calendly",
+      "description": "Online appointment scheduling app"
+    },
+    "de": {
+      "name": "Calendly",
+      "description": "Online-Terminplanungs-App"
+    },
+    "fr": {
+      "name": "Calendly",
+      "description": "Application de planification de rendez-vous en ligne"
+    },
+    "es": {
+      "name": "Calendly",
+      "description": "Aplicación de programación de citas en línea"
+    },
+    "ru": {
+      "name": "Calendly",
+      "description": "Приложение для онлайн-планирования встреч"
+    },
+    "zh": {
+      "name": "Calendly",
+      "description": "在线预约安排应用"
+    },
+    "ja": {
+      "name": "Calendly",
+      "description": "オンライン予約スケジューリングアプリ"
+    },
+    "it": {
+      "name": "Calendly",
+      "description": "App di pianificazione appuntamenti online"
+    },
+    "ar": {
+      "name": "كالندلي",
+      "description": "تطبيق جدولة المواعيد عبر الإنترنت"
+    },
+    "ko": {
+      "name": "캘런들리",
+      "description": "온라인 일정 예약 앱"
+    },
+    "hi": {
+      "name": "कैलेंडली",
+      "description": "ऑनलाइन अपॉइंटमेंट शेड्यूलिंग ऐप"
+    },
+    "pt": {
+      "name": "Calendly",
+      "description": "Aplicativo de agendamento de compromissos online"
+    }
+  }
+}
