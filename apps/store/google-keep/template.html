@@ -1,0 +1,272 @@
+<div class="gk-root">
+  <!-- Toast -->
+  <div v-if="toast" class="gk-toast">{{toast}}</div>
+
+  <div class="gk-layout">
+    <!-- Sidebar -->
+    <div class="gk-sidebar">
+      <div class="gk-sb-item" :class="{active: filter==='all'}" @click="filter='all'">
+        <span class="gk-sb-icon">💡</span><span class="gk-sb-text">{{L('all')}}</span>
+      </div>
+      <div class="gk-sb-item" :class="{active: filter==='pinned'}" @click="filter='pinned'">
+        <span class="gk-sb-icon">📌</span><span class="gk-sb-text">{{L('pinned')}}</span>
+      </div>
+      <div class="gk-sb-divider"></div>
+      <!-- Labels -->
+      <div class="gk-sb-label-header">
+        <span class="gk-sb-text" style="opacity:.4;font-size:10px;text-transform:uppercase">{{L('labels')}}</span>
+      </div>
+      <div v-for="lbl in labels" :key="lbl" class="gk-sb-item" :class="{active: filter==='label:'+lbl}" @click="filter='label:'+lbl">
+        <span class="gk-sb-icon">🏷️</span><span class="gk-sb-text">{{lbl}}</span>
+      </div>
+      <div class="gk-sb-item" @click="labelDlg=true">
+        <span class="gk-sb-icon">✏️</span><span class="gk-sb-text">{{L('editLabels')}}</span>
+      </div>
+      <div class="gk-sb-divider"></div>
+      <div class="gk-sb-item" :class="{active: filter==='archived'}" @click="filter='archived'">
+        <span class="gk-sb-icon">📦</span><span class="gk-sb-text">{{L('archived')}}</span>
+      </div>
+      <div class="gk-sb-item" :class="{active: filter==='trash'}" @click="filter='trash'">
+        <span class="gk-sb-icon">🗑</span><span class="gk-sb-text">{{L('trash')}}</span>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="gk-main">
+      <!-- Toolbar -->
+      <div class="gk-toolbar">
+        <input class="gk-search" v-model="search" :placeholder="L('search')" />
+        <span style="flex:1"></span>
+        <button class="gk-tb-btn" @click="viewMode = viewMode==='grid' ? 'list' : 'grid'" :title="viewMode==='grid' ? L('listView') : L('gridView')">
+          {{viewMode==='grid' ? '☰' : '▦'}}
+        </button>
+      </div>
+
+      <!-- New Note Bar (only in all/pinned/label views) -->
+      <div v-if="filter!=='archived' && filter!=='trash'" class="gk-newbar-wrap">
+        <div v-if="!newBarExpanded" class="gk-newbar-collapsed" @click="expandNewBar(false)">
+          <span class="gk-newbar-placeholder">{{L('newNote')}}</span>
+          <span style="flex:1"></span>
+          <button class="gk-nb-icon" @click.stop="expandNewBar(true)" title="☑">☑</button>
+        </div>
+        <div v-else class="gk-newbar-expanded" :style="{background: getColor(newColor).bg, borderColor: getColor(newColor).border}">
+          <input class="gk-nb-title" v-model="newTitle" :placeholder="L('newTitle')" />
+          <!-- Text mode -->
+          <textarea v-if="!newIsChecklist" class="gk-nb-content" v-model="newContent" :placeholder="L('noteText')" rows="3"></textarea>
+          <!-- Checklist mode -->
+          <div v-if="newIsChecklist" class="gk-nb-checks">
+            <div v-for="(item,i) in newCheckItems" :key="i" class="gk-check-row">
+              <input type="checkbox" v-model="item.done" class="gk-check-cb" />
+              <input class="gk-check-text" v-model="item.text" :placeholder="L('addItem')" @keyup.enter="addNewCheckItem" />
+              <button class="gk-check-rm" @click="removeNewCheckItem(i)">✕</button>
+            </div>
+            <div class="gk-check-add-row">
+              <input class="gk-check-text" v-model="newItemText" :placeholder="'+ ' + L('addItem')" @keyup.enter="addNewCheckItem" />
+            </div>
+          </div>
+          <!-- Labels on note -->
+          <div v-if="newLabels.length" class="gk-nb-labels">
+            <span v-for="lbl in newLabels" :key="lbl" class="gk-note-label">{{lbl}}</span>
+          </div>
+          <!-- Bottom bar -->
+          <div class="gk-nb-bottom">
+            <button class="gk-nb-icon" @click="newIsChecklist=!newIsChecklist" :title="newIsChecklist ? L('text') : L('checklist')">{{newIsChecklist ? '📝' : '☑'}}</button>
+            <div class="gk-nb-colors">
+              <span v-for="c in NOTE_COLORS" :key="c.id" class="gk-color-dot" :class="{active: newColor===c.id}"
+                    :style="{background: c.bg, borderColor: c.border}" @click="newColor=c.id"></span>
+            </div>
+            <span style="flex:1"></span>
+            <button class="gk-nb-close" @click="createNote">{{L('save')}}</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trash actions -->
+      <div v-if="filter==='trash' && filteredNotes.length" class="gk-trash-bar">
+        <button class="gk-btn-danger" @click="emptyTrash">🗑 {{L('emptyTrashAction')}}</button>
+      </div>
+
+      <!-- Notes Grid/List -->
+      <div class="gk-notes-area">
+        <!-- Empty state -->
+        <div v-if="!filteredNotes.length" class="gk-empty">
+          <div class="gk-empty-icon">{{filter==='trash' ? '🗑' : filter==='archived' ? '📦' : '📝'}}</div>
+          <div>{{filter==='trash' ? L('emptyTrash') : filter==='archived' ? L('emptyArchive') : L('emptyNotes')}}</div>
+        </div>
+
+        <!-- Pinned section -->
+        <template v-if="showPinnedSection">
+          <div class="gk-section-label">📌 {{L('pinned')}}</div>
+          <div class="gk-grid" :class="{'gk-list-mode': viewMode==='list'}">
+            <div v-for="note in pinnedNotes" :key="note.id" class="gk-card"
+                 :style="{background: getColor(note.color).bg, borderColor: getColor(note.color).border}"
+                 @click="openEdit(note)">
+              <!-- Pin button -->
+              <button class="gk-card-pin" @click.stop="togglePin(note)" :title="note.pinned ? L('unpin') : L('pin')">📌</button>
+              <!-- Title -->
+              <div v-if="note.title" class="gk-card-title">{{note.title}}</div>
+              <!-- Content or checklist -->
+              <div v-if="!note.is_checklist && note.content" class="gk-card-content">{{noteContentPreview(note)}}</div>
+              <div v-if="note.is_checklist && note.check_items && note.check_items.length" class="gk-card-checks">
+                <div v-for="(item,i) in notePreview(note)" :key="i" class="gk-card-check-item" :class="{done: item.done}">
+                  <span class="gk-card-cb">{{item.done ? '☑' : '☐'}}</span>
+                  <span>{{item.text}}</span>
+                </div>
+                <div v-if="note.check_items.length > 6" class="gk-card-more">+{{note.check_items.length - 6}}</div>
+              </div>
+              <!-- Labels -->
+              <div v-if="note.labels && note.labels.length" class="gk-card-labels">
+                <span v-for="lbl in note.labels" :key="lbl" class="gk-note-label">{{lbl}}</span>
+              </div>
+              <!-- Actions -->
+              <div class="gk-card-actions" @click.stop>
+                <button class="gk-ca-btn" @click="openReminderDlg(note.id)" title="🔔">🔔</button>
+                <button class="gk-ca-btn" @click="colorPickerNoteId = colorPickerNoteId===note.id ? null : note.id" title="🎨">🎨</button>
+                <button class="gk-ca-btn" @click="labelPickerNoteId = labelPickerNoteId===note.id ? null : note.id" title="🏷️">🏷️</button>
+                <button class="gk-ca-btn" @click="archiveNote(note)" :title="L('archive')">📦</button>
+                <button class="gk-ca-btn" @click="duplicateNote(note)" :title="L('duplicate')">📋</button>
+                <button class="gk-ca-btn" @click="shareNote(note)" :title="L('shareNote')">📤</button>
+                <button class="gk-ca-btn" @click="trashNote(note)" :title="L('delete')">🗑</button>
+                <!-- Color picker popup -->
+                <div v-if="colorPickerNoteId===note.id" class="gk-color-popup" @click.stop>
+                  <span v-for="c in NOTE_COLORS" :key="c.id" class="gk-color-dot gk-color-dot-lg"
+                        :class="{active: note.color===c.id}" :style="{background: c.bg, borderColor: c.border}"
+                        @click="setNoteColor(note.id, c.id)"></span>
+                </div>
+                <!-- Label picker popup -->
+                <div v-if="labelPickerNoteId===note.id" class="gk-label-popup" @click.stop>
+                  <div v-for="lbl in labels" :key="lbl" class="gk-lp-item" @click="toggleNoteLabel(note.id, lbl)">
+                    <span>{{note.labels && note.labels.includes(lbl) ? '☑' : '☐'}}</span>
+                    <span>{{lbl}}</span>
+                  </div>
+                  <div v-if="!labels.length" class="gk-lp-empty">{{L('noLabels')}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="gk-section-label">{{L('others')}}</div>
+        </template>
+
+        <!-- Unpinned / main notes -->
+        <div class="gk-grid" :class="{'gk-list-mode': viewMode==='list'}">
+          <div v-for="note in (showPinnedSection ? unpinnedNotes : filteredNotes)" :key="note.id" class="gk-card"
+               :style="{background: getColor(note.color).bg, borderColor: getColor(note.color).border}"
+               @click="filter==='trash' ? null : openEdit(note)">
+            <!-- Pin / Trash actions -->
+            <button v-if="filter!=='trash'" class="gk-card-pin" :class="{active: note.pinned}" @click.stop="togglePin(note)">📌</button>
+            <div v-if="note.title" class="gk-card-title">{{note.title}}</div>
+            <div v-if="!note.is_checklist && note.content" class="gk-card-content">{{noteContentPreview(note)}}</div>
+            <div v-if="note.is_checklist && note.check_items && note.check_items.length" class="gk-card-checks">
+              <div v-for="(item,i) in notePreview(note)" :key="i" class="gk-card-check-item" :class="{done: item.done}"
+                   @click.stop="toggleCheckItem(note, i)">
+                <span class="gk-card-cb">{{item.done ? '☑' : '☐'}}</span>
+                <span>{{item.text}}</span>
+              </div>
+              <div v-if="note.check_items.length > 6" class="gk-card-more">+{{note.check_items.length - 6}}</div>
+            </div>
+            <div v-if="note.labels && note.labels.length" class="gk-card-labels">
+              <span v-for="lbl in note.labels" :key="lbl" class="gk-note-label">{{lbl}}</span>
+            </div>
+            <!-- Trash actions -->
+            <div v-if="filter==='trash'" class="gk-card-actions gk-card-actions-show" @click.stop>
+              <button class="gk-ca-btn" @click="restoreNote(note)" :title="L('restore')">♻️</button>
+              <button class="gk-ca-btn" @click="deleteForever(note)" :title="L('deleteForever')">❌</button>
+            </div>
+            <!-- Normal actions -->
+            <div v-else class="gk-card-actions" @click.stop>
+              <button class="gk-ca-btn" @click="openReminderDlg(note.id)" title="🔔">🔔</button>
+              <button class="gk-ca-btn" @click="colorPickerNoteId = colorPickerNoteId===note.id ? null : note.id" title="🎨">🎨</button>
+              <button class="gk-ca-btn" @click="labelPickerNoteId = labelPickerNoteId===note.id ? null : note.id" title="🏷️">🏷️</button>
+              <button class="gk-ca-btn" @click="archiveNote(note)" :title="note.archived ? L('unarchive') : L('archive')">📦</button>
+              <button class="gk-ca-btn" @click="duplicateNote(note)" :title="L('duplicate')">📋</button>
+              <button class="gk-ca-btn" @click="shareNote(note)" :title="L('shareNote')">📤</button>
+              <button class="gk-ca-btn" @click="trashNote(note)" :title="L('delete')">🗑</button>
+              <div v-if="colorPickerNoteId===note.id" class="gk-color-popup" @click.stop>
+                <span v-for="c in NOTE_COLORS" :key="c.id" class="gk-color-dot gk-color-dot-lg"
+                      :class="{active: note.color===c.id}" :style="{background: c.bg, borderColor: c.border}"
+                      @click="setNoteColor(note.id, c.id)"></span>
+              </div>
+              <div v-if="labelPickerNoteId===note.id" class="gk-label-popup" @click.stop>
+                <div v-for="lbl in labels" :key="lbl" class="gk-lp-item" @click="toggleNoteLabel(note.id, lbl)">
+                  <span>{{note.labels && note.labels.includes(lbl) ? '☑' : '☐'}}</span>
+                  <span>{{lbl}}</span>
+                </div>
+                <div v-if="!labels.length" class="gk-lp-empty">{{L('noLabels')}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Note Dialog -->
+  <div v-if="editDlg && editNote" class="gk-dialog-overlay" @click.self="saveEdit">
+    <div class="gk-dialog gk-edit-dialog" :style="{background: getColor(editNote.color).bg, borderColor: getColor(editNote.color).border}">
+      <input class="gk-edit-title" v-model="editNote.title" :placeholder="L('newTitle')" />
+      <!-- Text -->
+      <textarea v-if="!editNote.is_checklist" class="gk-edit-content" v-model="editNote.content" :placeholder="L('noteText')" rows="6"></textarea>
+      <!-- Checklist -->
+      <div v-if="editNote.is_checklist" class="gk-edit-checks">
+        <div v-for="(item,i) in editNote.check_items" :key="item.id || i" class="gk-check-row">
+          <input type="checkbox" v-model="item.done" class="gk-check-cb" />
+          <input class="gk-check-text gk-edit-check-input" v-model="item.text" :class="{done: item.done}" />
+          <button class="gk-check-rm" @click="removeEditCheckItem(i)">✕</button>
+        </div>
+        <button class="gk-add-check-btn" @click="addEditCheckItem">+ {{L('addItem')}}</button>
+      </div>
+      <!-- Labels -->
+      <div v-if="editNote.labels && editNote.labels.length" class="gk-edit-labels">
+        <span v-for="lbl in editNote.labels" :key="lbl" class="gk-note-label">{{lbl}}</span>
+      </div>
+      <!-- Bottom controls -->
+      <div class="gk-edit-bottom">
+        <button class="gk-nb-icon" @click="editNote.is_checklist=!editNote.is_checklist">{{editNote.is_checklist ? '📝' : '☑'}}</button>
+        <button class="gk-nb-icon" @click="togglePin(editNote)">{{editNote.pinned ? '📌' : '📍'}}</button>
+        <div class="gk-nb-colors">
+          <span v-for="c in NOTE_COLORS" :key="c.id" class="gk-color-dot" :class="{active: editNote.color===c.id}"
+                :style="{background: c.bg, borderColor: c.border}" @click="editNote.color=c.id"></span>
+        </div>
+        <span style="flex:1"></span>
+        <button class="gk-nb-close" @click="saveEdit">{{L('save')}}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Label Manager Dialog -->
+  <div v-if="labelDlg" class="gk-dialog-overlay" @click.self="labelDlg=false">
+    <div class="gk-dialog gk-label-dialog">
+      <div class="gk-dlg-title">🏷️ {{L('manageLabels')}}</div>
+      <div class="gk-label-add-row">
+        <input class="gk-label-input" v-model="labelInput" :placeholder="L('newLabel')" @keyup.enter="addLabel" />
+        <button class="gk-btn-sm" @click="addLabel">+</button>
+      </div>
+      <div class="gk-label-list">
+        <div v-for="lbl in labels" :key="lbl" class="gk-label-item">
+          <span class="gk-label-icon">🏷️</span>
+          <span class="gk-label-name">{{lbl}}</span>
+          <button class="gk-label-rm" @click="deleteLabel(lbl)">✕</button>
+        </div>
+        <div v-if="!labels.length" class="gk-label-empty">{{L('noLabels')}}</div>
+      </div>
+      <div class="gk-dlg-actions">
+        <button class="gk-btn-sm" @click="labelDlg=false">{{L('save')}}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reminder Dialog -->
+  <div v-if="reminderDlg" class="gk-dialog-overlay" @click.self="reminderDlg=false">
+    <div class="gk-dialog">
+      <div class="gk-dlg-title">🔔 {{L('addReminder')}}</div>
+      <div class="gk-field">
+        <label class="gk-field-label">{{L('reminderDate')}}</label>
+        <input class="gk-input" type="datetime-local" v-model="reminderDatetime" />
+      </div>
+      <div class="gk-dlg-actions">
+        <button class="gk-btn-sm" @click="reminderDlg=false">{{L('cancel')}}</button>
+        <button class="gk-btn-sm gk-btn-primary" @click="submitReminder">✓</button>
+      </div>
+    </div>
+  </div>
+</div>

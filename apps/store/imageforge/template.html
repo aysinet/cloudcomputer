@@ -1,0 +1,270 @@
+<div class="if-root" ref="rootRef" @click="closeMenu">
+  <!-- ─── TOP MENU BAR ─── -->
+  <div class="if-menubar">
+    <div class="if-menu-group">
+      <!-- File menu -->
+      <div class="if-menu-item" @click.stop="toggleMenu('file')">
+        <span class="if-menu-label">{{L('file')}}</span>
+        <div v-if="menuOpen==='file'" class="if-dropdown">
+          <div class="if-dd-item" @click="newCanvas">📄 {{L('newFile')}}</div>
+          <div class="if-dd-item" @click="openFile">📂 {{L('open')}}</div>
+          <div class="if-dd-item" @click="uploadFile">📤 {{L('upload')}}</div>
+          <div class="if-dd-sep"></div>
+          <div class="if-dd-item" @click="saveFile">💾 {{L('save')}} <span class="if-shortcut">Ctrl+S</span></div>
+          <div class="if-dd-item" @click="saveFileAs">📋 {{L('saveAs')}}</div>
+          <div class="if-dd-sep"></div>
+          <div class="if-dd-item" @click="downloadAs('png')">🖼️ {{L('exportPng')}}</div>
+          <div class="if-dd-item" @click="downloadAs('jpeg')">📷 {{L('exportJpeg')}}</div>
+        </div>
+      </div>
+      <!-- Edit menu -->
+      <div class="if-menu-item" @click.stop="toggleMenu('edit')">
+        <span class="if-menu-label">{{L('edit')}}</span>
+        <div v-if="menuOpen==='edit'" class="if-dropdown">
+          <div class="if-dd-item" :class="{disabled:!canUndo}" @click="undo">↩️ {{L('undo')}} <span class="if-shortcut">Ctrl+Z</span></div>
+          <div class="if-dd-item" :class="{disabled:!canRedo}" @click="redo">↪️ {{L('redo')}} <span class="if-shortcut">Ctrl+Y</span></div>
+          <div class="if-dd-sep"></div>
+          <div class="if-dd-item" @click="resetImage">🔄 {{L('reset')}}</div>
+          <div class="if-dd-sep"></div>
+          <div class="if-dd-item" @click="flipH">↔️ {{L('flipH')}}</div>
+          <div class="if-dd-item" @click="flipV">↕️ {{L('flipV')}}</div>
+        </div>
+      </div>
+      <!-- View menu -->
+      <div class="if-menu-item" @click.stop="toggleMenu('view')">
+        <span class="if-menu-label">{{L('view')}}</span>
+        <div v-if="menuOpen==='view'" class="if-dropdown">
+          <div class="if-dd-item" @click="zoomIn">🔍 {{L('zoomIn')}} <span class="if-shortcut">Ctrl++</span></div>
+          <div class="if-dd-item" @click="zoomOut">🔎 {{L('zoomOut')}} <span class="if-shortcut">Ctrl+-</span></div>
+          <div class="if-dd-item" @click="fitToScreen">📐 {{L('fitScreen')}}</div>
+          <div class="if-dd-item" @click="actualSize">📏 {{L('actualSize')}}</div>
+          <div class="if-dd-sep"></div>
+          <div class="if-dd-item" @click="showGrid=!showGrid">
+            <span>{{showGrid?'✅':'⬜'}} {{L('showGrid')}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Right side: filename + undo/redo -->
+    <div class="if-menubar-right">
+      <span v-if="currentFileName" class="if-filename">{{currentFileName}}</span>
+      <button class="if-tb-btn" @click="undo" :disabled="!canUndo" :title="L('undo')+' (Ctrl+Z)'">↩️</button>
+      <button class="if-tb-btn" @click="redo" :disabled="!canRedo" :title="L('redo')+' (Ctrl+Y)'">↪️</button>
+    </div>
+  </div>
+
+  <input type="file" ref="fileInput" accept="image/*" style="display:none" @change="onFileInput" />
+
+  <!-- ─── MAIN LAYOUT ─── -->
+  <div class="if-body">
+    <!-- LEFT PANEL: Tools -->
+    <div class="if-left-panel">
+      <div class="if-panel-title">{{L('tools')}}</div>
+      <div class="if-tools-list">
+        <button v-for="t in toolsList" :key="t.id"
+          :class="['if-tool-btn', activeTool===t.id&&'active']"
+          @click="t.id==='crop'?startCrop():activeTool=t.id"
+          :title="t.label">
+          <span class="if-tool-icon">{{t.icon}}</span>
+          <span class="if-tool-label">{{t.label}}</span>
+        </button>
+      </div>
+
+      <div class="if-panel-sep"></div>
+
+      <!-- Quick transforms -->
+      <div class="if-panel-title">{{L('transform')}}</div>
+      <div class="if-quick-actions">
+        <button class="if-qa-btn" @click="flipH" :title="L('flipH')">↔️</button>
+        <button class="if-qa-btn" @click="flipV" :title="L('flipV')">↕️</button>
+      </div>
+
+      <div class="if-panel-sep"></div>
+
+      <!-- Zoom -->
+      <div class="if-panel-title">{{L('zoom')}}</div>
+      <div class="if-zoom-ctrl">
+        <button class="if-qa-btn" @click="zoomOut">➖</button>
+        <input type="range" class="if-zoom-slider" :value="zoomLevel" @input="setZoom(+$event.target.value)" min="10" max="500" step="5" />
+        <button class="if-qa-btn" @click="zoomIn">➕</button>
+      </div>
+      <div class="if-zoom-val">{{zoomLevel}}%</div>
+      <div class="if-zoom-btns">
+        <button class="if-sm-btn" @click="fitToScreen">{{L('fitScreen')}}</button>
+        <button class="if-sm-btn" @click="actualSize">100%</button>
+      </div>
+    </div>
+
+    <!-- CENTER: Canvas -->
+    <div class="if-center"
+      ref="canvasWrap"
+      @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop"
+      @mousedown="onCanvasMouseDown" @wheel="onCanvasWheel"
+      :class="{'if-dragging':dragging, 'if-pan-cursor':activeTool==='pan'}">
+
+      <!-- Empty state -->
+      <div v-if="!hasImage" class="if-empty">
+        <div class="if-empty-icon">🖼️</div>
+        <div class="if-empty-text">{{L('dragDrop')}}</div>
+        <button class="if-empty-btn" @click="uploadFile">📤 {{L('upload')}}</button>
+      </div>
+
+      <!-- Canvas -->
+      <div v-show="hasImage" class="if-canvas-container" :style="canvasStyle">
+        <canvas ref="canvasRef" class="if-canvas"></canvas>
+        <!-- Grid overlay -->
+        <div v-if="showGrid" class="if-grid-overlay"></div>
+        <!-- Crop overlay -->
+        <div v-if="cropping" class="if-crop-overlay" :style="getCropOverlayStyle()"
+          @mousedown.stop="onCropMouseDown($event,'move')">
+          <div class="if-crop-handle if-crop-nw" @mousedown.stop="onCropMouseDown($event,'nw')"></div>
+          <div class="if-crop-handle if-crop-ne" @mousedown.stop="onCropMouseDown($event,'ne')"></div>
+          <div class="if-crop-handle if-crop-sw" @mousedown.stop="onCropMouseDown($event,'sw')"></div>
+          <div class="if-crop-handle if-crop-se" @mousedown.stop="onCropMouseDown($event,'se')"></div>
+          <div class="if-crop-info">{{cropRect.w}} × {{cropRect.h}}</div>
+        </div>
+      </div>
+
+      <!-- Crop toolbar -->
+      <div v-if="cropping" class="if-crop-bar">
+        <button class="if-crop-apply" @click="applyCrop">✅ {{L('applyCrop')}}</button>
+        <button class="if-crop-cancel" @click="cancelCrop">❌ {{L('cancelCrop')}}</button>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: Properties -->
+    <div class="if-right-panel">
+      <!-- Panel tabs -->
+      <div class="if-panel-tabs">
+        <button :class="['if-ptab', activePanel==='transform'&&'active']" @click="activePanel='transform'">{{L('transform')}}</button>
+        <button :class="['if-ptab', activePanel==='effects'&&'active']" @click="activePanel='effects'">{{L('effects')}}</button>
+      </div>
+
+      <!-- Transform panel -->
+      <div v-if="activePanel==='transform'" class="if-props-body">
+        <!-- Resize -->
+        <div class="if-prop-section">
+          <div class="if-prop-title">📐 {{L('resize')}}</div>
+          <div class="if-prop-row">
+            <label class="if-prop-label">{{L('width')}}</label>
+            <input type="number" class="if-prop-input" v-model.number="resizeW" @change="onResizeWChange" min="1" max="8000" />
+          </div>
+          <div class="if-prop-row">
+            <label class="if-prop-label">{{L('height')}}</label>
+            <input type="number" class="if-prop-input" v-model.number="resizeH" @change="onResizeHChange" min="1" max="8000" />
+          </div>
+          <label class="if-check-label">
+            <input type="checkbox" v-model="lockAspect" /> {{L('lockAspect')}}
+          </label>
+          <button class="if-apply-btn" @click="applyResize" :disabled="!hasImage">{{L('apply')}}</button>
+        </div>
+
+        <!-- Scale -->
+        <div class="if-prop-section">
+          <div class="if-prop-title">🔍 {{L('scale')}}</div>
+          <div class="if-prop-row">
+            <input type="range" class="if-range" v-model.number="scaleVal" min="10" max="400" step="5" />
+            <span class="if-range-val">{{scaleVal}}%</span>
+          </div>
+          <button class="if-apply-btn" @click="applyScale" :disabled="!hasImage">{{L('apply')}}</button>
+        </div>
+
+        <!-- Rotate -->
+        <div class="if-prop-section">
+          <div class="if-prop-title">🔄 {{L('rotate')}}</div>
+          <div class="if-prop-row">
+            <input type="range" class="if-range" v-model.number="rotateAngle" min="-180" max="180" step="1" />
+            <span class="if-range-val">{{rotateAngle}}°</span>
+          </div>
+          <button class="if-apply-btn" @click="applyRotate" :disabled="!hasImage">{{L('apply')}}</button>
+        </div>
+
+        <!-- Skew -->
+        <div class="if-prop-section">
+          <div class="if-prop-title">📐 {{L('skew')}}</div>
+          <div class="if-prop-row">
+            <label class="if-prop-label">X</label>
+            <input type="range" class="if-range" v-model.number="skewXVal" min="-45" max="45" step="1" />
+            <span class="if-range-val">{{skewXVal}}°</span>
+          </div>
+          <div class="if-prop-row">
+            <label class="if-prop-label">Y</label>
+            <input type="range" class="if-range" v-model.number="skewYVal" min="-45" max="45" step="1" />
+            <span class="if-range-val">{{skewYVal}}°</span>
+          </div>
+          <button class="if-apply-btn" @click="applySkew" :disabled="!hasImage">{{L('apply')}}</button>
+        </div>
+
+        <!-- Image info -->
+        <div v-if="hasImage" class="if-prop-section if-info-section">
+          <div class="if-info-row">{{imgW}} × {{imgH}} px</div>
+        </div>
+      </div>
+
+      <!-- Effects panel -->
+      <div v-if="activePanel==='effects'" class="if-props-body">
+        <!-- One-click effects -->
+        <div class="if-prop-section">
+          <div class="if-prop-title">🎨 {{L('effects')}}</div>
+          <div class="if-fx-grid">
+            <button class="if-fx-btn" @click="applyGrayscale" :disabled="!hasImage">🌑 {{L('grayscale')}}</button>
+            <button class="if-fx-btn" @click="applySepia" :disabled="!hasImage">🟤 {{L('sepia')}}</button>
+            <button class="if-fx-btn" @click="applyInvert" :disabled="!hasImage">🔄 {{L('invert')}}</button>
+            <button class="if-fx-btn" @click="applySharpen" :disabled="!hasImage">🔪 {{L('sharpen')}}</button>
+          </div>
+        </div>
+
+        <!-- Brightness -->
+        <div class="if-prop-section">
+          <div class="if-prop-title">☀️ {{L('brightness')}}</div>
+          <div class="if-prop-row">
+            <input type="range" class="if-range" v-model.number="brightnessVal" min="-100" max="100" step="5" />
+            <span class="if-range-val">{{brightnessVal}}</span>
+          </div>
+          <button class="if-apply-btn" @click="applyBrightness" :disabled="!hasImage">{{L('apply')}}</button>
+        </div>
+
+        <!-- Contrast -->
+        <div class="if-prop-section">
+          <div class="if-prop-title">🌗 {{L('contrast')}}</div>
+          <div class="if-prop-row">
+            <input type="range" class="if-range" v-model.number="contrastVal" min="-100" max="100" step="5" />
+            <span class="if-range-val">{{contrastVal}}</span>
+          </div>
+          <button class="if-apply-btn" @click="applyContrast" :disabled="!hasImage">{{L('apply')}}</button>
+        </div>
+
+        <!-- Blur -->
+        <div class="if-prop-section">
+          <div class="if-prop-title">💨 {{L('blur')}}</div>
+          <div class="if-prop-row">
+            <input type="range" class="if-range" v-model.number="blurVal" min="0" max="20" step="1" />
+            <span class="if-range-val">{{blurVal}}px</span>
+          </div>
+          <button class="if-apply-btn" @click="applyBlur" :disabled="!hasImage">{{L('apply')}}</button>
+        </div>
+
+        <!-- Reset -->
+        <div class="if-prop-section">
+          <button class="if-reset-btn" @click="resetImage" :disabled="!hasImage">🔄 {{L('reset')}}</button>
+        </div>
+
+        <!-- Export quality -->
+        <div class="if-prop-section">
+          <div class="if-prop-title">📦 {{L('quality')}} (JPEG)</div>
+          <div class="if-prop-row">
+            <input type="range" class="if-range" v-model.number="exportQuality" min="10" max="100" step="5" />
+            <span class="if-range-val">{{exportQuality}}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── STATUS BAR ─── -->
+  <div class="if-statusbar">
+    <span v-if="hasImage">{{imgW}} × {{imgH}} px</span>
+    <span>{{L('zoom')}}: {{zoomLevel}}%</span>
+    <span v-if="activeTool!=='pointer'">{{L('tools')}}: {{toolsList.find(t=>t.id===activeTool)?.label}}</span>
+  </div>
+</div>

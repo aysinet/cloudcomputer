@@ -25,3 +25,31 @@
 .lang-flag{font-size:22px}
 .lang-label{font-size:13px;font-weight:500;color:#303133}
 .lang-check{position:absolute;right:8px;color:#667eea;font-weight:700;font-size:14px}
+/* ── AI Settings ── */
+.ai-providers-list,.ai-agents-list{display:flex;flex-direction:column;gap:10px;padding:4px 0}
+.ai-provider-card,.ai-agent-card{border:1px solid #e0e0ee;border-radius:10px;padding:12px;background:#fff;transition:.15s}
+.ai-provider-card:hover,.ai-agent-card:hover{border-color:#c5cae9;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.ai-provider-header,.ai-agent-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.ai-provider-icon{font-size:20px}
+.ai-provider-name{font-size:14px;font-weight:600;color:#333}
+.ai-provider-body,.ai-agent-body{display:flex;flex-direction:column;gap:8px}
+.ai-field{display:flex;flex-direction:column;gap:3px}
+.ai-field-label{font-size:11px;font-weight:500;color:#888}
+.ai-field-hint{font-weight:400;color:#bbb}
+.ai-key-row{display:flex;gap:4px}
+.ai-key-input{flex:1;height:32px;padding:0 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;color:#333;outline:none;background:#fafbfc;font-family:monospace;box-sizing:border-box}
+.ai-key-input:focus{border-color:#667eea;background:#fff}
+.ai-eye-btn{width:32px;height:32px;border:1px solid #ddd;border-radius:6px;background:#fafbfc;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ai-eye-btn:hover{background:#eee}
+.ai-select{height:32px;border:1px solid #ddd;border-radius:6px;padding:0 8px;font-size:12px;outline:none;background:#fafbfc;color:#333;width:100%;box-sizing:border-box}
+.ai-select:focus{border-color:#667eea}
+.ai-prompt-input{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;color:#333;outline:none;background:#fafbfc;resize:vertical;font-family:'Segoe UI',sans-serif;box-sizing:border-box}
+.ai-prompt-input:focus{border-color:#667eea}
+.ai-agent-name-input{flex:1;height:28px;padding:0 8px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-weight:600;color:#333;outline:none;background:transparent}
+.ai-agent-name-input:focus{border-color:#667eea;background:#fafbfc}
+.ai-remove-btn{width:24px;height:24px;border:none;border-radius:50%;background:none;color:#ccc;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ai-remove-btn:hover{background:#fee;color:#e74c3c}
+.ai-add-btn{margin-top:8px;padding:8px 16px;border:1px dashed #ccc;border-radius:8px;background:none;color:#888;font-size:12px;cursor:pointer;width:100%;text-align:center}
+.ai-add-btn:hover{border-color:#667eea;color:#667eea;background:#f8f9ff}
+.ai-save-btn{padding:8px 24px;border:none;border-radius:8px;background:#667eea;color:#fff;font-size:13px;font-weight:600;cursor:pointer}
+.ai-save-btn:hover{filter:brightness(1.1)}

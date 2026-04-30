@@ -1,0 +1,13 @@
+/* ── AI Chat Panel Mobile ── */
+.ai-panel{width:100vw;right:-100vw}
+.ai-panel.open{right:0}
+.ai-panel-header{padding:10px 12px}
+.ai-panel-title{font-size:14px}
+.ai-provider-bar{padding:6px 12px}
+.ai-messages{padding:12px}
+.ai-input-area{padding:8px 12px}
+.ai-welcome{padding:20px}
+.ai-welcome-icon{font-size:36px}
+.ai-welcome-title{font-size:16px}
+.ai-welcome-desc{font-size:12px}
+.ai-msg-content{font-size:12px;padding:8px 12px}

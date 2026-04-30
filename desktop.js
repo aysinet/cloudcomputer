@@ -1268,6 +1268,209 @@ app.post('/api/settings', authMiddleware, (req, res) => {
   res.json({ ok: true, settings: updated });
 });
 
+// ── AI Settings (per-user, secure storage) ──
+function getUserAISettingsPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'ai-settings.json');
+}
+
+function getUserAISettings(username) {
+  const fp = getUserAISettingsPath(username);
+  if (!fs.existsSync(fp)) return { providers: [], agents: [] };
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return { providers: [], agents: [] }; }
+}
+
+function saveUserAISettings(username, data) {
+  fs.writeFileSync(getUserAISettingsPath(username), JSON.stringify(data, null, 2));
+}
+
+app.get('/api/ai-settings', authMiddleware, (req, res) => {
+  const data = getUserAISettings(req.user.username);
+  // Mask API keys — send only boolean flag of whether key is set
+  const maskedProviders = (data.providers || []).map(p => ({
+    ...p,
+    apiKey: p.apiKey ? '••••••••' : ''
+  }));
+  res.json({ providers: maskedProviders, agents: data.agents || [] });
+});
+
+app.post('/api/ai-settings', authMiddleware, (req, res) => {
+  const { providers, agents } = req.body;
+  if (!Array.isArray(providers) || !Array.isArray(agents)) {
+    return res.status(400).json({ error: 'providers and agents arrays required' });
+  }
+  const existing = getUserAISettings(req.user.username);
+  const sanitizedProviders = providers.slice(0, 50).map(p => {
+    // If masked key (••••••••) sent back, preserve the original key
+    let apiKey = String(p.apiKey || '');
+    if (apiKey === '••••••••') {
+      const orig = (existing.providers || []).find(ep => ep.id === p.id);
+      apiKey = orig ? orig.apiKey : '';
+    }
+    return {
+      id: String(p.id || '').slice(0, 50),
+      name: String(p.name || '').slice(0, 100),
+      icon: String(p.icon || '🔧').slice(0, 10),
+      defaultModel: String(p.defaultModel || '').slice(0, 100),
+      enabled: !!p.enabled,
+      apiKey: apiKey.slice(0, 500),
+      model: String(p.model || '').slice(0, 100),
+      custom: !!p.custom
+    };
+  });
+  const sanitizedAgents = agents.slice(0, 50).map(a => ({
+    name: String(a.name || '').slice(0, 100),
+    provider: String(a.provider || '').slice(0, 50),
+    model: String(a.model || '').slice(0, 100),
+    systemPrompt: String(a.systemPrompt || '').slice(0, 2000),
+    enabled: !!a.enabled
+  }));
+  saveUserAISettings(req.user.username, { providers: sanitizedProviders, agents: sanitizedAgents });
+  res.json({ ok: true });
+});
+
+// Endpoint for apps to retrieve AI config (keys included server-side only)
+app.get('/api/ai-settings/provider/:providerId', authMiddleware, (req, res) => {
+  const data = getUserAISettings(req.user.username);
+  const provider = (data.providers || []).find(p => p.id === req.params.providerId && p.enabled);
+  if (!provider) return res.status(404).json({ error: 'Provider not found or not enabled' });
+  res.json({
+    id: provider.id,
+    name: provider.name,
+    model: provider.model || provider.defaultModel,
+    hasKey: !!provider.apiKey
+  });
+});
+
+// ── AI Chat Proxy ──
+const AI_PROVIDER_ENDPOINTS = {
+  openai:      { url: 'https://api.openai.com/v1/chat/completions', authHeader: 'Bearer' },
+  anthropic:   { url: 'https://api.anthropic.com/v1/messages', authHeader: 'x-api-key', extraHeaders: { 'anthropic-version': '2023-06-01' } },
+  google:      { url: 'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent', authParam: 'key' },
+  mistral:     { url: 'https://api.mistral.ai/v1/chat/completions', authHeader: 'Bearer' },
+  deepseek:    { url: 'https://api.deepseek.com/v1/chat/completions', authHeader: 'Bearer' },
+  cohere:      { url: 'https://api.cohere.ai/v2/chat', authHeader: 'Bearer' },
+  groq:        { url: 'https://api.groq.com/openai/v1/chat/completions', authHeader: 'Bearer' },
+  xai:         { url: 'https://api.x.ai/v1/chat/completions', authHeader: 'Bearer' },
+  github:      { url: 'https://models.inference.ai.azure.com/chat/completions', authHeader: 'Bearer' },
+  openrouter:  { url: 'https://openrouter.ai/api/v1/chat/completions', authHeader: 'Bearer' },
+  perplexity:  { url: 'https://api.perplexity.ai/chat/completions', authHeader: 'Bearer' }
+};
+
+function aiProxyRequest(endpoint, headers, body) {
+  return new Promise((resolve, reject) => {
+    const parsedUrl = new URL(endpoint);
+    const lib = parsedUrl.protocol === 'https:' ? require('https') : require('http');
+    const postData = JSON.stringify(body);
+    const reqHeaders = { ...headers, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) };
+    const req = lib.request({
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port,
+      path: parsedUrl.pathname + parsedUrl.search,
+      method: 'POST',
+      headers: reqHeaders
+    }, (resp) => {
+      let data = '';
+      resp.on('data', chunk => { data += chunk; });
+      resp.on('end', () => {
+        try { resolve({ status: resp.statusCode, data: JSON.parse(data) }); }
+        catch { resolve({ status: resp.statusCode, data: { raw: data } }); }
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(60000, () => { req.destroy(); reject(new Error('Request timeout')); });
+    req.write(postData);
+    req.end();
+  });
+}
+
+app.post('/api/ai/chat', authMiddleware, async (req, res) => {
+  const { provider: providerId, messages, context } = req.body;
+  if (!providerId || !Array.isArray(messages) || !messages.length) {
+    return res.status(400).json({ error: 'provider and messages required' });
+  }
+  if (messages.length > 100) {
+    return res.status(400).json({ error: 'Too many messages' });
+  }
+
+  const settings = getUserAISettings(req.user.username);
+  const provider = (settings.providers || []).find(p => p.id === providerId && p.enabled);
+  if (!provider || !provider.apiKey) {
+    return res.status(400).json({ error: 'Provider not configured or no API key' });
+  }
+
+  const model = provider.model || provider.defaultModel;
+  const sanitizedMessages = messages.slice(-50).map(m => ({
+    role: String(m.role || 'user').slice(0, 20),
+    content: String(m.content || '').slice(0, 8000)
+  }));
+
+  // Check for custom provider
+  const endpointConfig = AI_PROVIDER_ENDPOINTS[providerId];
+  if (!endpointConfig && !provider.custom) {
+    return res.status(400).json({ error: 'Unknown provider' });
+  }
+
+  try {
+    let content = '';
+
+    if (providerId === 'anthropic') {
+      // Anthropic uses a different format
+      const systemMsg = sanitizedMessages.find(m => m.role === 'system');
+      const chatMsgs = sanitizedMessages.filter(m => m.role !== 'system');
+      const body = { model, max_tokens: 4096, messages: chatMsgs };
+      if (systemMsg) body.system = systemMsg.content;
+      const headers = { 'x-api-key': provider.apiKey, 'anthropic-version': '2023-06-01' };
+      const result = await aiProxyRequest(endpointConfig.url, headers, body);
+      if (result.status !== 200) {
+        return res.status(502).json({ error: result.data?.error?.message || 'Anthropic API error' });
+      }
+      content = result.data?.content?.[0]?.text || '';
+
+    } else if (providerId === 'google') {
+      // Google Gemini uses a different format
+      const url = endpointConfig.url.replace('{model}', encodeURIComponent(model)) + '?key=' + encodeURIComponent(provider.apiKey);
+      const geminiContents = sanitizedMessages.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+      const result = await aiProxyRequest(url, {}, { contents: geminiContents });
+      if (result.status !== 200) {
+        return res.status(502).json({ error: result.data?.error?.message || 'Google API error' });
+      }
+      content = result.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    } else if (providerId === 'cohere') {
+      // Cohere v2 chat format
+      const body = { model, messages: sanitizedMessages };
+      const headers = { 'Authorization': 'Bearer ' + provider.apiKey };
+      const result = await aiProxyRequest(endpointConfig.url, headers, body);
+      if (result.status !== 200) {
+        return res.status(502).json({ error: result.data?.message || 'Cohere API error' });
+      }
+      content = result.data?.message?.content?.[0]?.text || '';
+
+    } else {
+      // OpenAI-compatible format (openai, mistral, deepseek, groq, xai, github, openrouter, perplexity, custom)
+      const url = provider.custom ? (provider.apiEndpoint || endpointConfig?.url || '') : endpointConfig.url;
+      if (!url) return res.status(400).json({ error: 'No endpoint configured' });
+      const body = { model, messages: sanitizedMessages, max_tokens: 4096 };
+      const headers = { 'Authorization': 'Bearer ' + provider.apiKey };
+      const result = await aiProxyRequest(url, headers, body);
+      if (result.status !== 200) {
+        return res.status(502).json({ error: result.data?.error?.message || 'API error' });
+      }
+      content = result.data?.choices?.[0]?.message?.content || '';
+    }
+
+    res.json({ content });
+  } catch (e) {
+    res.status(500).json({ error: e.message || 'Internal error' });
+  }
+});
+
 // ── AppData SQLite (per-user) ──
 const APPDATA_DIR = path.join(__dirname, 'data', 'appdata');
 ensureDir(APPDATA_DIR);
@@ -6014,6 +6217,58 @@ app.delete('/api/postit/:id', authMiddleware, (req, res) => {
   if (idx < 0) return res.status(404).json({ error: 'Not found' });
   postits.splice(idx, 1);
   saveUserPostits(req.user.username, postits);
+  res.json({ ok: true });
+});
+
+// ── Google Keep Notes API ──
+function getUserKeepPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'keep-notes.json');
+}
+
+function getUserKeepData(username) {
+  const fp = getUserKeepPath(username);
+  if (!fs.existsSync(fp)) return { notes: [], labels: [] };
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return { notes: [], labels: [] }; }
+}
+
+function saveUserKeepData(username, data) {
+  fs.writeFileSync(getUserKeepPath(username), JSON.stringify(data, null, 2));
+}
+
+app.get('/api/keep/notes', authMiddleware, (req, res) => {
+  res.json(getUserKeepData(req.user.username));
+});
+
+app.post('/api/keep/notes', authMiddleware, (req, res) => {
+  const { notes, labels } = req.body;
+  if (!Array.isArray(notes) || !Array.isArray(labels)) {
+    return res.status(400).json({ error: 'notes and labels arrays required' });
+  }
+  const sanitized = {
+    notes: notes.slice(0, 5000).map(n => ({
+      id: String(n.id || '').slice(0, 50),
+      title: String(n.title || '').slice(0, 500),
+      content: String(n.content || '').slice(0, 10000),
+      color: String(n.color || 'default').slice(0, 20),
+      pinned: !!n.pinned,
+      archived: !!n.archived,
+      trashed: !!n.trashed,
+      is_checklist: !!n.is_checklist,
+      check_items: Array.isArray(n.check_items) ? n.check_items.slice(0, 200).map(ci => ({
+        text: String(ci.text || '').slice(0, 500),
+        done: !!ci.done
+      })) : [],
+      labels: Array.isArray(n.labels) ? n.labels.slice(0, 50).map(l => String(l).slice(0, 50)) : [],
+      reminder: n.reminder ? String(n.reminder).slice(0, 30) : null,
+      createdAt: n.createdAt || new Date().toISOString(),
+      updatedAt: n.updatedAt || new Date().toISOString()
+    })),
+    labels: labels.slice(0, 200).map(l => String(l).slice(0, 50))
+  };
+  saveUserKeepData(req.user.username, sanitized);
   res.json({ ok: true });
 });
 

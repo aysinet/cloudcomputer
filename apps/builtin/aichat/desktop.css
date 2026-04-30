@@ -1,0 +1,117 @@
+/* ── AI Chat Panel ── */
+.ai-panel{position:fixed;top:0;right:-420px;width:420px;height:calc(100vh - 48px);background:rgba(18,18,35,.96);backdrop-filter:blur(24px);border-left:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;z-index:8500;transition:right .3s cubic-bezier(.4,0,.2,1);box-shadow:-4px 0 24px rgba(0,0,0,.4)}
+.ai-panel.open{right:0}
+
+/* Header */
+.ai-panel-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.ai-panel-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;color:#fff}
+.ai-panel-title .ai-logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:16px}
+.ai-panel-actions{display:flex;gap:4px}
+.ai-panel-btn{width:32px;height:32px;border:none;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:.15s}
+.ai-panel-btn:hover{background:rgba(255,255,255,.15);color:#fff}
+
+/* Provider selector */
+.ai-provider-bar{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.ai-provider-select{flex:1;height:32px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:#fff;font-size:12px;padding:0 8px;outline:none;cursor:pointer;-webkit-appearance:none}
+.ai-provider-select option{background:#1a1a2e;color:#fff}
+.ai-model-tag{font-size:11px;color:rgba(255,255,255,.45);padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.06);white-space:nowrap}
+
+/* Messages area */
+.ai-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.ai-messages::-webkit-scrollbar{width:4px}
+.ai-messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+
+/* Welcome */
+.ai-welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:12px;padding:32px;text-align:center}
+.ai-welcome-icon{font-size:48px;opacity:.8}
+.ai-welcome-title{font-size:18px;font-weight:600;color:#fff}
+.ai-welcome-desc{font-size:13px;color:rgba(255,255,255,.5);line-height:1.5;max-width:300px}
+.ai-welcome-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px}
+.ai-welcome-chip{padding:6px 14px;border-radius:16px;background:rgba(102,126,234,.15);border:1px solid rgba(102,126,234,.3);color:#a8b4ff;font-size:12px;cursor:pointer;transition:.15s}
+.ai-welcome-chip:hover{background:rgba(102,126,234,.25);border-color:rgba(102,126,234,.5)}
+
+/* Message bubbles */
+.ai-msg{display:flex;gap:10px;max-width:100%}
+.ai-msg.user{flex-direction:row-reverse}
+.ai-msg-avatar{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ai-msg.user .ai-msg-avatar{background:rgba(102,126,234,.2);color:#a8b4ff}
+.ai-msg.assistant .ai-msg-avatar{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+.ai-msg-body{max-width:calc(100% - 44px);display:flex;flex-direction:column;gap:2px}
+.ai-msg.user .ai-msg-body{align-items:flex-end}
+.ai-msg-content{padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.6;color:#e0e0e0;word-break:break-word;white-space:pre-wrap}
+.ai-msg.user .ai-msg-content{background:rgba(102,126,234,.2);border-bottom-right-radius:4px;color:#fff}
+.ai-msg.assistant .ai-msg-content{background:rgba(255,255,255,.08);border-bottom-left-radius:4px}
+.ai-msg-content code{background:rgba(255,255,255,.1);padding:1px 5px;border-radius:3px;font-size:12px;font-family:'Cascadia Code','Fira Code',monospace}
+.ai-msg-content pre{background:rgba(0,0,0,.3);border-radius:8px;padding:10px 12px;margin:6px 0;overflow-x:auto;position:relative}
+.ai-msg-content pre code{background:none;padding:0;font-size:12px;line-height:1.5}
+.ai-msg-time{font-size:10px;color:rgba(255,255,255,.3);padding:0 4px}
+.ai-msg-copy{position:absolute;top:6px;right:6px;width:24px;height:24px;border:none;background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);border-radius:4px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:.15s;opacity:0}
+.ai-msg-content pre:hover .ai-msg-copy{opacity:1}
+.ai-msg-copy:hover{background:rgba(255,255,255,.2);color:#fff}
+
+/* Typing indicator */
+.ai-typing{display:flex;align-items:center;gap:10px;padding:0 4px}
+.ai-typing-dots{display:flex;gap:4px}
+.ai-typing-dots span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3);animation:aiTyping 1.4s infinite}
+.ai-typing-dots span:nth-child(2){animation-delay:.2s}
+.ai-typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes aiTyping{0%,60%,100%{opacity:.3;transform:scale(.8)}30%{opacity:1;transform:scale(1)}}
+
+/* Input area */
+.ai-input-area{padding:12px 16px;border-top:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.ai-input-row{display:flex;gap:8px;align-items:flex-end}
+.ai-input-wrap{flex:1;position:relative}
+.ai-input{width:100%;min-height:40px;max-height:120px;padding:10px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;font-size:13px;line-height:1.4;resize:none;outline:none;font-family:inherit;transition:border-color .15s}
+.ai-input:focus{border-color:rgba(102,126,234,.5)}
+.ai-input::placeholder{color:rgba(255,255,255,.3)}
+.ai-send-btn{width:40px;height:40px;border:none;border-radius:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0}
+.ai-send-btn:hover{transform:scale(1.05);box-shadow:0 2px 12px rgba(102,126,234,.4)}
+.ai-send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.ai-send-btn svg{width:18px;height:18px}
+.ai-input-hint{font-size:10px;color:rgba(255,255,255,.25);padding:4px 4px 0;text-align:right}
+
+/* Context indicator */
+.ai-context-bar{display:flex;align-items:center;gap:6px;padding:6px 16px;background:rgba(102,126,234,.08);border-bottom:1px solid rgba(102,126,234,.15);flex-shrink:0;font-size:12px;color:rgba(255,255,255,.6)}
+.ai-context-bar .ai-ctx-icon{font-size:14px}
+.ai-context-bar .ai-ctx-close{margin-left:auto;width:20px;height:20px;border:none;background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);border-radius:4px;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center}
+.ai-context-bar .ai-ctx-close:hover{background:rgba(255,255,255,.2)}
+
+/* Error */
+.ai-error{background:rgba(245,108,108,.1);border:1px solid rgba(245,108,108,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:#f56c6c;display:flex;align-items:center;gap:8px}
+.ai-error-icon{font-size:16px}
+
+/* No provider */
+.ai-no-provider{display:flex;flex-direction:column;align-items:center;gap:12px;padding:32px;text-align:center;flex:1;justify-content:center}
+.ai-no-provider-icon{font-size:40px;opacity:.5}
+.ai-no-provider-text{font-size:14px;color:rgba(255,255,255,.6);line-height:1.5}
+.ai-no-provider-btn{padding:8px 20px;border-radius:8px;border:1px solid rgba(102,126,234,.4);background:rgba(102,126,234,.15);color:#a8b4ff;font-size:13px;cursor:pointer;transition:.15s}
+.ai-no-provider-btn:hover{background:rgba(102,126,234,.25)}
+
+/* Taskbar AI button */
+.ai-tray-btn{position:relative}
+.ai-tray-btn .ai-tray-dot{position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:#667eea;box-shadow:0 0 6px rgba(102,126,234,.6)}
+
+/* Chat history list */
+.ai-history{padding:8px;flex:1;overflow-y:auto}
+.ai-history-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;cursor:pointer;transition:.15s;font-size:12px;color:rgba(255,255,255,.7)}
+.ai-history-item:hover{background:rgba(255,255,255,.08)}
+.ai-history-item.active{background:rgba(102,126,234,.15);color:#fff}
+.ai-history-item .ai-h-icon{font-size:14px;opacity:.6}
+.ai-history-item .ai-h-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ai-history-item .ai-h-del{width:20px;height:20px;border:none;background:transparent;color:rgba(255,255,255,.3);cursor:pointer;border-radius:4px;font-size:11px;display:flex;align-items:center;justify-content:center;opacity:0;transition:.15s}
+.ai-history-item:hover .ai-h-del{opacity:1}
+.ai-history-item .ai-h-del:hover{background:rgba(245,108,108,.15);color:#f56c6c}
+
+/* Markdown rendering */
+.ai-msg-content h1,.ai-msg-content h2,.ai-msg-content h3{margin:8px 0 4px;color:#fff}
+.ai-msg-content h1{font-size:16px}
+.ai-msg-content h2{font-size:14px}
+.ai-msg-content h3{font-size:13px}
+.ai-msg-content ul,.ai-msg-content ol{margin:4px 0;padding-left:20px}
+.ai-msg-content li{margin:2px 0}
+.ai-msg-content blockquote{border-left:3px solid rgba(102,126,234,.4);padding-left:10px;margin:6px 0;color:rgba(255,255,255,.6)}
+.ai-msg-content a{color:#a8b4ff;text-decoration:none}
+.ai-msg-content a:hover{text-decoration:underline}
+.ai-msg-content table{border-collapse:collapse;margin:6px 0;width:100%}
+.ai-msg-content th,.ai-msg-content td{border:1px solid rgba(255,255,255,.12);padding:4px 8px;font-size:12px}
+.ai-msg-content th{background:rgba(255,255,255,.06);color:#fff}

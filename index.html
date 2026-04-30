@@ -217,7 +217,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 </head>
 <body>
 <div id="app">
-  <div class="desktop" :style="desktopStyle" @contextmenu.self.prevent="showDesktopCtx($event)" @click.self="hideDesktopCtx();hideIconCtx()">
+  <div class="desktop" :style="desktopStyle" @contextmenu.prevent="showDesktopCtx($event)" @click.self="hideDesktopCtx();hideIconCtx()">
     <div class="wallpaper-grid"></div>
     <div class="desktop-icons" @dragover.prevent @drop.self="onIconDrop($event,-1)">
       <div v-for="(app,idx) in desktopApps" :key="app.id" class="desktop-icon" :class="{'dragging':dragState.dragging&&dragState.appId===app.id,'drag-over':dragState.overIdx===idx&&dragState.appId!==app.id}" draggable="true" @dragstart="onIconDragStart($event,app,idx)" @dragenter.prevent="onIconDragEnter(idx)" @dragover.prevent @drop.stop="onIconDrop($event,idx)" @dragend="onIconDragEnd" @click="openApp(app)" @contextmenu.prevent="showIconCtx($event, app)">
@@ -226,8 +226,20 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       </div>
     </div>
     <!-- Desktop Context Menu -->
-    <div v-if="desktopCtx.show" class="icon-ctx" :style="{left:desktopCtx.x+'px',top:desktopCtx.y+'px'}" @click.stop>
+    <div v-if="desktopCtx.show" ref="desktopCtxEl" class="icon-ctx" :style="{left:desktopCtx.x+'px',top:desktopCtx.y+'px'}" @click.stop>
       <div class="icon-ctx-item" @click="arrangeIcons()">📐 {{t('ctxArrange')}}</div>
+      <div class="icon-ctx-sep"></div>
+      <div class="icon-ctx-item" @click="cascadeWindows();hideDesktopCtx()">🪟 {{t('ctxCascade')}}</div>
+      <div class="icon-ctx-item" @click="tileWindowsH();hideDesktopCtx()">⬜ {{t('ctxTileH')}}</div>
+      <div class="icon-ctx-item" @click="tileWindowsV();hideDesktopCtx()">▫️ {{t('ctxTileV')}}</div>
+      <div class="icon-ctx-item" @click="minimizeAll();hideDesktopCtx()">⬇️ {{t('ctxMinimizeAll')}}</div>
+      <template v-if="visibleWindows.length">
+        <div class="icon-ctx-sep"></div>
+        <div class="icon-ctx-header">{{t('ctxOpenApps')}}</div>
+        <div class="icon-ctx-sub">
+          <div v-for="w in visibleWindows" :key="w.id" class="icon-ctx-item" @click="focusWindowRestore(w);hideDesktopCtx()">{{w.icon}} {{w.name}}</div>
+        </div>
+      </template>
     </div>
     <!-- Icon Context Menu -->
     <div v-if="iconCtx.show" ref="iconCtxEl" class="icon-ctx" :style="{left:iconCtx.x+'px',top:iconCtx.y+'px'}" @click.stop>
@@ -251,6 +263,75 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
     </button>
   </div>
+  <!-- AI Chat Panel -->
+  <transition name="ai-slide">
+    <div class="ai-panel" :class="{open:aiPanelOpen}" v-show="aiPanelOpen" @click.stop>
+      <div class="ai-panel-header">
+        <div class="ai-panel-title">
+          <div class="ai-logo">🤖</div>
+          <span>{{t('aiChat')}}</span>
+        </div>
+        <div class="ai-panel-actions">
+          <button class="ai-panel-btn" @click="aiNewChat()" :title="t('aiNewChat')">➕</button>
+          <button class="ai-panel-btn" @click="aiClearChat()" :title="t('aiClear')">🗑</button>
+          <button class="ai-panel-btn" @click="aiPanelOpen=false">✕</button>
+        </div>
+      </div>
+      <div v-if="aiActiveContext" class="ai-context-bar">
+        <span class="ai-ctx-icon">📎</span>
+        <span>{{aiActiveContext.icon}} {{aiActiveContext.name}}</span>
+        <button class="ai-ctx-close" @click="aiActiveContext=null">✕</button>
+      </div>
+      <div class="ai-provider-bar">
+        <select class="ai-provider-select" v-model="aiSelectedProvider">
+          <option v-for="p in aiEnabledProviders" :key="p.id" :value="p.id">{{p.icon}} {{p.name}}</option>
+        </select>
+        <span class="ai-model-tag" v-if="aiCurrentModel">{{aiCurrentModel}}</span>
+      </div>
+      <div v-if="!aiEnabledProviders.length" class="ai-no-provider">
+        <div class="ai-no-provider-icon">⚙️</div>
+        <div class="ai-no-provider-text">{{t('aiNoProvider')}}</div>
+        <button class="ai-no-provider-btn" @click="openApp(apps.find(a=>a.id==='settings'));aiPanelOpen=false">{{t('aiGoSettings')}}</button>
+      </div>
+      <div v-else-if="!aiMessages.length && !aiLoading" class="ai-welcome">
+        <div class="ai-welcome-icon">🤖</div>
+        <div class="ai-welcome-title">{{t('aiWelcome')}}</div>
+        <div class="ai-welcome-desc">{{t('aiWelcomeDesc')}}</div>
+        <div class="ai-welcome-chips">
+          <div class="ai-welcome-chip" @click="aiSendMsg(t('aiChip1'))">💡 {{t('aiChip1')}}</div>
+          <div class="ai-welcome-chip" @click="aiSendMsg(t('aiChip2'))">📝 {{t('aiChip2')}}</div>
+          <div class="ai-welcome-chip" @click="aiSendMsg(t('aiChip3'))">🔧 {{t('aiChip3')}}</div>
+        </div>
+      </div>
+      <div v-else class="ai-messages" ref="aiMessagesEl">
+        <div v-for="(msg,i) in aiMessages" :key="i" class="ai-msg" :class="msg.role">
+          <div class="ai-msg-avatar">{{msg.role==='user'?'👤':'🤖'}}</div>
+          <div class="ai-msg-body">
+            <div class="ai-msg-content" v-html="msg.role==='assistant'?aiRenderMd(msg.content):aiEscape(msg.content)"></div>
+            <div class="ai-msg-time">{{msg.time}}</div>
+          </div>
+        </div>
+        <div v-if="aiLoading" class="ai-typing">
+          <div class="ai-msg-avatar" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px">🤖</div>
+          <div class="ai-typing-dots"><span></span><span></span><span></span></div>
+        </div>
+        <div v-if="aiError" class="ai-error">
+          <span class="ai-error-icon">⚠️</span>
+          <span>{{aiError}}</span>
+        </div>
+      </div>
+      <div class="ai-input-area" v-if="aiEnabledProviders.length">
+        <div class="ai-input-row">
+          <div class="ai-input-wrap">
+            <textarea class="ai-input" v-model="aiInput" :placeholder="t('aiPlaceholder')" rows="1" @keydown.enter.exact.prevent="aiSendMsg()" @input="aiAutoResize($event)"></textarea>
+          </div>
+          <button class="ai-send-btn" @click="aiSendMsg()" :disabled="!aiInput.trim()||aiLoading">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </transition>
   <div class="taskbar">
     <button class="start-btn" @click.stop="toggleMenu">
       <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6.5" height="6.5" rx="1"/><rect x="8.5" y="1" width="6.5" height="6.5" rx="1"/><rect x="1" y="8.5" width="6.5" height="6.5" rx="1"/><rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1"/></svg>
@@ -296,6 +377,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         <button class="tray-btn ss-tray-btn" @click.stop="startScreenshot" :title="t('screenshot')">📷</button>
         <button v-if="showKeyboardTray" class="tray-btn skb-tray-btn" @click="openApp(apps.find(a=>a.id==='screenkeyboard'))" :title="t('skbTrayShow')">⌨️</button>
         <button v-if="showMagnifierTray" class="tray-btn" @click="openApp(apps.find(a=>a.id==='magnifier'))" :title="t('magTrayShow')">🔍</button>
+        <button class="tray-btn ai-tray-btn" @click.stop="aiPanelOpen=!aiPanelOpen" :title="t('aiChat')">
+          🤖
+          <span v-if="aiPanelOpen" class="ai-tray-dot"></span>
+        </button>
       </div>
       <div class="taskbar-sep"></div>
       <button class="notif-bell" @click="openApp(apps.find(a=>a.id==='notifications'))" :title="t('notifications')">
@@ -675,6 +760,71 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         <div v-if="currentWpUrl" style="margin-top:16px">
           <div class="lbl" style="margin-bottom:8px">{{t('wpPreview') || 'Önizleme'}}</div>
           <img :src="currentWpUrl" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #555" />
+        </div>
+      </template>
+      <template v-else-if="active==='ai'">
+        <!-- AI Providers / API Keys -->
+        <div class="settings-row">
+          <div><div class="lbl">{{t('aiTokens')}}</div><div class="sub">{{t('aiTokensDesc')}}</div></div>
+        </div>
+        <div class="ai-providers-list">
+          <div v-for="(p,i) in aiProviders" :key="i" class="ai-provider-card">
+            <div class="ai-provider-header">
+              <span class="ai-provider-icon">{{p.icon}}</span>
+              <span class="ai-provider-name">{{p.name}}</span>
+              <label class="settings-toggle" style="margin-left:auto"><input type="checkbox" v-model="p.enabled"><span class="settings-slider"></span></label>
+              <button v-if="p.custom" class="ai-remove-btn" @click="removeProvider(i)" :title="t('aiRemove')">✕</button>
+            </div>
+            <div class="ai-provider-body">
+              <div class="ai-field">
+                <label class="ai-field-label">{{t('aiApiKey')}}</label>
+                <div class="ai-key-row">
+                  <input :type="p.showKey?'text':'password'" class="ai-key-input" v-model="p.apiKey" :placeholder="t('aiKeyPlaceholder')" />
+                  <button class="ai-eye-btn" @click="p.showKey=!p.showKey">{{p.showKey?'🙈':'👁️'}}</button>
+                </div>
+              </div>
+              <div class="ai-field">
+                <label class="ai-field-label">{{t('aiModel')}} <span class="ai-field-hint">({{t('aiDefault')}}: {{p.defaultModel}})</span></label>
+                <input type="text" class="ai-key-input" v-model="p.model" :placeholder="p.defaultModel" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="ai-add-btn" @click="addProvider">➕ {{t('aiAddProvider')}}</button>
+
+        <!-- Agents -->
+        <div class="settings-row" style="margin-top:20px">
+          <div><div class="lbl">{{t('aiAgents')}}</div><div class="sub">{{t('aiAgentsDesc')}}</div></div>
+        </div>
+        <div class="ai-agents-list">
+          <div v-for="(a,i) in aiAgents" :key="i" class="ai-agent-card">
+            <div class="ai-agent-header">
+              <input type="text" class="ai-agent-name-input" v-model="a.name" :placeholder="t('aiAgentName')" />
+              <label class="settings-toggle"><input type="checkbox" v-model="a.enabled"><span class="settings-slider"></span></label>
+              <button class="ai-remove-btn" @click="removeAgent(i)" :title="t('aiRemove')">✕</button>
+            </div>
+            <div class="ai-agent-body">
+              <div class="ai-field">
+                <label class="ai-field-label">{{t('aiAgentProvider')}}</label>
+                <select class="ai-select" v-model="a.provider">
+                  <option v-for="p in aiProviders" :key="p.id" :value="p.id">{{p.icon}} {{p.name}}</option>
+                </select>
+              </div>
+              <div class="ai-field">
+                <label class="ai-field-label">{{t('aiAgentModel')}}</label>
+                <input type="text" class="ai-key-input" v-model="a.model" placeholder="e.g. gpt-4o, claude-sonnet-4-20250514" />
+              </div>
+              <div class="ai-field">
+                <label class="ai-field-label">{{t('aiAgentPrompt')}}</label>
+                <textarea class="ai-prompt-input" v-model="a.systemPrompt" rows="3" placeholder="You are a helpful assistant..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="ai-add-btn" @click="addAgent">➕ {{t('aiAddAgent')}}</button>
+
+        <div style="margin-top:16px;display:flex;gap:8px">
+          <button class="ai-save-btn" @click="saveAISettings">💾 {{t('aiSave')}}</button>
         </div>
       </template>
       <template v-else-if="active==='session'">
@@ -1521,7 +1671,15 @@ const I18N = {
     wpUploading: 'Yükleniyor...', wpDefault: 'Varsayılan',
     settingsSession: 'Oturum', restoreApps: 'Uygulamaları Geri Yükle', restoreAppsDesc: 'Sayfa yenilendiğinde açık uygulamalar tekrar açılsın',
     skbTrayToggle: 'Ekran Klavyesi Simgesi', skbTrayToggleDesc: 'Görev çubuğunda ekran klavyesi simgesini göster',
-    magTrayShow: 'Büyüteci Göster', magTrayToggle: 'Büyüteç Simgesi', magTrayToggleDesc: 'Görev çubuğunda büyüteç simgesini göster'
+    magTrayShow: 'Büyüteci Göster', magTrayToggle: 'Büyüteç Simgesi', magTrayToggleDesc: 'Görev çubuğunda büyüteç simgesini göster',
+    settingsAI: 'Yapay Zeka', aiTokens: 'API Anahtarları', aiTokensDesc: 'Tüm uygulamalarda kullanılacak AI servis anahtarları',
+    aiAgents: 'Ajanlar', aiAgentsDesc: 'Kullanılacak AI ajanlarını yapılandır',
+    aiProvider: 'Sağlayıcı', aiApiKey: 'API Anahtarı', aiModel: 'Model', aiEnabled: 'Aktif',
+    aiAddProvider: 'Sağlayıcı Ekle', aiAddAgent: 'Ajan Ekle', aiAgentName: 'Ajan Adı',
+    aiAgentProvider: 'Sağlayıcı', aiAgentModel: 'Model', aiAgentPrompt: 'Sistem Komut İstemi',
+    aiSave: 'Kaydet', aiSaved: 'AI ayarları kaydedildi', aiRemove: 'Kaldır',
+    aiKeyHidden: 'Anahtar gizleniyor', aiKeyPlaceholder: 'API anahtarını girin...', aiDefault: 'Varsayılan',
+    aiChat: 'AI Asistan', aiNewChat: 'Yeni Sohbet', aiClear: 'Temizle', aiNoProvider: 'Henüz bir AI sağlayıcı yapılandırılmadı. Ayarlardan bir sağlayıcı ekleyin.', aiGoSettings: 'Ayarlara Git', aiWelcome: 'Merhaba! Ben AI Asistanınızım', aiWelcomeDesc: 'Size yardımcı olmak için buradayım. Bir soru sorun veya açık uygulamalarınızla ilgili yardım isteyin.', aiPlaceholder: 'Mesajınızı yazın...', aiChip1: 'Bu uygulamada ne yapabilirim?', aiChip2: 'Bana bir metin yaz', aiChip3: 'Bir sorunumu çöz'
   },
   en: {
     apps: 'Applications', user: 'User', loading: 'Loading...', search: 'Search...',
@@ -1555,7 +1713,15 @@ const I18N = {
     wpUploading: 'Uploading...', wpDefault: 'Default',
     settingsSession: 'Session', restoreApps: 'Restore Apps', restoreAppsDesc: 'Reopen apps after page refresh',
     skbTrayToggle: 'Screen Keyboard Icon', skbTrayToggleDesc: 'Show screen keyboard icon in taskbar',
-    magTrayShow: 'Show Magnifier', magTrayToggle: 'Magnifier Icon', magTrayToggleDesc: 'Show magnifier icon in taskbar'
+    magTrayShow: 'Show Magnifier', magTrayToggle: 'Magnifier Icon', magTrayToggleDesc: 'Show magnifier icon in taskbar',
+    settingsAI: 'Artificial Intelligence', aiTokens: 'API Keys', aiTokensDesc: 'AI service keys available across all apps',
+    aiAgents: 'Agents', aiAgentsDesc: 'Configure AI agents to use',
+    aiProvider: 'Provider', aiApiKey: 'API Key', aiModel: 'Model', aiEnabled: 'Enabled',
+    aiAddProvider: 'Add Provider', aiAddAgent: 'Add Agent', aiAgentName: 'Agent Name',
+    aiAgentProvider: 'Provider', aiAgentModel: 'Model', aiAgentPrompt: 'System Prompt',
+    aiSave: 'Save', aiSaved: 'AI settings saved', aiRemove: 'Remove',
+    aiKeyHidden: 'Key is hidden', aiKeyPlaceholder: 'Enter API key...', aiDefault: 'Default',
+    aiChat: 'AI Assistant', aiNewChat: 'New Chat', aiClear: 'Clear', aiNoProvider: 'No AI provider configured yet. Add a provider from Settings.', aiGoSettings: 'Go to Settings', aiWelcome: 'Hello! I\'m your AI Assistant', aiWelcomeDesc: 'I\'m here to help you. Ask a question or get help with your open apps.', aiPlaceholder: 'Type your message...', aiChip1: 'What can I do in this app?', aiChip2: 'Write me a text', aiChip3: 'Help me solve a problem'
   },
   de: {
     apps: 'Anwendungen', user: 'Benutzer', loading: 'Laden...', search: 'Suchen...',
@@ -1589,7 +1755,15 @@ const I18N = {
     wpUploading: 'Wird hochgeladen...', wpDefault: 'Standard',
     settingsSession: 'Sitzung', restoreApps: 'Apps wiederherstellen', restoreAppsDesc: 'Offene Apps nach Seitenaktualisierung erneut öffnen',
     skbTrayToggle: 'Bildschirmtastatur-Symbol', skbTrayToggleDesc: 'Bildschirmtastatur-Symbol in der Taskleiste anzeigen',
-    magTrayShow: 'Lupe anzeigen', magTrayToggle: 'Lupen-Symbol', magTrayToggleDesc: 'Lupen-Symbol in der Taskleiste anzeigen'
+    magTrayShow: 'Lupe anzeigen', magTrayToggle: 'Lupen-Symbol', magTrayToggleDesc: 'Lupen-Symbol in der Taskleiste anzeigen',
+    settingsAI: 'Künstliche Intelligenz', aiTokens: 'API-Schlüssel', aiTokensDesc: 'KI-Dienstschlüssel für alle Apps verfügbar',
+    aiAgents: 'Agenten', aiAgentsDesc: 'KI-Agenten konfigurieren',
+    aiProvider: 'Anbieter', aiApiKey: 'API-Schlüssel', aiModel: 'Modell', aiEnabled: 'Aktiviert',
+    aiAddProvider: 'Anbieter hinzufügen', aiAddAgent: 'Agent hinzufügen', aiAgentName: 'Agentenname',
+    aiAgentProvider: 'Anbieter', aiAgentModel: 'Modell', aiAgentPrompt: 'Systemaufforderung',
+    aiSave: 'Speichern', aiSaved: 'KI-Einstellungen gespeichert', aiRemove: 'Entfernen',
+    aiKeyHidden: 'Schlüssel ist verborgen', aiKeyPlaceholder: 'API-Schlüssel eingeben...', aiDefault: 'Standard',
+    aiChat: 'KI-Assistent', aiNewChat: 'Neuer Chat', aiClear: 'Löschen', aiNoProvider: 'Kein AI-Anbieter konfiguriert. Fügen Sie einen Anbieter in den Einstellungen hinzu.', aiGoSettings: 'Zu Einstellungen', aiWelcome: 'Hallo! Ich bin Ihr KI-Assistent', aiWelcomeDesc: 'Ich bin hier, um Ihnen zu helfen. Stellen Sie eine Frage oder lassen Sie sich bei Ihren geöffneten Apps helfen.', aiPlaceholder: 'Nachricht eingeben...', aiChip1: 'Was kann ich in dieser App tun?', aiChip2: 'Schreibe mir einen Text', aiChip3: 'Hilf mir ein Problem zu lösen'
   },
   fr: {
     apps: 'Applications', user: 'Utilisateur', loading: 'Chargement...', search: 'Rechercher...',
@@ -1623,7 +1797,15 @@ const I18N = {
     wpUploading: 'Chargement...', wpDefault: 'Par défaut',
     settingsSession: 'Session', restoreApps: 'Restaurer les applications', restoreAppsDesc: 'Rouvrir les applications après actualisation de la page',
     skbTrayToggle: 'Icône clavier virtuel', skbTrayToggleDesc: 'Afficher l\'icône du clavier virtuel dans la barre des tâches',
-    magTrayShow: 'Afficher la loupe', magTrayToggle: 'Icône loupe', magTrayToggleDesc: 'Afficher l\'icône de la loupe dans la barre des tâches'
+    magTrayShow: 'Afficher la loupe', magTrayToggle: 'Icône loupe', magTrayToggleDesc: 'Afficher l\'icône de la loupe dans la barre des tâches',
+    settingsAI: 'Intelligence Artificielle', aiTokens: 'Clés API', aiTokensDesc: 'Clés de service IA disponibles pour toutes les applications',
+    aiAgents: 'Agents', aiAgentsDesc: 'Configurer les agents IA à utiliser',
+    aiProvider: 'Fournisseur', aiApiKey: 'Clé API', aiModel: 'Modèle', aiEnabled: 'Activé',
+    aiAddProvider: 'Ajouter un fournisseur', aiAddAgent: 'Ajouter un agent', aiAgentName: 'Nom de l\'agent',
+    aiAgentProvider: 'Fournisseur', aiAgentModel: 'Modèle', aiAgentPrompt: 'Invite système',
+    aiSave: 'Enregistrer', aiSaved: 'Paramètres IA enregistrés', aiRemove: 'Supprimer',
+    aiKeyHidden: 'Clé masquée', aiKeyPlaceholder: 'Entrer la clé API...', aiDefault: 'Par défaut',
+    aiChat: 'Assistant IA', aiNewChat: 'Nouveau chat', aiClear: 'Effacer', aiNoProvider: 'Aucun fournisseur IA configuré. Ajoutez un fournisseur dans les Paramètres.', aiGoSettings: 'Aller aux Paramètres', aiWelcome: 'Bonjour ! Je suis votre Assistant IA', aiWelcomeDesc: 'Je suis là pour vous aider. Posez une question ou demandez de l\'aide avec vos applications.', aiPlaceholder: 'Tapez votre message...', aiChip1: 'Que puis-je faire dans cette app ?', aiChip2: 'Écris-moi un texte', aiChip3: 'Aide-moi à résoudre un problème'
   },
   es: {
     apps: 'Aplicaciones', user: 'Usuario', loading: 'Cargando...', search: 'Buscar...',
@@ -1657,7 +1839,15 @@ const I18N = {
     wpUploading: 'Subiendo...', wpDefault: 'Predeterminado',
     settingsSession: 'Sesión', restoreApps: 'Restaurar aplicaciones', restoreAppsDesc: 'Reabrir aplicaciones tras actualizar la página',
     skbTrayToggle: 'Icono de teclado', skbTrayToggleDesc: 'Mostrar icono de teclado en pantalla en la barra de tareas',
-    magTrayShow: 'Mostrar lupa', magTrayToggle: 'Icono de lupa', magTrayToggleDesc: 'Mostrar icono de lupa en la barra de tareas'
+    magTrayShow: 'Mostrar lupa', magTrayToggle: 'Icono de lupa', magTrayToggleDesc: 'Mostrar icono de lupa en la barra de tareas',
+    settingsAI: 'Inteligencia Artificial', aiTokens: 'Claves API', aiTokensDesc: 'Claves de servicio IA disponibles en todas las aplicaciones',
+    aiAgents: 'Agentes', aiAgentsDesc: 'Configurar los agentes IA a utilizar',
+    aiProvider: 'Proveedor', aiApiKey: 'Clave API', aiModel: 'Modelo', aiEnabled: 'Activado',
+    aiAddProvider: 'Agregar proveedor', aiAddAgent: 'Agregar agente', aiAgentName: 'Nombre del agente',
+    aiAgentProvider: 'Proveedor', aiAgentModel: 'Modelo', aiAgentPrompt: 'Indicación del sistema',
+    aiSave: 'Guardar', aiSaved: 'Configuración IA guardada', aiRemove: 'Eliminar',
+    aiKeyHidden: 'Clave oculta', aiKeyPlaceholder: 'Ingrese clave API...', aiDefault: 'Predeterminado',
+    aiChat: 'Asistente IA', aiNewChat: 'Nuevo chat', aiClear: 'Borrar', aiNoProvider: 'No hay proveedor de IA configurado. Agregue uno desde Configuración.', aiGoSettings: 'Ir a Configuración', aiWelcome: '¡Hola! Soy tu Asistente IA', aiWelcomeDesc: 'Estoy aquí para ayudarte. Haz una pregunta o pide ayuda con tus aplicaciones abiertas.', aiPlaceholder: 'Escribe tu mensaje...', aiChip1: '¿Qué puedo hacer en esta app?', aiChip2: 'Escríbeme un texto', aiChip3: 'Ayúdame a resolver un problema'
   },
   ru: {
     apps: 'Приложения', user: 'Пользователь', loading: 'Загрузка...', search: 'Поиск...',
@@ -1691,7 +1881,15 @@ const I18N = {
     wpUploading: 'Загрузка...', wpDefault: 'По умолчанию',
     settingsSession: 'Сессия', restoreApps: 'Восстановить приложения', restoreAppsDesc: 'Открывать приложения заново после обновления страницы',
     skbTrayToggle: 'Значок клавиатуры', skbTrayToggleDesc: 'Показать значок экранной клавиатуры на панели задач',
-    magTrayShow: 'Показать лупу', magTrayToggle: 'Значок лупы', magTrayToggleDesc: 'Показать значок лупы на панели задач'
+    magTrayShow: 'Показать лупу', magTrayToggle: 'Значок лупы', magTrayToggleDesc: 'Показать значок лупы на панели задач',
+    settingsAI: 'Искусственный интеллект', aiTokens: 'API-ключи', aiTokensDesc: 'Ключи ИИ-сервисов доступны для всех приложений',
+    aiAgents: 'Агенты', aiAgentsDesc: 'Настроить используемых ИИ-агентов',
+    aiProvider: 'Провайдер', aiApiKey: 'API-ключ', aiModel: 'Модель', aiEnabled: 'Включено',
+    aiAddProvider: 'Добавить провайдера', aiAddAgent: 'Добавить агента', aiAgentName: 'Имя агента',
+    aiAgentProvider: 'Провайдер', aiAgentModel: 'Модель', aiAgentPrompt: 'Системный промпт',
+    aiSave: 'Сохранить', aiSaved: 'Настройки ИИ сохранены', aiRemove: 'Удалить',
+    aiKeyHidden: 'Ключ скрыт', aiKeyPlaceholder: 'Введите API-ключ...', aiDefault: 'По умолчанию',
+    aiChat: 'ИИ Ассистент', aiNewChat: 'Новый чат', aiClear: 'Очистить', aiNoProvider: 'Провайдер ИИ не настроен. Добавьте провайдера в Настройках.', aiGoSettings: 'Перейти в Настройки', aiWelcome: 'Здравствуйте! Я ваш ИИ Ассистент', aiWelcomeDesc: 'Я здесь, чтобы помочь вам. Задайте вопрос или попросите помощь с открытыми приложениями.', aiPlaceholder: 'Введите сообщение...', aiChip1: 'Что я могу делать в этом приложении?', aiChip2: 'Напиши мне текст', aiChip3: 'Помоги решить проблему'
   },
   zh: {
     apps: '应用程序', user: '用户', loading: '加载中...', search: '搜索...',
@@ -1725,7 +1923,15 @@ const I18N = {
     wpUploading: '上传中...', wpDefault: '默认',
     settingsSession: '会话', restoreApps: '恢复应用', restoreAppsDesc: '页面刷新后重新打开应用',
     skbTrayToggle: '键盘图标', skbTrayToggleDesc: '在任务栏显示屏幕键盘图标',
-    magTrayShow: '显示放大镜', magTrayToggle: '放大镜图标', magTrayToggleDesc: '在任务栏显示放大镜图标'
+    magTrayShow: '显示放大镜', magTrayToggle: '放大镜图标', magTrayToggleDesc: '在任务栏显示放大镜图标',
+    settingsAI: '人工智能', aiTokens: 'API密钥', aiTokensDesc: '所有应用可用的AI服务密钥',
+    aiAgents: '代理', aiAgentsDesc: '配置要使用的AI代理',
+    aiProvider: '提供商', aiApiKey: 'API密钥', aiModel: '模型', aiEnabled: '已启用',
+    aiAddProvider: '添加提供商', aiAddAgent: '添加代理', aiAgentName: '代理名称',
+    aiAgentProvider: '提供商', aiAgentModel: '模型', aiAgentPrompt: '系统提示',
+    aiSave: '保存', aiSaved: 'AI设置已保存', aiRemove: '移除',
+    aiKeyHidden: '密钥已隐藏', aiKeyPlaceholder: '输入API密钥...', aiDefault: '默认',
+    aiChat: 'AI 助手', aiNewChat: '新对话', aiClear: '清除', aiNoProvider: '尚未配置AI提供商。请在设置中添加提供商。', aiGoSettings: '前往设置', aiWelcome: '你好！我是你的AI助手', aiWelcomeDesc: '我在这里帮助你。提问或获取有关打开的应用的帮助。', aiPlaceholder: '输入消息...', aiChip1: '这个应用能做什么？', aiChip2: '帮我写一段文字', aiChip3: '帮我解决一个问题'
   },
   ja: {
     apps: 'アプリケーション', user: 'ユーザー', loading: '読み込み中...', search: '検索...',
@@ -1759,7 +1965,15 @@ const I18N = {
     wpUploading: 'アップロード中...', wpDefault: 'デフォルト',
     settingsSession: 'セッション', restoreApps: 'アプリを復元', restoreAppsDesc: 'ページ更新後にアプリを再度開く',
     skbTrayToggle: 'キーボードアイコン', skbTrayToggleDesc: 'タスクバーにスクリーンキーボードアイコンを表示',
-    magTrayShow: '拡大鏡を表示', magTrayToggle: '拡大鏡アイコン', magTrayToggleDesc: 'タスクバーに拡大鏡アイコンを表示'
+    magTrayShow: '拡大鏡を表示', magTrayToggle: '拡大鏡アイコン', magTrayToggleDesc: 'タスクバーに拡大鏡アイコンを表示',
+    settingsAI: '人工知能', aiTokens: 'APIキー', aiTokensDesc: 'すべてのアプリで利用可能なAIサービスキー',
+    aiAgents: 'エージェント', aiAgentsDesc: '使用するAIエージェントを設定',
+    aiProvider: 'プロバイダー', aiApiKey: 'APIキー', aiModel: 'モデル', aiEnabled: '有効',
+    aiAddProvider: 'プロバイダー追加', aiAddAgent: 'エージェント追加', aiAgentName: 'エージェント名',
+    aiAgentProvider: 'プロバイダー', aiAgentModel: 'モデル', aiAgentPrompt: 'システムプロンプト',
+    aiSave: '保存', aiSaved: 'AI設定を保存しました', aiRemove: '削除',
+    aiKeyHidden: 'キーは非表示', aiKeyPlaceholder: 'APIキーを入力...', aiDefault: 'デフォルト',
+    aiChat: 'AIアシスタント', aiNewChat: '新しいチャット', aiClear: 'クリア', aiNoProvider: 'AIプロバイダーが設定されていません。設定からプロバイダーを追加してください。', aiGoSettings: '設定へ', aiWelcome: 'こんにちは！AIアシスタントです', aiWelcomeDesc: 'お手伝いします。質問をするか、開いているアプリのヘルプを求めてください。', aiPlaceholder: 'メッセージを入力...', aiChip1: 'このアプリで何ができますか？', aiChip2: 'テキストを書いて', aiChip3: '問題を解決して'
   },
   it: {
     apps: 'Applicazioni', user: 'Utente', loading: 'Caricamento...', search: 'Cerca...',
@@ -1793,7 +2007,15 @@ const I18N = {
     wpUploading: 'Caricamento...', wpDefault: 'Predefinito',
     settingsSession: 'Sessione', restoreApps: 'Ripristina app', restoreAppsDesc: 'Riapri le app dopo l\'aggiornamento della pagina',
     skbTrayToggle: 'Icona tastiera', skbTrayToggleDesc: 'Mostra icona della tastiera su schermo nella barra delle applicazioni',
-    magTrayShow: 'Mostra lente', magTrayToggle: 'Icona lente', magTrayToggleDesc: 'Mostra icona della lente di ingrandimento nella barra delle applicazioni'
+    magTrayShow: 'Mostra lente', magTrayToggle: 'Icona lente', magTrayToggleDesc: 'Mostra icona della lente di ingrandimento nella barra delle applicazioni',
+    settingsAI: 'Intelligenza Artificiale', aiTokens: 'Chiavi API', aiTokensDesc: 'Chiavi dei servizi IA disponibili in tutte le app',
+    aiAgents: 'Agenti', aiAgentsDesc: 'Configura gli agenti IA da utilizzare',
+    aiProvider: 'Provider', aiApiKey: 'Chiave API', aiModel: 'Modello', aiEnabled: 'Abilitato',
+    aiAddProvider: 'Aggiungi provider', aiAddAgent: 'Aggiungi agente', aiAgentName: 'Nome agente',
+    aiAgentProvider: 'Provider', aiAgentModel: 'Modello', aiAgentPrompt: 'Prompt di sistema',
+    aiSave: 'Salva', aiSaved: 'Impostazioni IA salvate', aiRemove: 'Rimuovi',
+    aiKeyHidden: 'Chiave nascosta', aiKeyPlaceholder: 'Inserisci chiave API...', aiDefault: 'Predefinito',
+    aiChat: 'Assistente IA', aiNewChat: 'Nuova chat', aiClear: 'Cancella', aiNoProvider: 'Nessun provider IA configurato. Aggiungi un provider dalle Impostazioni.', aiGoSettings: 'Vai alle Impostazioni', aiWelcome: 'Ciao! Sono il tuo Assistente IA', aiWelcomeDesc: 'Sono qui per aiutarti. Fai una domanda o chiedi aiuto con le tue app aperte.', aiPlaceholder: 'Scrivi il tuo messaggio...', aiChip1: 'Cosa posso fare in questa app?', aiChip2: 'Scrivimi un testo', aiChip3: 'Aiutami a risolvere un problema'
   },
   ar: {
     apps: 'التطبيقات', user: 'المستخدم', loading: 'جاري التحميل...', search: 'بحث...',
@@ -1827,7 +2049,15 @@ const I18N = {
     wpUploading: 'جاري الرفع...', wpDefault: 'افتراضي',
     settingsSession: 'الجلسة', restoreApps: 'استعادة التطبيقات', restoreAppsDesc: 'إعادة فتح التطبيقات بعد تحديث الصفحة',
     skbTrayToggle: 'أيقونة لوحة المفاتيح', skbTrayToggleDesc: 'إظهار أيقونة لوحة المفاتيح في شريط المهام',
-    magTrayShow: 'إظهار المكبر', magTrayToggle: 'أيقونة المكبر', magTrayToggleDesc: 'إظهار أيقونة المكبر في شريط المهام'
+    magTrayShow: 'إظهار المكبر', magTrayToggle: 'أيقونة المكبر', magTrayToggleDesc: 'إظهار أيقونة المكبر في شريط المهام',
+    settingsAI: 'الذكاء الاصطناعي', aiTokens: 'مفاتيح API', aiTokensDesc: 'مفاتيح خدمة الذكاء الاصطناعي المتاحة لجميع التطبيقات',
+    aiAgents: 'الوكلاء', aiAgentsDesc: 'تكوين وكلاء الذكاء الاصطناعي للاستخدام',
+    aiProvider: 'المزود', aiApiKey: 'مفتاح API', aiModel: 'النموذج', aiEnabled: 'مفعل',
+    aiAddProvider: 'إضافة مزود', aiAddAgent: 'إضافة وكيل', aiAgentName: 'اسم الوكيل',
+    aiAgentProvider: 'المزود', aiAgentModel: 'النموذج', aiAgentPrompt: 'أمر النظام',
+    aiSave: 'حفظ', aiSaved: 'تم حفظ إعدادات الذكاء الاصطناعي', aiRemove: 'إزالة',
+    aiKeyHidden: 'المفتاح مخفي', aiKeyPlaceholder: 'أدخل مفتاح API...', aiDefault: 'افتراضي',
+    aiChat: 'مساعد الذكاء الاصطناعي', aiNewChat: 'محادثة جديدة', aiClear: 'مسح', aiNoProvider: 'لم يتم تكوين مزود ذكاء اصطناعي. أضف مزوداً من الإعدادات.', aiGoSettings: 'انتقل للإعدادات', aiWelcome: 'مرحباً! أنا مساعدك الذكي', aiWelcomeDesc: 'أنا هنا لمساعدتك. اطرح سؤالاً أو اطلب المساعدة مع تطبيقاتك المفتوحة.', aiPlaceholder: 'اكتب رسالتك...', aiChip1: 'ماذا أستطيع أن أفعل؟', aiChip2: 'اكتب لي نصاً', aiChip3: 'ساعدني في حل مشكلة'
   },
   ko: {
     apps: '애플리케이션', user: '사용자', loading: '로딩 중...', search: '검색...',
@@ -1861,7 +2091,15 @@ const I18N = {
     wpUploading: '업로드 중...', wpDefault: '기본값',
     settingsSession: '세션', restoreApps: '앱 복원', restoreAppsDesc: '페이지 새로고침 후 앱 다시 열기',
     skbTrayToggle: '키보드 아이콘', skbTrayToggleDesc: '작업 표시줄에 화면 키보드 아이콘 표시',
-    magTrayShow: '돋보기 표시', magTrayToggle: '돋보기 아이콘', magTrayToggleDesc: '작업 표시줄에 돋보기 아이콘 표시'
+    magTrayShow: '돋보기 표시', magTrayToggle: '돋보기 아이콘', magTrayToggleDesc: '작업 표시줄에 돋보기 아이콘 표시',
+    settingsAI: '인공지능', aiTokens: 'API 키', aiTokensDesc: '모든 앱에서 사용할 수 있는 AI 서비스 키',
+    aiAgents: '에이전트', aiAgentsDesc: '사용할 AI 에이전트 구성',
+    aiProvider: '제공업체', aiApiKey: 'API 키', aiModel: '모델', aiEnabled: '활성화',
+    aiAddProvider: '제공업체 추가', aiAddAgent: '에이전트 추가', aiAgentName: '에이전트 이름',
+    aiAgentProvider: '제공업체', aiAgentModel: '모델', aiAgentPrompt: '시스템 프롬프트',
+    aiSave: '저장', aiSaved: 'AI 설정이 저장되었습니다', aiRemove: '제거',
+    aiKeyHidden: '키가 숨겨져 있습니다', aiKeyPlaceholder: 'API 키 입력...', aiDefault: '기본값',
+    aiChat: 'AI 어시스턴트', aiNewChat: '새 대화', aiClear: '지우기', aiNoProvider: 'AI 제공업체가 구성되지 않았습니다. 설정에서 제공업체를 추가하세요.', aiGoSettings: '설정으로 이동', aiWelcome: '안녕하세요! AI 어시스턴트입니다', aiWelcomeDesc: '도움을 드리겠습니다. 질문을 하거나 열린 앱에 대한 도움을 요청하세요.', aiPlaceholder: '메시지를 입력하세요...', aiChip1: '이 앱에서 뭘 할 수 있나요?', aiChip2: '글을 써줘', aiChip3: '문제 해결을 도와줘'
   },
   hi: {
     apps: 'एप्लिकेशन', user: 'उपयोगकर्ता', loading: 'लोड हो रहा है...', search: 'खोजें...',
@@ -1895,7 +2133,15 @@ const I18N = {
     wpUploading: 'अपलोड हो रहा है...', wpDefault: 'डिफ़ॉल्ट',
     settingsSession: 'सत्र', restoreApps: 'ऐप्स पुनर्स्थापित करें', restoreAppsDesc: 'पेज रीफ़्रेश के बाद ऐप दोबारा खोलें',
     skbTrayToggle: 'कीबोर्ड आइकन', skbTrayToggleDesc: 'टास्कबार में स्क्रीन कीबोर्ड आइकन दिखाएं',
-    magTrayShow: 'मैग्निफायर दिखाएं', magTrayToggle: 'मैग्निफायर आइकन', magTrayToggleDesc: 'टास्कबार में मैग्निफायर आइकन दिखाएं'
+    magTrayShow: 'मैग्निफायर दिखाएं', magTrayToggle: 'मैग्निफायर आइकन', magTrayToggleDesc: 'टास्कबार में मैग्निफायर आइकन दिखाएं',
+    settingsAI: 'कृत्रिम बुद्धिमत्ता', aiTokens: 'API कुंजियाँ', aiTokensDesc: 'सभी ऐप्स में उपलब्ध AI सेवा कुंजियाँ',
+    aiAgents: 'एजेंट', aiAgentsDesc: 'उपयोग करने के लिए AI एजेंट कॉन्फ़िगर करें',
+    aiProvider: 'प्रदाता', aiApiKey: 'API कुंजी', aiModel: 'मॉडल', aiEnabled: 'सक्रिय',
+    aiAddProvider: 'प्रदाता जोड़ें', aiAddAgent: 'एजेंट जोड़ें', aiAgentName: 'एजेंट का नाम',
+    aiAgentProvider: 'प्रदाता', aiAgentModel: 'मॉडल', aiAgentPrompt: 'सिस्टम प्रॉम्प्ट',
+    aiSave: 'सहेजें', aiSaved: 'AI सेटिंग्स सहेजी गईं', aiRemove: 'हटाएं',
+    aiKeyHidden: 'कुंजी छिपी हुई है', aiKeyPlaceholder: 'API कुंजी दर्ज करें...', aiDefault: 'डिफ़ॉल्ट',
+    aiChat: 'AI सहायक', aiNewChat: 'नई चैट', aiClear: 'साफ़ करें', aiNoProvider: 'कोई AI प्रदाता कॉन्फ़िगर नहीं किया गया। सेटिंग्स से एक प्रदाता जोड़ें।', aiGoSettings: 'सेटिंग्स पर जाएं', aiWelcome: 'नमस्ते! मैं आपका AI सहायक हूं', aiWelcomeDesc: 'मैं आपकी मदद के लिए यहां हूं। कोई प्रश्न पूछें या अपने खुले ऐप्स में मदद मांगें।', aiPlaceholder: 'अपना संदेश लिखें...', aiChip1: 'इस ऐप में क्या कर सकता हूं?', aiChip2: 'मेरे लिए एक टेक्स्ट लिखो', aiChip3: 'एक समस्या हल करने में मदद करो'
   },
   pt: {
     apps: 'Aplicações', user: 'Utilizador', loading: 'Carregando...', search: 'Pesquisar...',
@@ -1929,7 +2175,15 @@ const I18N = {
     wpUploading: 'Enviando...', wpDefault: 'Padrão',
     settingsSession: 'Sessão', restoreApps: 'Restaurar Apps', restoreAppsDesc: 'Reabrir apps após atualização da página',
     skbTrayToggle: 'Ícone do Teclado', skbTrayToggleDesc: 'Mostrar ícone do teclado virtual na barra de tarefas',
-    magTrayShow: 'Mostrar Lupa', magTrayToggle: 'Ícone da Lupa', magTrayToggleDesc: 'Mostrar ícone da lupa na barra de tarefas'
+    magTrayShow: 'Mostrar Lupa', magTrayToggle: 'Ícone da Lupa', magTrayToggleDesc: 'Mostrar ícone da lupa na barra de tarefas',
+    settingsAI: 'Inteligência Artificial', aiTokens: 'Chaves API', aiTokensDesc: 'Chaves de serviço IA disponíveis em todos os apps',
+    aiAgents: 'Agentes', aiAgentsDesc: 'Configurar agentes IA a utilizar',
+    aiProvider: 'Provedor', aiApiKey: 'Chave API', aiModel: 'Modelo', aiEnabled: 'Ativado',
+    aiAddProvider: 'Adicionar provedor', aiAddAgent: 'Adicionar agente', aiAgentName: 'Nome do agente',
+    aiAgentProvider: 'Provedor', aiAgentModel: 'Modelo', aiAgentPrompt: 'Prompt do sistema',
+    aiSave: 'Salvar', aiSaved: 'Configurações IA salvas', aiRemove: 'Remover',
+    aiKeyHidden: 'Chave oculta', aiKeyPlaceholder: 'Insira a chave API...', aiDefault: 'Padrão',
+    aiChat: 'Assistente IA', aiNewChat: 'Novo chat', aiClear: 'Limpar', aiNoProvider: 'Nenhum provedor de IA configurado. Adicione um provedor nas Configurações.', aiGoSettings: 'Ir para Configurações', aiWelcome: 'Olá! Sou seu Assistente IA', aiWelcomeDesc: 'Estou aqui para ajudar. Faça uma pergunta ou peça ajuda com seus aplicativos abertos.', aiPlaceholder: 'Digite sua mensagem...', aiChip1: 'O que posso fazer neste app?', aiChip2: 'Escreva-me um texto', aiChip3: 'Ajude-me a resolver um problema'
   }
 };
 
@@ -1958,10 +2212,10 @@ Object.assign(I18N.ru, { screenshot:'Снимок экрана', ssSelectRegion:
 Object.assign(I18N.zh, { screenshot:'截图', ssSelectRegion:'选择区域', ssCopied:'已复制到剪贴板', ssOpenPaint:'已在画板中打开', ssCancelled:'已取消' });
 Object.assign(I18N.ja, { screenshot:'スクリーンショット', ssSelectRegion:'領域を選択', ssCopied:'クリップボードにコピーしました', ssOpenPaint:'ペイントで開きました', ssCancelled:'キャンセルしました' });
 Object.assign(I18N.it, { screenshot:'Cattura schermo', ssSelectRegion:'Seleziona area', ssCopied:'Copiato negli appunti', ssOpenPaint:'Aperto in Paint', ssCancelled:'Annullato' });
-Object.assign(I18N.ar, { screenshot:'لقطة شاشة', ssSelectRegion:'حدد المنطقة', ssCopied:'تم النسخ إلى الحافظة', ssOpenPaint:'تم الفتح في الرسام', ssCancelled:'تم الإلغاء', ctxArrange:'ترتيب الرموز' });
-Object.assign(I18N.ko, { screenshot:'스크린샷', ssSelectRegion:'영역 선택', ssCopied:'클립보드에 복사됨', ssOpenPaint:'페인트에서 열림', ssCancelled:'취소됨', ctxArrange:'아이콘 정렬' });
-Object.assign(I18N.hi, { screenshot:'स्क्रीनशॉट', ssSelectRegion:'क्षेत्र चुनें', ssCopied:'क्लिपबोर्ड में कॉपी किया गया', ssOpenPaint:'पेंट में खोला गया', ssCancelled:'रद्द किया गया', ctxArrange:'आइकन व्यवस्थित करें' });
-Object.assign(I18N.pt, { screenshot:'Captura de Tela', ssSelectRegion:'Selecionar região', ssCopied:'Copiado para a área de transferência', ssOpenPaint:'Aberto no Paint', ssCancelled:'Cancelado', ctxArrange:'Organizar ícones' });
+Object.assign(I18N.ar, { screenshot:'لقطة شاشة', ssSelectRegion:'حدد المنطقة', ssCopied:'تم النسخ إلى الحافظة', ssOpenPaint:'تم الفتح في الرسام', ssCancelled:'تم الإلغاء', ctxArrange:'ترتيب الرموز', ctxCascade:'تدرج', ctxTileH:'ترتيب أفقي', ctxTileV:'ترتيب عمودي', ctxMinimizeAll:'تصغير الكل', ctxOpenApps:'التطبيقات المفتوحة' });
+Object.assign(I18N.ko, { screenshot:'스크린샷', ssSelectRegion:'영역 선택', ssCopied:'클립보드에 복사됨', ssOpenPaint:'페인트에서 열림', ssCancelled:'취소됨', ctxArrange:'아이콘 정렬', ctxCascade:'계단식', ctxTileH:'가로 배열', ctxTileV:'세로 배열', ctxMinimizeAll:'모두 최소화', ctxOpenApps:'열린 앱' });
+Object.assign(I18N.hi, { screenshot:'स्क्रीनशॉट', ssSelectRegion:'क्षेत्र चुनें', ssCopied:'क्लिपबोर्ड में कॉपी किया गया', ssOpenPaint:'पेंट में खोला गया', ssCancelled:'रद्द किया गया', ctxArrange:'आइकन व्यवस्थित करें', ctxCascade:'कैस्केड', ctxTileH:'क्षैतिज सजाएं', ctxTileV:'लंबवत सजाएं', ctxMinimizeAll:'सभी न्यूनतम', ctxOpenApps:'खुले अनुप्रयोग' });
+Object.assign(I18N.pt, { screenshot:'Captura de Tela', ssSelectRegion:'Selecionar região', ssCopied:'Copiado para a área de transferência', ssOpenPaint:'Aberto no Paint', ssCancelled:'Cancelado', ctxArrange:'Organizar ícones', ctxCascade:'Cascata', ctxTileH:'Lado a lado', ctxTileV:'Vertical', ctxMinimizeAll:'Minimizar tudo', ctxOpenApps:'Aplicativos abertos' });
 
 const LANG_OPTIONS = [
   { code: 'tr', label: 'Türkçe', flag: '🇹🇷' },
@@ -1985,6 +2239,7 @@ function getIntlLocale() { return LOCALE_MAP[useSettingsStore().locale] || 'tr-T
 // ── Extended I18N keys ──
 Object.assign(I18N.tr, {
   ctxOpen:'Aç', ctxMove:'Taşı', ctxCopy:'Kopyala', ctxDesktop:'Masaüstü', ctxRemove:'Masaüstünden Kaldır', ctxAddDesktop:'Masaüstüne Ekle', ctxArrange:'Simgeleri Düzenle', ctxLogout:'Çıkış Yap',
+  ctxCascade:'Basamakla', ctxTileH:'Yan Yana Döşe', ctxTileV:'Dikey Döşe', ctxMinimizeAll:'Tümünü Simge Durumuna', ctxOpenApps:'Açık Uygulamalar',
   start:'Başlat', fullscreen:'Tam Ekran', fullscreenExit:'Tam Ekrandan Çık',
   notepadClear:'Temizle', notepadCopy:'Kopyala', notepadPlaceholder:'Yazmaya başlayın...', notepadChars:'karakter', notepadWords:'kelime',
   todoTitle:'Görev Listesi', todoCompleted:'tamamlandı', todoPlaceholder:'Yeni görev ekle...', todoAdd:'Ekle', todoEmpty:'Henüz görev yok 🎉',
@@ -2012,6 +2267,7 @@ Object.assign(I18N.tr, {
 });
 Object.assign(I18N.en, {
   ctxOpen:'Open', ctxMove:'Move', ctxCopy:'Copy', ctxDesktop:'Desktop', ctxRemove:'Remove from Desktop', ctxAddDesktop:'Add to Desktop', ctxArrange:'Arrange Icons', ctxLogout:'Log Out',
+  ctxCascade:'Cascade', ctxTileH:'Tile Horizontally', ctxTileV:'Tile Vertically', ctxMinimizeAll:'Minimize All', ctxOpenApps:'Open Applications',
   start:'Start', fullscreen:'Fullscreen', fullscreenExit:'Exit Fullscreen',
   notepadClear:'Clear', notepadCopy:'Copy', notepadPlaceholder:'Start typing...', notepadChars:'characters', notepadWords:'words',
   todoTitle:'To-Do List', todoCompleted:'completed', todoPlaceholder:'Add new task...', todoAdd:'Add', todoEmpty:'No tasks yet 🎉',
@@ -2037,6 +2293,7 @@ Object.assign(I18N.en, {
 });
 Object.assign(I18N.de, {
   ctxOpen:'Öffnen', ctxMove:'Verschieben', ctxCopy:'Kopieren', ctxDesktop:'Desktop', ctxRemove:'Vom Desktop entfernen', ctxAddDesktop:'Zum Desktop hinzufügen', ctxArrange:'Symbole anordnen', ctxLogout:'Abmelden',
+  ctxCascade:'Kaskadieren', ctxTileH:'Nebeneinander', ctxTileV:'Vertikal anordnen', ctxMinimizeAll:'Alle minimieren', ctxOpenApps:'Geöffnete Anwendungen',
   start:'Start', fullscreen:'Vollbild', fullscreenExit:'Vollbild beenden',
   notepadClear:'Löschen', notepadCopy:'Kopieren', notepadPlaceholder:'Schreiben Sie...', notepadChars:'Zeichen', notepadWords:'Wörter',
   todoTitle:'Aufgabenliste', todoCompleted:'erledigt', todoPlaceholder:'Neue Aufgabe...', todoAdd:'Hinzufügen', todoEmpty:'Noch keine Aufgaben 🎉',
@@ -2062,6 +2319,7 @@ Object.assign(I18N.de, {
 });
 Object.assign(I18N.fr, {
   ctxOpen:'Ouvrir', ctxMove:'Déplacer', ctxCopy:'Copier', ctxDesktop:'Bureau', ctxRemove:'Retirer du bureau', ctxAddDesktop:'Ajouter au bureau', ctxArrange:'Réorganiser les icônes', ctxLogout:'Déconnexion',
+  ctxCascade:'Cascade', ctxTileH:'Mosaïque horizontale', ctxTileV:'Mosaïque verticale', ctxMinimizeAll:'Réduire tout', ctxOpenApps:'Applications ouvertes',
   start:'Démarrer', fullscreen:'Plein écran', fullscreenExit:'Quitter le plein écran',
   notepadClear:'Effacer', notepadCopy:'Copier', notepadPlaceholder:'Commencez à écrire...', notepadChars:'caractères', notepadWords:'mots',
   todoTitle:'Liste de tâches', todoCompleted:'terminées', todoPlaceholder:'Ajouter une tâche...', todoAdd:'Ajouter', todoEmpty:'Aucune tâche 🎉',
@@ -2087,6 +2345,7 @@ Object.assign(I18N.fr, {
 });
 Object.assign(I18N.es, {
   ctxOpen:'Abrir', ctxMove:'Mover', ctxCopy:'Copiar', ctxDesktop:'Escritorio', ctxRemove:'Quitar del escritorio', ctxAddDesktop:'Añadir al escritorio', ctxArrange:'Organizar iconos', ctxLogout:'Cerrar sesión',
+  ctxCascade:'Cascada', ctxTileH:'Mosaico horizontal', ctxTileV:'Mosaico vertical', ctxMinimizeAll:'Minimizar todo', ctxOpenApps:'Aplicaciones abiertas',
   start:'Inicio', fullscreen:'Pantalla completa', fullscreenExit:'Salir de pantalla completa',
   notepadClear:'Limpiar', notepadCopy:'Copiar', notepadPlaceholder:'Empiece a escribir...', notepadChars:'caracteres', notepadWords:'palabras',
   todoTitle:'Lista de tareas', todoCompleted:'completadas', todoPlaceholder:'Añadir tarea...', todoAdd:'Añadir', todoEmpty:'Sin tareas aún 🎉',
@@ -2112,6 +2371,7 @@ Object.assign(I18N.es, {
 });
 Object.assign(I18N.ru, {
   ctxOpen:'Открыть', ctxMove:'Переместить', ctxCopy:'Копировать', ctxDesktop:'Рабочий стол', ctxRemove:'Удалить с рабочего стола', ctxAddDesktop:'Добавить на рабочий стол', ctxArrange:'Упорядочить значки', ctxLogout:'Выйти',
+  ctxCascade:'Каскад', ctxTileH:'Плитка', ctxTileV:'Вертикально', ctxMinimizeAll:'Свернуть все', ctxOpenApps:'Открытые приложения',
   start:'Пуск', fullscreen:'Полный экран', fullscreenExit:'Выйти из полного экрана',
   notepadClear:'Очистить', notepadCopy:'Копировать', notepadPlaceholder:'Начните вводить...', notepadChars:'символов', notepadWords:'слов',
   todoTitle:'Список задач', todoCompleted:'выполнено', todoPlaceholder:'Добавить задачу...', todoAdd:'Добавить', todoEmpty:'Задач пока нет 🎉',
@@ -2137,6 +2397,7 @@ Object.assign(I18N.ru, {
 });
 Object.assign(I18N.zh, {
   ctxOpen:'打开', ctxMove:'移动', ctxCopy:'复制', ctxDesktop:'桌面', ctxRemove:'从桌面移除', ctxAddDesktop:'添加到桌面', ctxArrange:'排列图标', ctxLogout:'注销',
+  ctxCascade:'层叠', ctxTileH:'横向平铺', ctxTileV:'纵向平铺', ctxMinimizeAll:'全部最小化', ctxOpenApps:'打开的应用',
   start:'开始', fullscreen:'全屏', fullscreenExit:'退出全屏',
   notepadClear:'清除', notepadCopy:'复制', notepadPlaceholder:'开始输入...', notepadChars:'字符', notepadWords:'字',
   todoTitle:'待办事项', todoCompleted:'已完成', todoPlaceholder:'添加新任务...', todoAdd:'添加', todoEmpty:'暂无任务 🎉',
@@ -2162,6 +2423,7 @@ Object.assign(I18N.zh, {
 });
 Object.assign(I18N.ja, {
   ctxOpen:'開く', ctxMove:'移動', ctxCopy:'コピー', ctxDesktop:'デスクトップ', ctxRemove:'デスクトップから削除', ctxAddDesktop:'デスクトップに追加', ctxArrange:'アイコンの整列', ctxLogout:'ログアウト',
+  ctxCascade:'カスケード', ctxTileH:'横に並べる', ctxTileV:'縦に並べる', ctxMinimizeAll:'すべて最小化', ctxOpenApps:'開いているアプリ',
   start:'スタート', fullscreen:'全画面', fullscreenExit:'全画面終了',
   notepadClear:'クリア', notepadCopy:'コピー', notepadPlaceholder:'入力を開始...', notepadChars:'文字', notepadWords:'語',
   todoTitle:'ToDoリスト', todoCompleted:'完了', todoPlaceholder:'新しいタスクを追加...', todoAdd:'追加', todoEmpty:'タスクはまだありません 🎉',
@@ -2187,6 +2449,7 @@ Object.assign(I18N.ja, {
 });
 Object.assign(I18N.it, {
   ctxOpen:'Apri', ctxMove:'Sposta', ctxCopy:'Copia', ctxDesktop:'Scrivania', ctxRemove:'Rimuovi dal desktop', ctxAddDesktop:'Aggiungi al desktop', ctxArrange:'Disponi icone', ctxLogout:'Esci',
+  ctxCascade:'Cascata', ctxTileH:'Affianca orizzontalmente', ctxTileV:'Affianca verticalmente', ctxMinimizeAll:'Riduci tutto a icona', ctxOpenApps:'Applicazioni aperte',
   start:'Avvia', fullscreen:'Schermo intero', fullscreenExit:'Esci da schermo intero',
   notepadClear:'Cancella', notepadCopy:'Copia', notepadPlaceholder:'Inizia a scrivere...', notepadChars:'caratteri', notepadWords:'parole',
   todoTitle:'Lista attività', todoCompleted:'completate', todoPlaceholder:'Aggiungi attività...', todoAdd:'Aggiungi', todoEmpty:'Nessuna attività 🎉',
@@ -2618,6 +2881,7 @@ const SettingsApp = {
       { id: 'language', icon: '🌐', name: t('settingsLanguage') },
       { id: 'sound', icon: '🔊', name: t('settingsSound') },
       { id: 'session', icon: '🔄', name: t('settingsSession') || 'Oturum' },
+      { id: 'ai', icon: '🤖', name: t('settingsAI') || 'AI' },
       { id: 'network', icon: '📶', name: t('settingsNetwork') },
       { id: 'about', icon: 'ℹ️', name: t('settingsAbout') }
     ]);
@@ -2717,12 +2981,6 @@ const SettingsApp = {
         if (settingsStore.longitude) locLng.value = settingsStore.longitude;
       }
     }
-
-    onMounted(() => {
-      loadCountries();
-      loadSettings();
-      loadWpList();
-    });
 
     // ── Wallpaper ──
     const wpMode = ref(settingsStore.wallpaperMode || 'all');
@@ -2833,7 +3091,95 @@ const SettingsApp = {
       settingsStore.save({ showMagnifierTray: e.target.checked });
     }
 
-    return { active, tabs, currentRows, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray };
+    // ── AI Settings ──
+    const AI_BUILTIN_PROVIDERS = [
+      { id: 'openai', name: 'OpenAI', icon: '🟢', defaultModel: 'gpt-4o', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'anthropic', name: 'Anthropic', icon: '🟠', defaultModel: 'claude-sonnet-4-20250514', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'google', name: 'Google Gemini', icon: '🔵', defaultModel: 'gemini-2.5-flash', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'mistral', name: 'Mistral', icon: '🟣', defaultModel: 'mistral-large-latest', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'deepseek', name: 'DeepSeek', icon: '🔷', defaultModel: 'deepseek-chat', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'cohere', name: 'Cohere', icon: '🟡', defaultModel: 'command-r-plus', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'groq', name: 'Groq', icon: '⚡', defaultModel: 'llama-3.3-70b-versatile', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'xai', name: 'xAI (Grok)', icon: '✖️', defaultModel: 'grok-3', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'github', name: 'GitHub Copilot', icon: '🐙', defaultModel: 'claude-sonnet-4', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'openrouter', name: 'OpenRouter', icon: '🌐', defaultModel: 'auto', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'perplexity', name: 'Perplexity', icon: '🔍', defaultModel: 'sonar-pro', enabled: false, apiKey: '', model: '', showKey: false, custom: false }
+    ];
+
+    const aiProviders = ref(JSON.parse(JSON.stringify(AI_BUILTIN_PROVIDERS)));
+    const aiAgents = ref([]);
+
+    function addProvider() {
+      const id = 'custom_' + Date.now();
+      aiProviders.value.push({ id, name: 'Custom Provider', icon: '🔧', defaultModel: '', enabled: true, apiKey: '', model: '', showKey: false, custom: true });
+    }
+
+    function removeProvider(idx) {
+      aiProviders.value.splice(idx, 1);
+    }
+
+    function addAgent() {
+      aiAgents.value.push({ name: '', provider: aiProviders.value[0]?.id || 'openai', model: '', systemPrompt: '', enabled: true });
+    }
+
+    function removeAgent(idx) {
+      aiAgents.value.splice(idx, 1);
+    }
+
+    async function saveAISettings() {
+      const providers = aiProviders.value.map(p => ({
+        id: p.id, name: p.name, icon: p.icon, defaultModel: p.defaultModel,
+        enabled: p.enabled, apiKey: p.apiKey, model: p.model, custom: p.custom || false
+      }));
+      const agents = aiAgents.value.map(a => ({
+        name: a.name, provider: a.provider, model: a.model, systemPrompt: a.systemPrompt, enabled: a.enabled
+      }));
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/ai-settings', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ providers, agents })
+        });
+        if (res.ok) ElMessage.success(t('aiSaved'));
+        else ElMessage.error(t('error') || 'Error');
+      } catch { ElMessage.error(t('error') || 'Error'); }
+    }
+
+    async function loadAISettings() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/ai-settings', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.providers && Array.isArray(data.providers)) {
+          const merged = JSON.parse(JSON.stringify(AI_BUILTIN_PROVIDERS));
+          for (const sp of data.providers) {
+            const existing = merged.find(m => m.id === sp.id);
+            if (existing) {
+              existing.enabled = sp.enabled;
+              existing.apiKey = sp.apiKey || '';
+              existing.model = sp.model || '';
+            } else if (sp.custom) {
+              merged.push({ ...sp, showKey: false, custom: true });
+            }
+          }
+          aiProviders.value = merged;
+        }
+        if (data.agents && Array.isArray(data.agents)) {
+          aiAgents.value = data.agents.map(a => ({ ...a, enabled: a.enabled !== false }));
+        }
+      } catch {}
+    }
+
+    onMounted(() => {
+      loadCountries();
+      loadSettings();
+      loadWpList();
+      loadAISettings();
+    });
+
+    return { active, tabs, currentRows, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray, aiProviders, aiAgents, addProvider, removeProvider, addAgent, removeAgent, saveAISettings };
   }
 };
 
@@ -4312,15 +4658,102 @@ createApp({
     function onIconDragEnd() { dragState.value = { dragging: false, appId: null, fromIdx: -1, overIdx: -1 }; }
 
     // ── Desktop context menu ──
+    const desktopCtxEl = ref(null);
     function showDesktopCtx(e) {
-      hideIconCtx();
+      // Don't show desktop ctx if clicked inside a WinBox window
+      if (e.target.closest('.winbox')) return;
+      hideIconCtx(); hideSmCtx();
       desktopCtx.value = { show: true, x: e.clientX, y: e.clientY };
+      nextTick(() => {
+        const el = desktopCtxEl.value;
+        if (!el) return;
+        const mw = el.offsetWidth;
+        const mh = el.offsetHeight;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        let x = e.clientX;
+        let y = e.clientY;
+        if (x + mw > vw) x = vw - mw - 4;
+        if (y + mh > vh) y = vh - mh - 4;
+        if (x < 0) x = 4;
+        if (y < 0) y = 4;
+        desktopCtx.value = { show: true, x, y };
+      });
     }
     function hideDesktopCtx() { desktopCtx.value.show = false; }
     function arrangeIcons() {
       delete iconOrderMap.value[currentDesktop.value];
       saveIconOrder();
       hideDesktopCtx();
+    }
+
+    // ── Window arrangement ──
+    function cascadeWindows() {
+      const wins = openWindows.value.filter(w => w.desktop === currentDesktop.value);
+      let offsetX = 30, offsetY = 30;
+      wins.forEach((w, i) => {
+        const wb = wbMap[w.id];
+        if (!wb) return;
+        wb.restore();
+        w.minimized = false;
+        wb.move(offsetX + i * 30, offsetY + i * 30);
+        wb.focus();
+      });
+    }
+
+    function tileWindowsH() {
+      const wins = openWindows.value.filter(w => w.desktop === currentDesktop.value);
+      if (!wins.length) return;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight - 56;
+      const cols = Math.ceil(Math.sqrt(wins.length));
+      const rows = Math.ceil(wins.length / cols);
+      const tileW = Math.floor(vw / cols);
+      const tileH = Math.floor(vh / rows);
+      wins.forEach((w, i) => {
+        const wb = wbMap[w.id];
+        if (!wb) return;
+        wb.restore();
+        w.minimized = false;
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        wb.move(col * tileW, row * tileH);
+        wb.resize(tileW, tileH);
+      });
+    }
+
+    function tileWindowsV() {
+      const wins = openWindows.value.filter(w => w.desktop === currentDesktop.value);
+      if (!wins.length) return;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight - 56;
+      const tileW = Math.floor(vw / wins.length);
+      wins.forEach((w, i) => {
+        const wb = wbMap[w.id];
+        if (!wb) return;
+        wb.restore();
+        w.minimized = false;
+        wb.move(i * tileW, 0);
+        wb.resize(tileW, vh);
+      });
+    }
+
+    function minimizeAll() {
+      openWindows.value.filter(w => w.desktop === currentDesktop.value).forEach(w => {
+        const wb = wbMap[w.id];
+        if (!wb || w.minimized) return;
+        wb.minimize();
+        w.minimized = true;
+        w.focused = false;
+      });
+    }
+
+    function focusWindowRestore(win) {
+      const wb = wbMap[win.id];
+      if (!wb) return;
+      if (win.minimized) { wb.restore(); win.minimized = false; }
+      win.focused = true;
+      wb.focus();
     }
 
     function showIconCtx(e, app) {
@@ -4440,7 +4873,7 @@ createApp({
     function loadAppCss(appId) {
       if (!appId || _loadedAppCss.has(appId)) return;
       // Only load for built-in apps (those defined in componentMap statically)
-      const builtinIds = ['calc','notepad','todo','fileman','weather','settings','terminal','clock','calendar','notifications','appstore','browser','screenshot','screenkeyboard'];
+      const builtinIds = ['calc','notepad','todo','fileman','weather','settings','terminal','clock','calendar','notifications','appstore','browser','screenshot','screenkeyboard','aichat'];
       if (!builtinIds.includes(appId)) return;
       _loadedAppCss.add(appId);
       const link = document.createElement('link');
@@ -4961,6 +5394,9 @@ createApp({
       setInterval(updateNotifCount, 30000);
       document.addEventListener('fullscreenchange', onFsChange);
       document.addEventListener('click', onDocClick, true);
+      document.addEventListener('contextmenu', function(e) {
+        if (!e.target.closest('.winbox') || e.target.closest('.desktop')) { e.preventDefault(); }
+      });
       window.addEventListener('app-installed', onAppInstalled);
       window.addEventListener('app-uninstalled', onAppUninstalled);
       window.addEventListener('open-app-action', onOpenAppAction);
@@ -5137,7 +5573,161 @@ createApp({
       ssCapturedCanvas = null;
     }
 
-    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, iconCtxEl, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, removeFromDesktop, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, smCtx, smCtxEl, showSmCtx, hideSmCtx, addToDesktop, doLogout, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture, smSearch, smFinderIdx, smSearchResults, smFinderDown, smFinderUp, smFinderEnter, showKeyboardTray: computed(() => settingsStore.showKeyboardTray), showMagnifierTray: computed(() => settingsStore.showMagnifierTray), dragState, desktopCtx, onIconDragStart, onIconDragEnter, onIconDragLeave, onIconDrop, onIconDragEnd, showDesktopCtx, hideDesktopCtx, arrangeIcons };
+    // ── AI Chat Panel ──
+    const aiPanelOpen = ref(false);
+    const aiInput = ref('');
+    const aiMessages = ref([]);
+    const aiLoading = ref(false);
+    const aiError = ref('');
+    const aiSelectedProvider = ref('');
+    const aiActiveContext = ref(null);
+    const aiMessagesEl = ref(null);
+
+    // Load AI Chat CSS
+    (function() {
+      if (!document.querySelector('link[data-builtin-app-css="aichat"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = '/apps/builtin/aichat/desktop.css';
+        link.dataset.builtinAppCss = 'aichat';
+        document.head.appendChild(link);
+      }
+    })();
+
+    const aiEnabledProviders = computed(() => {
+      return (window.__aiProviders || []).filter(p => p.enabled && p.apiKey);
+    });
+
+    const aiCurrentModel = computed(() => {
+      const p = (window.__aiProviders || []).find(pr => pr.id === aiSelectedProvider.value);
+      return p ? (p.model || p.defaultModel) : '';
+    });
+
+    async function aiLoadProviders() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/ai-settings', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.providers) {
+          window.__aiProviders = data.providers.filter(p => p.enabled);
+          if (!aiSelectedProvider.value && window.__aiProviders.length) {
+            aiSelectedProvider.value = window.__aiProviders[0].id;
+          }
+        }
+      } catch {}
+    }
+
+    watch(aiPanelOpen, (v) => { if (v) aiLoadProviders(); });
+
+    function aiTimeStr() {
+      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function aiEscape(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    function aiRenderMd(text) {
+      let html = aiEscape(text);
+      html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(m, lang, code) {
+        return '<pre><code class="lang-' + lang + '">' + code + '</code></pre>';
+      });
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+      html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+      html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+      html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+      html = html.replace(/\n/g, '<br>');
+      return html;
+    }
+
+    function aiAutoResize(e) {
+      const el = e.target;
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    }
+
+    function aiScrollBottom() {
+      nextTick(() => {
+        const el = aiMessagesEl.value;
+        if (el) el.scrollTop = el.scrollHeight;
+      });
+    }
+
+    async function aiSendMsg(text) {
+      const msg = text || aiInput.value.trim();
+      if (!msg || aiLoading.value) return;
+      aiInput.value = '';
+      aiError.value = '';
+
+      nextTick(() => {
+        const ta = document.querySelector('.ai-input');
+        if (ta) ta.style.height = 'auto';
+      });
+
+      const focusedWin = openWindows.value.find(w => w.focused);
+      if (focusedWin && !aiActiveContext.value) {
+        aiActiveContext.value = { id: focusedWin.id, name: focusedWin.name, icon: focusedWin.icon };
+      }
+
+      aiMessages.value.push({ role: 'user', content: msg, time: aiTimeStr() });
+      aiScrollBottom();
+      aiLoading.value = true;
+
+      try {
+        const token = localStorage.getItem('token');
+        const body = {
+          provider: aiSelectedProvider.value,
+          messages: aiMessages.value.map(m => ({ role: m.role, content: m.content })),
+          context: aiActiveContext.value ? aiActiveContext.value.id : null
+        };
+        const res = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || 'Request failed');
+        }
+        const data = await res.json();
+        aiMessages.value.push({ role: 'assistant', content: data.content || '', time: aiTimeStr() });
+      } catch (e) {
+        aiError.value = e.message || t('error');
+      } finally {
+        aiLoading.value = false;
+        aiScrollBottom();
+      }
+    }
+
+    function aiNewChat() {
+      aiMessages.value = [];
+      aiError.value = '';
+      aiActiveContext.value = null;
+    }
+
+    function aiClearChat() {
+      aiMessages.value = [];
+      aiError.value = '';
+    }
+
+    function aiHandleOutsideClick(e) {
+      if (aiPanelOpen.value && !e.target.closest('.ai-panel') && !e.target.closest('.ai-tray-btn')) {
+        aiPanelOpen.value = false;
+      }
+    }
+
+    onMounted(() => {
+      document.addEventListener('click', aiHandleOutsideClick);
+    });
+
+    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, iconCtxEl, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, removeFromDesktop, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, smCtx, smCtxEl, showSmCtx, hideSmCtx, addToDesktop, doLogout, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture, smSearch, smFinderIdx, smSearchResults, smFinderDown, smFinderUp, smFinderEnter, showKeyboardTray: computed(() => settingsStore.showKeyboardTray), showMagnifierTray: computed(() => settingsStore.showMagnifierTray), dragState, desktopCtx, onIconDragStart, onIconDragEnter, onIconDragLeave, onIconDrop, onIconDragEnd, showDesktopCtx, hideDesktopCtx, arrangeIcons, desktopCtxEl, cascadeWindows, tileWindowsH, tileWindowsV, minimizeAll, focusWindowRestore, aiPanelOpen, aiInput, aiMessages, aiLoading, aiError, aiSelectedProvider, aiActiveContext, aiMessagesEl, aiEnabledProviders, aiCurrentModel, aiSendMsg, aiNewChat, aiClearChat, aiRenderMd, aiEscape, aiAutoResize };
   }
 }).use(pinia).use(ElementPlus, EP_LOCALES[localStorage.getItem('sys_locale') || 'tr'] || EP_LOCALES.en).mount('#app');
 

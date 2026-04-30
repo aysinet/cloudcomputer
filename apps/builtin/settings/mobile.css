@@ -9,3 +9,9 @@
 .settings-row .lbl{font-size:15px}
 .settings-row input[type=range]{width:100%}
 .lang-grid{grid-template-columns:repeat(2,1fr) !important}
+/* AI Settings mobile */
+.ai-providers-list,.ai-agents-list{gap:8px}
+.ai-provider-card,.ai-agent-card{padding:10px}
+.ai-key-input,.ai-select,.ai-prompt-input{font-size:14px}
+.ai-provider-header,.ai-agent-header{flex-wrap:wrap}
+.ai-add-btn{font-size:14px;padding:10px 16px}

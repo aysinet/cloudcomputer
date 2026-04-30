@@ -1,0 +1,68 @@
+{
+  "id": "imageforge",
+  "name": "ImageForge",
+  "icon": "🖼️",
+  "color": "linear-gradient(135deg,#667eea,#764ba2)",
+  "type": "internal",
+  "size": {
+    "w": 1060,
+    "h": 700
+  },
+  "global": false,
+  "description": "Gelişmiş görüntü düzenleyici — kırpma, döndürme, efektler, katmanlar",
+  "lang": {
+    "tr": {
+      "name": "ImageForge",
+      "description": "Gelişmiş görüntü düzenleyici — kırpma, döndürme, efektler, dışa aktarma"
+    },
+    "en": {
+      "name": "ImageForge",
+      "description": "Advanced image editor — crop, rotate, effects, export"
+    },
+    "de": {
+      "name": "ImageForge",
+      "description": "Erweiterter Bildeditor — Zuschneiden, Drehen, Effekte, Export"
+    },
+    "fr": {
+      "name": "ImageForge",
+      "description": "Éditeur d'image avancé — recadrage, rotation, effets, exportation"
+    },
+    "es": {
+      "name": "ImageForge",
+      "description": "Editor de imágenes avanzado — recortar, rotar, efectos, exportar"
+    },
+    "ru": {
+      "name": "ImageForge",
+      "description": "Продвинутый редактор изображений — обрезка, поворот, эффекты, экспорт"
+    },
+    "zh": {
+      "name": "ImageForge",
+      "description": "高级图像编辑器 — 裁剪、旋转、特效、导出"
+    },
+    "ja": {
+      "name": "ImageForge",
+      "description": "高度な画像エディタ — クロップ、回転、エフェクト、エクスポート"
+    },
+    "it": {
+      "name": "ImageForge",
+      "description": "Editor di immagini avanzato — ritaglio, rotazione, effetti, esportazione"
+    },
+    "ar": {
+      "name": "ImageForge",
+      "description": "محرر صور متقدم — قص، تدوير، تأثيرات، تصدير"
+    },
+    "ko": {
+      "name": "ImageForge",
+      "description": "고급 이미지 편집기 — 자르기, 회전, 효과, 내보내기"
+    },
+    "hi": {
+      "name": "ImageForge",
+      "description": "उन्नत इमेज एडिटर — क्रॉप, रोटेट, इफेक्ट्स, एक्सपोर्ट"
+    },
+    "pt": {
+      "name": "ImageForge",
+      "description": "Editor de imagem avançado — recortar, girar, efeitos, exportar"
+    }
+  },
+  "category": "productivity"
+}
