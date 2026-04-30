@@ -1,0 +1,517 @@
+<div class="oemr-install-form">
+  <div class="oemr-install-header">
+    <span class="oemr-install-icon">🏥</span>
+    <h3>OpenEMR</h3>
+    <p class="oemr-install-subtitle" data-i18n="subtitle"></p>
+  </div>
+
+  <div class="oemr-dep-check" id="oemr-dep-check">
+    <div class="oemr-dep-loading" data-i18n="depChecking"></div>
+  </div>
+
+  <div class="oemr-install-body" id="oemr-install-body" style="display:none">
+    <div class="oemr-section">
+      <h4 data-i18n="mysqlSection"></h4>
+      <div class="oemr-info-box" data-i18n="autoInfo"></div>
+      <div class="oemr-field-row">
+        <label data-i18n="labelMysqlHost"></label>
+        <input type="text" id="oemr-mysql-host" readonly />
+      </div>
+      <div class="oemr-field-row">
+        <label data-i18n="labelMysqlRootPass"></label>
+        <input type="text" id="oemr-mysql-root-pass" readonly />
+      </div>
+      <div class="oemr-field-row">
+        <label data-i18n="labelDbName"></label>
+        <input type="text" id="oemr-mysql-database" value="openemr" />
+      </div>
+      <div class="oemr-field-row">
+        <label data-i18n="labelDbUser"></label>
+        <input type="text" id="oemr-mysql-user" value="openemr" />
+      </div>
+      <div class="oemr-field-row">
+        <label data-i18n="labelDbPass"></label>
+        <div class="oemr-password-wrap">
+          <input type="password" id="oemr-mysql-pass" data-i18n-placeholder="placeholderMinChars" autocomplete="new-password" />
+          <button type="button" class="oemr-eye-btn" onclick="toggleOemrPass('oemr-mysql-pass')">👁</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="oemr-section">
+      <h4 data-i18n="redisSection"></h4>
+      <div class="oemr-field-row">
+        <label data-i18n="labelRedisHost"></label>
+        <input type="text" id="oemr-redis-host" readonly />
+      </div>
+      <div class="oemr-field-row">
+        <label data-i18n="labelRedisPass"></label>
+        <input type="text" id="oemr-redis-pass" readonly />
+      </div>
+    </div>
+
+    <div class="oemr-section">
+      <h4 data-i18n="adminSection"></h4>
+      <div class="oemr-field-row">
+        <label data-i18n="labelAdminUser"></label>
+        <input type="text" id="oemr-oe-user" value="admin" />
+      </div>
+      <div class="oemr-field-row">
+        <label data-i18n="labelAdminPass"></label>
+        <div class="oemr-password-wrap">
+          <input type="password" id="oemr-oe-pass" data-i18n-placeholder="placeholderMinChars" autocomplete="new-password" />
+          <button type="button" class="oemr-eye-btn" onclick="toggleOemrPass('oemr-oe-pass')">👁</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="oemr-install-error" id="oemr-install-error" style="display:none"></div>
+  </div>
+
+  <div class="oemr-install-footer" id="oemr-install-footer">
+    <button class="oemr-cancel-btn" onclick="cancelServiceInstall()" data-i18n="cancel"></button>
+    <button class="oemr-install-btn" id="oemr-confirm-btn" onclick="confirmServiceInstall()" disabled data-i18n="installBtn"></button>
+  </div>
+</div>
+
+<script>
+  const OEMR_I18N = {
+    tr: {
+      subtitle: 'Elektronik sağlık kayıt sistemi kurulumu',
+      depChecking: '⏳ Bağımlılıklar kontrol ediliyor...',
+      depOk: '✅ Tüm bağımlılıklar mevcut',
+      depMissing: '⚠️ Gerekli servisler eksik. Lütfen önce aşağıdaki servisleri kurun:',
+      depMysql: '🐬 MySQL', depRedis: '🔴 Redis',
+      mysqlSection: '🐬 MySQL Bağlantısı',
+      redisSection: '🔴 Redis Bağlantısı',
+      adminSection: '👤 OpenEMR Yönetici Hesabı',
+      autoInfo: 'MySQL ve Redis ayarları kurulu servislerden otomatik alınır.',
+      labelMysqlHost: 'MySQL Host', labelMysqlRootPass: 'MySQL Root Şifresi',
+      labelDbName: 'OpenEMR Veritabanı Adı', labelDbUser: 'OpenEMR DB Kullanıcı', labelDbPass: 'OpenEMR DB Şifresi',
+      labelRedisHost: 'Redis Host', labelRedisPass: 'Redis Şifresi',
+      labelAdminUser: 'Yönetici Kullanıcı Adı', labelAdminPass: 'Yönetici Şifresi',
+      placeholderMinChars: 'En az 4 karakter',
+      cancel: 'İptal', installBtn: 'Kur ve Başlat',
+      errorDbPass: 'Veritabanı şifresi en az 4 karakter olmalı',
+      errorAdminUser: 'Yönetici kullanıcı adı gerekli',
+      errorAdminPass: 'Yönetici şifresi en az 4 karakter olmalı',
+      errorFetch: 'Servis bilgileri alınamadı',
+      noPassword: '(şifresiz)'
+    },
+    en: {
+      subtitle: 'Electronic health records system setup',
+      depChecking: '⏳ Checking dependencies...',
+      depOk: '✅ All dependencies are installed',
+      depMissing: '⚠️ Required services are missing. Please install the following services first:',
+      depMysql: '🐬 MySQL', depRedis: '🔴 Redis',
+      mysqlSection: '🐬 MySQL Connection',
+      redisSection: '🔴 Redis Connection',
+      adminSection: '👤 OpenEMR Admin Account',
+      autoInfo: 'MySQL and Redis settings are automatically fetched from installed services.',
+      labelMysqlHost: 'MySQL Host', labelMysqlRootPass: 'MySQL Root Password',
+      labelDbName: 'OpenEMR Database Name', labelDbUser: 'OpenEMR DB User', labelDbPass: 'OpenEMR DB Password',
+      labelRedisHost: 'Redis Host', labelRedisPass: 'Redis Password',
+      labelAdminUser: 'Admin Username', labelAdminPass: 'Admin Password',
+      placeholderMinChars: 'At least 4 characters',
+      cancel: 'Cancel', installBtn: 'Install & Start',
+      errorDbPass: 'Database password must be at least 4 characters',
+      errorAdminUser: 'Admin username is required',
+      errorAdminPass: 'Admin password must be at least 4 characters',
+      errorFetch: 'Could not fetch service info',
+      noPassword: '(no password)'
+    },
+    de: {
+      subtitle: 'Elektronische Gesundheitsakte einrichten',
+      depChecking: '⏳ Abhängigkeiten werden geprüft...',
+      depOk: '✅ Alle Abhängigkeiten sind installiert',
+      depMissing: '⚠️ Erforderliche Dienste fehlen. Bitte installieren Sie zuerst:',
+      depMysql: '🐬 MySQL', depRedis: '🔴 Redis',
+      mysqlSection: '🐬 MySQL-Verbindung',
+      redisSection: '🔴 Redis-Verbindung',
+      adminSection: '👤 OpenEMR-Administratorkonto',
+      autoInfo: 'MySQL- und Redis-Einstellungen werden automatisch aus installierten Diensten übernommen.',
+      labelMysqlHost: 'MySQL-Host', labelMysqlRootPass: 'MySQL-Root-Passwort',
+      labelDbName: 'OpenEMR-Datenbankname', labelDbUser: 'OpenEMR-DB-Benutzer', labelDbPass: 'OpenEMR-DB-Passwort',
+      labelRedisHost: 'Redis-Host', labelRedisPass: 'Redis-Passwort',
+      labelAdminUser: 'Admin-Benutzername', labelAdminPass: 'Admin-Passwort',
+      placeholderMinChars: 'Mindestens 4 Zeichen',
+      cancel: 'Abbrechen', installBtn: 'Installieren & Starten',
+      errorDbPass: 'Datenbankpasswort muss mindestens 4 Zeichen lang sein',
+      errorAdminUser: 'Admin-Benutzername ist erforderlich',
+      errorAdminPass: 'Admin-Passwort muss mindestens 4 Zeichen lang sein',
+      errorFetch: 'Dienstinformationen konnten nicht abgerufen werden',
+      noPassword: '(kein Passwort)'
+    },
+    fr: {
+      subtitle: 'Configuration du système de dossiers de santé',
+      depChecking: '⏳ Vérification des dépendances...',
+      depOk: '✅ Toutes les dépendances sont installées',
+      depMissing: '⚠️ Des services requis sont manquants. Veuillez d\'abord installer :',
+      depMysql: '🐬 MySQL', depRedis: '🔴 Redis',
+      mysqlSection: '🐬 Connexion MySQL',
+      redisSection: '🔴 Connexion Redis',
+      adminSection: '👤 Compte administrateur OpenEMR',
+      autoInfo: 'Les paramètres MySQL et Redis sont récupérés automatiquement des services installés.',
+      labelMysqlHost: 'Hôte MySQL', labelMysqlRootPass: 'Mot de passe root MySQL',
+      labelDbName: 'Nom de la base OpenEMR', labelDbUser: 'Utilisateur DB OpenEMR', labelDbPass: 'Mot de passe DB OpenEMR',
+      labelRedisHost: 'Hôte Redis', labelRedisPass: 'Mot de passe Redis',
+      labelAdminUser: 'Nom d\'utilisateur admin', labelAdminPass: 'Mot de passe admin',
+      placeholderMinChars: 'Au moins 4 caractères',
+      cancel: 'Annuler', installBtn: 'Installer & Démarrer',
+      errorDbPass: 'Le mot de passe DB doit comporter au moins 4 caractères',
+      errorAdminUser: 'Le nom d\'utilisateur admin est requis',
+      errorAdminPass: 'Le mot de passe admin doit comporter au moins 4 caractères',
+      errorFetch: 'Impossible de récupérer les infos du service',
+      noPassword: '(sans mot de passe)'
+    },
+    es: {
+      subtitle: 'Configuración del sistema de registros de salud',
+      depChecking: '⏳ Verificando dependencias...',
+      depOk: '✅ Todas las dependencias están instaladas',
+      depMissing: '⚠️ Faltan servicios requeridos. Por favor instale primero:',
+      depMysql: '🐬 MySQL', depRedis: '🔴 Redis',
+      mysqlSection: '🐬 Conexión MySQL',
+      redisSection: '🔴 Conexión Redis',
+      adminSection: '👤 Cuenta de administrador OpenEMR',
+      autoInfo: 'Los ajustes de MySQL y Redis se obtienen automáticamente de los servicios instalados.',
+      labelMysqlHost: 'Host MySQL', labelMysqlRootPass: 'Contraseña root MySQL',
+      labelDbName: 'Nombre de base de datos OpenEMR', labelDbUser: 'Usuario DB OpenEMR', labelDbPass: 'Contraseña DB OpenEMR',
+      labelRedisHost: 'Host Redis', labelRedisPass: 'Contraseña Redis',
+      labelAdminUser: 'Nombre de usuario admin', labelAdminPass: 'Contraseña admin',
+      placeholderMinChars: 'Al menos 4 caracteres',
+      cancel: 'Cancelar', installBtn: 'Instalar e Iniciar',
+      errorDbPass: 'La contraseña de la base de datos debe tener al menos 4 caracteres',
+      errorAdminUser: 'El nombre de usuario admin es obligatorio',
+      errorAdminPass: 'La contraseña del admin debe tener al menos 4 caracteres',
+      errorFetch: 'No se pudo obtener la información del servicio',
+      noPassword: '(sin contraseña)'
+    },
+    ru: {
+      subtitle: 'Настройка системы электронных медицинских карт',
+      depChecking: '⏳ Проверка зависимостей...',
+      depOk: '✅ Все зависимости установлены',
+      depMissing: '⚠️ Отсутствуют необходимые сервисы. Сначала установите:',
+      depMysql: '🐬 MySQL', depRedis: '🔴 Redis',
+      mysqlSection: '🐬 Подключение MySQL',
+      redisSection: '🔴 Подключение Redis',
+      adminSection: '👤 Учётная запись администратора OpenEMR',
+      autoInfo: 'Настройки MySQL и Redis автоматически берутся из установленных сервисов.',
+      labelMysqlHost: 'Хост MySQL', labelMysqlRootPass: 'Root-пароль MySQL',
+      labelDbName: 'Имя базы данных OpenEMR', labelDbUser: 'Пользователь БД OpenEMR', labelDbPass: 'Пароль БД OpenEMR',
+      labelRedisHost: 'Хост Redis', labelRedisPass: 'Пароль Redis',
+      labelAdminUser: 'Имя администратора', labelAdminPass: 'Пароль администратора',
+      placeholderMinChars: 'Минимум 4 символа',
+      cancel: 'Отмена', installBtn: 'Установить и запустить',
+      errorDbPass: 'Пароль БД должен содержать минимум 4 символа',
+      errorAdminUser: 'Имя администратора обязательно',
+      errorAdminPass: 'Пароль администратора должен содержать минимум 4 символа',
+      errorFetch: 'Не удалось получить информацию о сервисе',
+      noPassword: '(без пароля)'
+    },
+    zh: {
+      subtitle: '电子健康记录系统设置',
+      depChecking: '⏳ 正在检查依赖...',
+      depOk: '✅ 所有依赖已安装',
+      depMissing: '⚠️ 缺少必需服务，请先安装以下服务：',
+      depMysql: '🐬 MySQL', depRedis: '🔴 Redis',
+      mysqlSection: '🐬 MySQL 连接',
+      redisSection: '🔴 Redis 连接',
+      adminSection: '👤 OpenEMR 管理员账户',
+      autoInfo: 'MySQL 和 Redis 设置将从已安装的服务中自动获取。',
+      labelMysqlHost: 'MySQL 主机', labelMysqlRootPass: 'MySQL Root 密码',
+      labelDbName: 'OpenEMR 数据库名', labelDbUser: 'OpenEMR 数据库用户', labelDbPass: 'OpenEMR 数据库密码',
+      labelRedisHost: 'Redis 主机', labelRedisPass: 'Redis 密码',
+      labelAdminUser: '管理员用户名', labelAdminPass: '管理员密码',
+      placeholderMinChars: '至少4个字符',
+      cancel: '取消', installBtn: '安装并启动',
+      errorDbPass: '数据库密码至少需要4个字符',
+      errorAdminUser: '管理员用户名为必填项',
+      errorAdminPass: '管理员密码至少需要4个字符',
+      errorFetch: '无法获取服务信息',
+      noPassword: '(无密码)'
+    },
+    ja: {
+      subtitle: '電子健康記録システムのセットアップ',
+      depChecking: '⏳ 依存関係を確認中...',
+      depOk: '✅ すべての依存関係がインストール済みです',
+      depMissing: '⚠️ 必要なサービスが不足しています。先にインストールしてください：',
+      depMysql: '🐬 MySQL', depRedis: '🔴 Redis',
+      mysqlSection: '🐬 MySQL接続',
+      redisSection: '🔴 Redis接続',
+      adminSection: '👤 OpenEMR管理者アカウント',
+      autoInfo: 'MySQLとRedisの設定はインストール済みサービスから自動取得されます。',
+      labelMysqlHost: 'MySQLホスト', labelMysqlRootPass: 'MySQL Rootパスワード',
+      labelDbName: 'OpenEMRデータベース名', labelDbUser: 'OpenEMR DBユーザー', labelDbPass: 'OpenEMR DBパスワード',
+      labelRedisHost: 'Redisホスト', labelRedisPass: 'Redisパスワード',
+      labelAdminUser: '管理者ユーザー名', labelAdminPass: '管理者パスワード',
+      placeholderMinChars: '4文字以上',
+      cancel: 'キャンセル', installBtn: 'インストール＆起動',
+      errorDbPass: 'DBパスワードは4文字以上必要です',
+      errorAdminUser: '管理者ユーザー名は必須です',
+      errorAdminPass: '管理者パスワードは4文字以上必要です',
+      errorFetch: 'サービス情報を取得できませんでした',
+      noPassword: '(パスワードなし)'
+    },
+    it: {
+      subtitle: 'Configurazione del sistema di cartelle cliniche elettroniche',
+      depChecking: '⏳ Controllo delle dipendenze...',
+      depOk: '✅ Tutte le dipendenze sono installate',
+      depMissing: '⚠️ Servizi richiesti mancanti. Installare prima:',
+      depMysql: '🐬 MySQL', depRedis: '🔴 Redis',
+      mysqlSection: '🐬 Connessione MySQL',
+      redisSection: '🔴 Connessione Redis',
+      adminSection: '👤 Account amministratore OpenEMR',
+      autoInfo: 'Le impostazioni MySQL e Redis vengono recuperate automaticamente dai servizi installati.',
+      labelMysqlHost: 'Host MySQL', labelMysqlRootPass: 'Password root MySQL',
+      labelDbName: 'Nome database OpenEMR', labelDbUser: 'Utente DB OpenEMR', labelDbPass: 'Password DB OpenEMR',
+      labelRedisHost: 'Host Redis', labelRedisPass: 'Password Redis',
+      labelAdminUser: 'Nome utente admin', labelAdminPass: 'Password admin',
+      placeholderMinChars: 'Almeno 4 caratteri',
+      cancel: 'Annulla', installBtn: 'Installa e Avvia',
+      errorDbPass: 'La password del DB deve essere di almeno 4 caratteri',
+      errorAdminUser: 'Il nome utente admin è obbligatorio',
+      errorAdminPass: 'La password admin deve essere di almeno 4 caratteri',
+      errorFetch: 'Impossibile recuperare le informazioni del servizio',
+      noPassword: '(senza password)'
+    },
+    ar: {
+      subtitle: 'إعداد نظام السجلات الصحية الإلكترونية',
+      depChecking: '⏳ جارٍ التحقق من التبعيات...',
+      depOk: '✅ جميع التبعيات مثبتة',
+      depMissing: '⚠️ خدمات مطلوبة مفقودة. يرجى تثبيت الخدمات التالية أولاً:',
+      depMysql: '🐬 MySQL', depRedis: '🔴 Redis',
+      mysqlSection: '🐬 اتصال MySQL',
+      redisSection: '🔴 اتصال Redis',
+      adminSection: '👤 حساب مسؤول OpenEMR',
+      autoInfo: 'يتم جلب إعدادات MySQL وRedis تلقائيًا من الخدمات المثبتة.',
+      labelMysqlHost: 'مضيف MySQL', labelMysqlRootPass: 'كلمة مرور root MySQL',
+      labelDbName: 'اسم قاعدة بيانات OpenEMR', labelDbUser: 'مستخدم قاعدة بيانات OpenEMR', labelDbPass: 'كلمة مرور قاعدة بيانات OpenEMR',
+      labelRedisHost: 'مضيف Redis', labelRedisPass: 'كلمة مرور Redis',
+      labelAdminUser: 'اسم مستخدم المسؤول', labelAdminPass: 'كلمة مرور المسؤول',
+      placeholderMinChars: '4 أحرف على الأقل',
+      cancel: 'إلغاء', installBtn: 'تثبيت وبدء',
+      errorDbPass: 'يجب أن تكون كلمة مرور قاعدة البيانات 4 أحرف على الأقل',
+      errorAdminUser: 'اسم مستخدم المسؤول مطلوب',
+      errorAdminPass: 'يجب أن تكون كلمة مرور المسؤول 4 أحرف على الأقل',
+      errorFetch: 'تعذر جلب معلومات الخدمة',
+      noPassword: '(بدون كلمة مرور)'
+    },
+    ko: {
+      subtitle: '전자 건강 기록 시스템 설정',
+      depChecking: '⏳ 종속성 확인 중...',
+      depOk: '✅ 모든 종속성이 설치되었습니다',
+      depMissing: '⚠️ 필수 서비스가 없습니다. 먼저 설치해 주세요:',
+      depMysql: '🐬 MySQL', depRedis: '🔴 Redis',
+      mysqlSection: '🐬 MySQL 연결',
+      redisSection: '🔴 Redis 연결',
+      adminSection: '👤 OpenEMR 관리자 계정',
+      autoInfo: 'MySQL 및 Redis 설정은 설치된 서비스에서 자동으로 가져옵니다.',
+      labelMysqlHost: 'MySQL 호스트', labelMysqlRootPass: 'MySQL Root 비밀번호',
+      labelDbName: 'OpenEMR 데이터베이스 이름', labelDbUser: 'OpenEMR DB 사용자', labelDbPass: 'OpenEMR DB 비밀번호',
+      labelRedisHost: 'Redis 호스트', labelRedisPass: 'Redis 비밀번호',
+      labelAdminUser: '관리자 사용자 이름', labelAdminPass: '관리자 비밀번호',
+      placeholderMinChars: '최소 4자 이상',
+      cancel: '취소', installBtn: '설치 및 시작',
+      errorDbPass: '데이터베이스 비밀번호는 최소 4자 이상이어야 합니다',
+      errorAdminUser: '관리자 사용자 이름은 필수입니다',
+      errorAdminPass: '관리자 비밀번호는 최소 4자 이상이어야 합니다',
+      errorFetch: '서비스 정보를 가져올 수 없습니다',
+      noPassword: '(비밀번호 없음)'
+    },
+    hi: {
+      subtitle: 'इलेक्ट्रॉनिक स्वास्थ्य रिकॉर्ड सिस्टम सेटअप',
+      depChecking: '⏳ निर्भरताएँ जाँच रहे हैं...',
+      depOk: '✅ सभी निर्भरताएँ स्थापित हैं',
+      depMissing: '⚠️ आवश्यक सेवाएँ गायब हैं। कृपया पहले इन्हें स्थापित करें:',
+      depMysql: '🐬 MySQL', depRedis: '🔴 Redis',
+      mysqlSection: '🐬 MySQL कनेक्शन',
+      redisSection: '🔴 Redis कनेक्शन',
+      adminSection: '👤 OpenEMR व्यवस्थापक खाता',
+      autoInfo: 'MySQL और Redis सेटिंग्स स्थापित सेवाओं से स्वचालित रूप से ली जाती हैं।',
+      labelMysqlHost: 'MySQL होस्ट', labelMysqlRootPass: 'MySQL Root पासवर्ड',
+      labelDbName: 'OpenEMR डेटाबेस नाम', labelDbUser: 'OpenEMR DB उपयोगकर्ता', labelDbPass: 'OpenEMR DB पासवर्ड',
+      labelRedisHost: 'Redis होस्ट', labelRedisPass: 'Redis पासवर्ड',
+      labelAdminUser: 'व्यवस्थापक उपयोगकर्ता नाम', labelAdminPass: 'व्यवस्थापक पासवर्ड',
+      placeholderMinChars: 'कम से कम 4 अक्षर',
+      cancel: 'रद्द करें', installBtn: 'स्थापित करें और शुरू करें',
+      errorDbPass: 'डेटाबेस पासवर्ड कम से कम 4 अक्षर का होना चाहिए',
+      errorAdminUser: 'व्यवस्थापक उपयोगकर्ता नाम आवश्यक है',
+      errorAdminPass: 'व्यवस्थापक पासवर्ड कम से कम 4 अक्षर का होना चाहिए',
+      errorFetch: 'सेवा जानकारी प्राप्त नहीं हो सकी',
+      noPassword: '(पासवर्ड नहीं)'
+    },
+    pt: {
+      subtitle: 'Configuração do sistema de registos de saúde eletrónicos',
+      depChecking: '⏳ A verificar dependências...',
+      depOk: '✅ Todas as dependências estão instaladas',
+      depMissing: '⚠️ Serviços necessários em falta. Por favor instale primeiro:',
+      depMysql: '🐬 MySQL', depRedis: '🔴 Redis',
+      mysqlSection: '🐬 Ligação MySQL',
+      redisSection: '🔴 Ligação Redis',
+      adminSection: '👤 Conta de administrador OpenEMR',
+      autoInfo: 'As configurações MySQL e Redis são obtidas automaticamente dos serviços instalados.',
+      labelMysqlHost: 'Host MySQL', labelMysqlRootPass: 'Palavra-passe root MySQL',
+      labelDbName: 'Nome da base de dados OpenEMR', labelDbUser: 'Utilizador DB OpenEMR', labelDbPass: 'Palavra-passe DB OpenEMR',
+      labelRedisHost: 'Host Redis', labelRedisPass: 'Palavra-passe Redis',
+      labelAdminUser: 'Nome de utilizador admin', labelAdminPass: 'Palavra-passe admin',
+      placeholderMinChars: 'Pelo menos 4 caracteres',
+      cancel: 'Cancelar', installBtn: 'Instalar e Iniciar',
+      errorDbPass: 'A palavra-passe da BD deve ter pelo menos 4 caracteres',
+      errorAdminUser: 'O nome de utilizador admin é obrigatório',
+      errorAdminPass: 'A palavra-passe admin deve ter pelo menos 4 caracteres',
+      errorFetch: 'Não foi possível obter informações do serviço',
+      noPassword: '(sem palavra-passe)'
+    }
+  };
+
+  let oemrServices = {};
+
+  function getOemrLocale() { try { return window.__serviceInstallLocale || 'tr'; } catch { return 'tr'; } }
+  function oemrT(key) { const loc = getOemrLocale(); return (OEMR_I18N[loc] || OEMR_I18N.tr)[key] || (OEMR_I18N.tr)[key] || key; }
+
+  function applyOemrI18n() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      el.textContent = oemrT(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      el.placeholder = oemrT(el.getAttribute('data-i18n-placeholder'));
+    });
+  }
+
+  function toggleOemrPass(id) {
+    const inp = document.getElementById(id);
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  async function oemrApiFetch(url) {
+    const token = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('token='));
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token.split('=')[1];
+    return fetch(url, { headers });
+  }
+
+  async function checkDependencies() {
+    const depEl = document.getElementById('oemr-dep-check');
+    const bodyEl = document.getElementById('oemr-install-body');
+    const confirmBtn = document.getElementById('oemr-confirm-btn');
+
+    try {
+      const res = await oemrApiFetch('/api/services');
+      const services = await res.json();
+      oemrServices = {};
+      services.forEach(s => { oemrServices[s.id] = s; });
+
+      const hasMysql = oemrServices.mysql && oemrServices.mysql.port;
+      const hasRedis = oemrServices.redis && oemrServices.redis.port;
+
+      if (!hasMysql || !hasRedis) {
+        const missing = [];
+        if (!hasMysql) missing.push(oemrT('depMysql'));
+        if (!hasRedis) missing.push(oemrT('depRedis'));
+        depEl.innerHTML = '<div class="oemr-dep-error">' +
+          '<p>' + oemrT('depMissing') + '</p>' +
+          '<ul>' + missing.map(m => '<li>' + m + '</li>').join('') + '</ul>' +
+          '</div>';
+        bodyEl.style.display = 'none';
+        confirmBtn.disabled = true;
+        return;
+      }
+
+      depEl.innerHTML = '<div class="oemr-dep-ok">' + oemrT('depOk') + '</div>';
+      bodyEl.style.display = 'block';
+      confirmBtn.disabled = false;
+
+      // Auto-fill MySQL connection info from installed service
+      const mysqlInfo = oemrServices.mysql;
+      document.getElementById('oemr-mysql-host').value = mysqlInfo.containerName || mysqlInfo.internalHost || 'mysql';
+      const mysqlRootPass = (mysqlInfo.installConfig && mysqlInfo.installConfig.MYSQL_ROOT_PASSWORD) || '';
+      document.getElementById('oemr-mysql-root-pass').value = mysqlRootPass;
+
+      // Auto-fill Redis connection info
+      const redisInfo = oemrServices.redis;
+      document.getElementById('oemr-redis-host').value = redisInfo.containerName || redisInfo.internalHost || 'redis';
+      const redisPass = (redisInfo.installConfig && redisInfo.installConfig.REDIS_PASSWORD) || '';
+      document.getElementById('oemr-redis-pass').value = redisPass || oemrT('noPassword');
+    } catch (e) {
+      depEl.innerHTML = '<div class="oemr-dep-error"><p>❌ ' + oemrT('errorFetch') + ': ' + e.message + '</p></div>';
+    }
+  }
+
+  function getInstallConfig() {
+    const errEl = document.getElementById('oemr-install-error');
+    const mysqlHost = document.getElementById('oemr-mysql-host').value.trim();
+    const mysqlRootPass = document.getElementById('oemr-mysql-root-pass').value.trim();
+    const mysqlDatabase = document.getElementById('oemr-mysql-database').value.trim() || 'openemr';
+    const mysqlUser = document.getElementById('oemr-mysql-user').value.trim() || 'openemr';
+    const mysqlPass = document.getElementById('oemr-mysql-pass').value.trim();
+    const redisHost = document.getElementById('oemr-redis-host').value.trim();
+    const redisPass = document.getElementById('oemr-redis-pass').value.trim();
+    const oeUser = document.getElementById('oemr-oe-user').value.trim();
+    const oePass = document.getElementById('oemr-oe-pass').value.trim();
+
+    if (mysqlPass && mysqlPass.length < 4) { errEl.textContent = oemrT('errorDbPass'); errEl.style.display = 'block'; return null; }
+    if (!oeUser) { errEl.textContent = oemrT('errorAdminUser'); errEl.style.display = 'block'; return null; }
+    if (!oePass || oePass.length < 4) { errEl.textContent = oemrT('errorAdminPass'); errEl.style.display = 'block'; return null; }
+
+    errEl.style.display = 'none';
+
+    const config = {
+      MYSQL_HOST: mysqlHost,
+      MYSQL_ROOT_PASS: mysqlRootPass,
+      MYSQL_DATABASE: mysqlDatabase,
+      MYSQL_USER: mysqlUser,
+      MYSQL_PASS: mysqlPass || mysqlRootPass,
+      OE_USER: oeUser,
+      OE_PASS: oePass,
+      REDIS_SERVER: redisHost
+    };
+
+    // Add Redis password if exists
+    const rp = (oemrServices.redis && oemrServices.redis.installConfig && oemrServices.redis.installConfig.REDIS_PASSWORD) || '';
+    if (rp) config.REDIS_PASSWORD = rp;
+
+    return config;
+  }
+
+  // Apply i18n and run dependency check on load
+  setTimeout(() => { applyOemrI18n(); checkDependencies(); }, 300);
+</script>
+
+<style>
+  .oemr-install-form { padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; max-height: 70vh; overflow-y: auto; }
+  .oemr-install-header { text-align: center; margin-bottom: 16px; }
+  .oemr-install-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+  .oemr-install-header h3 { margin: 0 0 4px; font-size: 22px; color: #fff; }
+  .oemr-install-subtitle { margin: 0; font-size: 13px; color: #aaa; }
+
+  .oemr-dep-check { margin-bottom: 16px; }
+  .oemr-dep-loading { text-align: center; padding: 16px; color: #aaa; }
+  .oemr-dep-ok { text-align: center; padding: 12px; background: rgba(82,196,26,0.1); border-radius: 8px; color: #52c41a; font-size: 14px; font-weight: 600; }
+  .oemr-dep-error { padding: 16px; background: rgba(255,170,0,0.1); border: 1px solid rgba(255,170,0,0.3); border-radius: 8px; }
+  .oemr-dep-error p { margin: 0 0 8px; color: #ffa940; font-size: 14px; font-weight: 600; }
+  .oemr-dep-error ul { margin: 0; padding-left: 20px; }
+  .oemr-dep-error li { color: #e0e0e0; font-size: 13px; margin-bottom: 4px; }
+
+  .oemr-section { margin-bottom: 20px; padding: 16px; background: #222238; border-radius: 8px; }
+  .oemr-section h4 { margin: 0 0 12px; font-size: 15px; color: #fff; }
+  .oemr-info-box { font-size: 11px; color: #66bb6a; background: rgba(82,196,26,0.08); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; }
+
+  .oemr-field-row { margin-bottom: 10px; }
+  .oemr-field-row label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #aaa; }
+  .oemr-field-row input { width: 100%; padding: 8px 12px; border: 1px solid #444; border-radius: 6px; background: #1e1e2e; color: #fff; font-size: 13px; outline: none; box-sizing: border-box; }
+  .oemr-field-row input:focus { border-color: #2e7d32; }
+  .oemr-field-row input[readonly] { color: #888; background: #181828; }
+
+  .oemr-password-wrap { display: flex; gap: 6px; }
+  .oemr-password-wrap input { flex: 1; }
+  .oemr-eye-btn { background: #2a2a3a; border: 1px solid #444; border-radius: 6px; padding: 0 12px; cursor: pointer; font-size: 16px; flex-shrink: 0; }
+
+  .oemr-install-error { color: #ff6b6b; font-size: 12px; margin-top: 8px; padding: 6px 10px; background: rgba(255,0,0,0.1); border-radius: 4px; }
+
+  .oemr-install-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid #333; }
+  .oemr-cancel-btn { padding: 8px 20px; border: 1px solid #555; border-radius: 6px; background: transparent; color: #ccc; cursor: pointer; font-size: 13px; }
+  .oemr-cancel-btn:hover { background: #333; }
+  .oemr-install-btn { padding: 8px 24px; border: none; border-radius: 6px; background: linear-gradient(135deg, #2e7d32, #66bb6a); color: #fff; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .oemr-install-btn:hover { opacity: 0.9; }
+  .oemr-install-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+</style>

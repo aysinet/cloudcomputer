@@ -20,7 +20,7 @@ const { simpleParser } = require('mailparser');
 const app = express();
 const server = http.createServer(app);
 
-// ── SQLite DB ──
+// #region SQLite DB
 const DB_PATH = path.join(__dirname, 'data', 'global.db');
 let globalDb = null;
 if (fs.existsSync(DB_PATH)) {
@@ -30,17 +30,20 @@ if (fs.existsSync(DB_PATH)) {
 const STORE_DIR = path.join(__dirname, 'apps', 'store');
 const DATA_DIR = path.join(__dirname, 'data', 'users');
 
-// ── Docker container tracking ──
+// #endregion
+// #region Docker container tracking
 const dockerContainers = {}; // { appId: { containerId, containerName, hostPort, internalUrl } }
 const proxyCache = {};
 
-// ── Docker Manager client (ENV > config.json > default) ──
+// #endregion
+// #region Docker Manager client (ENV > config.json > default)
 const DOCKER_MANAGER_URL = process.env.DOCKER_MANAGER_URL || config.docker?.managerUrl || 'http://localhost:9800';
 const DM_SECRET = process.env.DM_SECRET || config.docker?.secret || 'cloudpc-docker-manager-secret';
 const IS_DOCKER = process.env.IS_DOCKER === 'true';
 const INSTANCE_ID = process.env.INSTANCE_ID || 'default';
 
-// ── Volume placeholder resolution for Docker sub-containers ──
+// #endregion
+// #region Volume placeholder resolution for Docker sub-containers
 const APPDATA_HOST_DIR = path.join(__dirname, 'data', 'appdata');
 ensureDir(APPDATA_HOST_DIR);
 
@@ -69,7 +72,8 @@ function seedAppConfigs(appId) {
   }
 }
 
-// ── Resolve cmd template from installConfig; returns null if any var missing ──
+// #endregion
+// #region Resolve cmd template from installConfig; returns null if any var missing
 function resolveCmd(cmdTemplate, installConfig) {
   if (!Array.isArray(cmdTemplate) || cmdTemplate.length === 0) return null;
   if (!installConfig) return null;
@@ -104,11 +108,13 @@ async function dmFetch(path, opts = {}) {
   return data;
 }
 
-// ── Middleware ──
+// #endregion
+// #region Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false }));
 
-// ── JWT Helpers ──
+// #endregion
+// #region JWT Helpers
 function signToken(user) {
   return jwt.sign({ username: user.username }, config.auth.jwtSecret, { expiresIn: config.auth.jwtExpiresIn });
 }
@@ -149,7 +155,64 @@ function authMiddleware(req, res, next) {
   next();
 }
 
-// ── User settings helpers ──
+// #endregion
+// #region TOTP 2FA Helpers
+function base32Encode(buffer) {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = 0, value = 0, output = '';
+  for (let i = 0; i < buffer.length; i++) {
+    value = (value << 8) | buffer[i];
+    bits += 8;
+    while (bits >= 5) { output += alphabet[(value >>> (bits - 5)) & 31]; bits -= 5; }
+  }
+  if (bits > 0) output += alphabet[(value << (5 - bits)) & 31];
+  return output;
+}
+
+function base32Decode(str) {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  let bits = 0, value = 0; const output = [];
+  for (const c of str.toUpperCase()) {
+    const idx = alphabet.indexOf(c);
+    if (idx === -1) continue;
+    value = (value << 5) | idx;
+    bits += 5;
+    if (bits >= 8) { output.push((value >>> (bits - 8)) & 255); bits -= 8; }
+  }
+  return Buffer.from(output);
+}
+
+function generateTOTPSecret() {
+  return base32Encode(crypto.randomBytes(20));
+}
+
+function generateTOTP(secret, timeStep = 30, digits = 6, offset = 0) {
+  const key = base32Decode(secret);
+  const time = Math.floor(Date.now() / 1000 / timeStep) + offset;
+  const buf = Buffer.alloc(8);
+  buf.writeUInt32BE(0, 0);
+  buf.writeUInt32BE(time, 4);
+  const hmac = crypto.createHmac('sha1', key).update(buf).digest();
+  const off = hmac[hmac.length - 1] & 0xf;
+  const code = ((hmac[off] & 0x7f) << 24 | hmac[off + 1] << 16 | hmac[off + 2] << 8 | hmac[off + 3]) % (10 ** digits);
+  return String(code).padStart(digits, '0');
+}
+
+function verifyTOTP(secret, token) {
+  for (let i = -1; i <= 1; i++) {
+    if (generateTOTP(secret, 30, 6, i) === token) return true;
+  }
+  return false;
+}
+
+function getTOTPUri(secret, username, issuer = 'VueDesktop') {
+  return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(username)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
+}
+
+const pending2FATokens = new Map();
+
+// #endregion
+// #region User settings helpers
 function getUserSettingsPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   return path.join(DATA_DIR, safe, 'settings.json');
@@ -168,7 +231,8 @@ function writeUserSettings(username, settings) {
   fs.writeFileSync(p, JSON.stringify(settings, null, 2));
 }
 
-// ── Setup check ──
+// #endregion
+// #region Setup check
 function needsSetup() {
   // If config has users, setup is done
   if (Array.isArray(config.auth.users) && config.auth.users.length > 0) return false;
@@ -242,7 +306,8 @@ function initGlobalDb() {
   globalDb = new Database2(dbPath, { readonly: true });
 }
 
-// ── Setup API (public, no auth) ──
+// #endregion
+// #region Setup API (public, no auth)
 app.get('/api/setup/countries', (req, res) => {
   const dbPath = path.join(__dirname, 'data', 'global.db');
   let db;
@@ -325,7 +390,8 @@ app.post('/api/setup', (req, res) => {
   res.json({ ok: true, token, user: { username } });
 });
 
-// ── Auth Routes (public) ──
+// #endregion
+// #region Auth Routes (public)
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
@@ -339,6 +405,12 @@ app.post('/api/login', (req, res) => {
   // Support both plaintext (legacy) and SHA-256 hashed passwords
   const inputHash = crypto.createHash('sha256').update(password).digest('hex');
   if (password === settings.passwordHash || inputHash === settings.passwordHash) {
+    // Check if 2FA is enabled
+    if (settings.twoFactorSecret) {
+      const tempToken = crypto.randomBytes(32).toString('hex');
+      pending2FATokens.set(tempToken, { username, expires: Date.now() + 5 * 60 * 1000 });
+      return res.json({ ok: true, requires2FA: true, tempToken });
+    }
     const token = signToken({ username });
     res.setHeader('Set-Cookie', `token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400`);
     res.json({ ok: true, token, user: { username } });
@@ -347,11 +419,38 @@ app.post('/api/login', (req, res) => {
   }
 });
 
+app.post('/api/login/2fa', (req, res) => {
+  const { tempToken, code } = req.body;
+  if (!tempToken || !code) return res.status(400).json({ error: 'tempToken and code required' });
+
+  const pending = pending2FATokens.get(tempToken);
+  if (!pending || pending.expires < Date.now()) {
+    pending2FATokens.delete(tempToken);
+    return res.status(401).json({ error: 'Oturum süresi doldu, tekrar giriş yapın' });
+  }
+
+  const settings = readUserSettings(pending.username);
+  if (!settings || !settings.twoFactorSecret) {
+    pending2FATokens.delete(tempToken);
+    return res.status(401).json({ error: 'İki faktörlü doğrulama yapılandırılmamış' });
+  }
+
+  if (!verifyTOTP(settings.twoFactorSecret, String(code).trim())) {
+    return res.status(401).json({ error: 'Geçersiz doğrulama kodu' });
+  }
+
+  pending2FATokens.delete(tempToken);
+  const token = signToken({ username: pending.username });
+  res.setHeader('Set-Cookie', `token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400`);
+  res.json({ ok: true, token, user: { username: pending.username } });
+});
+
 app.get('/api/me', authMiddleware, (req, res) => {
   res.json({ user: req.user });
 });
 
-// ── Root route: setup.html, login.html or index.html based on state ──
+// #endregion
+// #region Root route: setup.html, login.html or index.html based on state
 app.get('/', (req, res) => {
   if (needsSetup()) return res.sendFile(path.join(__dirname, 'setup.html'));
   const token = extractToken(req);
@@ -374,7 +473,8 @@ app.get('/mobile', (req, res) => {
   res.redirect('/');
 });
 
-// ── App Store Helpers ──
+// #endregion
+// #region App Store Helpers
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
@@ -435,7 +535,8 @@ function saveUserSettings(username, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
-// ── App Store API ──
+// #endregion
+// #region App Store API
 app.get('/api/store', authMiddleware, (req, res) => {
   const storeApps = getStoreApps();
   const userData = getUserInstalled(req.user.username);
@@ -552,7 +653,8 @@ app.get('/api/apps/:id/mobile-style', authMiddleware, (req, res) => {
   res.type('text/css').send(fs.readFileSync(filePath, 'utf-8'));
 });
 
-// ── Service install page (install.html) ──
+// #endregion
+// #region Service install page (install.html)
 app.get('/api/apps/:id/install-page', authMiddleware, (req, res) => {
   const appId = req.params.id.replace(/[^a-zA-Z0-9_-]/g, '');
   const filePath = path.join(STORE_DIR, appId, 'install.html');
@@ -560,7 +662,8 @@ app.get('/api/apps/:id/install-page', authMiddleware, (req, res) => {
   res.type('text/html').send(fs.readFileSync(filePath, 'utf-8'));
 });
 
-// ── Service Config Storage ──
+// #endregion
+// #region Service Config Storage
 function getServiceConfigPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -579,7 +682,8 @@ function saveServiceConfigs(username, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
-// ── Service Install (with config from install.html form) ──
+// #endregion
+// #region Service Install (with config from install.html form)
 app.post('/api/services/install', authMiddleware, async (req, res) => {
   const { appId, installConfig } = req.body;
   if (!appId) return res.status(400).json({ error: 'appId required' });
@@ -587,6 +691,15 @@ app.post('/api/services/install', authMiddleware, async (req, res) => {
   const appManifest = storeApps.find(a => a.id === appId && a.type === 'service');
   if (!appManifest) return res.status(404).json({ error: 'Service not found in store' });
   if (!appManifest.docker || !appManifest.docker.image) return res.status(400).json({ error: 'Service has no docker config' });
+
+  // Check required dependencies
+  if (Array.isArray(appManifest.requires) && appManifest.requires.length > 0) {
+    const serviceConfigs = getServiceConfigs(req.user.username);
+    const missing = appManifest.requires.filter(dep => !serviceConfigs[dep] || !serviceConfigs[dep].port);
+    if (missing.length > 0) {
+      return res.status(400).json({ error: 'Missing required services: ' + missing.join(', '), missingDeps: missing });
+    }
+  }
 
   // Save to installed list
   const userData = getUserInstalled(req.user.username);
@@ -665,7 +778,8 @@ app.post('/api/services/install', authMiddleware, async (req, res) => {
   }
 });
 
-// ── List running services (for other apps to query ports) ──
+// #endregion
+// #region List running services (for other apps to query ports)
 app.get('/api/services', authMiddleware, (req, res) => {
   const serviceConfigs = getServiceConfigs(req.user.username);
   const storeApps = getStoreApps();
@@ -680,13 +794,15 @@ app.get('/api/services', authMiddleware, (req, res) => {
       port: cfg.port,
       containerName: cfg.containerName,
       internalUrl: cfg.internalUrl,
-      installedAt: cfg.installedAt
+      installedAt: cfg.installedAt,
+      installConfig: cfg.installConfig || {}
     });
   }
   res.json(services);
 });
 
-// ── Get specific service info (port, connection info) ──
+// #endregion
+// #region Get specific service info (port, connection info)
 app.get('/api/services/:id', authMiddleware, async (req, res) => {
   const serviceId = req.params.id.replace(/[^a-zA-Z0-9_-]/g, '');
   const serviceConfigs = getServiceConfigs(req.user.username);
@@ -708,7 +824,8 @@ app.get('/api/services/:id', authMiddleware, async (req, res) => {
   res.json({ ...cfg, id: serviceId, running });
 });
 
-// ── User File System API (for FileDialog) ──
+// #endregion
+// #region User File System API (for FileDialog)
 function getUserFilesRoot(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe, 'files');
@@ -851,7 +968,8 @@ app.post('/api/fs/rename', authMiddleware, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Browser Proxy (CORS bypass) ──
+// #endregion
+// #region Browser Proxy (CORS bypass)
 app.get('/api/browser/proxy', authMiddleware, async (req, res) => {
   const targetUrl = req.query.url;
   if (!targetUrl) return res.status(400).json({ error: 'url required' });
@@ -904,7 +1022,179 @@ app.get('/api/browser/proxy', authMiddleware, async (req, res) => {
   }
 });
 
-// ── Sport Scores Proxy (Mackolik API) ──
+// #endregion
+// #region RabbitMQ Management API Proxy
+app.post('/api/rabbitmq/proxy', authMiddleware, async (req, res) => {
+  const { host, port, user, pass, path: apiPath } = req.body;
+  if (!host || !port || !apiPath) return res.status(400).json({ error: 'host, port, path required' });
+  if (!apiPath.startsWith('/api/')) return res.status(400).json({ error: 'path must start with /api/' });
+  const targetUrl = `http://${encodeURIComponent(host)}:${Number(port)}${apiPath}`;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    const resp = await fetch(targetUrl, {
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from((user || 'guest') + ':' + (pass || 'guest')).toString('base64'),
+        'Accept': 'application/json'
+      },
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (!resp.ok) {
+      const txt = await resp.text().catch(() => '');
+      return res.status(resp.status).json({ error: txt || 'RabbitMQ API error ' + resp.status });
+    }
+    const data = await resp.json();
+    res.json(data);
+  } catch (e) {
+    if (e.name === 'AbortError') return res.status(504).json({ error: 'RabbitMQ connection timeout' });
+    res.status(502).json({ error: e.message || 'Connection failed' });
+  }
+});
+
+// #endregion
+// #region RabbitMQ Server Management (multi-server, per-user JSON)
+function getRmqServersPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'rmq-servers.json');
+}
+
+function getUserRmqServers(username) {
+  const fp = getRmqServersPath(username);
+  if (!fs.existsSync(fp)) return [];
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return []; }
+}
+
+function saveUserRmqServers(username, servers) {
+  fs.writeFileSync(getRmqServersPath(username), JSON.stringify(servers, null, 2));
+}
+
+app.get('/api/rabbitmq/servers', authMiddleware, (req, res) => {
+  res.json(getUserRmqServers(req.user.username));
+});
+
+app.post('/api/rabbitmq/servers', authMiddleware, (req, res) => {
+  const { name, host, port, user, pass, vhost, alerts } = req.body;
+  if (!name || !host || !port) return res.status(400).json({ error: 'name, host, port required' });
+  const servers = getUserRmqServers(req.user.username);
+  const id = crypto.randomUUID();
+  servers.push({
+    id, name,
+    host: String(host),
+    port: Number(port),
+    user: user || 'guest',
+    pass: pass || 'guest',
+    vhost: vhost || '/',
+    alerts: alerts || { global: null, queues: [] }
+  });
+  saveUserRmqServers(req.user.username, servers);
+  res.json({ ok: true, id });
+});
+
+app.put('/api/rabbitmq/servers/:id', authMiddleware, (req, res) => {
+  const servers = getUserRmqServers(req.user.username);
+  const idx = servers.findIndex(s => s.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ error: 'Server not found' });
+  const { name, host, port, user, pass, vhost, alerts } = req.body;
+  if (name !== undefined) servers[idx].name = name;
+  if (host !== undefined) servers[idx].host = String(host);
+  if (port !== undefined) servers[idx].port = Number(port);
+  if (user !== undefined) servers[idx].user = user;
+  if (pass !== undefined) servers[idx].pass = pass;
+  if (vhost !== undefined) servers[idx].vhost = vhost;
+  if (alerts !== undefined) servers[idx].alerts = alerts;
+  saveUserRmqServers(req.user.username, servers);
+  res.json({ ok: true });
+});
+
+app.delete('/api/rabbitmq/servers/:id', authMiddleware, (req, res) => {
+  let servers = getUserRmqServers(req.user.username);
+  servers = servers.filter(s => s.id !== req.params.id);
+  saveUserRmqServers(req.user.username, servers);
+  res.json({ ok: true });
+});
+
+// #endregion
+// #region RabbitMQ background alert checker (every 30 min)
+async function checkRmqAlerts() {
+  const usersDir = path.join(__dirname, 'data', 'users');
+  if (!fs.existsSync(usersDir)) return;
+  const userDirs = fs.readdirSync(usersDir, { withFileTypes: true }).filter(d => d.isDirectory());
+  for (const d of userDirs) {
+    const fp = path.join(usersDir, d.name, 'rmq-servers.json');
+    if (!fs.existsSync(fp)) continue;
+    let servers;
+    try { servers = JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { continue; }
+    for (const srv of servers) {
+      if (!srv.alerts) continue;
+      const hasAlerts = srv.alerts.global || (srv.alerts.queues && srv.alerts.queues.length > 0);
+      if (!hasAlerts) continue;
+      try {
+        const vhost = srv.vhost === '/' ? '%2F' : encodeURIComponent(srv.vhost);
+        const url = `http://${encodeURIComponent(srv.host)}:${Number(srv.port)}/api/queues/${vhost}`;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        const resp = await fetch(url, {
+          headers: {
+            'Authorization': 'Basic ' + Buffer.from((srv.user || 'guest') + ':' + (srv.pass || 'guest')).toString('base64'),
+            'Accept': 'application/json'
+          },
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        if (!resp.ok) continue;
+        const queues = await resp.json();
+        const totalMessages = queues.reduce((s, q) => s + (q.messages || 0), 0);
+
+        // Global alert
+        if (srv.alerts.global && srv.alerts.global.limit > 0 && totalMessages >= srv.alerts.global.limit) {
+          const notif = {
+            id: crypto.randomUUID(),
+            icon: '🐰', bg: '#fff3e0',
+            title: '🐰 RabbitMQ Alert — ' + srv.name,
+            text: `Total ${totalMessages} messages (limit: ${srv.alerts.global.limit}) on ${srv.host}:${srv.port}`,
+            time: new Date().toISOString(),
+            read: false,
+            createdAt: Date.now()
+          };
+          addNotificationToDb(d.name, notif);
+          broadcastWS({ type: 'notification', data: notif });
+        }
+
+        // Per-queue alerts
+        if (srv.alerts.queues) {
+          for (const rule of srv.alerts.queues) {
+            const q = queues.find(x => x.name === rule.queue);
+            if (!q) continue;
+            if (q.messages >= rule.limit) {
+              const notif = {
+                id: crypto.randomUUID(),
+                icon: '🐰', bg: '#fff3e0',
+                title: '🐰 RabbitMQ Alert — ' + srv.name,
+                text: `Queue "${rule.queue}": ${q.messages} messages (limit: ${rule.limit}) on ${srv.host}:${srv.port}`,
+                time: new Date().toISOString(),
+                read: false,
+                createdAt: Date.now()
+              };
+              addNotificationToDb(d.name, notif);
+              broadcastWS({ type: 'notification', data: notif });
+            }
+          }
+        }
+      } catch (e) {
+        console.error('[RabbitMQ Alert Check] Error checking', srv.name, ':', e.message);
+      }
+    }
+  }
+}
+
+// Start background RabbitMQ alert check every 30 minutes
+setInterval(checkRmqAlerts, 30 * 60 * 1000);
+
+// #endregion
+// #region Sport Scores Proxy (Mackolik API)
 app.get('/api/sport-scores/proxy', authMiddleware, async (req, res) => {
   const targetUrl = req.query.url;
   if (!targetUrl) return res.status(400).json({ error: 'url required' });
@@ -933,7 +1223,8 @@ app.get('/api/sport-scores/proxy', authMiddleware, async (req, res) => {
   }
 });
 
-// ── Code Runner ──
+// #endregion
+// #region Code Runner
 const CODE_RUNNERS = {
   javascript: { cmd: 'node', ext: '.js' },
   python: { cmd: 'python', ext: '.py' },
@@ -1037,7 +1328,8 @@ app.get('/api/code/languages', authMiddleware, (req, res) => {
   res.json(langs);
 });
 
-// ── Docker Management API (delegates to DockerManager sidecar) ──
+// #endregion
+// #region Docker Management API (delegates to DockerManager sidecar)
 
 app.post('/api/docker/build', authMiddleware, async (req, res) => {
   const { context, tag } = req.body;
@@ -1149,7 +1441,8 @@ app.get('/api/docker/status/:appId', authMiddleware, async (req, res) => {
   }
 });
 
-// ── External App Proxy ──
+// #endregion
+// #region External App Proxy
 // Supports multiple proxy modes via app.json "proxyMode" field:
 //   "hpm"     — http-proxy-middleware (best for non-standard HTTP responses, e.g. rmeira/chess)
 //   "default" — http.request with IPv4 forcing (default for all apps without proxyMode)
@@ -1226,7 +1519,8 @@ app.use('/proxy/:appId', (req, res, next) => {
   }
 });
 
-// ── Geo API (countries, cities from SQLite) ──
+// #endregion
+// #region Geo API (countries, cities from SQLite)
 app.get('/api/geo/countries', authMiddleware, (req, res) => {
   if (!globalDb) return res.json([]);
   const rows = globalDb.prepare('SELECT iso2, name FROM countries ORDER BY name').all();
@@ -1256,7 +1550,8 @@ app.get('/api/geo/timezones', authMiddleware, (req, res) => {
   res.json(rows.map(r => r.timezone));
 });
 
-// ── User Settings API ──
+// #endregion
+// #region User Settings API
 app.get('/api/settings', authMiddleware, (req, res) => {
   res.json(getUserSettings(req.user.username));
 });
@@ -1268,7 +1563,58 @@ app.post('/api/settings', authMiddleware, (req, res) => {
   res.json({ ok: true, settings: updated });
 });
 
-// ── AI Settings (per-user, secure storage) ──
+// #endregion
+// #region 2FA API
+app.get('/api/2fa/status', authMiddleware, (req, res) => {
+  const settings = readUserSettings(req.user.username);
+  res.json({ enabled: !!(settings && settings.twoFactorSecret) });
+});
+
+app.post('/api/2fa/setup', authMiddleware, (req, res) => {
+  const settings = readUserSettings(req.user.username);
+  if (settings && settings.twoFactorSecret) {
+    return res.status(400).json({ error: '2FA zaten aktif' });
+  }
+  const secret = generateTOTPSecret();
+  const uri = getTOTPUri(secret, req.user.username);
+  // Store pending secret temporarily in settings (not yet activated)
+  const current = getUserSettings(req.user.username);
+  current._pending2FASecret = secret;
+  saveUserSettings(req.user.username, current);
+  res.json({ secret, uri });
+});
+
+app.post('/api/2fa/verify-setup', authMiddleware, (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Doğrulama kodu gerekli' });
+  const current = getUserSettings(req.user.username);
+  if (!current._pending2FASecret) return res.status(400).json({ error: 'Önce 2FA kurulumu başlatın' });
+  if (!verifyTOTP(current._pending2FASecret, String(code).trim())) {
+    return res.status(400).json({ error: 'Geçersiz kod, tekrar deneyin' });
+  }
+  // Activate 2FA
+  current.twoFactorSecret = current._pending2FASecret;
+  delete current._pending2FASecret;
+  saveUserSettings(req.user.username, current);
+  res.json({ ok: true });
+});
+
+app.post('/api/2fa/disable', authMiddleware, (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Doğrulama kodu gerekli' });
+  const current = getUserSettings(req.user.username);
+  if (!current.twoFactorSecret) return res.status(400).json({ error: '2FA zaten devre dışı' });
+  if (!verifyTOTP(current.twoFactorSecret, String(code).trim())) {
+    return res.status(400).json({ error: 'Geçersiz doğrulama kodu' });
+  }
+  delete current.twoFactorSecret;
+  delete current._pending2FASecret;
+  saveUserSettings(req.user.username, current);
+  res.json({ ok: true });
+});
+
+// #endregion
+// #region AI Settings (per-user, secure storage)
 function getUserAISettingsPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -1344,7 +1690,8 @@ app.get('/api/ai-settings/provider/:providerId', authMiddleware, (req, res) => {
   });
 });
 
-// ── AI Chat Proxy ──
+// #endregion
+// #region AI Chat Proxy
 const AI_PROVIDER_ENDPOINTS = {
   openai:      { url: 'https://api.openai.com/v1/chat/completions', authHeader: 'Bearer' },
   anthropic:   { url: 'https://api.anthropic.com/v1/messages', authHeader: 'x-api-key', extraHeaders: { 'anthropic-version': '2023-06-01' } },
@@ -1471,7 +1818,8 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
   }
 });
 
-// ── AppData SQLite (per-user) ──
+// #endregion
+// #region AppData SQLite (per-user)
 const APPDATA_DIR = path.join(__dirname, 'data', 'appdata');
 ensureDir(APPDATA_DIR);
 const userDbCache = {};
@@ -1676,7 +2024,8 @@ function addNotificationToDb(username, notif) {
   } catch (e) { console.error('addNotificationToDb error:', e.message); }
 }
 
-// ── Calendar API ──
+// #endregion
+// #region Calendar API
 app.get('/api/calendar/events', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
   const rows = db.prepare('SELECT id, date, title, color, holiday FROM calendar_events ORDER BY date, id').all();
@@ -1728,7 +2077,8 @@ app.delete('/api/calendar/holidays', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Todo Groups API ──
+// #endregion
+// #region Todo Groups API
 app.get('/api/todo-groups', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
   try { db.prepare('SELECT 1 FROM todo_groups LIMIT 1').get(); } catch {
@@ -1766,7 +2116,8 @@ app.delete('/api/todo-groups/:id', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Todos API ──
+// #endregion
+// #region Todos API
 app.get('/api/todos', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
   // Migrate: add missing columns if needed
@@ -1814,7 +2165,8 @@ app.delete('/api/todos/:id', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Kanban API ──
+// #endregion
+// #region Kanban API
 app.get('/api/kanban/boards', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
   res.json(db.prepare('SELECT * FROM kanban_boards ORDER BY sort_order ASC, id ASC').all());
@@ -1940,7 +2292,8 @@ app.post('/api/kanban/import-todos', authMiddleware, (req, res) => {
   res.json({ imported: todos.length });
 });
 
-// ── Contacts API ──
+// #endregion
+// #region Contacts API
 app.get('/api/contacts', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
   const rows = db.prepare('SELECT * FROM contacts ORDER BY favorite DESC, first_name ASC, last_name ASC').all();
@@ -2001,7 +2354,8 @@ app.delete('/api/contacts/:id', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Wallpaper API ──
+// #endregion
+// #region Wallpaper API
 function getUserWallpaperDir(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe, 'wallpapers');
@@ -2048,7 +2402,8 @@ app.delete('/api/wallpaper/:filename', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Weather API ──
+// #endregion
+// #region Weather API
 const weatherCacheMap = {};
 const WEATHER_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
@@ -2079,7 +2434,8 @@ app.get('/api/weather', authMiddleware, async (req, res) => {
   }
 });
 
-// ── Notification API ──
+// #endregion
+// #region Notification API
 app.get('/api/notifications', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
   const rows = db.prepare('SELECT id, icon, bg, title, text, time, read, action, created_at FROM notifications ORDER BY created_at DESC LIMIT 200').all();
@@ -2130,7 +2486,8 @@ app.patch('/api/notifications/read-all', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Budget API ──
+// #endregion
+// #region Budget API
 app.get('/api/budget/categories', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
   res.json(db.prepare('SELECT * FROM budget_categories ORDER BY sort_order ASC').all());
@@ -2259,7 +2616,8 @@ app.delete('/api/budget/entries/:id', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── PetCarely API ──
+// #endregion
+// #region PetCarely API
 app.get('/api/pets', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
   const rows = db.prepare('SELECT * FROM pets ORDER BY created_at DESC').all();
@@ -2308,12 +2666,14 @@ app.delete('/api/pets/:id', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Static files (css, js, images etc.) ──
+// #endregion
+// #region Static files (css, js, images etc.)
 app.use(express.static(path.join(__dirname), {
   index: false
 }));
 
-// ── VNC WebSocket-to-TCP Proxy ──
+// #endregion
+// #region VNC WebSocket-to-TCP Proxy
 const vncWss = new WebSocketServer({ noServer: true });
 
 vncWss.on('connection', (ws, req) => {
@@ -2371,7 +2731,8 @@ vncWss.on('connection', (ws, req) => {
   });
 });
 
-// ── WebSocket ──
+// #endregion
+// #region WebSocket
 const wss = new WebSocketServer({ noServer: true });
 const wsClients = new Set();
 
@@ -2581,7 +2942,8 @@ function handleWSMessage(ws, msg) {
   }
 }
 
-// ── Terminal WebSocket handler ──
+// #endregion
+// #region Terminal WebSocket handler
 function handleTerminalExec(ws, data) {
   const { id, command } = data;
   if (!command || !id) return;
@@ -2609,7 +2971,8 @@ function handleTerminalExec(ws, data) {
   });
 }
 
-// ── Coin Tracker (Binance) ──
+// #endregion
+// #region Coin Tracker (Binance)
 let coinPrices = [];
 let coinFetchInterval = null;
 
@@ -2688,7 +3051,8 @@ function stopCoinPollingIfIdle() {
   coinFetchInterval = null;
 }
 
-// ── Coin Price Alerts ──
+// #endregion
+// #region Coin Price Alerts
 function getCoinAlertsPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -2779,7 +3143,8 @@ function checkCoinAlerts() {
 
 coinAlertInterval = setInterval(checkCoinAlerts, 5 * 60 * 1000);
 
-// ── Stock Tracker (Finnhub) ──
+// #endregion
+// #region Stock Tracker (Finnhub)
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || 'd7mmd5pr01qngrvonql0d7mmd5pr01qngrvonqlg';
 const DEFAULT_STOCKS = ['AAPL','MSFT','GOOGL','AMZN','NVDA','META','TSLA','NFLX','AVGO','AMD','COST','ADBE','PEP','CSCO','INTC','CRM','ORCL','MCD','DIS','BA'];
 let stockPrices = [];
@@ -2974,7 +3339,39 @@ function stopStockPollingIfIdle() {
   console.log('[Stock Tracker] No subscribers — polling stopped');
 }
 
-// ── Password Vault (AES-256-GCM encrypted storage) ──
+// #endregion
+// #region VIX Index (FRED API — VIXCLS)
+const FRED_API_KEY = process.env.FRED_API_KEY || '';
+let vixCache = { data: null, ts: 0 };
+const VIX_CACHE_TTL = 30 * 60 * 1000; // 30 min
+
+app.get('/api/vix/history', authMiddleware, async (req, res) => {
+  if (!FRED_API_KEY) return res.json({ error: 'FRED API key not configured. Set FRED_API_KEY env variable.' });
+  const now = Date.now();
+  if (vixCache.data && (now - vixCache.ts) < VIX_CACHE_TTL) {
+    return res.json(vixCache.data);
+  }
+  try {
+    const end = new Date().toISOString().slice(0, 10);
+    const start = new Date(Date.now() - 1825 * 86400000).toISOString().slice(0, 10);
+    const url = `https://api.stlouisfed.org/fred/series/observations?series_id=VIXCLS&api_key=${encodeURIComponent(FRED_API_KEY)}&file_type=json&observation_start=${start}&observation_end=${end}&sort_order=asc`;
+    const resp = await fetch(url);
+    if (!resp.ok) return res.json({ error: 'FRED API error' });
+    const json = await resp.json();
+    const observations = (json.observations || [])
+      .filter(o => o.value !== '.')
+      .map(o => ({ date: o.date, value: parseFloat(o.value) }));
+    const result = { observations };
+    vixCache = { data: result, ts: now };
+    res.json(result);
+  } catch (e) {
+    console.error('[VIX] FRED API error:', e.message);
+    res.json({ error: 'Failed to fetch VIX data' });
+  }
+});
+
+// #endregion
+// #region Password Vault (AES-256-GCM encrypted storage)
 const VAULT_ALGO = 'aes-256-gcm';
 
 function getVaultPath(username) {
@@ -3075,7 +3472,8 @@ app.post('/api/vault/change-password', authMiddleware, (req, res) => {
   }
 });
 
-// ── Music API ──
+// #endregion
+// #region Music API
 const PUBLIC_MUSIC_DIR = path.join(__dirname, 'data', 'music');
 const AUDIO_EXTS = new Set(['.mp3', '.wav', '.ogg', '.flac', '.aac', '.m4a', '.webm']);
 
@@ -3215,7 +3613,8 @@ app.post('/api/music/playlist', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Multi-Playlist API ──
+// #endregion
+// #region Multi-Playlist API
 function getUserPlaylistsPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -3277,7 +3676,8 @@ app.delete('/api/music/playlists/:id', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Video API ──
+// #endregion
+// #region Video API
 const PUBLIC_VIDEO_DIR = path.join(__dirname, 'data', 'videos');
 const VIDEO_EXTS = new Set(['.mp4', '.webm', '.mkv', '.avi', '.mov', '.ogv']);
 
@@ -3385,9 +3785,11 @@ app.post('/api/video/playlist', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Start ──
+// #endregion
+// #region Start
 
-// ── Photos API ──
+// #endregion
+// #region Photos API
 const PUBLIC_PHOTOS_DIR = path.join(__dirname, 'data', 'photos');
 const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg']);
 const IMAGE_MIME = { '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.png':'image/png', '.gif':'image/gif', '.webp':'image/webp', '.bmp':'image/bmp', '.svg':'image/svg+xml' };
@@ -3488,7 +3890,8 @@ app.post('/api/photos/library', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── RSS Feed System ──
+// #endregion
+// #region RSS Feed System
 function getUserRssPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -3728,7 +4131,8 @@ function startRssChecker() {
   }, RSS_CHECK_INTERVAL);
 }
 
-// ── Reminder System ──
+// #endregion
+// #region Reminder System
 function getUserReminderPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -3933,7 +4337,8 @@ function startReminderChecker() {
   }, REMINDER_CHECK_INTERVAL);
 }
 
-// ── Scheduler System ──
+// #endregion
+// #region Scheduler System
 function getSchedulerPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -4178,7 +4583,8 @@ function startSchedulerChecker() {
   }, 60 * 1000);
 }
 
-// ── ETH Wallet ──
+// #endregion
+// #region ETH Wallet
 function getWalletPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -4220,9 +4626,8 @@ app.post('/api/ethwallet/save', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ─────────────────────────────────────────────────
-// ── Copilot CLI App ──
-// ─────────────────────────────────────────────────
+// #endregion
+// #region Copilot CLI App
 const { spawn } = require('child_process');
 
 function getUserCopilotDir(username) {
@@ -4421,7 +4826,8 @@ app.delete('/api/copilot/sessions', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── GitHub App ──
+// #endregion
+// #region GitHub App
 function getGithubSettingsPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe, 'github');
@@ -4740,7 +5146,8 @@ app.delete('/api/github/gists/:id', authMiddleware, async (req, res) => {
   } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
 });
 
-// ── Local Git Operations (via child_process, git CLI) ──
+// #endregion
+// #region Local Git Operations (via child_process, git CLI)
 function runGit(args, cwd, env) {
   return new Promise((resolve, reject) => {
     execFile('git', args, { cwd, timeout: 30000, maxBuffer: 1024 * 512, env: { ...process.env, ...env } }, (err, stdout, stderr) => {
@@ -4893,7 +5300,8 @@ app.post('/api/git/remote-add', authMiddleware, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Mail App ──
+// #endregion
+// #region Mail App
 function getUserMailPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -5160,7 +5568,8 @@ app.post('/api/mail/test', authMiddleware, async (req, res) => {
   }
 });
 
-// ── Mail Periodic Checker (every 1 hour) ──
+// #endregion
+// #region Mail Periodic Checker (every 1 hour)
 const MAIL_CHECK_INTERVAL = 60 * 60 * 1000; // 1 hour
 let mailCheckTimer = null;
 
@@ -5261,7 +5670,8 @@ function startMailChecker() {
   }, MAIL_CHECK_INTERVAL);
 }
 
-// ── Map App ──
+// #endregion
+// #region Map App
 function getUserMapPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -5356,7 +5766,8 @@ app.delete('/api/map/views/:id', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Backup & Restore ──
+// #endregion
+// #region Backup & Restore
 const BACKUPS_DIR = path.join(__dirname, 'backups');
 ensureDir(BACKUPS_DIR);
 const SEVENZ_PATH = 'C:\\Program Files\\7-Zip\\7z.exe';
@@ -5579,7 +5990,8 @@ app.post('/api/backup/restore', authMiddleware, async (req, res) => {
   }
 });
 
-// ── Archiver App ──
+// #endregion
+// #region Archiver App
 const zlib = require('zlib');
 
 // Compress files/folders into zip or gzip
@@ -5741,7 +6153,8 @@ app.post('/api/archiver/extract', authMiddleware, async (req, res) => {
   }
 });
 
-// ── Audio Recorder API ──
+// #endregion
+// #region Audio Recorder API
 function getUserRecordingsDir(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe, 'recordings');
@@ -5822,7 +6235,8 @@ app.delete('/api/audio-recorder/:filename', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Audio Editor API ──
+// #endregion
+// #region Audio Editor API
 const audioEditorUpload = multer({
   storage: multer.diskStorage({
     destination(req, file, cb) { cb(null, req._audioEditorDest); },
@@ -5847,7 +6261,8 @@ app.post('/api/audio-editor/save-recording', authMiddleware, (req, res, next) =>
   res.json({ ok: true, filename: req.file.filename, size: req.file.size });
 });
 
-// ── Video Editor API ──
+// #endregion
+// #region Video Editor API
 const videoEditorUpload = multer({
   storage: multer.diskStorage({
     destination(req, file, cb) { cb(null, getUserVideoDir(req.user.username)); },
@@ -5864,7 +6279,8 @@ app.post('/api/video-editor/save', authMiddleware, videoEditorUpload.single('fil
   res.json({ ok: true, filename: req.file.filename, size: req.file.size });
 });
 
-// ── WebTorrent Engine ──
+// #endregion
+// #region WebTorrent Engine
 let torrentClient = null;
 const torrentPaused = new Set();
 let torrentDownloadPath = path.join(__dirname, 'data', 'downloads');
@@ -6043,7 +6459,8 @@ setInterval(() => {
   }
 }, 2000);
 
-// ── Book Reader API ──
+// #endregion
+// #region Book Reader API
 function getUserBookDataPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -6098,7 +6515,8 @@ app.post('/api/book-reader/library', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Math Formula API ──
+// #endregion
+// #region Math Formula API
 function getUserFormulaPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -6166,7 +6584,8 @@ app.post('/api/math-formula/save-image', authMiddleware, formulaImageUpload.sing
   res.json({ ok: true, filename: req.file.filename, size: req.file.size });
 });
 
-// ── PostIt Notes API ──
+// #endregion
+// #region PostIt Notes API
 function getUserPostitPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -6220,7 +6639,8 @@ app.delete('/api/postit/:id', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Google Keep Notes API ──
+// #endregion
+// #region KeepNote API
 function getUserKeepPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -6272,7 +6692,8 @@ app.post('/api/keep/notes', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// ── YouTube Search Proxy (Invidious) ──
+// #endregion
+// #region YouTube Search Proxy (Invidious)
 const YT_INVIDIOUS_INSTANCES = [
   'https://vid.puffyan.us',
   'https://inv.nadeko.net',
@@ -6360,7 +6781,8 @@ app.get('/api/youtube/trending', authMiddleware, async (req, res) => {
   res.json([]);
 });
 
-// ── FTP Client API ──
+// #endregion
+// #region FTP Client API
 const ftp = require('basic-ftp');
 const ftpSessions = new Map();
 
@@ -6516,7 +6938,8 @@ app.post('/api/ftp/rename', authMiddleware, async (req, res) => {
   }
 });
 
-// ── Trello API ──
+// #endregion
+// #region Trello API
 function getTrelloSettingsPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe, 'trello');
@@ -6648,7 +7071,8 @@ app.delete('/api/trello/cards/:cardId', authMiddleware, async (req, res) => {
   } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
 });
 
-// ── System Monitor API ──
+// #endregion
+// #region System Monitor API
 let prevCpuInfo = null;
 function getCpuUsage() {
   const cpus = os.cpus();
@@ -6701,3 +7125,5 @@ server.listen(config.server.port, config.server.host, () => {
   startSchedulerChecker();
   startMailChecker();
 });
+
+// #endregion

@@ -63,6 +63,36 @@
       </button>
     </form>
 
+    <!-- 2FA Verification Step -->
+    <div id="twoFASection" class="hidden">
+      <div class="flex flex-col items-center mb-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-2xl shadow-lg mb-3">🔐</div>
+        <h2 class="text-white text-lg font-semibold">İki Faktörlü Doğrulama</h2>
+        <p class="text-white/40 text-sm mt-1">Authenticator uygulamanızdaki 6 haneli kodu girin</p>
+      </div>
+
+      <div class="mb-4">
+        <input id="twoFACode" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+          class="w-full h-12 text-center text-xl tracking-[0.5em] rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/20 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition font-mono"
+          placeholder="000000">
+      </div>
+
+      <div id="twoFAError" class="hidden mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center"></div>
+
+      <button id="twoFASubmitBtn" onclick="verify2FA()"
+        class="w-full h-11 rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 text-white font-medium text-sm cursor-pointer hover:from-amber-500 hover:to-orange-500 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        <span id="twoFABtnText">Doğrula</span>
+        <svg id="twoFASpinner" class="hidden animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"></circle>
+          <path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="opacity-75"></path>
+        </svg>
+      </button>
+
+      <button onclick="back2FA()" class="w-full h-9 mt-2 rounded-lg bg-white/5 text-white/50 text-sm cursor-pointer hover:bg-white/10 transition border-none">
+        ← Geri Dön
+      </button>
+    </div>
+
     <p class="text-center text-white/20 text-xs mt-6">Vue Desktop OS &copy; 2026</p>
   </div>
 
@@ -80,6 +110,8 @@
         localStorage.removeItem('auth_token');
       }
     })();
+
+    let pendingTempToken = null;
 
     async function handleLogin(e) {
       e.preventDefault();
@@ -102,7 +134,13 @@
           body: JSON.stringify({ username, password })
         });
         const data = await res.json();
-        if (res.ok && data.token) {
+        if (res.ok && data.requires2FA) {
+          // Show 2FA step
+          pendingTempToken = data.tempToken;
+          document.getElementById('loginForm').classList.add('hidden');
+          document.getElementById('twoFASection').classList.remove('hidden');
+          document.getElementById('twoFACode').focus();
+        } else if (res.ok && data.token) {
           localStorage.setItem('token', data.token);
           localStorage.setItem('auth_token', data.token);
           window.location.href = '/';
@@ -120,6 +158,63 @@
       }
       return false;
     }
+
+    async function verify2FA() {
+      const code = document.getElementById('twoFACode').value.trim();
+      const errorEl = document.getElementById('twoFAError');
+      const btn = document.getElementById('twoFASubmitBtn');
+      const btnText = document.getElementById('twoFABtnText');
+      const spinner = document.getElementById('twoFASpinner');
+
+      if (!code || code.length !== 6) {
+        errorEl.textContent = '6 haneli kodu girin';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      errorEl.classList.add('hidden');
+      btn.disabled = true;
+      btnText.textContent = 'Doğrulanıyor...';
+      spinner.classList.remove('hidden');
+
+      try {
+        const res = await fetch('/api/login/2fa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tempToken: pendingTempToken, code })
+        });
+        const data = await res.json();
+        if (res.ok && data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('auth_token', data.token);
+          window.location.href = '/';
+        } else {
+          errorEl.textContent = data.error || 'Doğrulama başarısız';
+          errorEl.classList.remove('hidden');
+        }
+      } catch {
+        errorEl.textContent = 'Sunucu bağlantı hatası';
+        errorEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Doğrula';
+        spinner.classList.add('hidden');
+      }
+    }
+
+    function back2FA() {
+      pendingTempToken = null;
+      document.getElementById('twoFASection').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+      document.getElementById('twoFACode').value = '';
+      document.getElementById('twoFAError').classList.add('hidden');
+    }
+
+    // Enter key on 2FA input
+    document.addEventListener('DOMContentLoaded', () => {
+      const codeInput = document.getElementById('twoFACode');
+      if (codeInput) codeInput.addEventListener('keydown', e => { if (e.key === 'Enter') verify2FA(); });
+    });
   </script>
 </body>
 </html>

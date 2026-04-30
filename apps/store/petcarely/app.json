@@ -7,7 +7,7 @@
   "size": { "w": 860, "h": 620 },
   "global": false,
   "description": "Evcil hayvan yönetimi — profil, sağlık, davranış, hatırlatmalar, medya",
-  "category": "lifestyle",
+  "category": "health",
   "lang": {
     "tr": { "name": "PetCarely", "description": "Evcil hayvan yönetimi — profil, sağlık, davranış, hatırlatmalar, medya" },
     "en": { "name": "PetCarely", "description": "Pet management — profile, health, behavior, reminders, media" },

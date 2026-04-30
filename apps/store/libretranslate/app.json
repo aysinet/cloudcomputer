@@ -2,7 +2,7 @@
   "id": "libretranslate",
   "name": "LibreTranslate",
   "icon": "🌐",
-  "color": "linear-gradient(135deg,#1565c0,#42a5f5)",
+  "color": "linear-gradient(135deg,#1a1a2e,#2d3436)",
   "type": "internal",
   "size": {
     "w": 520,

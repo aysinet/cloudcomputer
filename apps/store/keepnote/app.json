@@ -1,0 +1,26 @@
+{
+  "id": "keepnote",
+  "name": "KeepNote",
+  "icon": "📝",
+  "color": "linear-gradient(135deg,#fbbc04,#f9ab00)",
+  "type": "internal",
+  "size": { "w": 860, "h": 620 },
+  "global": false,
+  "description": "Not defteri — notlar, kontrol listeleri, etiketler, renkler, sabitleme, arşiv",
+  "category": "productivity",
+  "lang": {
+    "tr": { "name": "KeepNote", "description": "Not defteri — notlar, kontrol listeleri, etiketler, renkler, sabitleme, arşiv" },
+    "en": { "name": "KeepNote", "description": "Note keeper — notes, checklists, labels, colors, pinning, archive" },
+    "de": { "name": "KeepNote", "description": "Notizen — Notizen, Checklisten, Labels, Farben, Anheften, Archiv" },
+    "fr": { "name": "KeepNote", "description": "Notes — notes, listes, étiquettes, couleurs, épingler, archiver" },
+    "es": { "name": "KeepNote", "description": "Notas — notas, listas, etiquetas, colores, fijar, archivar" },
+    "ru": { "name": "KeepNote", "description": "Заметки — заметки, чек-листы, метки, цвета, закрепление, архив" },
+    "zh": { "name": "KeepNote", "description": "笔记 — 笔记、清单、标签、颜色、置顶、归档" },
+    "ja": { "name": "KeepNote", "description": "メモ帳 — メモ、チェックリスト、ラベル、色、ピン留め、アーカイブ" },
+    "it": { "name": "KeepNote", "description": "Note — note, checklist, etichette, colori, fissare, archiviare" },
+    "ar": { "name": "KeepNote", "description": "ملاحظات — ملاحظات، قوائم تحقق، تصنيفات، ألوان، تثبيت، أرشفة" },
+    "ko": { "name": "KeepNote", "description": "메모장 — 메모, 체크리스트, 라벨, 색상, 고정, 보관" },
+    "hi": { "name": "KeepNote", "description": "नोट्स — नोट्स, चेकलिस्ट, लेबल, रंग, पिन, आर्काइव" },
+    "pt": { "name": "KeepNote", "description": "Notas — notas, checklists, etiquetas, cores, fixar, arquivar" }
+  }
+}

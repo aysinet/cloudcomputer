@@ -1,0 +1,68 @@
+{
+  "id": "vix-index",
+  "name": "VIX Index",
+  "icon": "😱",
+  "color": "linear-gradient(135deg,#e53935,#ff9800)",
+  "type": "internal",
+  "size": {
+    "w": 480,
+    "h": 540
+  },
+  "global": false,
+  "description": "VIX korku ve açgözlülük endeksi — FRED API ile günlük veriler",
+  "lang": {
+    "tr": {
+      "name": "VIX Endeksi",
+      "description": "VIX korku ve açgözlülük endeksi — FRED API ile günlük veriler"
+    },
+    "en": {
+      "name": "VIX Index",
+      "description": "VIX fear & greed index — daily data via FRED API"
+    },
+    "de": {
+      "name": "VIX-Index",
+      "description": "VIX Angst- & Gier-Index — tägliche Daten über FRED API"
+    },
+    "fr": {
+      "name": "Indice VIX",
+      "description": "Indice de peur et d'avidité VIX — données quotidiennes via l'API FRED"
+    },
+    "es": {
+      "name": "Índice VIX",
+      "description": "Índice de miedo y codicia VIX — datos diarios vía API FRED"
+    },
+    "ru": {
+      "name": "Индекс VIX",
+      "description": "Индекс страха и жадности VIX — ежедневные данные через FRED API"
+    },
+    "zh": {
+      "name": "VIX 指数",
+      "description": "VIX 恐惧与贪婪指数 — 通过 FRED API 获取每日数据"
+    },
+    "ja": {
+      "name": "VIX指数",
+      "description": "VIX恐怖＆貪欲指数 — FRED APIによる日次データ"
+    },
+    "it": {
+      "name": "Indice VIX",
+      "description": "Indice di paura e avidità VIX — dati giornalieri tramite API FRED"
+    },
+    "ar": {
+      "name": "مؤشر VIX",
+      "description": "مؤشر الخوف والطمع VIX — بيانات يومية عبر FRED API"
+    },
+    "ko": {
+      "name": "VIX 지수",
+      "description": "VIX 공포 & 탐욕 지수 — FRED API를 통한 일일 데이터"
+    },
+    "hi": {
+      "name": "VIX सूचकांक",
+      "description": "VIX भय और लालच सूचकांक — FRED API के माध्यम से दैनिक डेटा"
+    },
+    "pt": {
+      "name": "Índice VIX",
+      "description": "Índice de medo e ganância VIX — dados diários via API FRED"
+    }
+  },
+  "category": "finance"
+}

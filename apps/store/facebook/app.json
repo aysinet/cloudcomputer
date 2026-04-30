@@ -2,7 +2,7 @@
   "id": "facebook",
   "name": "Facebook",
   "icon": "👤",
-  "color": "linear-gradient(135deg,#1877f2,#0a5dc2)",
+  "color": "linear-gradient(135deg,#2d1b69,#11998e)",
   "type": "internal",
   "size": {
     "w": 480,

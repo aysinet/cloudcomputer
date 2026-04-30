@@ -1,0 +1,48 @@
+{
+  "id": "openemr",
+  "name": "OpenEMR",
+  "icon": "🏥",
+  "color": "linear-gradient(135deg,#2e7d32,#66bb6a)",
+  "type": "service",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Açık kaynaklı elektronik sağlık kayıtları ve tıbbi uygulama yönetimi",
+  "requires": ["mysql", "redis"],
+  "lang": {
+    "tr": { "name": "OpenEMR", "description": "Açık kaynaklı elektronik sağlık kayıtları ve tıbbi uygulama yönetimi" },
+    "en": { "name": "OpenEMR", "description": "Open-source electronic health records and medical practice management" },
+    "de": { "name": "OpenEMR", "description": "Open-Source elektronische Gesundheitsakte und Praxisverwaltung" },
+    "fr": { "name": "OpenEMR", "description": "Dossiers médicaux électroniques open source et gestion de cabinet" },
+    "es": { "name": "OpenEMR", "description": "Registros de salud electrónicos de código abierto y gestión de consultas" },
+    "ru": { "name": "OpenEMR", "description": "Электронные медицинские записи и управление медицинской практикой с открытым кодом" },
+    "zh": { "name": "OpenEMR", "description": "开源电子健康记录和医疗实践管理系统" },
+    "ja": { "name": "OpenEMR", "description": "オープンソース電子カルテ・医療管理システム" },
+    "it": { "name": "OpenEMR", "description": "Cartella clinica elettronica open source e gestione dello studio medico" },
+    "ar": { "name": "OpenEMR", "description": "سجلات صحية إلكترونية مفتوحة المصدر وإدارة الممارسات الطبية" },
+    "ko": { "name": "OpenEMR", "description": "오픈소스 전자건강기록 및 의료 관리 시스템" },
+    "hi": { "name": "OpenEMR", "description": "ओपन-सोर्स इलेक्ट्रॉनिक स्वास्थ्य रिकॉर्ड और चिकित्सा प्रबंधन" },
+    "pt": { "name": "OpenEMR", "description": "Registros eletrônicos de saúde de código aberto e gestão de consultório médico" }
+  },
+  "category": "health",
+  "docker": {
+    "image": "openemr/openemr:8.0.0",
+    "containerPort": 80,
+    "volumes": [
+      "${APP_VOLUME}:/var/www/localhost/htdocs/openemr/sites"
+    ],
+    "env": [
+      "MYSQL_HOST=${MYSQL_HOST}",
+      "MYSQL_ROOT_PASS=${MYSQL_ROOT_PASS}",
+      "MYSQL_USER=${MYSQL_USER}",
+      "MYSQL_PASS=${MYSQL_PASS}",
+      "MYSQL_DATABASE=${MYSQL_DATABASE}",
+      "MYSQL_PORT=3306",
+      "OE_USER=${OE_USER}",
+      "OE_PASS=${OE_PASS}",
+      "REDIS_SERVER=${REDIS_SERVER}"
+    ]
+  }
+}

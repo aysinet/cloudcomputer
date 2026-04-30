@@ -827,6 +827,29 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
           <button class="ai-save-btn" @click="saveAISettings">💾 {{t('aiSave')}}</button>
         </div>
       </template>
+      <template v-else-if="active==='display'">
+        <div class="settings-row">
+          <div><div class="lbl">{{t('zoom')}}</div><div class="sub">{{t('zoomDesc')}}</div></div>
+          <div class="ctrl">
+            <select :value="zoomLevel" @change="onZoomChange($event.target.value)">
+              <option v-for="z in zoomOptions" :key="z" :value="z">{{z}}%</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div><div class="lbl">{{t('darkMode')}}</div><div class="sub">{{t('darkModeDesc')}}</div></div>
+          <div class="ctrl"><label class="settings-toggle"><input type="checkbox" v-model="darkModeVal"><span class="settings-slider"></span></label></div>
+        </div>
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+          <div><div class="lbl">{{t('screenInfo')}}</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;font-size:13px;width:100%">
+            <div><span style="color:#999">{{t('screenPhysical')}}:</span> <b>{{screenInfo.physW}} × {{screenInfo.physH}}</b></div>
+            <div><span style="color:#999">{{t('screenEffective')}}:</span> <b>{{screenInfo.effW}} × {{screenInfo.effH}}</b></div>
+            <div><span style="color:#999">{{t('screenPixelRatio')}}:</span> <b>{{screenInfo.dpr}}</b></div>
+            <div><span style="color:#999">{{t('screenColorDepth')}}:</span> <b>{{screenInfo.colorDepth}} bit</b></div>
+          </div>
+        </div>
+      </template>
       <template v-else-if="active==='session'">
         <div class="settings-row">
           <div><div class="lbl">{{t('restoreApps')}}</div><div class="sub">{{t('restoreAppsDesc')}}</div></div>
@@ -839,6 +862,51 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         <div class="settings-row">
           <div><div class="lbl">{{t('magTrayToggle')}}</div><div class="sub">{{t('magTrayToggleDesc')}}</div></div>
           <div class="ctrl"><label class="settings-toggle"><input type="checkbox" :checked="showMagnifierTray" @change="toggleMagnifierTray"><span class="settings-slider"></span></label></div>
+        </div>
+      </template>
+      <template v-else-if="active==='security'">
+        <div class="settings-row">
+          <div>
+            <div class="lbl">{{t('twoFactorAuth')}}</div>
+            <div class="sub">{{t('twoFactorAuthDesc')}}</div>
+          </div>
+          <div class="ctrl">
+            <label class="settings-toggle">
+              <input type="checkbox" :checked="twoFAEnabled" @change="toggle2FA">
+              <span class="settings-slider"></span>
+            </label>
+          </div>
+        </div>
+        <!-- 2FA Setup flow -->
+        <div v-if="twoFASetup" style="margin-top:12px;padding:16px;border-radius:12px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.18)">
+          <div style="text-align:center;margin-bottom:12px">
+            <div style="font-size:14px;font-weight:600;margin-bottom:8px">{{t('twoFAScanQR')}}</div>
+            <div style="background:#fff;display:inline-block;padding:12px;border-radius:8px">
+              <img :src="twoFAQRUrl" style="width:200px;height:200px" alt="QR Code">
+            </div>
+          </div>
+          <div style="text-align:center;margin-bottom:12px">
+            <div style="font-size:12px;color:#999;margin-bottom:4px">{{t('twoFAManualKey')}}</div>
+            <code style="font-size:13px;letter-spacing:2px;user-select:all;background:rgba(0,0,0,.15);padding:4px 10px;border-radius:6px">{{twoFASecret}}</code>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;justify-content:center">
+            <input v-model="twoFACode" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+              :placeholder="t('twoFAEnterCode')" @keyup.enter="verify2FASetup"
+              style="width:140px;height:36px;text-align:center;font-size:18px;letter-spacing:4px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;outline:none">
+            <button @click="verify2FASetup" style="height:36px;padding:0 16px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;cursor:pointer;font-size:13px">{{t('twoFAVerify')}}</button>
+          </div>
+          <div v-if="twoFAError" style="text-align:center;color:#f87171;font-size:12px;margin-top:8px">{{twoFAError}}</div>
+        </div>
+        <!-- 2FA Disable flow -->
+        <div v-if="twoFADisabling" style="margin-top:12px;padding:16px;border-radius:12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.18)">
+          <div style="text-align:center;font-size:13px;margin-bottom:10px">{{t('twoFADisablePrompt')}}</div>
+          <div style="display:flex;gap:8px;align-items:center;justify-content:center">
+            <input v-model="twoFADisableCode" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+              :placeholder="t('twoFAEnterCode')" @keyup.enter="confirm2FADisable"
+              style="width:140px;height:36px;text-align:center;font-size:18px;letter-spacing:4px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;outline:none">
+            <button @click="confirm2FADisable" style="height:36px;padding:0 16px;border-radius:8px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;cursor:pointer;font-size:13px">{{t('twoFADisableBtn')}}</button>
+          </div>
+          <div v-if="twoFAError" style="text-align:center;color:#f87171;font-size:12px;margin-top:8px">{{twoFAError}}</div>
         </div>
       </template>
       <template v-else>
@@ -1647,7 +1715,8 @@ const I18N = {
     settingsNetwork: 'Ağ', settingsAbout: 'Hakkında', settingsLanguage: 'Dil',
     zoom: 'Yakınlaştırma', zoomDesc: 'Sayfa yakınlaştırma seviyesini ayarla',
     darkMode: 'Karanlık Mod', darkModeDesc: 'Koyu tema kullan',
-    resolution: 'Çözünürlük', mainVolume: 'Ana Ses', systemSound: 'Sistem Sesi',
+    resolution: 'Çözünürlük', screenInfo: 'Ekran Bilgisi', screenPhysical: 'Fiziksel Çözünürlük', screenEffective: 'Etkin Çözünürlük', screenPixelRatio: 'Piksel Oranı', screenColorDepth: 'Renk Derinliği',
+    mainVolume: 'Ana Ses', systemSound: 'Sistem Sesi',
     notifSound: 'Bildirim Sesi', wifi: 'Wi-Fi', wifiDesc: 'Kablosuz ağ bağlantısı',
     bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'Özel ağ tüneli',
     version: 'Sürüm', checkUpdates: 'Güncellemeleri Kontrol Et',
@@ -1672,6 +1741,11 @@ const I18N = {
     settingsSession: 'Oturum', restoreApps: 'Uygulamaları Geri Yükle', restoreAppsDesc: 'Sayfa yenilendiğinde açık uygulamalar tekrar açılsın',
     skbTrayToggle: 'Ekran Klavyesi Simgesi', skbTrayToggleDesc: 'Görev çubuğunda ekran klavyesi simgesini göster',
     magTrayShow: 'Büyüteci Göster', magTrayToggle: 'Büyüteç Simgesi', magTrayToggleDesc: 'Görev çubuğunda büyüteç simgesini göster',
+    settingsSecurity: 'Güvenlik', twoFactorAuth: 'İki Faktörlü Doğrulama (2FA)', twoFactorAuthDesc: 'Girişte authenticator uygulaması ile ek doğrulama',
+    twoFAScanQR: 'QR kodu authenticator uygulamanızla tarayın', twoFAManualKey: 'veya bu kodu manuel girin:',
+    twoFAEnterCode: 'Doğrulama kodu', twoFAVerify: 'Doğrula', twoFAActivated: '2FA başarıyla etkinleştirildi',
+    twoFADeactivated: '2FA devre dışı bırakıldı', twoFADisablePrompt: 'Devre dışı bırakmak için authenticator kodunuzu girin',
+    twoFADisableBtn: 'Devre Dışı Bırak', twoFALoginTitle: 'İki Faktörlü Doğrulama', twoFALoginDesc: 'Authenticator uygulamanızdaki 6 haneli kodu girin',
     settingsAI: 'Yapay Zeka', aiTokens: 'API Anahtarları', aiTokensDesc: 'Tüm uygulamalarda kullanılacak AI servis anahtarları',
     aiAgents: 'Ajanlar', aiAgentsDesc: 'Kullanılacak AI ajanlarını yapılandır',
     aiProvider: 'Sağlayıcı', aiApiKey: 'API Anahtarı', aiModel: 'Model', aiEnabled: 'Aktif',
@@ -1693,7 +1767,8 @@ const I18N = {
     settingsNetwork: 'Network', settingsAbout: 'About', settingsLanguage: 'Language',
     zoom: 'Zoom', zoomDesc: 'Adjust page zoom level',
     darkMode: 'Dark Mode', darkModeDesc: 'Use dark theme',
-    resolution: 'Resolution', mainVolume: 'Master Volume', systemSound: 'System Sound',
+    resolution: 'Resolution', screenInfo: 'Screen Info', screenPhysical: 'Physical Resolution', screenEffective: 'Effective Resolution', screenPixelRatio: 'Pixel Ratio', screenColorDepth: 'Color Depth',
+    mainVolume: 'Master Volume', systemSound: 'System Sound',
     notifSound: 'Notification Sound', wifi: 'Wi-Fi', wifiDesc: 'Wireless network connection',
     bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'Private network tunnel',
     version: 'Version', checkUpdates: 'Check for Updates',
@@ -1714,6 +1789,11 @@ const I18N = {
     settingsSession: 'Session', restoreApps: 'Restore Apps', restoreAppsDesc: 'Reopen apps after page refresh',
     skbTrayToggle: 'Screen Keyboard Icon', skbTrayToggleDesc: 'Show screen keyboard icon in taskbar',
     magTrayShow: 'Show Magnifier', magTrayToggle: 'Magnifier Icon', magTrayToggleDesc: 'Show magnifier icon in taskbar',
+    settingsSecurity: 'Security', twoFactorAuth: 'Two-Factor Authentication (2FA)', twoFactorAuthDesc: 'Require authenticator app verification at login',
+    twoFAScanQR: 'Scan QR code with your authenticator app', twoFAManualKey: 'or enter this key manually:',
+    twoFAEnterCode: 'Verification code', twoFAVerify: 'Verify', twoFAActivated: '2FA enabled successfully',
+    twoFADeactivated: '2FA disabled', twoFADisablePrompt: 'Enter your authenticator code to disable 2FA',
+    twoFADisableBtn: 'Disable', twoFALoginTitle: 'Two-Factor Authentication', twoFALoginDesc: 'Enter the 6-digit code from your authenticator app',
     settingsAI: 'Artificial Intelligence', aiTokens: 'API Keys', aiTokensDesc: 'AI service keys available across all apps',
     aiAgents: 'Agents', aiAgentsDesc: 'Configure AI agents to use',
     aiProvider: 'Provider', aiApiKey: 'API Key', aiModel: 'Model', aiEnabled: 'Enabled',
@@ -1735,7 +1815,8 @@ const I18N = {
     settingsNetwork: 'Netzwerk', settingsAbout: 'Über', settingsLanguage: 'Sprache',
     zoom: 'Zoom', zoomDesc: 'Seitenzoom anpassen',
     darkMode: 'Dunkelmodus', darkModeDesc: 'Dunkles Design verwenden',
-    resolution: 'Auflösung', mainVolume: 'Hauptlautstärke', systemSound: 'Systemton',
+    resolution: 'Auflösung', screenInfo: 'Bildschirminfo', screenPhysical: 'Physische Auflösung', screenEffective: 'Effektive Auflösung', screenPixelRatio: 'Pixelverhältnis', screenColorDepth: 'Farbtiefe',
+    mainVolume: 'Hauptlautstärke', systemSound: 'Systemton',
     notifSound: 'Benachrichtigungston', wifi: 'WLAN', wifiDesc: 'Drahtlose Netzwerkverbindung',
     bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'Privater Netzwerktunnel',
     version: 'Version', checkUpdates: 'Nach Updates suchen',
@@ -1777,7 +1858,8 @@ const I18N = {
     settingsNetwork: 'Réseau', settingsAbout: 'À propos', settingsLanguage: 'Langue',
     zoom: 'Zoom', zoomDesc: 'Régler le niveau de zoom de la page',
     darkMode: 'Mode sombre', darkModeDesc: 'Utiliser le thème sombre',
-    resolution: 'Résolution', mainVolume: 'Volume principal', systemSound: 'Son système',
+    resolution: 'Résolution', screenInfo: 'Infos écran', screenPhysical: 'Résolution physique', screenEffective: 'Résolution effective', screenPixelRatio: 'Ratio de pixels', screenColorDepth: 'Profondeur de couleur',
+    mainVolume: 'Volume principal', systemSound: 'Son système',
     notifSound: 'Son de notification', wifi: 'Wi-Fi', wifiDesc: 'Connexion réseau sans fil',
     bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'Tunnel réseau privé',
     version: 'Version', checkUpdates: 'Vérifier les mises à jour',
@@ -1819,7 +1901,8 @@ const I18N = {
     settingsNetwork: 'Red', settingsAbout: 'Acerca de', settingsLanguage: 'Idioma',
     zoom: 'Zoom', zoomDesc: 'Ajustar el nivel de zoom de la página',
     darkMode: 'Modo oscuro', darkModeDesc: 'Usar tema oscuro',
-    resolution: 'Resolución', mainVolume: 'Volumen principal', systemSound: 'Sonido del sistema',
+    resolution: 'Resolución', screenInfo: 'Info de pantalla', screenPhysical: 'Resolución física', screenEffective: 'Resolución efectiva', screenPixelRatio: 'Ratio de píxeles', screenColorDepth: 'Profundidad de color',
+    mainVolume: 'Volumen principal', systemSound: 'Sonido del sistema',
     notifSound: 'Sonido de notificación', wifi: 'Wi-Fi', wifiDesc: 'Conexión de red inalámbrica',
     bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'Túnel de red privada',
     version: 'Versión', checkUpdates: 'Buscar actualizaciones',
@@ -1861,7 +1944,8 @@ const I18N = {
     settingsNetwork: 'Сеть', settingsAbout: 'О системе', settingsLanguage: 'Язык',
     zoom: 'Масштаб', zoomDesc: 'Настроить масштаб страницы',
     darkMode: 'Тёмный режим', darkModeDesc: 'Использовать тёмную тему',
-    resolution: 'Разрешение', mainVolume: 'Общая громкость', systemSound: 'Системный звук',
+    resolution: 'Разрешение', screenInfo: 'Информация об экране', screenPhysical: 'Физическое разрешение', screenEffective: 'Эффективное разрешение', screenPixelRatio: 'Соотношение пикселей', screenColorDepth: 'Глубина цвета',
+    mainVolume: 'Общая громкость', systemSound: 'Системный звук',
     notifSound: 'Звук уведомлений', wifi: 'Wi-Fi', wifiDesc: 'Беспроводное подключение',
     bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'Частный сетевой туннель',
     version: 'Версия', checkUpdates: 'Проверить обновления',
@@ -1903,7 +1987,8 @@ const I18N = {
     settingsNetwork: '网络', settingsAbout: '关于', settingsLanguage: '语言',
     zoom: '缩放', zoomDesc: '调整页面缩放级别',
     darkMode: '深色模式', darkModeDesc: '使用深色主题',
-    resolution: '分辨率', mainVolume: '主音量', systemSound: '系统声音',
+    resolution: '分辨率', screenInfo: '屏幕信息', screenPhysical: '物理分辨率', screenEffective: '有效分辨率', screenPixelRatio: '像素比', screenColorDepth: '色深',
+    mainVolume: '主音量', systemSound: '系统声音',
     notifSound: '通知声音', wifi: 'Wi-Fi', wifiDesc: '无线网络连接',
     bluetooth: '蓝牙', vpn: 'VPN', vpnDesc: '私人网络隧道',
     version: '版本', checkUpdates: '检查更新',
@@ -1945,7 +2030,8 @@ const I18N = {
     settingsNetwork: 'ネットワーク', settingsAbout: '情報', settingsLanguage: '言語',
     zoom: 'ズーム', zoomDesc: 'ページのズームレベルを調整',
     darkMode: 'ダークモード', darkModeDesc: 'ダークテーマを使用',
-    resolution: '解像度', mainVolume: 'マスター音量', systemSound: 'システムサウンド',
+    resolution: '解像度', screenInfo: '画面情報', screenPhysical: '物理解像度', screenEffective: '有効解像度', screenPixelRatio: 'ピクセル比', screenColorDepth: '色深度',
+    mainVolume: 'マスター音量', systemSound: 'システムサウンド',
     notifSound: '通知音', wifi: 'Wi-Fi', wifiDesc: 'ワイヤレスネットワーク接続',
     bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'プライベートネットワークトンネル',
     version: 'バージョン', checkUpdates: 'アップデートを確認',
@@ -1987,7 +2073,8 @@ const I18N = {
     settingsNetwork: 'Rete', settingsAbout: 'Informazioni', settingsLanguage: 'Lingua',
     zoom: 'Zoom', zoomDesc: 'Regola il livello di zoom della pagina',
     darkMode: 'Modalità scura', darkModeDesc: 'Usa il tema scuro',
-    resolution: 'Risoluzione', mainVolume: 'Volume principale', systemSound: 'Suono di sistema',
+    resolution: 'Risoluzione', screenInfo: 'Info schermo', screenPhysical: 'Risoluzione fisica', screenEffective: 'Risoluzione effettiva', screenPixelRatio: 'Rapporto pixel', screenColorDepth: 'Profondità colore',
+    mainVolume: 'Volume principale', systemSound: 'Suono di sistema',
     notifSound: 'Suono notifica', wifi: 'Wi-Fi', wifiDesc: 'Connessione di rete wireless',
     bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'Tunnel di rete privata',
     version: 'Versione', checkUpdates: 'Controlla aggiornamenti',
@@ -2029,7 +2116,8 @@ const I18N = {
     settingsNetwork: 'الشبكة', settingsAbout: 'حول', settingsLanguage: 'اللغة',
     zoom: 'التكبير', zoomDesc: 'ضبط مستوى تكبير الصفحة',
     darkMode: 'الوضع الداكن', darkModeDesc: 'استخدام السمة الداكنة',
-    resolution: 'الدقة', mainVolume: 'مستوى الصوت الرئيسي', systemSound: 'صوت النظام',
+    resolution: 'الدقة', screenInfo: 'معلومات الشاشة', screenPhysical: 'الدقة الفعلية', screenEffective: 'الدقة الفعالة', screenPixelRatio: 'نسبة البكسل', screenColorDepth: 'عمق اللون',
+    mainVolume: 'مستوى الصوت الرئيسي', systemSound: 'صوت النظام',
     notifSound: 'صوت الإشعار', wifi: 'واي فاي', wifiDesc: 'اتصال الشبكة اللاسلكية',
     bluetooth: 'بلوتوث', vpn: 'VPN', vpnDesc: 'نفق الشبكة الخاصة',
     version: 'الإصدار', checkUpdates: 'التحقق من التحديثات',
@@ -2071,7 +2159,8 @@ const I18N = {
     settingsNetwork: '네트워크', settingsAbout: '정보', settingsLanguage: '언어',
     zoom: '확대/축소', zoomDesc: '페이지 확대/축소 수준 조절',
     darkMode: '다크 모드', darkModeDesc: '다크 테마 사용',
-    resolution: '해상도', mainVolume: '기본 볼륨', systemSound: '시스템 소리',
+    resolution: '해상도', screenInfo: '화면 정보', screenPhysical: '물리적 해상도', screenEffective: '유효 해상도', screenPixelRatio: '픽셀 비율', screenColorDepth: '색심도',
+    mainVolume: '기본 볼륨', systemSound: '시스템 소리',
     notifSound: '알림 소리', wifi: 'Wi-Fi', wifiDesc: '무선 네트워크 연결',
     bluetooth: '블루투스', vpn: 'VPN', vpnDesc: '사설 네트워크 터널',
     version: '버전', checkUpdates: '업데이트 확인',
@@ -2113,7 +2202,8 @@ const I18N = {
     settingsNetwork: 'नेटवर्क', settingsAbout: 'के बारे में', settingsLanguage: 'भाषा',
     zoom: 'ज़ूम', zoomDesc: 'पेज ज़ूम स्तर समायोजित करें',
     darkMode: 'डार्क मोड', darkModeDesc: 'डार्क थीम का उपयोग करें',
-    resolution: 'रिज़ॉल्यूशन', mainVolume: 'मुख्य वॉल्यूम', systemSound: 'सिस्टम ध्वनि',
+    resolution: 'रिज़ॉल्यूशन', screenInfo: 'स्क्रीन जानकारी', screenPhysical: 'भौतिक रिज़ॉल्यूशन', screenEffective: 'प्रभावी रिज़ॉल्यूशन', screenPixelRatio: 'पिक्सेल अनुपात', screenColorDepth: 'रंग गहराई',
+    mainVolume: 'मुख्य वॉल्यूम', systemSound: 'सिस्टम ध्वनि',
     notifSound: 'सूचना ध्वनि', wifi: 'वाई-फ़ाई', wifiDesc: 'वायरलेस नेटवर्क कनेक्शन',
     bluetooth: 'ब्लूटूथ', vpn: 'VPN', vpnDesc: 'निजी नेटवर्क टनल',
     version: 'संस्करण', checkUpdates: 'अपडेट की जांच करें',
@@ -2155,7 +2245,8 @@ const I18N = {
     settingsNetwork: 'Rede', settingsAbout: 'Sobre', settingsLanguage: 'Idioma',
     zoom: 'Zoom', zoomDesc: 'Ajustar o nível de zoom da página',
     darkMode: 'Modo Escuro', darkModeDesc: 'Usar tema escuro',
-    resolution: 'Resolução', mainVolume: 'Volume Principal', systemSound: 'Som do Sistema',
+    resolution: 'Resolução', screenInfo: 'Info do ecrã', screenPhysical: 'Resolução física', screenEffective: 'Resolução efetiva', screenPixelRatio: 'Proporção de pixels', screenColorDepth: 'Profundidade de cor',
+    mainVolume: 'Volume Principal', systemSound: 'Som do Sistema',
     notifSound: 'Som de Notificação', wifi: 'Wi-Fi', wifiDesc: 'Conexão de rede sem fio',
     bluetooth: 'Bluetooth', vpn: 'VPN', vpnDesc: 'Túnel de rede privada',
     version: 'Versão', checkUpdates: 'Verificar Atualizações',
@@ -2580,7 +2671,7 @@ const APPS = [
   {id:'calendar',name:'Takvim',icon:'📅',color:'linear-gradient(135deg,#409eff,#66b1ff)',category:'productivity'},
   {id:'notifications',name:'Bildirimler',icon:'🔔',color:'linear-gradient(135deg,#ff6b6b,#ee5a24)',category:'system'},
   {id:'appstore',name:'Uygulama Mağazası',icon:'🛒',color:'linear-gradient(135deg,#6c5ce7,#a29bfe)',category:'internet'},
-  {id:'browser',name:'Tarayıcı',icon:'🌐',color:'linear-gradient(135deg,#4a90d9,#00b894)',category:'internet'},
+  {id:'browser',name:'Tarayıcı',icon:'🌐',color:'linear-gradient(135deg,#1a1a2e,#16213e)',category:'internet'},
   {id:'screenkeyboard',name:'Ekran Klavyesi',icon:'⌨️',color:'linear-gradient(135deg,#6c63ff,#3f3d56)',category:'utilities'},
   {id:'contacts',name:'Kişiler',icon:'📇',color:'linear-gradient(135deg,#00b894,#00cec9)',category:'productivity'},
 ];
@@ -2881,16 +2972,23 @@ const SettingsApp = {
       { id: 'language', icon: '🌐', name: t('settingsLanguage') },
       { id: 'sound', icon: '🔊', name: t('settingsSound') },
       { id: 'session', icon: '🔄', name: t('settingsSession') || 'Oturum' },
+      { id: 'security', icon: '🔐', name: t('settingsSecurity') || 'Güvenlik' },
       { id: 'ai', icon: '🤖', name: t('settingsAI') || 'AI' },
       { id: 'network', icon: '📶', name: t('settingsNetwork') },
       { id: 'about', icon: 'ℹ️', name: t('settingsAbout') }
     ]);
+    const zoomLevel = ref(settingsStore.zoom || 100);
+    const zoomOptions = [50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200];
+    const darkModeVal = ref(false);
+    function onZoomChange(v) { const n = Number(v); zoomLevel.value = n; window.__applyZoom && window.__applyZoom(n); settingsStore.save({ zoom: n }); }
+    const screenInfo = computed(() => {
+      const z = zoomLevel.value / 100;
+      const w = window.screen.width; const h = window.screen.height;
+      return { physW: w, physH: h, effW: Math.round(w / z), effH: Math.round(h / z), dpr: window.devicePixelRatio || 1, colorDepth: window.screen.colorDepth || 24 };
+    });
     const allRows = computed(() => ({
-      display: [
-        { label: t('zoom'), sub: t('zoomDesc'), type: 'range', min: 50, max: 200, step: 10, val: ref(settingsStore.zoom), suffix: '%', onChange(v) { const n = Number(v); window.__applyZoom && window.__applyZoom(n); settingsStore.save({ zoom: n }); } },
-        { label: t('darkMode'), sub: t('darkModeDesc'), type: 'toggle', val: ref(false) },
-        { label: t('resolution'), type: 'select', options: ['1920×1080', '1366×768', '2560×1440'], val: ref('1920×1080') }
-      ],
+      display: [],
+      // display tab is now rendered by its own template section
       sound: [
         { label: t('mainVolume'), type: 'range', min: 0, max: 100, val: ref(60) },
         { label: t('systemSound'), type: 'toggle', val: ref(true) },
@@ -3091,6 +3189,94 @@ const SettingsApp = {
       settingsStore.save({ showMagnifierTray: e.target.checked });
     }
 
+    // ── 2FA Settings ──
+    const twoFAEnabled = ref(false);
+    const twoFASetup = ref(false);
+    const twoFASecret = ref('');
+    const twoFAQRUrl = ref('');
+    const twoFACode = ref('');
+    const twoFAError = ref('');
+    const twoFADisabling = ref(false);
+    const twoFADisableCode = ref('');
+
+    async function load2FAStatus() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/2fa/status', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) { const d = await res.json(); twoFAEnabled.value = d.enabled; }
+      } catch {}
+    }
+
+    async function toggle2FA(e) {
+      if (e.target.checked) {
+        // Start setup
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch('/api/2fa/setup', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          const data = await res.json();
+          if (res.ok) {
+            twoFASecret.value = data.secret;
+            twoFAQRUrl.value = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(data.uri);
+            twoFASetup.value = true;
+            twoFACode.value = '';
+            twoFAError.value = '';
+          } else {
+            ElMessage.error(data.error || 'Error');
+            e.target.checked = false;
+          }
+        } catch { e.target.checked = false; }
+      } else {
+        // Start disable flow
+        e.target.checked = true; // keep checked until confirmed
+        twoFADisabling.value = true;
+        twoFADisableCode.value = '';
+        twoFAError.value = '';
+      }
+    }
+
+    async function verify2FASetup() {
+      twoFAError.value = '';
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/2fa/verify-setup', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: twoFACode.value })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          twoFAEnabled.value = true;
+          twoFASetup.value = false;
+          ElMessage.success(t('twoFAActivated'));
+        } else {
+          twoFAError.value = data.error || 'Error';
+        }
+      } catch { twoFAError.value = 'Connection error'; }
+    }
+
+    async function confirm2FADisable() {
+      twoFAError.value = '';
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/2fa/disable', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: twoFADisableCode.value })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          twoFAEnabled.value = false;
+          twoFADisabling.value = false;
+          ElMessage.success(t('twoFADeactivated'));
+        } else {
+          twoFAError.value = data.error || 'Error';
+        }
+      } catch { twoFAError.value = 'Connection error'; }
+    }
+
     // ── AI Settings ──
     const AI_BUILTIN_PROVIDERS = [
       { id: 'openai', name: 'OpenAI', icon: '🟢', defaultModel: 'gpt-4o', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
@@ -3177,9 +3363,10 @@ const SettingsApp = {
       loadSettings();
       loadWpList();
       loadAISettings();
+      load2FAStatus();
     });
 
-    return { active, tabs, currentRows, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray, aiProviders, aiAgents, addProvider, removeProvider, addAgent, removeAgent, saveAISettings };
+    return { active, tabs, currentRows, zoomLevel, zoomOptions, darkModeVal, onZoomChange, screenInfo, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray, twoFAEnabled, twoFASetup, twoFASecret, twoFAQRUrl, twoFACode, twoFAError, twoFADisabling, twoFADisableCode, toggle2FA, verify2FASetup, confirm2FADisable, aiProviders, aiAgents, addProvider, removeProvider, addAgent, removeAgent, saveAISettings };
   }
 };
 
@@ -4299,6 +4486,7 @@ const APP_CATEGORY_META = {
   internet: { icon: '🌐', order: 8 },
   social: { icon: '📱', order: 9 },
   finance: { icon: '💰', order: 10 },
+  health: { icon: '🩺', order: 11 },
   other: { icon: '📦', order: 99 }
 };
 const APP_CATEGORY_NAMES = {
@@ -4312,6 +4500,7 @@ const APP_CATEGORY_NAMES = {
   internet: { tr: 'İnternet', en: 'Internet', de: 'Internet', fr: 'Internet', es: 'Internet', ru: 'Интернет', zh: '互联网', ja: 'インターネット', it: 'Internet' },
   social: { tr: 'Sosyal', en: 'Social', de: 'Sozial', fr: 'Social', es: 'Social', ru: 'Социальные', zh: '社交', ja: 'ソーシャル', it: 'Social' },
   finance: { tr: 'Finans', en: 'Finance', de: 'Finanzen', fr: 'Finance', es: 'Finanzas', ru: 'Финансы', zh: '金融', ja: 'ファイナンス', it: 'Finanza' },
+  health: { tr: 'Sağlık', en: 'Health', de: 'Gesundheit', fr: 'Santé', es: 'Salud', ru: 'Здоровье', zh: '健康', ja: '健康', it: 'Salute', ar: 'الصحة', ko: '건강', hi: 'स्वास्थ्य', pt: 'Saúde' },
   other: { tr: 'Diğer', en: 'Other', de: 'Sonstige', fr: 'Autres', es: 'Otros', ru: 'Другое', zh: '其他', ja: 'その他', it: 'Altro' }
 };
 function getAppCatName(catId, locale) {
@@ -5400,6 +5589,7 @@ createApp({
       window.addEventListener('app-installed', onAppInstalled);
       window.addEventListener('app-uninstalled', onAppUninstalled);
       window.addEventListener('open-app-action', onOpenAppAction);
+      window.addEventListener('keydown', onGlobalKeyDown);
       loadInstalledApps().then(() => {
         restoreSessionApps();
         // Auto-open PostIt app if there are visible postits (independent of session restore)
@@ -5414,8 +5604,17 @@ createApp({
       window.removeEventListener('app-installed', onAppInstalled);
       window.removeEventListener('app-uninstalled', onAppUninstalled);
       window.removeEventListener('open-app-action', onOpenAppAction);
+      window.removeEventListener('keydown', onGlobalKeyDown);
       if (wsConn) wsConn.close();
     });
+
+    // ── Global keyboard shortcuts ──
+    function onGlobalKeyDown(e) {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if (!ssActive.value) startScreenshot();
+      }
+    }
 
     // ── Screenshot feature ──
     const ssActive = ref(false);

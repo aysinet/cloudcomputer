@@ -1,0 +1,27 @@
+<div class="mysql-service-root">
+  <div class="mysql-service-header">
+    <span class="mysql-service-icon">🐬</span>
+    <h3>MySQL</h3>
+    <span :class="['mysql-status-badge', status]">
+      {{ status === 'running' ? '● Çalışıyor' : status === 'stopped' ? '○ Durdu' : status === 'loading' ? '◌ Yükleniyor...' : status === 'restarting' ? '◌ Yeniden başlatılıyor...' : '⚠ Hata' }}
+    </span>
+  </div>
+
+  <div v-if="status === 'error'" class="mysql-error">
+    <p>{{ errorMsg }}</p>
+    <button @click="loadStatus">Tekrar Dene</button>
+  </div>
+
+  <div v-if="connInfo && status === 'running'" class="mysql-conn-info">
+    <h4>Bağlantı Bilgileri</h4>
+    <div class="mysql-conn-row"><span class="mysql-conn-label">Host (harici):</span><code>localhost</code></div>
+    <div class="mysql-conn-row"><span class="mysql-conn-label">Host (dahili):</span><code>{{ connInfo.internalHost }}</code></div>
+    <div class="mysql-conn-row"><span class="mysql-conn-label">Port:</span><code>{{ connInfo.port }}</code></div>
+    <div class="mysql-conn-row"><span class="mysql-conn-label">Kullanıcı:</span><code>{{ connInfo.user }}</code></div>
+  </div>
+
+  <div v-if="status === 'running' || status === 'stopped'" class="mysql-actions">
+    <button class="mysql-restart-btn" @click="restart" :disabled="status === 'restarting'">🔄 Yeniden Başlat</button>
+    <button class="mysql-refresh-btn" @click="loadStatus">↻ Yenile</button>
+  </div>
+</div>

@@ -1,0 +1,39 @@
+{
+  "id": "mysql",
+  "name": "MySQL",
+  "icon": "🐬",
+  "color": "linear-gradient(135deg,#00758f,#f29111)",
+  "type": "service",
+  "size": {
+    "w": 500,
+    "h": 400
+  },
+  "global": false,
+  "description": "MySQL veritabanı servisi — uygulamalar için ilişkisel veritabanı",
+  "lang": {
+    "tr": { "name": "MySQL", "description": "MySQL veritabanı servisi — uygulamalar için ilişkisel veritabanı" },
+    "en": { "name": "MySQL", "description": "MySQL database service — relational database for applications" },
+    "de": { "name": "MySQL", "description": "MySQL-Datenbankdienst — relationale Datenbank für Anwendungen" },
+    "fr": { "name": "MySQL", "description": "Service MySQL — base de données relationnelle pour les applications" },
+    "es": { "name": "MySQL", "description": "Servicio MySQL — base de datos relacional para aplicaciones" },
+    "ru": { "name": "MySQL", "description": "Служба MySQL — реляционная база данных для приложений" },
+    "zh": { "name": "MySQL", "description": "MySQL 数据库服务 — 应用程序关系型数据库" },
+    "ja": { "name": "MySQL", "description": "MySQLデータベースサービス — アプリケーション用リレーショナルDB" },
+    "it": { "name": "MySQL", "description": "Servizio database MySQL — database relazionale per applicazioni" },
+    "ar": { "name": "MySQL", "description": "خدمة قاعدة بيانات MySQL — قاعدة بيانات علائقية للتطبيقات" },
+    "ko": { "name": "MySQL", "description": "MySQL 데이터베이스 서비스 — 애플리케이션용 관계형 데이터베이스" },
+    "hi": { "name": "MySQL", "description": "MySQL डेटाबेस सेवा — अनुप्रयोगों के लिए रिलेशनल डेटाबेस" },
+    "pt": { "name": "MySQL", "description": "Serviço de banco de dados MySQL — banco de dados relacional para aplicações" }
+  },
+  "category": "development",
+  "docker": {
+    "image": "mysql:8.0",
+    "containerPort": 3306,
+    "volumes": [
+      "${APP_VOLUME}:/var/lib/mysql"
+    ],
+    "env": [
+      "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}"
+    ]
+  }
+}

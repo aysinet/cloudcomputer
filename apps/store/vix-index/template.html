@@ -1,0 +1,101 @@
+<div class="vix-app">
+  <!-- Loading -->
+  <div v-if="loading" class="vix-loading">
+    <div class="vix-spinner"></div>
+    <span>{{ L('loading') }}</span>
+  </div>
+
+  <!-- Error -->
+  <div v-else-if="error" class="vix-error">
+    <div class="vix-error-icon">⚠️</div>
+    <div>{{ error }}</div>
+    <button class="vix-retry-btn" @click="fetchVixData">{{ L('retry') }}</button>
+  </div>
+
+  <!-- Main Content -->
+  <div v-else-if="stats" class="vix-content">
+    <!-- Gauge Section -->
+    <div class="vix-gauge-section">
+      <canvas class="vix-gauge-canvas"></canvas>
+      <div class="vix-value" :style="{ color: currentZone.color }">
+        {{ stats.current.toFixed(2) }}
+      </div>
+      <div class="vix-zone-label" :style="{ color: currentZone.color, background: currentZone.bg }">
+        {{ L(currentZone.key) }}
+      </div>
+      <div class="vix-date">{{ formatDate(stats.date) }}</div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="vix-stats-grid">
+      <div class="vix-stat-item">
+        <span class="vix-stat-label">{{ L('change') }}</span>
+        <span class="vix-stat-value" :class="stats.change >= 0 ? 'vix-up' : 'vix-down'">
+          {{ stats.change >= 0 ? '+' : '' }}{{ stats.change.toFixed(2) }}
+          <small>({{ stats.changePercent >= 0 ? '+' : '' }}{{ stats.changePercent.toFixed(2) }}%)</small>
+        </span>
+      </div>
+      <div class="vix-stat-item">
+        <span class="vix-stat-label">{{ L('weekAgo') }}</span>
+        <span class="vix-stat-value">{{ stats.weekAgo != null ? stats.weekAgo.toFixed(2) : '—' }}</span>
+      </div>
+      <div class="vix-stat-item">
+        <span class="vix-stat-label">{{ L('monthAgo') }}</span>
+        <span class="vix-stat-value">{{ stats.monthAgo != null ? stats.monthAgo.toFixed(2) : '—' }}</span>
+      </div>
+      <div class="vix-stat-item">
+        <span class="vix-stat-label">{{ L('yearHigh') }}</span>
+        <span class="vix-stat-value vix-up">{{ stats.yearHigh.toFixed(2) }}</span>
+      </div>
+      <div class="vix-stat-item">
+        <span class="vix-stat-label">{{ L('yearLow') }}</span>
+        <span class="vix-stat-value vix-down">{{ stats.yearLow.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="vix-chart-section">
+      <div class="vix-chart-header">
+        <span class="vix-chart-title">{{ L('history') }}</span>
+        <div class="vix-range-btns">
+          <button v-for="r in ['30d','90d','1y','5y']" :key="r"
+            :class="['vix-range-btn', range === r && 'active']"
+            @click="range = r">
+            {{ L('range' + r) }}
+          </button>
+        </div>
+      </div>
+      <div class="vix-chart-wrap">
+        <canvas class="vix-chart-canvas" @mousemove="onChartHover" @mouseleave="onChartLeave"></canvas>
+        <div v-if="hoveredPoint" class="vix-chart-tooltip">
+          <span>{{ formatDate(hoveredPoint.date) }}</span>
+          <strong :style="{ color: getVixZone(hoveredPoint.value).color }">{{ hoveredPoint.value.toFixed(2) }}</strong>
+          <small :style="{ color: getVixZone(hoveredPoint.value).color }">{{ L(getVixZone(hoveredPoint.value).key) }}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIX Scale Reference -->
+    <div class="vix-scale">
+      <div class="vix-scale-item" v-for="z in [
+        { key: 'extremeGreed', range: '0-10', color: '#2e7d32' },
+        { key: 'moderateGreed', range: '10-12', color: '#43a047' },
+        { key: 'lowGreed', range: '12-15', color: '#7cb342' },
+        { key: 'neutral', range: '15-20', color: '#fbc02d' },
+        { key: 'lowFear', range: '20-25', color: '#f57c00' },
+        { key: 'moderateFear', range: '25-35', color: '#e64a19' },
+        { key: 'extremeFear', range: '35+', color: '#d32f2f' }
+      ]" :key="z.key">
+        <span class="vix-scale-dot" :style="{ background: z.color }"></span>
+        <span class="vix-scale-label">{{ L(z.key) }}</span>
+        <span class="vix-scale-range">{{ z.range }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- No data -->
+  <div v-else class="vix-error">
+    <div>{{ L('noData') }}</div>
+    <button class="vix-retry-btn" @click="fetchVixData">{{ L('retry') }}</button>
+  </div>
+</div>

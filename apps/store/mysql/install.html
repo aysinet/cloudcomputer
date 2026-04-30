@@ -1,0 +1,67 @@
+<div class="mysql-install-form">
+  <div class="mysql-install-header">
+    <span class="mysql-install-icon">🐬</span>
+    <h3>MySQL</h3>
+    <p class="mysql-install-subtitle">Root şifresini belirleyin</p>
+  </div>
+  <div class="mysql-install-body">
+    <label>Root Şifresi (zorunlu)</label>
+    <div class="mysql-password-wrap">
+      <input type="password" id="mysql-root-password" placeholder="En az 4 karakter" autocomplete="new-password" />
+      <button type="button" class="mysql-eye-btn" onclick="toggleMysqlPass()">👁</button>
+    </div>
+    <p class="mysql-install-hint">Bu şifre MySQL root kullanıcısı için kullanılacaktır.</p>
+    <div class="mysql-install-error" id="mysql-install-error" style="display:none"></div>
+  </div>
+  <div class="mysql-install-footer">
+    <button class="mysql-cancel-btn" onclick="cancelServiceInstall()">İptal</button>
+    <button class="mysql-install-btn" onclick="confirmServiceInstall()">Kur ve Başlat</button>
+  </div>
+</div>
+
+<script>
+  const MYSQL_I18N = {
+    tr: { subtitle: 'Root şifresini belirleyin', passwordLabel: 'Root Şifresi (zorunlu)', hint: 'Bu şifre MySQL root kullanıcısı için kullanılacaktır.', cancel: 'İptal', installBtn: 'Kur ve Başlat', errorShort: 'Şifre en az 4 karakter olmalı', errorRequired: 'Root şifresi zorunludur' },
+    en: { subtitle: 'Set root password', passwordLabel: 'Root Password (required)', hint: 'This password will be used for MySQL root user.', cancel: 'Cancel', installBtn: 'Install & Start', errorShort: 'Password must be at least 4 characters', errorRequired: 'Root password is required' },
+    de: { subtitle: 'Root-Passwort festlegen', passwordLabel: 'Root-Passwort (erforderlich)', hint: 'Dieses Passwort wird für den MySQL-Root-Benutzer verwendet.', cancel: 'Abbrechen', installBtn: 'Installieren & Starten', errorShort: 'Passwort muss mindestens 4 Zeichen lang sein', errorRequired: 'Root-Passwort ist erforderlich' },
+    fr: { subtitle: 'Définir le mot de passe root', passwordLabel: 'Mot de passe root (obligatoire)', hint: 'Ce mot de passe sera utilisé pour l\'utilisateur root MySQL.', cancel: 'Annuler', installBtn: 'Installer & Démarrer', errorShort: 'Le mot de passe doit comporter au moins 4 caractères', errorRequired: 'Le mot de passe root est obligatoire' },
+    es: { subtitle: 'Establecer contraseña root', passwordLabel: 'Contraseña root (obligatoria)', hint: 'Esta contraseña se usará para el usuario root de MySQL.', cancel: 'Cancelar', installBtn: 'Instalar e Iniciar', errorShort: 'La contraseña debe tener al menos 4 caracteres', errorRequired: 'La contraseña root es obligatoria' }
+  };
+
+  function getMysqlLocale() { try { return window.__serviceInstallLocale || 'tr'; } catch { return 'tr'; } }
+  function getMysqlI18n(key) { const loc = getMysqlLocale(); return (MYSQL_I18N[loc] || MYSQL_I18N.tr)[key] || (MYSQL_I18N.tr)[key] || key; }
+
+  function toggleMysqlPass() {
+    const inp = document.getElementById('mysql-root-password');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  function getInstallConfig() {
+    const password = (document.getElementById('mysql-root-password').value || '').trim();
+    const errEl = document.getElementById('mysql-install-error');
+    if (!password) { errEl.textContent = getMysqlI18n('errorRequired'); errEl.style.display = 'block'; return null; }
+    if (password.length < 4) { errEl.textContent = getMysqlI18n('errorShort'); errEl.style.display = 'block'; return null; }
+    errEl.style.display = 'none';
+    return { MYSQL_ROOT_PASSWORD: password };
+  }
+</script>
+
+<style>
+  .mysql-install-form { padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; }
+  .mysql-install-header { text-align: center; margin-bottom: 20px; }
+  .mysql-install-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+  .mysql-install-header h3 { margin: 0 0 4px; font-size: 20px; color: #fff; }
+  .mysql-install-subtitle { margin: 0; font-size: 13px; color: #aaa; }
+  .mysql-install-body label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #ccc; }
+  .mysql-password-wrap { display: flex; gap: 6px; margin-bottom: 8px; }
+  .mysql-password-wrap input { flex: 1; padding: 10px 12px; border: 1px solid #444; border-radius: 6px; background: #1e1e2e; color: #fff; font-size: 14px; outline: none; }
+  .mysql-password-wrap input:focus { border-color: #00758f; }
+  .mysql-eye-btn { background: #2a2a3a; border: 1px solid #444; border-radius: 6px; padding: 0 12px; cursor: pointer; font-size: 16px; }
+  .mysql-install-hint { font-size: 11px; color: #888; margin: 4px 0 0; }
+  .mysql-install-error { color: #ff6b6b; font-size: 12px; margin-top: 8px; padding: 6px 10px; background: rgba(255,0,0,0.1); border-radius: 4px; }
+  .mysql-install-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .mysql-cancel-btn { padding: 8px 20px; border: 1px solid #555; border-radius: 6px; background: transparent; color: #ccc; cursor: pointer; font-size: 13px; }
+  .mysql-cancel-btn:hover { background: #333; }
+  .mysql-install-btn { padding: 8px 24px; border: none; border-radius: 6px; background: linear-gradient(135deg, #00758f, #f29111); color: #fff; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .mysql-install-btn:hover { opacity: 0.9; }
+</style>

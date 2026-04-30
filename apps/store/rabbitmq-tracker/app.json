@@ -1,0 +1,56 @@
+{
+  "id": "rabbitmq-tracker",
+  "name": "RabbitMQ Tracker",
+  "icon": "🐰",
+  "color": "linear-gradient(135deg,#ff6f00,#ff9100)",
+  "type": "internal",
+  "size": {
+    "w": 920,
+    "h": 620
+  },
+  "global": false,
+  "description": "RabbitMQ kuyruklarını izleyin, mesaj sayılarını grafik olarak takip edin ve limit aşımında bildirim alın",
+  "lang": {
+    "tr": {
+      "name": "RabbitMQ Tracker",
+      "description": "RabbitMQ kuyruklarını izleyin, mesaj sayılarını grafik olarak takip edin ve limit aşımında bildirim alın"
+    },
+    "en": {
+      "name": "RabbitMQ Tracker",
+      "description": "Monitor RabbitMQ queues, track message counts with graphs, and get alerts when limits are exceeded"
+    },
+    "de": {
+      "name": "RabbitMQ Tracker",
+      "description": "RabbitMQ-Warteschlangen überwachen, Nachrichtenanzahl grafisch verfolgen und Benachrichtigungen bei Limitüberschreitung erhalten"
+    },
+    "fr": {
+      "name": "RabbitMQ Tracker",
+      "description": "Surveillez les files RabbitMQ, suivez le nombre de messages avec des graphiques et recevez des alertes"
+    },
+    "es": {
+      "name": "RabbitMQ Tracker",
+      "description": "Monitoree colas de RabbitMQ, rastree conteos de mensajes con gráficos y reciba alertas"
+    },
+    "ru": {
+      "name": "RabbitMQ Tracker",
+      "description": "Мониторинг очередей RabbitMQ, отслеживание количества сообщений с графиками и уведомления при превышении лимитов"
+    },
+    "zh": {
+      "name": "RabbitMQ Tracker",
+      "description": "监控RabbitMQ队列，通过图表跟踪消息数量，并在超出限制时获取警报"
+    },
+    "ja": {
+      "name": "RabbitMQ Tracker",
+      "description": "RabbitMQキューを監視し、メッセージ数をグラフで追跡し、制限超過時にアラートを受信"
+    },
+    "it": {
+      "name": "RabbitMQ Tracker",
+      "description": "Monitora le code RabbitMQ, traccia il conteggio dei messaggi con grafici e ricevi avvisi al superamento dei limiti"
+    },
+    "ar": {
+      "name": "RabbitMQ Tracker",
+      "description": "مراقبة طوابير RabbitMQ وتتبع عدد الرسائل بيانياً والحصول على تنبيهات عند تجاوز الحدود"
+    }
+  },
+  "category": "development"
+}

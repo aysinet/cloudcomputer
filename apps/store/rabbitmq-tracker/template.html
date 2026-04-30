@@ -1,0 +1,281 @@
+<div class="rmq-app">
+  <!-- Toolbar -->
+  <div class="rmq-toolbar">
+    <div class="rmq-conn-row" v-if="!connected">
+      <span class="rmq-toolbar-title">🐰 RabbitMQ Tracker</span>
+      <div class="rmq-toolbar-right">
+        <button class="rmq-btn rmq-btn-add" @click="openAddServer">➕ {{ t('addServer') }}</button>
+      </div>
+    </div>
+    <div class="rmq-conn-status" v-else>
+      <span class="rmq-status-dot rmq-status-ok"></span>
+      <span class="rmq-conn-label">{{ activeServer() ? activeServer().name : '' }}</span>
+      <span class="rmq-vhost-badge" v-if="activeServer() && activeServer().vhost !== '/'">{{ activeServer().vhost }}</span>
+      <span class="rmq-queue-count">{{ filteredQueues.length }} {{ t('queues') }}</span>
+      <div class="rmq-toolbar-right">
+        <select class="rmq-select" :value="pollInterval" @change="setPollInterval(Number($event.target.value))">
+          <option :value="3000">3s</option>
+          <option :value="5000">5s</option>
+          <option :value="10000">10s</option>
+          <option :value="30000">30s</option>
+          <option :value="60000">60s</option>
+        </select>
+        <button class="rmq-btn rmq-btn-sm" @click="togglePause" :title="paused ? t('resume') : t('pause')">{{ paused ? '▶' : '⏸' }}</button>
+        <button class="rmq-btn rmq-btn-sm rmq-btn-alerts" @click="showAlertPanel = !showAlertPanel" :title="t('alerts')">🔔 <span v-if="alertRules.length" class="rmq-badge">{{ alertRules.length }}</span></button>
+        <button class="rmq-btn rmq-btn-disconnect" @click="disconnect">{{ t('disconnect') }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="rmq-error" v-if="errorMsg">
+    <span>⚠️ {{ errorMsg }}</span>
+    <button class="rmq-btn rmq-btn-sm" @click="errorMsg = ''">✕</button>
+  </div>
+
+  <!-- Loading -->
+  <div class="rmq-loading" v-if="loading && !connected">
+    <div class="rmq-spinner"></div>
+    <span>{{ t('connecting') }}...</span>
+  </div>
+
+  <!-- Server List (when not connected) -->
+  <div class="rmq-server-list" v-if="!connected && !loading">
+    <div v-if="servers.length === 0" class="rmq-placeholder">
+      <div class="rmq-placeholder-icon">🐰</div>
+      <div class="rmq-placeholder-title">RabbitMQ Tracker</div>
+      <div class="rmq-placeholder-text">{{ t('noServers') }}</div>
+      <button class="rmq-btn rmq-btn-add" @click="openAddServer" style="margin-top:12px">➕ {{ t('addServer') }}</button>
+    </div>
+    <div v-else class="rmq-servers-grid">
+      <div class="rmq-server-card" v-for="srv in servers" :key="srv.id">
+        <div class="rmq-server-card-header">
+          <span class="rmq-server-icon">🐰</span>
+          <span class="rmq-server-name">{{ srv.name }}</span>
+        </div>
+        <div class="rmq-server-details">
+          <span class="rmq-server-host">{{ srv.host }}:{{ srv.port }}</span>
+          <span class="rmq-server-vhost" v-if="srv.vhost !== '/'">vhost: {{ srv.vhost }}</span>
+          <span class="rmq-server-alerts-badge" v-if="srv.alerts && ((srv.alerts.global) || (srv.alerts.queues && srv.alerts.queues.length))">🔔 {{ (srv.alerts.queues ? srv.alerts.queues.length : 0) + (srv.alerts.global ? 1 : 0) }}</span>
+        </div>
+        <div class="rmq-server-actions">
+          <button class="rmq-btn rmq-btn-connect" @click="connectToServer(srv)">{{ t('connect') }}</button>
+          <button class="rmq-btn rmq-btn-sm" @click="openEditServer(srv)" :title="t('editServer')">✏️</button>
+          <button class="rmq-btn rmq-btn-sm rmq-btn-danger" @click="deleteServer(srv)" :title="t('deleteServer')">🗑️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Server Add/Edit Dialog -->
+  <div class="rmq-alert-overlay" v-if="showServerDialog" @click.self="showServerDialog = false">
+    <div class="rmq-server-dialog">
+      <div class="rmq-alert-header">
+        <span>{{ editingServer ? t('editServer') : t('addServer') }}</span>
+        <button class="rmq-btn rmq-btn-sm" @click="showServerDialog = false">✕</button>
+      </div>
+      <div class="rmq-server-form">
+        <label class="rmq-form-label">{{ t('serverName') }}</label>
+        <input class="rmq-input" v-model="serverForm.name" :placeholder="t('serverNamePlaceholder')" />
+        <label class="rmq-form-label">{{ t('host') }}</label>
+        <input class="rmq-input" v-model="serverForm.host" placeholder="localhost" />
+        <div class="rmq-form-row">
+          <div class="rmq-form-col">
+            <label class="rmq-form-label">{{ t('port') }}</label>
+            <input class="rmq-input" v-model.number="serverForm.port" type="number" placeholder="15672" />
+          </div>
+          <div class="rmq-form-col">
+            <label class="rmq-form-label">{{ t('vhost') }}</label>
+            <input class="rmq-input" v-model="serverForm.vhost" placeholder="/" />
+          </div>
+        </div>
+        <label class="rmq-form-label">{{ t('username') }}</label>
+        <input class="rmq-input" v-model="serverForm.user" placeholder="guest" />
+        <label class="rmq-form-label">{{ t('password') }}</label>
+        <input class="rmq-input" v-model="serverForm.pass" type="password" placeholder="guest" />
+        <div class="rmq-form-actions">
+          <button class="rmq-btn rmq-btn-cancel" @click="showServerDialog = false">{{ t('cancel') }}</button>
+          <button class="rmq-btn rmq-btn-connect" @click="saveServer" :disabled="!serverForm.name || !serverForm.host">{{ t('save') }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="rmq-main" v-if="connected">
+    <!-- Tabs -->
+    <div class="rmq-tabs">
+      <button :class="['rmq-tab', activeTab === 'overview' ? 'active' : '']" @click="activeTab = 'overview'">📊 {{ t('overview') }}</button>
+      <button :class="['rmq-tab', activeTab === 'queues' ? 'active' : '']" @click="activeTab = 'queues'">📋 {{ t('queues') }}</button>
+      <button :class="['rmq-tab', activeTab === 'chart' ? 'active' : '']" @click="activeTab = 'chart'; redrawCharts()">📈 {{ t('chart') }}</button>
+    </div>
+
+    <!-- Overview Tab -->
+    <div class="rmq-content" v-if="activeTab === 'overview'">
+      <div class="rmq-overview-cards">
+        <div class="rmq-card">
+          <div class="rmq-card-icon">📦</div>
+          <div class="rmq-card-info">
+            <div class="rmq-card-val">{{ totalMessages }}</div>
+            <div class="rmq-card-label">{{ t('totalMessages') }}</div>
+          </div>
+        </div>
+        <div class="rmq-card">
+          <div class="rmq-card-icon">📋</div>
+          <div class="rmq-card-info">
+            <div class="rmq-card-val">{{ queues.length }}</div>
+            <div class="rmq-card-label">{{ t('totalQueues') }}</div>
+          </div>
+        </div>
+        <div class="rmq-card">
+          <div class="rmq-card-icon">👥</div>
+          <div class="rmq-card-info">
+            <div class="rmq-card-val">{{ totalConsumers }}</div>
+            <div class="rmq-card-label">{{ t('consumers') }}</div>
+          </div>
+        </div>
+        <div class="rmq-card">
+          <div class="rmq-card-icon">⚡</div>
+          <div class="rmq-card-info">
+            <div class="rmq-card-val">{{ publishRate.toFixed(1) }}/s</div>
+            <div class="rmq-card-label">{{ t('publishRate') }}</div>
+          </div>
+        </div>
+      </div>
+      <!-- Total messages graph -->
+      <div class="rmq-overview-graph">
+        <div class="rmq-graph-title">{{ t('totalMessages') }}</div>
+        <div class="rmq-graph-box">
+          <canvas ref="overviewCanvas" class="rmq-canvas"></canvas>
+        </div>
+      </div>
+      <!-- Top queues -->
+      <div class="rmq-top-queues">
+        <div class="rmq-section-title">{{ t('topQueues') }}</div>
+        <div class="rmq-top-queue-row" v-for="q in topQueues" :key="q.name">
+          <span class="rmq-tq-name" :title="q.name">{{ q.name }}</span>
+          <div class="rmq-tq-bar-wrap">
+            <div class="rmq-tq-bar" :style="{ width: (totalMessages > 0 ? (q.messages / totalMessages * 100) : 0) + '%' }"></div>
+          </div>
+          <span class="rmq-tq-count">{{ formatNum(q.messages) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Queues Tab -->
+    <div class="rmq-content" v-if="activeTab === 'queues'">
+      <div class="rmq-search-bar">
+        <input class="rmq-input rmq-search-input" v-model="searchQuery" :placeholder="t('searchQueues')" />
+      </div>
+      <div class="rmq-queue-table-wrap">
+        <table class="rmq-queue-table">
+          <thead>
+            <tr>
+              <th @click="sortBy('name')" class="rmq-sortable">{{ t('queueName') }} <span v-if="sortField === 'name'">{{ sortDir === 'asc' ? '▲' : '▼' }}</span></th>
+              <th @click="sortBy('messages')" class="rmq-sortable">{{ t('messages') }} <span v-if="sortField === 'messages'">{{ sortDir === 'asc' ? '▲' : '▼' }}</span></th>
+              <th @click="sortBy('messages_ready')" class="rmq-sortable">{{ t('ready') }} <span v-if="sortField === 'messages_ready'">{{ sortDir === 'asc' ? '▲' : '▼' }}</span></th>
+              <th @click="sortBy('messages_unacknowledged')" class="rmq-sortable">{{ t('unacked') }} <span v-if="sortField === 'messages_unacknowledged'">{{ sortDir === 'asc' ? '▲' : '▼' }}</span></th>
+              <th @click="sortBy('consumers')" class="rmq-sortable">{{ t('consumers') }} <span v-if="sortField === 'consumers'">{{ sortDir === 'asc' ? '▲' : '▼' }}</span></th>
+              <th>{{ t('state') }}</th>
+              <th>{{ t('alert') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="q in sortedQueues" :key="q.name" :class="{'rmq-row-alert': isOverLimit(q.name, q.messages)}">
+              <td class="rmq-q-name" :title="q.name">{{ q.name }}</td>
+              <td class="rmq-q-num">{{ formatNum(q.messages) }}</td>
+              <td class="rmq-q-num">{{ formatNum(q.messages_ready) }}</td>
+              <td class="rmq-q-num">{{ formatNum(q.messages_unacknowledged) }}</td>
+              <td class="rmq-q-num">{{ q.consumers }}</td>
+              <td><span :class="'rmq-state rmq-state-' + q.state">{{ q.state }}</span></td>
+              <td>
+                <button class="rmq-btn rmq-btn-xs" @click="openAlertForQueue(q.name)" :title="t('setAlert')">
+                  {{ getAlertForQueue(q.name) ? '🔔 ' + getAlertForQueue(q.name).limit : '➕' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="rmq-no-data" v-if="sortedQueues.length === 0">{{ t('noQueues') }}</div>
+      </div>
+    </div>
+
+    <!-- Chart Tab -->
+    <div class="rmq-content" v-if="activeTab === 'chart'">
+      <div class="rmq-chart-controls">
+        <div class="rmq-chip-list">
+          <button :class="['rmq-chip', selectedQueuesForChart.length === 0 ? 'active' : '']" @click="selectedQueuesForChart = []; redrawCharts()">{{ t('allQueues') }}</button>
+          <button v-for="q in queues" :key="q.name" :class="['rmq-chip', selectedQueuesForChart.includes(q.name) ? 'active' : '']" @click="toggleChartQueue(q.name)">
+            {{ q.name }}
+          </button>
+        </div>
+      </div>
+      <div class="rmq-chart-area">
+        <canvas ref="chartCanvas" class="rmq-canvas rmq-canvas-big"></canvas>
+      </div>
+      <div class="rmq-chart-legend">
+        <span v-for="(item, idx) in chartLegend" :key="item.name" class="rmq-legend-item">
+          <span class="rmq-legend-dot" :style="{ background: item.color }"></span>
+          {{ item.name }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Panel (Slide-over) -->
+  <div class="rmq-alert-overlay" v-if="showAlertPanel" @click.self="showAlertPanel = false">
+    <div class="rmq-alert-panel">
+      <div class="rmq-alert-header">
+        <span>🔔 {{ t('alerts') }}</span>
+        <button class="rmq-btn rmq-btn-sm" @click="showAlertPanel = false">✕</button>
+      </div>
+      <!-- Global Alert -->
+      <div class="rmq-alert-section">
+        <div class="rmq-alert-section-title">{{ t('globalAlert') }}</div>
+        <div class="rmq-alert-row">
+          <input class="rmq-input rmq-alert-input" v-model.number="globalAlertLimit" type="number" min="0" :placeholder="t('limitPlaceholder')" />
+          <button class="rmq-btn rmq-btn-sm" @click="setGlobalAlert">{{ t('save') }}</button>
+          <button class="rmq-btn rmq-btn-sm rmq-btn-danger" v-if="globalAlert" @click="removeGlobalAlert">{{ t('remove') }}</button>
+        </div>
+        <div class="rmq-alert-hint" v-if="globalAlert">{{ t('globalAlertActive') }}: {{ globalAlert.limit }}</div>
+      </div>
+      <!-- Per-Queue Alerts -->
+      <div class="rmq-alert-section">
+        <div class="rmq-alert-section-title">{{ t('queueAlerts') }}</div>
+        <div class="rmq-alert-add-row">
+          <select class="rmq-select rmq-alert-select" v-model="newAlertQueue">
+            <option value="">{{ t('selectQueue') }}</option>
+            <option v-for="q in queues" :key="q.name" :value="q.name">{{ q.name }}</option>
+          </select>
+          <input class="rmq-input rmq-alert-input" v-model.number="newAlertLimit" type="number" min="1" :placeholder="t('limit')" />
+          <button class="rmq-btn rmq-btn-sm" @click="addQueueAlert" :disabled="!newAlertQueue || !newAlertLimit">{{ t('add') }}</button>
+        </div>
+        <div class="rmq-alert-list">
+          <div class="rmq-alert-item" v-for="rule in alertRules" :key="rule.queue">
+            <span class="rmq-alert-qname">{{ rule.queue }}</span>
+            <span class="rmq-alert-limit">≥ {{ formatNum(rule.limit) }}</span>
+            <button class="rmq-btn rmq-btn-xs rmq-btn-danger" @click="removeAlert(rule.queue)">✕</button>
+          </div>
+          <div class="rmq-no-data" v-if="alertRules.length === 0">{{ t('noAlerts') }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Dialog for Queue -->
+  <div class="rmq-alert-overlay" v-if="alertDialogQueue" @click.self="alertDialogQueue = ''">
+    <div class="rmq-alert-dialog">
+      <div class="rmq-alert-header">
+        <span>🔔 {{ alertDialogQueue }}</span>
+        <button class="rmq-btn rmq-btn-sm" @click="alertDialogQueue = ''">✕</button>
+      </div>
+      <div class="rmq-alert-row" style="margin-top:12px">
+        <input class="rmq-input rmq-alert-input" v-model.number="alertDialogLimit" type="number" min="1" :placeholder="t('limit')" @keyup.enter="saveAlertDialog" />
+        <button class="rmq-btn rmq-btn-sm" @click="saveAlertDialog">{{ t('save') }}</button>
+        <button class="rmq-btn rmq-btn-sm rmq-btn-danger" v-if="getAlertForQueue(alertDialogQueue)" @click="removeAlert(alertDialogQueue); alertDialogQueue = ''">{{ t('remove') }}</button>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</div>

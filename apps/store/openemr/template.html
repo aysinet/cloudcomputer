@@ -1,0 +1,47 @@
+<div class="oemr-root">
+  <template v-if="status === 'running' && iframeSrc">
+    <div class="oemr-toolbar">
+      <div class="oemr-toolbar-left">
+        <span class="oemr-toolbar-icon">🏥</span>
+        <span class="oemr-toolbar-title">OpenEMR</span>
+        <span class="oemr-status-badge running">● {{ t('running') }}</span>
+      </div>
+      <div class="oemr-toolbar-right">
+        <button class="oemr-toolbar-btn" @click="restart" :title="t('restart')">🔄</button>
+        <button class="oemr-toolbar-btn" @click="loadStatus" :title="t('refresh')">↻</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="oemr-iframe" frameborder="0" allow="clipboard-read; clipboard-write"></iframe>
+  </template>
+
+  <template v-else>
+    <div class="oemr-panel">
+      <div class="oemr-panel-header">
+        <span class="oemr-panel-icon">🏥</span>
+        <h3>OpenEMR</h3>
+        <span :class="['oemr-status-badge', status]">
+          {{ status === 'loading' ? '◌ ' + t('loading') : status === 'stopped' ? '○ ' + t('stopped') : status === 'restarting' ? '◌ ' + t('restarting') : '⚠ ' + t('error') }}
+        </span>
+      </div>
+
+      <div v-if="status === 'error'" class="oemr-error">
+        <p>{{ errorMsg }}</p>
+        <button @click="loadStatus">{{ t('tryAgain') }}</button>
+      </div>
+
+      <div v-if="connInfo && status === 'stopped'" class="oemr-conn-info">
+        <h4>{{ t('serviceInfo') }}</h4>
+        <div class="oemr-conn-row"><span class="oemr-conn-label">{{ t('container') }}:</span><code>{{ connInfo.containerName }}</code></div>
+        <div class="oemr-conn-row"><span class="oemr-conn-label">{{ t('port') }}:</span><code>{{ connInfo.port }}</code></div>
+        <div class="oemr-conn-row"><span class="oemr-conn-label">{{ t('mysqlHost') }}:</span><code>{{ connInfo.mysqlHost }}</code></div>
+        <div class="oemr-conn-row"><span class="oemr-conn-label">{{ t('database') }}:</span><code>{{ connInfo.mysqlDb }}</code></div>
+        <div class="oemr-conn-row"><span class="oemr-conn-label">{{ t('admin') }}:</span><code>{{ connInfo.oeUser }}</code></div>
+      </div>
+
+      <div v-if="status === 'stopped'" class="oemr-actions">
+        <button class="oemr-start-btn" @click="restart" :disabled="status === 'restarting'">▶ {{ t('start') }}</button>
+        <button class="oemr-refresh-btn" @click="loadStatus">↻ {{ t('refresh') }}</button>
+      </div>
+    </div>
+  </template>
+</div>
