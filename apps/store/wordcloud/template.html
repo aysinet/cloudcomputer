@@ -1,0 +1,252 @@
+<div class="wc-root">
+  <el-splitter style="height:100%;width:100%">
+    <!-- LEFT PANEL: Text Input + Settings -->
+    <el-splitter-panel size="320" min="240" max="500">
+      <div class="wc-sidebar">
+        <!-- Text Input -->
+        <div class="wc-section">
+          <div class="wc-section-header">
+            <span class="wc-section-title">📝 Metin</span>
+            <div class="wc-section-actions">
+              <button class="wc-btn wc-btn-xs" @click="loadSample" title="Örnek metin yükle">📋 Örnek</button>
+            </div>
+          </div>
+          <div class="wc-mode-toggle">
+            <button :class="['wc-mode-btn', inputMode==='text' && 'active']" @click="inputMode='text'">Serbest Metin</button>
+            <button :class="['wc-mode-btn', inputMode==='frequency' && 'active']" @click="inputMode='frequency'">Kelime:Sayı</button>
+          </div>
+          <textarea
+            ref="textInput"
+            v-model="inputText"
+            class="wc-textarea"
+            :placeholder="inputMode==='text' ? 'Metninizi buraya yazın veya yapıştırın...' : 'kelime:sayı\nhello:10\nworld:8\nfoo:5'"
+            spellcheck="false"
+          ></textarea>
+          <label class="wc-checkbox" v-if="inputMode==='text'">
+            <input type="checkbox" v-model="useStopWords" />
+            <span>Stop-word filtrele (the, a, is...)</span>
+          </label>
+        </div>
+
+        <!-- Font & Size -->
+        <div class="wc-section">
+          <div class="wc-section-title">🔤 Font & Boyut</div>
+          <div class="wc-row">
+            <div class="wc-field wc-field-grow">
+              <label class="wc-label">Font</label>
+              <div class="wc-font-pick" @click="pickFont" :style="{fontFamily: fontFamily}">
+                {{ fontFamily }} <span class="wc-font-pick-icon">▾</span>
+              </div>
+            </div>
+          </div>
+          <div class="wc-row">
+            <div class="wc-field">
+              <label class="wc-label">Min</label>
+              <input class="wc-input wc-input-sm" type="number" v-model.number="minFontSize" min="8" max="60" />
+            </div>
+            <div class="wc-field">
+              <label class="wc-label">Max</label>
+              <input class="wc-input wc-input-sm" type="number" v-model.number="maxFontSize" min="20" max="200" />
+            </div>
+            <div class="wc-field">
+              <label class="wc-label">Boşluk</label>
+              <input class="wc-input wc-input-sm" type="number" v-model.number="wordPadding" min="0" max="20" />
+            </div>
+            <div class="wc-field">
+              <label class="wc-label">Maks Kelime</label>
+              <input class="wc-input wc-input-sm" type="number" v-model.number="maxWords" min="10" max="500" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Layout -->
+        <div class="wc-section">
+          <div class="wc-section-title">📐 Düzen</div>
+          <div class="wc-row">
+            <div class="wc-field">
+              <label class="wc-label">Döndürme</label>
+              <select class="wc-select" v-model="rotation">
+                <option value="none">Yok</option>
+                <option value="horizontal">Yatay</option>
+                <option value="vertical">Dikey</option>
+                <option value="diagonal">&#x2922; Çapraz</option>
+                <option value="mixed">Karma</option>
+                <option value="random">Rastgele</option>
+              </select>
+            </div>
+            <div class="wc-field">
+              <label class="wc-label">Şekil</label>
+              <select class="wc-select" v-model="shape">
+                <option value="rectangle">▭ Dikdörtgen</option>
+                <option value="circle">● Daire</option>
+                <option value="diamond">◇ Elmas</option>
+                <option value="triangle">△ Üçgen</option>
+                <option value="star">★ Yıldız</option>
+              </select>
+            </div>
+          </div>
+          <div class="wc-row">
+            <div class="wc-field">
+              <label class="wc-label">Spiral</label>
+              <select class="wc-select" v-model="spiral">
+                <option value="archimedean">Arşimet</option>
+                <option value="rectangular">Dikdörtgen</option>
+              </select>
+            </div>
+            <div class="wc-field">
+              <label class="wc-label">Harf</label>
+              <select class="wc-select" v-model="caseMode">
+                <option value="original">Orijinal</option>
+                <option value="upper">BÜYÜK</option>
+                <option value="lower">küçük</option>
+                <option value="capitalize">Baş Harf</option>
+              </select>
+            </div>
+            <div class="wc-field">
+              <label class="wc-label">Ağırlık</label>
+              <select class="wc-select" v-model="weightFn">
+                <option value="linear">Doğrusal</option>
+                <option value="sqrt">Karekök</option>
+                <option value="log">Logaritmik</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Colors -->
+        <div class="wc-section">
+          <div class="wc-section-title">🎨 Renkler</div>
+          <div class="wc-palette-list">
+            <div v-for="(p, pi) in palettes" :key="pi"
+              :class="['wc-palette-item', selectedPalette === pi && 'active']"
+              @click="selectedPalette = pi"
+              :title="p.name">
+              <span class="wc-palette-dot" v-for="c in p.colors" :key="c" :style="{background:c}"></span>
+              <span class="wc-palette-name">{{ p.name }}</span>
+            </div>
+            <div :class="['wc-palette-item', selectedPalette === -1 && 'active']" @click="selectedPalette = -1" title="Özel renkler">
+              <span class="wc-palette-dot" v-for="(c, ci) in customColors.slice(0,5)" :key="ci" :style="{background:c}"></span>
+              <span class="wc-palette-name">Özel</span>
+            </div>
+          </div>
+          <div v-if="selectedPalette === -1" class="wc-custom-colors">
+            <div v-for="(c, ci) in customColors" :key="ci" class="wc-custom-color">
+              <input type="color" :value="c" @input="onCustomColorChange(ci, $event)" class="wc-color-swatch" />
+              <button class="wc-btn-rm" @click="removeCustomColor(ci)" v-if="customColors.length > 2" title="Kaldır">×</button>
+            </div>
+            <button class="wc-btn wc-btn-xs" @click="addCustomColor" v-if="customColors.length < 12">+ Renk</button>
+          </div>
+          <div class="wc-row" style="margin-top:6px">
+            <div class="wc-field">
+              <label class="wc-label">Arka plan</label>
+              <input type="color" v-model="bgColor" class="wc-color-swatch" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Generate Button -->
+        <div class="wc-section" style="padding-top:0">
+          <button class="wc-btn wc-btn-primary wc-btn-full" @click="generate" :disabled="generating || !inputText.trim()">
+            <template v-if="generating">
+              <span class="wc-spinner"></span> Oluşturuluyor...
+            </template>
+            <template v-else>☁️ Kelime Bulutu Oluştur</template>
+          </button>
+        </div>
+      </div>
+    </el-splitter-panel>
+
+    <!-- RIGHT: Image preview -->
+    <el-splitter-panel min="300">
+      <div class="wc-main">
+        <!-- Toolbar -->
+        <div class="wc-toolbar">
+          <div class="wc-tb-group">
+            <label class="wc-tb-label">Boyut</label>
+            <input class="wc-input wc-input-sm" type="number" v-model.number="canvasW" min="200" max="3000" @change="onCanvasSizeChange" style="width:65px" />
+            <span class="wc-tb-label">×</span>
+            <input class="wc-input wc-input-sm" type="number" v-model.number="canvasH" min="200" max="2000" @change="onCanvasSizeChange" style="width:65px" />
+          </div>
+          <div class="wc-tb-sep"></div>
+          <div class="wc-tb-group">
+            <button class="wc-tb-btn" @click="exportPNG" :disabled="!generated" title="PNG indir">💾 PNG</button>
+            <button class="wc-tb-btn" @click="exportJPG" :disabled="!generated" title="JPG indir">🖼️ JPG</button>
+            <button class="wc-tb-btn" @click="exportSVG" :disabled="!generated" title="SVG indir">📐 SVG</button>
+            <button class="wc-tb-btn" @click="exportJSON" :disabled="!generated" title="JSON indir">📄 JSON</button>
+            <button class="wc-tb-btn" @click="copyToClipboard" :disabled="!generated" title="Panoya kopyala">📋</button>
+          </div>
+          <div class="wc-tb-sep"></div>
+          <div class="wc-tb-group">
+            <button class="wc-tb-btn wc-tb-btn-save" @click="showSaveDialog = true" :disabled="!generated" title="Sunucuya kaydet">☁️ Kaydet</button>
+            <button class="wc-tb-btn" @click="loadSavedList" title="Sunucudan yükle">📂 Yükle</button>
+          </div>
+          <div class="wc-tb-sep"></div>
+          <div class="wc-tb-group">
+            <button class="wc-tb-btn" @click="clearCanvas" title="Temizle">🗑️</button>
+          </div>
+          <div class="wc-tb-info" v-if="generated">{{ words.length }} kelime yerleştirildi</div>
+        </div>
+
+        <!-- Image area -->
+        <div class="wc-canvas-area">
+          <div class="wc-canvas-wrapper" :style="{background: bgColor}">
+            <img v-if="imageUrl" :src="imageUrl" class="wc-image" alt="Word cloud" />
+            <!-- Empty placeholder when no image -->
+            <div v-if="!imageUrl && !generating" class="wc-canvas-empty">
+              <div class="wc-empty-icon">☁️</div>
+              <div class="wc-empty-text">Soldaki alana metin girin ve<br/>"Kelime Bulutu Oluştur" butonuna tıklayın</div>
+            </div>
+            <!-- Generating overlay -->
+            <div v-if="generating" class="wc-canvas-generating">
+              <span class="wc-spinner wc-spinner-lg"></span>
+              <div>Kelimeler yerleştiriliyor...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </el-splitter-panel>
+  </el-splitter>
+
+  <!-- Save dialog -->
+  <el-dialog v-model="showSaveDialog" title="☁️ Sunucuya Kaydet" width="420" :append-to-body="true" class="wc-dialog">
+    <div class="wc-save-form">
+      <div class="wc-field" style="margin-bottom:12px">
+        <label class="wc-label">Proje Adı</label>
+        <el-input v-model="saveName" placeholder="Kelime bulutu adı..." maxlength="60" clearable />
+      </div>
+      <div class="wc-field" style="margin-bottom:12px">
+        <label class="wc-label">Görsel Format</label>
+        <el-radio-group v-model="saveFormat" size="small">
+          <el-radio-button value="png">PNG</el-radio-button>
+          <el-radio-button value="jpg">JPG</el-radio-button>
+          <el-radio-button value="svg">SVG</el-radio-button>
+        </el-radio-group>
+      </div>
+      <div class="wc-save-note">JSON proje dosyası + seçilen formatta görsel kaydedilecek.</div>
+    </div>
+    <template #footer>
+      <el-button @click="showSaveDialog = false">İptal</el-button>
+      <el-button type="primary" @click="saveToServer" :loading="saving" :disabled="!saveName.trim()">Kaydet</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- Load dialog -->
+  <el-dialog v-model="showLoadDialog" title="📂 Kayıtlı Projeler" width="500" :append-to-body="true" class="wc-dialog">
+    <div v-if="savedList.length === 0" class="wc-load-empty">Henüz kayıtlı proje yok.</div>
+    <div v-else class="wc-load-list">
+      <div v-for="item in savedList" :key="item.id" class="wc-load-item">
+        <div class="wc-load-info">
+          <div class="wc-load-name">{{ item.name }}</div>
+          <div class="wc-load-date">{{ new Date(item.modifiedAt).toLocaleString() }}</div>
+        </div>
+        <div class="wc-load-actions">
+          <el-button size="small" type="primary" @click="loadFromServer(item.id)">Yükle</el-button>
+          <el-button size="small" type="danger" @click="deleteFromServer(item.id)">Sil</el-button>
+        </div>
+      </div>
+    </div>
+    <template #footer>
+      <el-button @click="showLoadDialog = false">Kapat</el-button>
+    </template>
+  </el-dialog>
+</div>

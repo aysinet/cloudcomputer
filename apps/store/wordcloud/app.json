@@ -1,0 +1,26 @@
+{
+  "id": "wordcloud",
+  "name": "Word Cloud",
+  "icon": "☁️",
+  "color": "linear-gradient(135deg,#6366f1,#06b6d4)",
+  "type": "internal",
+  "size": { "w": 960, "h": 680 },
+  "global": false,
+  "description": "Metinden kelime bulutu oluşturucu — özelleştirilebilir renkler, fontlar, şekiller ve dışa aktarma",
+  "lang": {
+    "tr": { "name": "Kelime Bulutu", "description": "Metinden kelime bulutu oluşturucu — özelleştirilebilir renkler, fontlar, şekiller ve dışa aktarma" },
+    "en": { "name": "Word Cloud", "description": "Generate word clouds from text — customizable colors, fonts, shapes and export" },
+    "de": { "name": "Wortwolke", "description": "Wortwolken aus Text generieren — anpassbare Farben, Schriften, Formen und Export" },
+    "fr": { "name": "Nuage de mots", "description": "Générer des nuages de mots — couleurs, polices, formes personnalisables et export" },
+    "es": { "name": "Nube de palabras", "description": "Generar nubes de palabras — colores, fuentes, formas personalizables y exportación" },
+    "ru": { "name": "Облако слов", "description": "Генератор облака слов — настраиваемые цвета, шрифты, формы и экспорт" },
+    "zh": { "name": "词云", "description": "从文本生成词云 — 可自定义颜色、字体、形状和导出" },
+    "ja": { "name": "ワードクラウド", "description": "テキストからワードクラウドを生成 — カスタマイズ可能な色、フォント、形状、エクスポート" },
+    "it": { "name": "Nuvola di parole", "description": "Genera nuvole di parole — colori, font, forme personalizzabili ed esportazione" },
+    "ar": { "name": "سحابة الكلمات", "description": "إنشاء سحابة كلمات من النص — ألوان وخطوط وأشكال قابلة للتخصيص والتصدير" },
+    "ko": { "name": "워드 클라우드", "description": "텍스트에서 워드 클라우드 생성 — 사용자 정의 색상, 글꼴, 모양 및 내보내기" },
+    "hi": { "name": "वर्ड क्लाउड", "description": "टेक्स्ट से वर्ड क्लाउड बनाएं — अनुकूलन योग्य रंग, फ़ॉन्ट, आकार और निर्यात" },
+    "pt": { "name": "Nuvem de palavras", "description": "Gerar nuvens de palavras — cores, fontes, formas personalizáveis e exportação" }
+  },
+  "category": "productivity"
+}

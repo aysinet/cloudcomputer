@@ -1,0 +1,269 @@
+<div class="be-root">
+  <!-- LOADING -->
+  <div v-if="loading" class="be-loading">
+    <div class="be-loading-spinner"></div>
+    <span>Loading Fabric.js...</span>
+  </div>
+
+  <template v-else>
+  <!-- TOP TOOLBAR -->
+  <div class="be-toolbar">
+    <div class="be-tb-group">
+      <button class="be-tb-btn" @click="exportPNG" title="Export PNG">&#x1F4BE; PNG</button>
+      <button class="be-tb-btn" @click="exportJPG" title="Export JPG">&#x1F5BC;&#xFE0F; JPG</button>
+      <button class="be-tb-btn" @click="exportSVG" title="Export SVG">&#x1F4D0; SVG</button>
+      <div class="be-tb-sep"></div>
+      <button class="be-tb-btn" @click="undo" :disabled="historyIdx <= 0" title="Undo (Ctrl+Z)">&#x21A9;&#xFE0F;</button>
+      <button class="be-tb-btn" @click="redo" :disabled="historyIdx >= history.length - 1" title="Redo (Ctrl+Y)">&#x21AA;&#xFE0F;</button>
+    </div>
+
+    <div class="be-tb-sep"></div>
+
+    <!-- Banner Size Preset -->
+    <div class="be-tb-group">
+      <select class="be-select" v-model="sizePreset" @change="onSizePresetChange">
+        <option value="">Custom</option>
+        <option v-for="p in sizePresets" :key="p.label" :value="p.label">{{ p.label }} ({{ p.w }}&times;{{ p.h }})</option>
+      </select>
+      <input class="be-input be-input-sm" type="number" v-model.number="canvasW" min="50" max="4000" title="Width" @change="onCanvasSizeChange" />
+      <span class="be-tb-label">&times;</span>
+      <input class="be-input be-input-sm" type="number" v-model.number="canvasH" min="50" max="4000" title="Height" @change="onCanvasSizeChange" />
+    </div>
+
+    <div class="be-tb-sep"></div>
+
+    <!-- Canvas background -->
+    <div class="be-tb-group">
+      <label class="be-tb-label">BG</label>
+      <input type="color" v-model="bgColor" class="be-color-input" @input="onBgColorChange" title="Background Color" />
+    </div>
+
+    <div class="be-tb-sep"></div>
+
+    <!-- Add elements -->
+    <div class="be-tb-group">
+      <button class="be-tb-btn be-tb-accent" @click="addText" title="Add Text">&#x270F;&#xFE0F; Text</button>
+      <button class="be-tb-btn be-tb-accent" @click="addImageFromClient" title="Add Image (Local)">&#x1F4C1; Local</button>
+      <button class="be-tb-btn be-tb-accent" @click="addImageFromServer" title="Add Image (Server)">&#x2601;&#xFE0F; Server</button>
+    </div>
+
+    <div class="be-tb-sep"></div>
+
+    <!-- Group / Duplicate -->
+    <div class="be-tb-group">
+      <button class="be-tb-btn" @click="duplicateLayer" :disabled="!selectedLayer" title="Duplicate (Ctrl+D)">&#x1F4CB;</button>
+      <button class="be-tb-btn" @click="groupSelected" title="Group selected objects">&#x1F4E6; Group</button>
+      <button class="be-tb-btn" @click="ungroupSelected" title="Ungroup">&#x1F4ED; Ungroup</button>
+    </div>
+
+    <div class="be-tb-sep"></div>
+
+    <!-- Zoom -->
+    <div class="be-tb-group">
+      <button class="be-tb-btn" @click="zoomOut" :disabled="zoom <= 0.1" title="Zoom Out">&#x2796;</button>
+      <input class="be-zoom-range" type="range" min="10" max="200" :value="Math.round(zoom * 100)" @input="onZoomRange($event.target.value)" title="Zoom" />
+      <button class="be-tb-btn" @click="zoomIn" :disabled="zoom >= 2" title="Zoom In">&#x2795;</button>
+      <span class="be-zoom-label" @click="resetZoom" title="Reset Zoom">{{ Math.round(zoom * 100) }}%</span>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="be-main">
+    <!-- LAYERS PANEL -->
+    <div class="be-layers-panel">
+      <div class="be-panel-header">
+        <span>Layers</span>
+        <div class="be-panel-actions">
+          <button class="be-sm-btn" @click="moveLayerUp" title="Move Up">&#x25B2;</button>
+          <button class="be-sm-btn" @click="moveLayerDown" title="Move Down">&#x25BC;</button>
+          <button class="be-sm-btn" @click="toggleLock" title="Lock/Unlock">&#x1F512;</button>
+          <button class="be-sm-btn be-sm-btn-danger" @click="deleteLayer" title="Delete">&#x1F5D1;&#xFE0F;</button>
+        </div>
+      </div>
+      <div class="be-layers-list">
+        <div v-for="(layer, idx) in reversedLayers" :key="layer.id"
+          class="be-layer-item"
+          :class="{ active: selectedLayerId === layer.id }"
+          @click="selectLayer(layer.id)">
+          <span class="be-layer-icon">{{ layer.type === 'text' ? '\u270F\uFE0F' : layer.type === 'group' ? '\uD83D\uDCE6' : '\uD83D\uDDBC\uFE0F' }}</span>
+          <span class="be-layer-name">{{ layer.name }}</span>
+          <span v-if="layer.locked" class="be-layer-lock">&#x1F512;</span>
+          <button class="be-layer-vis" @click.stop="toggleLayerVisibility(layer.id)" :title="layer.visible ? 'Hide' : 'Show'">
+            {{ layer.visible ? '\uD83D\uDC41\uFE0F' : '\uD83D\uDC41\u200D\uD83D\uDDE8\uFE0F' }}
+          </button>
+        </div>
+        <div v-if="layers.length === 0" class="be-layers-empty">No layers yet</div>
+      </div>
+    </div>
+
+    <!-- CANVAS AREA -->
+    <div class="be-canvas-area" ref="canvasArea">
+      <div class="be-canvas-wrapper">
+        <canvas ref="fabricCanvasEl"></canvas>
+      </div>
+    </div>
+
+    <!-- PROPERTIES PANEL -->
+    <div class="be-props-panel" v-if="selectedLayer">
+      <div class="be-panel-header">
+        <span>Properties</span>
+      </div>
+      <div class="be-props-body">
+        <!-- Transform -->
+        <div class="be-prop-section">
+          <div class="be-prop-title">Transform</div>
+          <div class="be-prop-row">
+            <label>X</label>
+            <input class="be-input" type="number" :value="selectedLayer.x" @change="updatePropAndHistory('x', +$event.target.value)" />
+          </div>
+          <div class="be-prop-row">
+            <label>Y</label>
+            <input class="be-input" type="number" :value="selectedLayer.y" @change="updatePropAndHistory('y', +$event.target.value)" />
+          </div>
+          <div class="be-prop-row">
+            <label>W</label>
+            <input class="be-input" type="number" :value="selectedLayer.w" min="1" @change="updatePropAndHistory('w', +$event.target.value)" />
+          </div>
+          <div class="be-prop-row">
+            <label>H</label>
+            <input class="be-input" type="number" :value="selectedLayer.h" min="1" @change="updatePropAndHistory('h', +$event.target.value)" />
+          </div>
+          <div class="be-prop-row">
+            <label>Rotation</label>
+            <input class="be-input" type="number" :value="selectedLayer.rotation" @change="updatePropAndHistory('rotation', +$event.target.value)" />
+            <span class="be-prop-unit">&deg;</span>
+          </div>
+          <div class="be-prop-row">
+            <label>Opacity</label>
+            <input class="be-range" type="range" min="0" max="1" step="0.05" :value="selectedLayer.opacity" @input="updateProp('opacity', +$event.target.value)" @change="updatePropAndHistory('opacity', +$event.target.value)" />
+            <span class="be-prop-unit">{{ Math.round(selectedLayer.opacity * 100) }}%</span>
+          </div>
+        </div>
+
+        <!-- ALIGN -->
+        <div class="be-prop-section">
+          <div class="be-prop-title">Align</div>
+          <div class="be-align-row">
+            <button class="be-align-btn" @click="alignSelected('left')" title="Align Left">&#x2B05;</button>
+            <button class="be-align-btn" @click="alignSelected('center-h')" title="Center Horizontal">&#x2B0C;</button>
+            <button class="be-align-btn" @click="alignSelected('right')" title="Align Right">&#x27A1;</button>
+            <button class="be-align-btn" @click="alignSelected('top')" title="Align Top">&#x2B06;</button>
+            <button class="be-align-btn" @click="alignSelected('center-v')" title="Center Vertical">&#x2B0D;</button>
+            <button class="be-align-btn" @click="alignSelected('bottom')" title="Align Bottom">&#x2B07;</button>
+          </div>
+          <div class="be-align-row" style="margin-top:4px">
+            <button class="be-align-btn" @click="bringToFront" title="Bring to Front">&#x23EB;</button>
+            <button class="be-align-btn" @click="sendToBack" title="Send to Back">&#x23EC;</button>
+          </div>
+        </div>
+
+        <!-- TEXT PROPERTIES -->
+        <div v-if="selectedLayer.type === 'text'" class="be-prop-section">
+          <div class="be-prop-title">Text</div>
+          <textarea class="be-textarea" :value="selectedLayer.text" @input="updateProp('text', $event.target.value)" @change="updatePropAndHistory('text', $event.target.value)" rows="3" placeholder="Enter text..."></textarea>
+          <div class="be-prop-row">
+            <label>Font</label>
+            <button class="be-font-btn" @click="pickFont" :title="selectedLayer.fontFamily">
+              <span :style="{ fontFamily: selectedLayer.fontFamily }">{{ selectedLayer.fontFamily }}</span>
+              <span class="be-font-btn-icon">&#x1F524;</span>
+            </button>
+          </div>
+          <div class="be-prop-row">
+            <label>Size</label>
+            <input class="be-input" type="number" :value="selectedLayer.fontSize" min="8" max="400" @change="updatePropAndHistory('fontSize', +$event.target.value)" />
+            <span class="be-prop-unit">px</span>
+          </div>
+          <div class="be-prop-row">
+            <label>Color</label>
+            <input type="color" :value="selectedLayer.fontColor" class="be-color-input" @input="updatePropAndHistory('fontColor', $event.target.value)" />
+          </div>
+          <div class="be-prop-row">
+            <label>Style</label>
+            <div class="be-btn-group">
+              <button class="be-style-btn" :class="{ active: selectedLayer.bold }" @click="updatePropAndHistory('bold', !selectedLayer.bold)">B</button>
+              <button class="be-style-btn" :class="{ active: selectedLayer.italic }" @click="updatePropAndHistory('italic', !selectedLayer.italic)" style="font-style:italic">I</button>
+              <button class="be-style-btn" :class="{ active: selectedLayer.underline }" @click="updatePropAndHistory('underline', !selectedLayer.underline)" style="text-decoration:underline">U</button>
+            </div>
+          </div>
+          <div class="be-prop-row">
+            <label>Align</label>
+            <div class="be-btn-group">
+              <button class="be-style-btn" :class="{ active: selectedLayer.textAlign === 'left' }" @click="updatePropAndHistory('textAlign', 'left')">&#x25C0;</button>
+              <button class="be-style-btn" :class="{ active: selectedLayer.textAlign === 'center' }" @click="updatePropAndHistory('textAlign', 'center')">&#x25C6;</button>
+              <button class="be-style-btn" :class="{ active: selectedLayer.textAlign === 'right' }" @click="updatePropAndHistory('textAlign', 'right')">&#x25B6;</button>
+            </div>
+          </div>
+          <div class="be-prop-row">
+            <label>Line H</label>
+            <input class="be-input" type="number" :value="selectedLayer.lineHeight" min="0.5" max="4" step="0.1" @change="updatePropAndHistory('lineHeight', +$event.target.value)" />
+          </div>
+          <div class="be-prop-row">
+            <label>Stroke</label>
+            <input type="color" :value="selectedLayer.strokeColor" class="be-color-input" @input="updatePropAndHistory('strokeColor', $event.target.value)" />
+            <input class="be-input be-input-xs" type="number" :value="selectedLayer.strokeWidth" min="0" max="20" @change="updatePropAndHistory('strokeWidth', +$event.target.value)" />
+          </div>
+          <div class="be-prop-row">
+            <label>Shadow</label>
+            <input type="color" :value="selectedLayer.shadowColor" class="be-color-input" @input="updatePropAndHistory('shadowColor', $event.target.value)" />
+            <input class="be-input be-input-xs" type="number" :value="selectedLayer.shadowBlur" min="0" max="50" @change="updatePropAndHistory('shadowBlur', +$event.target.value)" title="Blur" />
+          </div>
+
+          <!-- Gradient for text -->
+          <div class="be-prop-title" style="margin-top:8px">Gradient Fill</div>
+          <div class="be-prop-row">
+            <input type="color" v-model="gradColor1" class="be-color-input" />
+            <input type="color" v-model="gradColor2" class="be-color-input" />
+            <select class="be-select be-select-xs" v-model="gradDirection">
+              <option value="horizontal">H</option>
+              <option value="vertical">V</option>
+            </select>
+            <button class="be-sm-btn" @click="applyGradientFromPanel" title="Apply Gradient">&#x1F3A8;</button>
+          </div>
+        </div>
+
+        <!-- IMAGE PROPERTIES -->
+        <div v-if="selectedLayer.type === 'image'" class="be-prop-section">
+          <div class="be-prop-title">Image</div>
+          <div class="be-prop-row">
+            <label>Flip H</label>
+            <input type="checkbox" :checked="selectedLayer.flipH" @change="updatePropAndHistory('flipH', $event.target.checked)" />
+          </div>
+          <div class="be-prop-row">
+            <label>Flip V</label>
+            <input type="checkbox" :checked="selectedLayer.flipV" @change="updatePropAndHistory('flipV', $event.target.checked)" />
+          </div>
+          <div class="be-prop-row">
+            <label>Border</label>
+            <input class="be-input be-input-xs" type="number" :value="selectedLayer.borderWidth" min="0" max="20" @change="updatePropAndHistory('borderWidth', +$event.target.value)" />
+            <input type="color" :value="selectedLayer.borderColor" class="be-color-input" @input="updatePropAndHistory('borderColor', $event.target.value)" />
+          </div>
+
+          <!-- Filters -->
+          <div class="be-prop-title" style="margin-top:8px">Filters</div>
+          <div class="be-filter-row">
+            <button class="be-filter-btn" @click="applyFilter('grayscale')" title="Grayscale">&#x1F532;</button>
+            <button class="be-filter-btn" @click="applyFilter('sepia')" title="Sepia">&#x1F7E4;</button>
+            <button class="be-filter-btn" @click="applyFilter('invert')" title="Invert">&#x1F504;</button>
+            <button class="be-filter-btn" @click="applyFilter('blur')" title="Blur">&#x1F32B;&#xFE0F;</button>
+            <button class="be-filter-btn" @click="applyFilter('brightness')" title="Brightness">&#x2600;&#xFE0F;</button>
+            <button class="be-filter-btn" @click="applyFilter('contrast')" title="Contrast">&#x1F317;</button>
+            <button class="be-filter-btn be-filter-clear" @click="applyFilter('clear')" title="Clear Filters">&#x2716;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="be-statusbar">
+    <span>{{ canvasW }} &times; {{ canvasH }}px</span>
+    <span v-if="sizePreset">{{ sizePreset }}</span>
+    <span>Layers: {{ layers.length }}</span>
+    <span v-if="selectedLayer">Selected: {{ selectedLayer.name }}</span>
+    <span class="be-statusbar-right">Fabric.js &mdash; Double-click text to edit inline</span>
+  </div>
+  </template>
+
+  <!-- Hidden file input for local images -->
+  <input type="file" ref="localFileInput" accept="image/*" style="display:none" @change="onLocalImageSelected" />
+</div>

@@ -1,0 +1,766 @@
+(function(Vue) {
+  const { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } = Vue;
+
+  return {
+    setup() {
+      // ─── Canvas refs ───
+      const renderCanvas = ref(null);
+      const canvasArea = ref(null);
+      const canvasContainer = ref(null);
+      const localFileInput = ref(null);
+
+      // ─── Canvas size ───
+      const canvasW = ref(728);
+      const canvasH = ref(90);
+      const bgColor = ref('#1a1a2e');
+      const sizePreset = ref('Leaderboard');
+      const zoom = ref(1);
+
+      const sizePresets = [
+        { label: 'Leaderboard', w: 728, h: 90 },
+        { label: 'Banner', w: 468, h: 60 },
+        { label: 'Half Banner', w: 234, h: 60 },
+        { label: 'Medium Rectangle', w: 300, h: 250 },
+        { label: 'Large Rectangle', w: 336, h: 280 },
+        { label: 'Wide Skyscraper', w: 160, h: 600 },
+        { label: 'Skyscraper', w: 120, h: 600 },
+        { label: 'Half Page', w: 300, h: 600 },
+        { label: 'Billboard', w: 970, h: 250 },
+        { label: 'Large Leaderboard', w: 970, h: 90 },
+        { label: 'Square', w: 250, h: 250 },
+        { label: 'Small Square', w: 200, h: 200 },
+        { label: 'Facebook Cover', w: 820, h: 312 },
+        { label: 'Facebook Post', w: 1200, h: 630 },
+        { label: 'Instagram Post', w: 1080, h: 1080 },
+        { label: 'Instagram Story', w: 1080, h: 1920 },
+        { label: 'Twitter Header', w: 1500, h: 500 },
+        { label: 'Twitter Post', w: 1200, h: 675 },
+        { label: 'YouTube Thumbnail', w: 1280, h: 720 },
+        { label: 'YouTube Banner', w: 2560, h: 1440 },
+        { label: 'LinkedIn Cover', w: 1584, h: 396 },
+        { label: 'LinkedIn Post', w: 1200, h: 627 },
+        { label: 'Pinterest Pin', w: 1000, h: 1500 },
+        { label: 'Email Header', w: 600, h: 200 },
+        { label: 'Full HD', w: 1920, h: 1080 },
+        { label: '4K UHD', w: 3840, h: 2160 },
+      ];
+
+      // ─── Layers ───
+      const layers = reactive([]);
+      const selectedLayerId = ref(null);
+      let layerIdCounter = 0;
+
+      const selectedLayer = computed(() => layers.find(l => l.id === selectedLayerId.value) || null);
+      const reversedLayers = computed(() => [...layers].reverse());
+
+      // ─── History ───
+      const history = ref([]);
+      const historyIdx = ref(-1);
+      const MAX_HISTORY = 50;
+
+      // ─── Drag/Resize state ───
+      let dragState = null;
+
+      // ─── Auth ───
+      function getToken() { try { return localStorage.getItem('auth_token') || ''; } catch { return ''; } }
+      function authHeaders() { return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' }; }
+
+      // ─── SIZE PRESETS ───
+      function onSizePresetChange() {
+        const p = sizePresets.find(s => s.label === sizePreset.value);
+        if (p) {
+          canvasW.value = p.w;
+          canvasH.value = p.h;
+          nextTick(() => renderAll());
+        }
+      }
+
+      function onCanvasSizeChange() {
+        sizePreset.value = '';
+        nextTick(() => renderAll());
+      }
+
+      function onBgColorChange() {
+        nextTick(() => renderAll());
+      }
+
+      // ─── ZOOM ───
+      function zoomIn() { zoom.value = Math.min(2, Math.round((zoom.value + 0.1) * 100) / 100); }
+      function zoomOut() { zoom.value = Math.max(0.1, Math.round((zoom.value - 0.1) * 100) / 100); }
+      function resetZoom() { zoom.value = 1; }
+      function onZoomRange(val) { zoom.value = Math.max(0.1, Math.min(2, parseInt(val) / 100)); }
+
+      // ─── LAYER MANAGEMENT ───
+      function createLayer(type, props = {}) {
+        const id = ++layerIdCounter;
+        const base = {
+          id,
+          type,
+          name: (type === 'text' ? 'Text ' : 'Image ') + id,
+          x: 20,
+          y: 20,
+          w: 200,
+          h: type === 'text' ? 60 : 200,
+          rotation: 0,
+          opacity: 1,
+          visible: true,
+        };
+        if (type === 'text') {
+          Object.assign(base, {
+            text: 'Banner Text',
+            fontFamily: 'Arial',
+            fontSize: 36,
+            fontColor: '#ffffff',
+            bold: false,
+            italic: false,
+            underline: false,
+            textAlign: 'center',
+            lineHeight: 1.3,
+            strokeColor: '#000000',
+            strokeWidth: 0,
+            shadowColor: '#000000',
+            shadowBlur: 0,
+          });
+        } else {
+          Object.assign(base, {
+            imgSrc: null,
+            imgElement: null,
+            objectFit: 'fill',
+            flipH: false,
+            flipV: false,
+            borderWidth: 0,
+            borderColor: '#ffffff',
+            borderRadius: 0,
+          });
+        }
+        Object.assign(base, props);
+        return base;
+      }
+
+      function addText() {
+        const layer = createLayer('text', {
+          x: Math.round(canvasW.value / 2 - 100),
+          y: Math.round(canvasH.value / 2 - 30),
+        });
+        layers.push(layer);
+        selectedLayerId.value = layer.id;
+        pushHistory();
+        renderAll();
+      }
+
+      function selectLayer(id) {
+        selectedLayerId.value = id;
+        renderAll();
+      }
+
+      function deleteLayer() {
+        if (!selectedLayerId.value) return;
+        const idx = layers.findIndex(l => l.id === selectedLayerId.value);
+        if (idx >= 0) {
+          layers.splice(idx, 1);
+          selectedLayerId.value = layers.length > 0 ? layers[layers.length - 1].id : null;
+          pushHistory();
+          renderAll();
+        }
+      }
+
+      function moveLayerUp() {
+        const idx = layers.findIndex(l => l.id === selectedLayerId.value);
+        if (idx < 0 || idx >= layers.length - 1) return;
+        const tmp = layers[idx];
+        layers[idx] = layers[idx + 1];
+        layers[idx + 1] = tmp;
+        renderAll();
+      }
+
+      function moveLayerDown() {
+        const idx = layers.findIndex(l => l.id === selectedLayerId.value);
+        if (idx <= 0) return;
+        const tmp = layers[idx];
+        layers[idx] = layers[idx - 1];
+        layers[idx - 1] = tmp;
+        renderAll();
+      }
+
+      function toggleLayerVisibility(id) {
+        const l = layers.find(l => l.id === id);
+        if (l) { l.visible = !l.visible; renderAll(); }
+      }
+
+      // ─── TEXT ───
+      function onTextChange() {
+        if (!selectedLayer.value || selectedLayer.value.type !== 'text') return;
+        autoSizeText(selectedLayer.value);
+        renderAll();
+      }
+
+      function autoSizeText(layer) {
+        const canvas = renderCanvas.value;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.font = buildFont(layer);
+        const textLines = (layer.text || '').split('\n');
+        let maxW = 0;
+        for (const line of textLines) {
+          const m = ctx.measureText(line);
+          if (m.width > maxW) maxW = m.width;
+        }
+        layer.w = Math.max(Math.ceil(maxW) + 20, 40);
+        layer.h = Math.max(Math.ceil(textLines.length * layer.fontSize * layer.lineHeight) + 10, 30);
+      }
+
+      function buildFont(layer) {
+        let f = '';
+        if (layer.italic) f += 'italic ';
+        if (layer.bold) f += 'bold ';
+        f += layer.fontSize + 'px ';
+        f += "'" + layer.fontFamily + "', sans-serif";
+        return f;
+      }
+
+      async function pickFont() {
+        if (!selectedLayer.value || selectedLayer.value.type !== 'text') return;
+        if (!window.FontSelectDialog) return;
+        const result = await window.FontSelectDialog.show({
+          title: '🔤 Select Font',
+          selectedFont: selectedLayer.value.fontFamily,
+          sampleText: selectedLayer.value.text || 'Banner Text',
+        });
+        if (result) {
+          selectedLayer.value.fontFamily = result.family;
+          // Ensure the font is loaded before rendering
+          await document.fonts.ready;
+          onTextChange();
+          pushHistory();
+        }
+      }
+
+      // ─── IMAGE LOADING ───
+      function addImageFromClient() {
+        if (localFileInput.value) localFileInput.value.click();
+      }
+
+      function onLocalImageSelected(e) {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          loadImageToLayer(ev.target.result, file.name);
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+      }
+
+      async function addImageFromServer() {
+        if (!window.FileDialog) return;
+        const result = await window.FileDialog.open({
+          title: '📂 Open Image',
+          filters: [
+            { label: 'Images', extensions: ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp'] }
+          ]
+        });
+        if (!result) return;
+        try {
+          const r = await fetch('/api/fs/read-binary?path=' + encodeURIComponent(result.path), {
+            headers: { 'Authorization': 'Bearer ' + getToken() }
+          });
+          if (!r.ok) return;
+          const data = await r.json();
+          const ext = (result.name.match(/\.([^.]+)$/) || ['', 'png'])[1].toLowerCase();
+          const mimeMap = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml', bmp: 'image/bmp' };
+          const mime = mimeMap[ext] || 'image/png';
+          const dataUrl = 'data:' + mime + ';base64,' + data.content;
+          loadImageToLayer(dataUrl, result.name);
+        } catch (e) {
+          console.error('Failed to load server image:', e);
+        }
+      }
+
+      function loadImageToLayer(dataUrl, name) {
+        const img = new Image();
+        img.onload = () => {
+          let w = img.naturalWidth;
+          let h = img.naturalHeight;
+          // Fit within canvas if too large
+          const maxW = canvasW.value * 0.8;
+          const maxH = canvasH.value * 0.8;
+          if (w > maxW || h > maxH) {
+            const scale = Math.min(maxW / w, maxH / h);
+            w = Math.round(w * scale);
+            h = Math.round(h * scale);
+          }
+          const layer = createLayer('image', {
+            name: name || 'Image',
+            x: Math.round((canvasW.value - w) / 2),
+            y: Math.round((canvasH.value - h) / 2),
+            w,
+            h,
+            imgSrc: dataUrl,
+            imgElement: img,
+          });
+          layers.push(layer);
+          selectedLayerId.value = layer.id;
+          pushHistory();
+          renderAll();
+        };
+        img.onerror = () => console.error('Failed to load image');
+        img.src = dataUrl;
+      }
+
+      // ─── RENDERING ───
+      function renderAll() {
+        const canvas = renderCanvas.value;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        // Clear
+        ctx.clearRect(0, 0, canvasW.value, canvasH.value);
+        // Background
+        ctx.fillStyle = bgColor.value;
+        ctx.fillRect(0, 0, canvasW.value, canvasH.value);
+
+        // Draw layers in order
+        for (const layer of layers) {
+          if (!layer.visible) continue;
+          ctx.save();
+          ctx.globalAlpha = layer.opacity;
+
+          // Translate to center, rotate, translate back
+          const cx = layer.x + layer.w / 2;
+          const cy = layer.y + layer.h / 2;
+          ctx.translate(cx, cy);
+          ctx.rotate((layer.rotation * Math.PI) / 180);
+          ctx.translate(-cx, -cy);
+
+          if (layer.type === 'text') {
+            renderTextLayer(ctx, layer);
+          } else if (layer.type === 'image') {
+            renderImageLayer(ctx, layer);
+          }
+          ctx.restore();
+        }
+      }
+
+      function renderTextLayer(ctx, layer) {
+        ctx.font = buildFont(layer);
+        ctx.textBaseline = 'top';
+        ctx.textAlign = layer.textAlign || 'left';
+
+        const lines = (layer.text || '').split('\n');
+        const lineH = layer.fontSize * layer.lineHeight;
+
+        let alignX = layer.x;
+        if (layer.textAlign === 'center') alignX = layer.x + layer.w / 2;
+        else if (layer.textAlign === 'right') alignX = layer.x + layer.w;
+
+        for (let i = 0; i < lines.length; i++) {
+          const ly = layer.y + i * lineH + 5;
+
+          // Shadow
+          if (layer.shadowBlur > 0) {
+            ctx.shadowColor = layer.shadowColor;
+            ctx.shadowBlur = layer.shadowBlur;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+          } else {
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+          }
+
+          // Stroke
+          if (layer.strokeWidth > 0) {
+            ctx.strokeStyle = layer.strokeColor;
+            ctx.lineWidth = layer.strokeWidth;
+            ctx.lineJoin = 'round';
+            ctx.strokeText(lines[i], alignX, ly);
+          }
+
+          // Fill
+          ctx.fillStyle = layer.fontColor;
+          ctx.fillText(lines[i], alignX, ly);
+        }
+
+        // Underline
+        if (layer.underline) {
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = layer.fontColor;
+          ctx.lineWidth = Math.max(1, layer.fontSize / 16);
+          for (let i = 0; i < lines.length; i++) {
+            const ly = layer.y + i * lineH + 5 + layer.fontSize;
+            const m = ctx.measureText(lines[i]);
+            let lx = layer.x;
+            if (layer.textAlign === 'center') lx = layer.x + layer.w / 2 - m.width / 2;
+            else if (layer.textAlign === 'right') lx = layer.x + layer.w - m.width;
+            ctx.beginPath();
+            ctx.moveTo(lx, ly);
+            ctx.lineTo(lx + m.width, ly);
+            ctx.stroke();
+          }
+        }
+      }
+
+      function renderImageLayer(ctx, layer) {
+        if (!layer.imgElement) return;
+
+        ctx.save();
+        const cx = layer.x + layer.w / 2;
+        const cy = layer.y + layer.h / 2;
+
+        // Flip
+        if (layer.flipH || layer.flipV) {
+          ctx.translate(cx, cy);
+          ctx.scale(layer.flipH ? -1 : 1, layer.flipV ? -1 : 1);
+          ctx.translate(-cx, -cy);
+        }
+
+        // Border radius via clipping
+        if (layer.borderRadius > 0) {
+          roundRect(ctx, layer.x, layer.y, layer.w, layer.h, layer.borderRadius);
+          ctx.clip();
+        }
+
+        // Draw image
+        if (layer.objectFit === 'contain') {
+          const iw = layer.imgElement.naturalWidth;
+          const ih = layer.imgElement.naturalHeight;
+          const scale = Math.min(layer.w / iw, layer.h / ih);
+          const dw = iw * scale;
+          const dh = ih * scale;
+          const dx = layer.x + (layer.w - dw) / 2;
+          const dy = layer.y + (layer.h - dh) / 2;
+          ctx.drawImage(layer.imgElement, dx, dy, dw, dh);
+        } else if (layer.objectFit === 'cover') {
+          const iw = layer.imgElement.naturalWidth;
+          const ih = layer.imgElement.naturalHeight;
+          const scale = Math.max(layer.w / iw, layer.h / ih);
+          const dw = iw * scale;
+          const dh = ih * scale;
+          const dx = layer.x + (layer.w - dw) / 2;
+          const dy = layer.y + (layer.h - dh) / 2;
+          ctx.drawImage(layer.imgElement, dx, dy, dw, dh);
+        } else {
+          ctx.drawImage(layer.imgElement, layer.x, layer.y, layer.w, layer.h);
+        }
+
+        // Border
+        if (layer.borderWidth > 0) {
+          ctx.strokeStyle = layer.borderColor;
+          ctx.lineWidth = layer.borderWidth;
+          if (layer.borderRadius > 0) {
+            roundRect(ctx, layer.x, layer.y, layer.w, layer.h, layer.borderRadius);
+          } else {
+            ctx.beginPath();
+            ctx.rect(layer.x, layer.y, layer.w, layer.h);
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function roundRect(ctx, x, y, w, h, r) {
+        r = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+
+      // ─── SELECTION BOX ───
+      const selectionBoxStyle = computed(() => {
+        const l = selectedLayer.value;
+        if (!l) return { display: 'none' };
+        return {
+          left: l.x + 'px',
+          top: l.y + 'px',
+          width: l.w + 'px',
+          height: l.h + 'px',
+          transform: 'rotate(' + l.rotation + 'deg)',
+        };
+      });
+
+      // ─── MOUSE INTERACTIONS ───
+      function getCanvasPos(e) {
+        const container = canvasContainer.value;
+        if (!container) return { x: 0, y: 0 };
+        const rect = container.getBoundingClientRect();
+        const z = zoom.value || 1;
+        return { x: (e.clientX - rect.left) / z, y: (e.clientY - rect.top) / z };
+      }
+
+      function hitTest(x, y) {
+        // Check layers in reverse (top first)
+        for (let i = layers.length - 1; i >= 0; i--) {
+          const l = layers[i];
+          if (!l.visible) continue;
+          if (l.rotation === 0) {
+            if (x >= l.x && x <= l.x + l.w && y >= l.y && y <= l.y + l.h) return l;
+          } else {
+            // Rotate point around layer center
+            const cx = l.x + l.w / 2;
+            const cy = l.y + l.h / 2;
+            const angle = (-l.rotation * Math.PI) / 180;
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            const dx = x - cx;
+            const dy = y - cy;
+            const rx = dx * cos - dy * sin + cx;
+            const ry = dx * sin + dy * cos + cy;
+            if (rx >= l.x && rx <= l.x + l.w && ry >= l.y && ry <= l.y + l.h) return l;
+          }
+        }
+        return null;
+      }
+
+      function getHandle(e) {
+        const el = e.target;
+        if (el && el.dataset && el.dataset.handle) return el.dataset.handle;
+        return null;
+      }
+
+      function onCanvasMouseDown(e) {
+        const pos = getCanvasPos(e);
+        const handle = getHandle(e);
+
+        if (handle && selectedLayer.value) {
+          const l = selectedLayer.value;
+          dragState = {
+            type: handle === 'rotate' ? 'rotate' : 'resize',
+            handle,
+            startX: e.clientX,
+            startY: e.clientY,
+            origX: l.x,
+            origY: l.y,
+            origW: l.w,
+            origH: l.h,
+            origRotation: l.rotation,
+            centerX: l.x + l.w / 2,
+            centerY: l.y + l.h / 2,
+          };
+          return;
+        }
+
+        const hit = hitTest(pos.x, pos.y);
+        if (hit) {
+          selectedLayerId.value = hit.id;
+          dragState = {
+            type: 'move',
+            startX: e.clientX,
+            startY: e.clientY,
+            origX: hit.x,
+            origY: hit.y,
+          };
+          renderAll();
+        } else {
+          selectedLayerId.value = null;
+          renderAll();
+        }
+      }
+
+      function onCanvasMouseMove(e) {
+        if (!dragState || !selectedLayer.value) return;
+        const l = selectedLayer.value;
+        const dx = e.clientX - dragState.startX;
+        const dy = e.clientY - dragState.startY;
+
+        if (dragState.type === 'move') {
+          l.x = dragState.origX + dx;
+          l.y = dragState.origY + dy;
+          renderAll();
+        } else if (dragState.type === 'resize') {
+          const h = dragState.handle;
+          if (h === 'br') {
+            l.w = Math.max(20, dragState.origW + dx);
+            l.h = Math.max(20, dragState.origH + dy);
+          } else if (h === 'bl') {
+            l.x = dragState.origX + dx;
+            l.w = Math.max(20, dragState.origW - dx);
+            l.h = Math.max(20, dragState.origH + dy);
+          } else if (h === 'tr') {
+            l.y = dragState.origY + dy;
+            l.w = Math.max(20, dragState.origW + dx);
+            l.h = Math.max(20, dragState.origH - dy);
+          } else if (h === 'tl') {
+            l.x = dragState.origX + dx;
+            l.y = dragState.origY + dy;
+            l.w = Math.max(20, dragState.origW - dx);
+            l.h = Math.max(20, dragState.origH - dy);
+          }
+          renderAll();
+        } else if (dragState.type === 'rotate') {
+          const container = canvasContainer.value;
+          if (!container) return;
+          const rect = container.getBoundingClientRect();
+          const cx = dragState.centerX + rect.left;
+          const cy = dragState.centerY + rect.top;
+          const startAngle = Math.atan2(dragState.startY - cy, dragState.startX - cx);
+          const curAngle = Math.atan2(e.clientY - cy, e.clientX - cx);
+          let deg = dragState.origRotation + ((curAngle - startAngle) * 180) / Math.PI;
+          // Snap to 15-degree increments with shift
+          if (e.shiftKey) deg = Math.round(deg / 15) * 15;
+          l.rotation = Math.round(deg * 10) / 10;
+          renderAll();
+        }
+      }
+
+      function onCanvasMouseUp() {
+        if (dragState) {
+          pushHistory();
+          dragState = null;
+        }
+      }
+
+      // ─── HISTORY ───
+      function getSnapshot() {
+        return JSON.stringify({
+          canvasW: canvasW.value,
+          canvasH: canvasH.value,
+          bgColor: bgColor.value,
+          layers: layers.map(l => {
+            const c = { ...l };
+            delete c.imgElement;
+            return c;
+          }),
+        });
+      }
+
+      function pushHistory() {
+        const snap = getSnapshot();
+        if (historyIdx.value < history.value.length - 1) {
+          history.value = history.value.slice(0, historyIdx.value + 1);
+        }
+        history.value.push(snap);
+        if (history.value.length > MAX_HISTORY) history.value.shift();
+        historyIdx.value = history.value.length - 1;
+      }
+
+      function restoreSnapshot(snap) {
+        const data = JSON.parse(snap);
+        canvasW.value = data.canvasW;
+        canvasH.value = data.canvasH;
+        bgColor.value = data.bgColor;
+        layers.length = 0;
+
+        let loaded = 0;
+        const total = data.layers.filter(l => l.type === 'image' && l.imgSrc).length;
+
+        for (const ld of data.layers) {
+          const layer = createLayer(ld.type);
+          Object.assign(layer, ld);
+          layer.id = ld.id;
+          if (ld.type === 'image' && ld.imgSrc) {
+            const img = new Image();
+            img.onload = () => {
+              layer.imgElement = img;
+              loaded++;
+              if (loaded >= total) renderAll();
+            };
+            img.src = ld.imgSrc;
+          }
+          layers.push(layer);
+        }
+        layerIdCounter = Math.max(layerIdCounter, ...layers.map(l => l.id), 0);
+        if (total === 0) nextTick(() => renderAll());
+      }
+
+      function undo() {
+        if (historyIdx.value <= 0) return;
+        historyIdx.value--;
+        restoreSnapshot(history.value[historyIdx.value]);
+      }
+
+      function redo() {
+        if (historyIdx.value >= history.value.length - 1) return;
+        historyIdx.value++;
+        restoreSnapshot(history.value[historyIdx.value]);
+      }
+
+      // ─── EXPORT ───
+      function doExport(format) {
+        const canvas = renderCanvas.value;
+        if (!canvas) return;
+        // Deselect for clean render
+        const prevSel = selectedLayerId.value;
+        selectedLayerId.value = null;
+        renderAll();
+
+        const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
+        const quality = format === 'jpg' ? 0.92 : undefined;
+        const dataUrl = canvas.toDataURL(mime, quality);
+
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = 'banner-' + Date.now() + '.' + format;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        selectedLayerId.value = prevSel;
+        renderAll();
+      }
+
+      function exportPNG() { doExport('png'); }
+      function exportJPG() { doExport('jpg'); }
+
+      // ─── KEYBOARD SHORTCUTS ───
+      function onKeyDown(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redo(); }
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+          if (selectedLayer.value) { e.preventDefault(); deleteLayer(); }
+        }
+        if (selectedLayer.value) {
+          const step = e.shiftKey ? 10 : 1;
+          if (e.key === 'ArrowLeft') { e.preventDefault(); selectedLayer.value.x -= step; renderAll(); }
+          if (e.key === 'ArrowRight') { e.preventDefault(); selectedLayer.value.x += step; renderAll(); }
+          if (e.key === 'ArrowUp') { e.preventDefault(); selectedLayer.value.y -= step; renderAll(); }
+          if (e.key === 'ArrowDown') { e.preventDefault(); selectedLayer.value.y += step; renderAll(); }
+        }
+      }
+
+      // ─── LIFECYCLE ───
+      onMounted(() => {
+        nextTick(() => {
+          renderAll();
+          pushHistory();
+        });
+        window.addEventListener('keydown', onKeyDown);
+      });
+
+      onUnmounted(() => {
+        window.removeEventListener('keydown', onKeyDown);
+      });
+
+      // ─── RETURN ───
+      return {
+        // Refs
+        renderCanvas, canvasArea, canvasContainer, localFileInput,
+        // Canvas
+        canvasW, canvasH, bgColor, sizePreset, sizePresets,
+        onSizePresetChange, onCanvasSizeChange, onBgColorChange,
+        // Zoom
+        zoom, zoomIn, zoomOut, resetZoom, onZoomRange,
+        // Layers
+        layers, selectedLayerId, selectedLayer, reversedLayers,
+        addText, selectLayer, deleteLayer, moveLayerUp, moveLayerDown, toggleLayerVisibility,
+        // Text
+        onTextChange, pickFont,
+        // Images
+        addImageFromClient, addImageFromServer, onLocalImageSelected,
+        // Rendering
+        renderAll,
+        // Selection
+        selectionBoxStyle,
+        // Mouse
+        onCanvasMouseDown, onCanvasMouseMove, onCanvasMouseUp,
+        // History
+        history, historyIdx, undo, redo,
+        // Export
+        exportPNG, exportJPG,
+      };
+    }
+  };
+})(Vue);

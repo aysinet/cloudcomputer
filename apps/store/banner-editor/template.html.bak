@@ -1,0 +1,234 @@
+<div class="be-root">
+  <!-- TOP TOOLBAR -->
+  <div class="be-toolbar">
+    <div class="be-tb-group">
+      <button class="be-tb-btn" @click="exportPNG" title="Export PNG">💾</button>
+      <button class="be-tb-btn" @click="exportJPG" title="Export JPG">🖼️</button>
+      <div class="be-tb-sep"></div>
+      <button class="be-tb-btn" @click="undo" :disabled="historyIdx <= 0" title="Undo">↩️</button>
+      <button class="be-tb-btn" @click="redo" :disabled="historyIdx >= history.length - 1" title="Redo">↪️</button>
+    </div>
+
+    <div class="be-tb-sep"></div>
+
+    <!-- Banner Size Preset -->
+    <div class="be-tb-group">
+      <select class="be-select" v-model="sizePreset" @change="onSizePresetChange">
+        <option value="">Custom</option>
+        <option v-for="p in sizePresets" :key="p.label" :value="p.label">{{ p.label }} ({{ p.w }}×{{ p.h }})</option>
+      </select>
+      <input class="be-input be-input-sm" type="number" v-model.number="canvasW" min="50" max="4000" title="Width" @change="onCanvasSizeChange" />
+      <span class="be-tb-label">×</span>
+      <input class="be-input be-input-sm" type="number" v-model.number="canvasH" min="50" max="4000" title="Height" @change="onCanvasSizeChange" />
+    </div>
+
+    <div class="be-tb-sep"></div>
+
+    <!-- Canvas background -->
+    <div class="be-tb-group">
+      <label class="be-tb-label">BG</label>
+      <input type="color" v-model="bgColor" class="be-color-input" @input="onBgColorChange" title="Background Color" />
+    </div>
+
+    <div class="be-tb-sep"></div>
+
+    <!-- Add elements -->
+    <div class="be-tb-group">
+      <button class="be-tb-btn be-tb-accent" @click="addText" title="Add Text">✏️ Text</button>
+      <button class="be-tb-btn be-tb-accent" @click="addImageFromClient" title="Add Image (Local)">📁 Local</button>
+      <button class="be-tb-btn be-tb-accent" @click="addImageFromServer" title="Add Image (Server)">☁️ Server</button>
+    </div>
+
+    <div class="be-tb-sep"></div>
+
+    <!-- Zoom -->
+    <div class="be-tb-group">
+      <button class="be-tb-btn" @click="zoomOut" :disabled="zoom <= 0.1" title="Zoom Out">➖</button>
+      <input class="be-zoom-range" type="range" min="10" max="200" :value="Math.round(zoom * 100)" @input="onZoomRange($event.target.value)" title="Zoom" />
+      <button class="be-tb-btn" @click="zoomIn" :disabled="zoom >= 2" title="Zoom In">➕</button>
+      <span class="be-zoom-label" @click="resetZoom" title="Reset Zoom">{{ Math.round(zoom * 100) }}%</span>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="be-main">
+    <!-- LAYERS PANEL -->
+    <div class="be-layers-panel">
+      <div class="be-panel-header">
+        <span>Layers</span>
+        <div class="be-panel-actions">
+          <button class="be-sm-btn" @click="moveLayerUp" title="Move Up">▲</button>
+          <button class="be-sm-btn" @click="moveLayerDown" title="Move Down">▼</button>
+          <button class="be-sm-btn be-sm-btn-danger" @click="deleteLayer" title="Delete">🗑️</button>
+        </div>
+      </div>
+      <div class="be-layers-list">
+        <div v-for="(layer, idx) in reversedLayers" :key="layer.id"
+          class="be-layer-item"
+          :class="{ active: selectedLayerId === layer.id }"
+          @click="selectLayer(layer.id)">
+          <span class="be-layer-icon">{{ layer.type === 'text' ? '✏️' : '🖼️' }}</span>
+          <span class="be-layer-name">{{ layer.name }}</span>
+          <button class="be-layer-vis" @click.stop="toggleLayerVisibility(layer.id)" :title="layer.visible ? 'Hide' : 'Show'">
+            {{ layer.visible ? '👁️' : '👁️‍🗨️' }}
+          </button>
+        </div>
+        <div v-if="layers.length === 0" class="be-layers-empty">No layers yet</div>
+      </div>
+    </div>
+
+    <!-- CANVAS AREA -->
+    <div class="be-canvas-area" ref="canvasArea">
+      <div class="be-canvas-container" ref="canvasContainer"
+        :style="{ width: canvasW + 'px', height: canvasH + 'px', transform: 'scale(' + zoom + ')', transformOrigin: 'center center' }"
+        @mousedown="onCanvasMouseDown"
+        @mousemove="onCanvasMouseMove"
+        @mouseup="onCanvasMouseUp"
+        @mouseleave="onCanvasMouseUp">
+        <canvas ref="renderCanvas" :width="canvasW" :height="canvasH"></canvas>
+        <!-- Selection handles overlay -->
+        <div v-if="selectedLayer" class="be-selection-box"
+          :style="selectionBoxStyle">
+          <div class="be-handle be-handle-tl" data-handle="tl"></div>
+          <div class="be-handle be-handle-tr" data-handle="tr"></div>
+          <div class="be-handle be-handle-bl" data-handle="bl"></div>
+          <div class="be-handle be-handle-br" data-handle="br"></div>
+          <div class="be-handle be-handle-rotate" data-handle="rotate" title="Rotate">⟳</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROPERTIES PANEL -->
+    <div class="be-props-panel" v-if="selectedLayer">
+      <div class="be-panel-header">
+        <span>Properties</span>
+      </div>
+      <div class="be-props-body">
+        <!-- Position / Size -->
+        <div class="be-prop-section">
+          <div class="be-prop-title">Transform</div>
+          <div class="be-prop-row">
+            <label>X</label>
+            <input class="be-input" type="number" v-model.number="selectedLayer.x" @input="renderAll" />
+          </div>
+          <div class="be-prop-row">
+            <label>Y</label>
+            <input class="be-input" type="number" v-model.number="selectedLayer.y" @input="renderAll" />
+          </div>
+          <div class="be-prop-row">
+            <label>W</label>
+            <input class="be-input" type="number" v-model.number="selectedLayer.w" min="1" @input="renderAll" />
+          </div>
+          <div class="be-prop-row">
+            <label>H</label>
+            <input class="be-input" type="number" v-model.number="selectedLayer.h" min="1" @input="renderAll" />
+          </div>
+          <div class="be-prop-row">
+            <label>Rotation</label>
+            <input class="be-input" type="number" v-model.number="selectedLayer.rotation" @input="renderAll" />
+            <span class="be-prop-unit">°</span>
+          </div>
+          <div class="be-prop-row">
+            <label>Opacity</label>
+            <input class="be-range" type="range" min="0" max="1" step="0.05" v-model.number="selectedLayer.opacity" @input="renderAll" />
+            <span class="be-prop-unit">{{ Math.round(selectedLayer.opacity * 100) }}%</span>
+          </div>
+        </div>
+
+        <!-- TEXT PROPERTIES -->
+        <div v-if="selectedLayer.type === 'text'" class="be-prop-section">
+          <div class="be-prop-title">Text</div>
+          <textarea class="be-textarea" v-model="selectedLayer.text" @input="onTextChange" rows="3" placeholder="Enter text..."></textarea>
+          <div class="be-prop-row">
+            <label>Font</label>
+            <button class="be-font-btn" @click="pickFont" :title="selectedLayer.fontFamily">
+              <span :style="{ fontFamily: selectedLayer.fontFamily }">{{ selectedLayer.fontFamily }}</span>
+              <span class="be-font-btn-icon">🔤</span>
+            </button>
+          </div>
+          <div class="be-prop-row">
+            <label>Size</label>
+            <input class="be-input" type="number" v-model.number="selectedLayer.fontSize" min="8" max="400" @input="onTextChange" />
+            <span class="be-prop-unit">px</span>
+          </div>
+          <div class="be-prop-row">
+            <label>Color</label>
+            <input type="color" v-model="selectedLayer.fontColor" class="be-color-input" @input="renderAll" />
+          </div>
+          <div class="be-prop-row">
+            <label>Style</label>
+            <div class="be-btn-group">
+              <button class="be-style-btn" :class="{ active: selectedLayer.bold }" @click="selectedLayer.bold = !selectedLayer.bold; onTextChange()">B</button>
+              <button class="be-style-btn" :class="{ active: selectedLayer.italic }" @click="selectedLayer.italic = !selectedLayer.italic; onTextChange()" style="font-style:italic">I</button>
+              <button class="be-style-btn" :class="{ active: selectedLayer.underline }" @click="selectedLayer.underline = !selectedLayer.underline; renderAll()" style="text-decoration:underline">U</button>
+            </div>
+          </div>
+          <div class="be-prop-row">
+            <label>Align</label>
+            <div class="be-btn-group">
+              <button class="be-style-btn" :class="{ active: selectedLayer.textAlign === 'left' }" @click="selectedLayer.textAlign = 'left'; renderAll()">◀</button>
+              <button class="be-style-btn" :class="{ active: selectedLayer.textAlign === 'center' }" @click="selectedLayer.textAlign = 'center'; renderAll()">◆</button>
+              <button class="be-style-btn" :class="{ active: selectedLayer.textAlign === 'right' }" @click="selectedLayer.textAlign = 'right'; renderAll()">▶</button>
+            </div>
+          </div>
+          <div class="be-prop-row">
+            <label>Line H</label>
+            <input class="be-input" type="number" v-model.number="selectedLayer.lineHeight" min="0.5" max="4" step="0.1" @input="renderAll" />
+          </div>
+          <div class="be-prop-row">
+            <label>Stroke</label>
+            <input type="color" v-model="selectedLayer.strokeColor" class="be-color-input" @input="renderAll" />
+            <input class="be-input be-input-xs" type="number" v-model.number="selectedLayer.strokeWidth" min="0" max="20" @input="renderAll" />
+          </div>
+          <div class="be-prop-row">
+            <label>Shadow</label>
+            <input type="color" v-model="selectedLayer.shadowColor" class="be-color-input" @input="renderAll" />
+            <input class="be-input be-input-xs" type="number" v-model.number="selectedLayer.shadowBlur" min="0" max="50" @input="renderAll" title="Blur" />
+          </div>
+        </div>
+
+        <!-- IMAGE PROPERTIES -->
+        <div v-if="selectedLayer.type === 'image'" class="be-prop-section">
+          <div class="be-prop-title">Image</div>
+          <div class="be-prop-row">
+            <label>Fit</label>
+            <select class="be-select" v-model="selectedLayer.objectFit" @change="renderAll">
+              <option value="fill">Fill</option>
+              <option value="contain">Contain</option>
+              <option value="cover">Cover</option>
+            </select>
+          </div>
+          <div class="be-prop-row">
+            <label>Flip H</label>
+            <input type="checkbox" v-model="selectedLayer.flipH" @change="renderAll" />
+          </div>
+          <div class="be-prop-row">
+            <label>Flip V</label>
+            <input type="checkbox" v-model="selectedLayer.flipV" @change="renderAll" />
+          </div>
+          <div class="be-prop-row">
+            <label>Border</label>
+            <input class="be-input be-input-xs" type="number" v-model.number="selectedLayer.borderWidth" min="0" max="20" @input="renderAll" />
+            <input type="color" v-model="selectedLayer.borderColor" class="be-color-input" @input="renderAll" />
+          </div>
+          <div class="be-prop-row">
+            <label>Radius</label>
+            <input class="be-input" type="number" v-model.number="selectedLayer.borderRadius" min="0" max="500" @input="renderAll" />
+            <span class="be-prop-unit">px</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="be-statusbar">
+    <span>{{ canvasW }} × {{ canvasH }}px</span>
+    <span v-if="sizePreset">{{ sizePreset }}</span>
+    <span>Layers: {{ layers.length }}</span>
+    <span v-if="selectedLayer">Selected: {{ selectedLayer.name }}</span>
+  </div>
+
+  <!-- Hidden file input for local images -->
+  <input type="file" ref="localFileInput" accept="image/*" style="display:none" @change="onLocalImageSelected" />
+</div>

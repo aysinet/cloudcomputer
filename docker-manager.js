@@ -210,6 +210,16 @@ app.post('/run', authCheck, async (req, res) => {
   } catch {}
 
   try {
+    // Auto-pull image if not available locally
+    try {
+      await dockerExec(['image', 'inspect', image], 10000);
+      console.log(`[RUN] Image ${image} found locally`);
+    } catch {
+      console.log(`[RUN] Image ${image} not found locally, pulling...`);
+      await dockerExec(['pull', image], 600000);
+      console.log(`[RUN] Image ${image} pulled successfully`);
+    }
+
     await ensureNetwork();
 
     const hostPort = findAvailablePort();
@@ -360,6 +370,31 @@ app.get('/status/:appId', authCheck, async (req, res) => {
     delete containers[appId];
     res.json({ running: false });
   }
+});
+
+// ── List all allocated ports (for VirtPC to discover containers) ──
+app.get('/ports', authCheck, (req, res) => {
+  res.json(portAllocations);
+});
+
+// ── Cleanup stale port allocations ──
+app.post('/cleanup', authCheck, async (req, res) => {
+  const stale = [];
+  for (const appId of Object.keys(portAllocations)) {
+    const containerName = `cloudpc-${appId}`;
+    try {
+      const out = await dockerExec(['inspect', '-f', '{{.State.Running}}', containerName], 5000);
+      if (out.trim() !== 'true' && out.trim() !== 'false') throw new Error('not found');
+    } catch {
+      stale.push(appId);
+      delete portAllocations[appId];
+    }
+  }
+  if (stale.length > 0) {
+    savePortAllocations();
+    console.log(`[CLEANUP] Removed stale allocations:`, stale);
+  }
+  res.json({ ok: true, cleaned: stale });
 });
 
 // ── Express error middleware ──

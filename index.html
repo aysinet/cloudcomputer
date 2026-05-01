@@ -39,7 +39,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .desktop-icon.drag-over{background:rgba(100,130,255,.25);box-shadow:inset 0 0 0 2px rgba(100,130,255,.55);border-radius:8px}
 .icon-img{width:48px;height:48px;display:flex;align-items:center;justify-content:center;font-size:26px;border-radius:12px}
 .icon-label{color:#fff;font-size:11px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.8);line-height:1.3;max-width:72px;height:2.6em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;word-break:break-word}
-.taskbar{height:48px;background:rgba(15,15,30,.92);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 8px;gap:6px;z-index:9000;flex-shrink:0}
+.taskbar{height:48px;background:rgba(15,15,30,.92);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 8px;gap:6px;z-index:200000;flex-shrink:0}
 .start-btn{height:36px;padding:0 14px;border-radius:6px;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:.15s;white-space:nowrap}
 .start-btn:hover{background:rgba(255,255,255,.18)}
 .start-btn svg{width:16px;height:16px;opacity:.9}
@@ -59,7 +59,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .tray-btn{width:32px;height:32px;border-radius:6px;border:none;background:transparent;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:.15s}
 .tray-btn:hover{background:rgba(255,255,255,.12);color:#fff}
 .vol-wrap{position:relative}
-.vol-popover{position:absolute;bottom:42px;left:50%;transform:translateX(-50%);width:220px;background:rgba(20,20,40,.95);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.vol-popover{position:absolute;bottom:42px;left:50%;transform:translateX(-50%);width:220px;background:rgba(20,20,40,.95);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:14px;z-index:200001;box-shadow:0 8px 32px rgba(0,0,0,.5)}
 .vol-pop-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:13px;color:#fff}
 .vol-pop-val{font-weight:600;font-size:14px}
 .vol-pop-bar{height:6px;background:rgba(255,255,255,.12);border-radius:3px;cursor:pointer;position:relative}
@@ -74,7 +74,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .vol-media-btn:hover{background:rgba(255,255,255,.15);color:#fff}
 .vol-media-play{width:36px;height:36px;font-size:16px;background:rgba(102,126,234,.3);color:#fff}
 .vol-media-play:hover{background:rgba(102,126,234,.5)}
-.start-menu{position:fixed;bottom:52px;left:8px;width:352px;background:rgba(15,15,30,.97);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.12);border-radius:12px;z-index:9999;padding:16px;box-shadow:0 -4px 40px rgba(0,0,0,.6)}
+.start-menu{position:fixed;bottom:52px;left:8px;width:352px;background:rgba(15,15,30,.97);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.12);border-radius:12px;z-index:200000;padding:16px;box-shadow:0 -4px 40px rgba(0,0,0,.6)}
 .sm-header{color:rgba(255,255,255,.5);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;padding:0 4px}
 .sm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
 .sm-item{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;border-radius:8px;cursor:pointer;transition:.15s;border:none;background:transparent}
@@ -146,7 +146,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 
 /* ── Code App ── */
 /* ── File Dialog ── */
-.fd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',sans-serif}
+.fd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300000;display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',sans-serif}
 .fd-dialog{background:#1e1e2e;border:1px solid rgba(255,255,255,.1);border-radius:12px;width:620px;max-width:95vw;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.6);overflow:hidden}
 .fd-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06)}
 .fd-header h3{margin:0;font-size:15px;color:#e1e4ea;font-weight:600}
@@ -177,8 +177,50 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .fd-body::-webkit-scrollbar-track{background:transparent}
 .fd-body::-webkit-scrollbar-thumb{background:rgba(74,144,217,.2);border-radius:4px}
 
+/* ── Font Select Dialog ── */
+.fsd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300000;display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',sans-serif}
+.fsd-dialog{background:#1e1e2e;border:1px solid rgba(255,255,255,.1);border-radius:12px;width:560px;max-width:95vw;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.6);overflow:hidden}
+.fsd-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.06)}
+.fsd-header h3{margin:0;font-size:15px;color:#e1e4ea;font-weight:600}
+.fsd-close{background:none;border:none;color:#808080;font-size:18px;cursor:pointer;padding:4px 8px;border-radius:4px}
+.fsd-close:hover{color:#f56c6c;background:rgba(255,255,255,.06)}
+.fsd-toolbar{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,.04)}
+.fsd-search{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:7px 12px;color:#e1e4ea;font-size:13px;outline:none}
+.fsd-search:focus{border-color:rgba(74,144,217,.5)}
+.fsd-search::placeholder{color:#5a5e72}
+.fsd-category{background:#2a2a3e;color:#c5cde8;border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:6px 8px;font-size:12px;outline:none;cursor:pointer}
+.fsd-body{flex:1;overflow-y:auto;padding:8px;min-height:300px}
+.fsd-empty{text-align:center;color:#5a5e72;padding:40px 0;font-size:13px}
+.fsd-loading{text-align:center;color:#6aabf7;padding:40px 0;font-size:13px}
+.fsd-loading .fsd-spinner{width:28px;height:28px;border:3px solid #333;border-top-color:#4a90c4;border-radius:50%;animation:fsd-spin .8s linear infinite;margin:0 auto 10px}
+@keyframes fsd-spin{to{transform:rotate(360deg)}}
+.fsd-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background .12s;color:#c5cde8}
+.fsd-item:hover{background:rgba(255,255,255,.05)}
+.fsd-item.selected{background:rgba(74,144,217,.2);color:#fff}
+.fsd-item-preview{flex:1;min-width:0;overflow:hidden}
+.fsd-item-name{font-size:13px;font-weight:500;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fsd-item-sample{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#aab0c6}
+.fsd-item-category{font-size:10px;color:#5a5e72;padding:2px 6px;background:rgba(255,255,255,.05);border-radius:4px;white-space:nowrap}
+.fsd-preview-area{padding:12px 16px;border-top:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)}
+.fsd-preview-label{font-size:11px;color:#5a5e72;margin-bottom:6px}
+.fsd-preview-text{font-size:24px;color:#e1e4ea;line-height:1.4;min-height:36px}
+.fsd-preview-sizes{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.fsd-preview-size{color:#aab0c6}
+.fsd-footer{display:flex;align-items:center;gap:10px;padding:12px 16px;border-top:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)}
+.fsd-font-count{font-size:12px;color:#5a5e72;flex:1}
+.fsd-footer-actions{display:flex;gap:8px;margin-left:auto}
+.fsd-btn{padding:7px 18px;border-radius:6px;cursor:pointer;font-size:13px;border:none}
+.fsd-btn-cancel{border:1px solid rgba(255,255,255,.12);background:transparent;color:#c5cde8}
+.fsd-btn-cancel:hover{background:rgba(255,255,255,.06)}
+.fsd-btn-ok{background:#0e639c;color:#fff;font-weight:500}
+.fsd-btn-ok:hover{background:#1177bb}
+.fsd-btn-ok:disabled{opacity:.4;cursor:not-allowed}
+.fsd-body::-webkit-scrollbar{width:5px}
+.fsd-body::-webkit-scrollbar-track{background:transparent}
+.fsd-body::-webkit-scrollbar-thumb{background:rgba(74,144,217,.2);border-radius:4px}
+
 /* ── Icon Context Menu ── */
-.icon-ctx{position:fixed;z-index:10000;background:rgba(30,30,50,.95);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:4px 0;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.icon-ctx{position:fixed;z-index:200002;background:rgba(30,30,50,.95);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:4px 0;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
 .icon-ctx-header{padding:6px 14px;font-size:11px;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:.04em;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.08)}
 .icon-ctx-item{padding:7px 14px;font-size:13px;color:rgba(255,255,255,.85);cursor:pointer;display:flex;align-items:center;gap:8px;transition:.12s}
 .icon-ctx-item:hover{background:rgba(255,255,255,.12)}
@@ -187,13 +229,18 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .icon-ctx-sub{padding:4px 0}
 .icon-ctx-sub .icon-ctx-item{padding-left:28px;font-size:12px}
 
-.fs-toggle{position:fixed;top:0;right:0;width:16px;height:16px;background:rgba(255,255,255,.06);backdrop-filter:blur(8px);border:none;cursor:pointer;z-index:8999;clip-path:polygon(100% 0,0 0,100% 100%);display:flex;align-items:flex-start;justify-content:flex-end;padding:2px 2px 0 0;transition:width .3s ease,height .3s ease,background .3s ease,padding .3s ease}
+.fs-toggle{position:fixed;top:0;right:0;width:16px;height:16px;background:rgba(255,255,255,.06);backdrop-filter:blur(8px);border:none;cursor:pointer;z-index:199998;clip-path:polygon(100% 0,0 0,100% 100%);display:flex;align-items:flex-start;justify-content:flex-end;padding:2px 2px 0 0;transition:width .3s ease,height .3s ease,background .3s ease,padding .3s ease}
 .fs-toggle:hover{width:48px;height:48px;background:rgba(255,255,255,.25);padding:6px 6px 0 0}
 .fs-toggle svg{width:14px;height:14px;color:#fff;pointer-events:none;opacity:0;transition:opacity .3s ease}
 .fs-toggle:hover svg{opacity:1}
 
+/* ── AI Desktop FAB ── */
+.ai-desktop-fab{position:absolute;bottom:12px;right:12px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);border:2px solid rgba(255,255,255,.15);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(102,126,234,.4);transition:transform .2s,box-shadow .2s;z-index:100}
+.ai-desktop-fab:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(102,126,234,.6)}
+.ai-desktop-fab.active{background:linear-gradient(135deg,#764ba2,#667eea);box-shadow:0 0 0 3px rgba(102,126,234,.4),0 4px 20px rgba(102,126,234,.5)}
+
 /* ── Reminder Alert Overlay ── */
-.reminder-alert-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);animation:remFadeIn .3s}
+.reminder-alert-overlay{position:fixed;inset:0;z-index:300000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);animation:remFadeIn .3s}
 @keyframes remFadeIn{from{opacity:0}to{opacity:1}}
 @keyframes remPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .reminder-alert-box{background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,200,50,.25);border-radius:16px;padding:28px 32px;min-width:340px;max-width:440px;text-align:center;box-shadow:0 16px 64px rgba(0,0,0,.6),0 0 40px rgba(255,200,50,.1);animation:remPulse 2s ease-in-out infinite}
@@ -261,6 +308,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
     <button class="fs-toggle" @click="toggleFullscreen" :title="isFullscreen?t('fullscreenExit'):t('fullscreen')">
       <svg v-if="!isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
       <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+    </button>
+    <!-- AI Assistant FAB -->
+    <button class="ai-desktop-fab" @click.stop="aiPanelOpen=!aiPanelOpen" :title="t('aiChat')" :class="{active:aiPanelOpen}">
+      🤖
     </button>
   </div>
   <!-- AI Chat Panel -->
@@ -377,10 +428,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         <button class="tray-btn ss-tray-btn" @click.stop="startScreenshot" :title="t('screenshot')">📷</button>
         <button v-if="showKeyboardTray" class="tray-btn skb-tray-btn" @click="openApp(apps.find(a=>a.id==='screenkeyboard'))" :title="t('skbTrayShow')">⌨️</button>
         <button v-if="showMagnifierTray" class="tray-btn" @click="openApp(apps.find(a=>a.id==='magnifier'))" :title="t('magTrayShow')">🔍</button>
-        <button class="tray-btn ai-tray-btn" @click.stop="aiPanelOpen=!aiPanelOpen" :title="t('aiChat')">
-          🤖
-          <span v-if="aiPanelOpen" class="ai-tray-dot"></span>
-        </button>
       </div>
       <div class="taskbar-sep"></div>
       <button class="notif-bell" @click="openApp(apps.find(a=>a.id==='notifications'))" :title="t('notifications')">
@@ -717,7 +764,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       </template>
       <template v-else-if="active==='wallpaper'">
         <div class="settings-row">
-          <div><div class="lbl">{{t('wpMode') || 'Uygulama Modu'}}</div><div class="sub">{{t('wpModeDesc') || 'Tüm masaüstlerine aynı veya ayrı duvar kağıdı'}}</div></div>
+          <div><div class="lbl">{{t('wpMode') || 'Mod'}}</div><div class="sub">{{t('wpModeDesc') || 'Tüm masaüstlerine aynı veya ayrı duvar kağıdı'}}</div></div>
           <div class="ctrl">
             <select :value="wpMode" @change="setWpMode($event.target.value)" style="background:#3c3c3c;color:#d4d4d4;border:1px solid #555;border-radius:4px;padding:4px 8px;font-size:12px">
               <option value="all">{{t('wpAll') || 'Tümüne Aynı'}}</option>
@@ -727,11 +774,14 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         </div>
         <div class="settings-row" v-if="wpMode==='per'">
           <div><div class="lbl">{{t('wpDesktopSelect') || 'Masaüstü Seç'}}</div></div>
-          <div class="ctrl" style="display:flex;gap:6px">
-            <button v-for="d in 4" :key="d" @click="wpDesktop=d"
-              :style="{padding:'6px 14px',borderRadius:'6px',border:wpDesktop===d?'2px solid #6c5ce7':'1px solid #555',background:wpDesktop===d?'rgba(108,92,231,.3)':'#3c3c3c',color:'#eee',cursor:'pointer',fontSize:'12px',fontWeight:wpDesktop===d?'700':'400'}">
-              Desktop {{d}}
-            </button>
+          <div class="ctrl" style="display:flex;gap:12px;align-items:flex-end">
+            <div v-for="d in 4" :key="d" @click="wpDesktop=d"
+              style="cursor:pointer;display:flex;flex-direction:column;align-items:center;transition:.15s"
+              :style="{opacity:wpDesktop===d?1:0.55}">
+              <div :style="{width:'56px',height:'36px',borderRadius:'4px 4px 0 0',border:wpDesktop===d?'2px solid #6c5ce7':'2px solid #555',background:wpDesktop===d?'rgba(108,92,231,.18)':'#2a2a2a',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'13px',fontWeight:'700',color:wpDesktop===d?'#c4b5fd':'#999',transition:'.15s'}">{{d}}</div>
+              <div :style="{width:'64px',height:'6px',borderRadius:'0 0 3px 3px',background:wpDesktop===d?'#6c5ce7':'#555',transition:'.15s'}"></div>
+              <div :style="{width:'20px',height:'10px',borderRadius:'0 0 4px 4px',background:wpDesktop===d?'#6c5ce7':'#555',transition:'.15s',marginTop:'-1px'}"></div>
+            </div>
           </div>
         </div>
         <div class="settings-row">
@@ -751,7 +801,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
               {{t('wpDefault') || 'Varsayılan'}}
             </div>
             <div v-for="wp in wpList" :key="wp.name" style="position:relative;width:120px;height:75px" @click="setWallpaper(wp.url)">
-              <img :src="wp.url + '&t=' + wp.name" style="width:120px;height:75px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid;transition:.15s"
+              <img :src="wpAuthUrl(wp.url)" style="width:120px;height:75px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid;transition:.15s"
                 :style="{borderColor:currentWpUrl===wp.url?'#6c5ce7':'#444'}" />
               <button @click.stop="deleteWallpaper(wp.name)" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#e74c3c;color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1" title="Sil">×</button>
             </div>
@@ -759,7 +809,57 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         </div>
         <div v-if="currentWpUrl" style="margin-top:16px">
           <div class="lbl" style="margin-bottom:8px">{{t('wpPreview') || 'Önizleme'}}</div>
-          <img :src="currentWpUrl" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #555" />
+          <img :src="wpAuthUrl(currentWpUrl)" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #555" />
+        </div>
+      </template>
+      <template v-else-if="active==='fonts'">
+        <!-- User's Selected Fonts -->
+        <div style="margin-bottom:12px">
+          <div class="lbl" style="margin-bottom:4px">{{t('fontsMyFonts') || 'Fontlarım'}}</div>
+          <div class="sub" style="margin-bottom:8px">{{t('fontsMyFontsDesc') || 'Font Dialogda görüntülenecek fontlar'}}</div>
+          <div v-if="userFonts.length === 0" style="color:#666;font-size:12px;padding:12px 0">{{t('fontsEmpty') || 'Henüz font eklenmedi. Aşağıdan Google Fontstan font ekleyin.'}}</div>
+          <div v-else style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+            <div v-for="f in userFonts" :key="f.family" style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;font-size:12px">
+              <span :style="{fontFamily: f.family + `, sans-serif`}">{{f.family}}</span>
+              <span style="font-size:10px;color:#666">{{f.category}}</span>
+              <button @click="removeFont(f.family)" style="background:none;border:none;color:#f56c6c;cursor:pointer;font-size:14px;padding:0 2px;line-height:1" title="Remove">×</button>
+            </div>
+          </div>
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:12px">
+          <div class="lbl" style="margin-bottom:4px">{{t('fontsBrowse') || 'Google Fonts'}}</div>
+          <div class="sub" style="margin-bottom:8px">{{t('fontsBrowseDesc') || 'Font arayın ve kullanmak istediklerinizi ekleyin'}}</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <input v-model="gfSearch" type="text" :placeholder="t('fontsSearchPlaceholder') || 'Font ara...'" @focus="loadGoogleFonts"
+              style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:7px 12px;color:#e1e4ea;font-size:13px;outline:none" />
+            <select v-model="gfCategory" style="background:#2a2a3e;color:#c5cde8;border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:6px 8px;font-size:12px;outline:none;cursor:pointer" @focus="loadGoogleFonts">
+              <option value="all">All</option>
+              <option value="serif">Serif</option>
+              <option value="sans-serif">Sans Serif</option>
+              <option value="display">Display</option>
+              <option value="handwriting">Handwriting</option>
+              <option value="monospace">Monospace</option>
+            </select>
+          </div>
+          <div v-if="gfLoading" style="text-align:center;color:#6aabf7;padding:20px 0;font-size:13px">
+            <div style="width:24px;height:24px;border:3px solid #333;border-top-color:#4a90c4;border-radius:50%;animation:fsd-spin .8s linear infinite;margin:0 auto 8px"></div>
+            {{t('fontsLoading') || 'Google Fonts yükleniyor...'}}
+          </div>
+          <div v-else-if="gfLoaded && gfFilteredFonts.length === 0" style="text-align:center;color:#666;padding:16px 0;font-size:12px">{{t('fontsNoResults') || 'Font bulunamadı'}}</div>
+          <div v-else-if="gfLoaded" style="max-height:320px;overflow-y:auto;border:1px solid rgba(255,255,255,.06);border-radius:8px">
+            <div v-for="f in gfFilteredFonts" :key="f.family" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .12s;cursor:default" @mouseenter="$event.currentTarget.style.background='rgba(255,255,255,.04)'" @mouseleave="$event.currentTarget.style.background='transparent'">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:500;color:#e1e4ea;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{f.family}}</div>
+                <div style="font-size:10px;color:#5a5e72">{{f.category}} · {{(f.variants||[]).length}} variants</div>
+              </div>
+              <button v-if="!isFontAdded(f.family)" @click="addFont(f)"
+                style="padding:4px 12px;border-radius:5px;border:1px solid rgba(74,144,217,.4);background:rgba(74,144,217,.12);color:#6aabf7;cursor:pointer;font-size:11px;white-space:nowrap;transition:.15s">
+                + {{t('fontsAdd') || 'Ekle'}}
+              </button>
+              <span v-else style="font-size:11px;color:#67c23a;padding:4px 8px">✓ {{t('fontsAdded') || 'Eklendi'}}</span>
+            </div>
+          </div>
+          <div v-else style="text-align:center;color:#666;font-size:12px;padding:16px 0">{{t('fontsClickToLoad') || 'Arama kutusuna tıklayarak fontları yükleyin'}}</div>
         </div>
       </template>
       <template v-else-if="active==='ai'">
@@ -1365,6 +1465,7 @@ const useSettingsStore = defineStore('settings', {
     restoreSession: false,
     showKeyboardTray: false,
     showMagnifierTray: false,
+    fonts: [],
     zoom: 100
   }),
   actions: {
@@ -1386,6 +1487,7 @@ const useSettingsStore = defineStore('settings', {
         if (s.restoreSession !== undefined) this.restoreSession = s.restoreSession;
         if (s.showKeyboardTray !== undefined) this.showKeyboardTray = s.showKeyboardTray;
         if (s.showMagnifierTray !== undefined) this.showMagnifierTray = s.showMagnifierTray;
+        if (s.fonts) this.fonts = s.fonts;
         if (s.zoom) { this.zoom = s.zoom; window.__applyZoom && window.__applyZoom(s.zoom); }
       } catch {}
     },
@@ -1696,6 +1798,239 @@ window.FileDialog = (function() {
   };
 })();
 
+// ── Global Font Select Dialog ──
+window.FontSelectDialog = (function() {
+  const GOOGLE_FONTS_API = 'https://www.googleapis.com/webfonts/v1/webfonts';
+  let cachedFonts = null;
+  const loadedFontFamilies = new Set();
+
+  const CATEGORIES = ['all', 'serif', 'sans-serif', 'display', 'handwriting', 'monospace'];
+  const CATEGORY_LABELS = { all: 'All', serif: 'Serif', 'sans-serif': 'Sans Serif', display: 'Display', handwriting: 'Handwriting', monospace: 'Monospace' };
+  const SAMPLE_TEXT = 'The quick brown fox jumps over the lazy dog. 0123456789';
+
+  async function fetchFonts(apiKey) {
+    if (cachedFonts) return cachedFonts;
+    try {
+      // First try user's saved fonts from settings store
+      const settingsStore = window.__settingsStore;
+      if (settingsStore && settingsStore.fonts && settingsStore.fonts.length > 0) {
+        cachedFonts = settingsStore.fonts.map(f => ({
+          family: f.family,
+          category: f.category || 'sans-serif',
+          variants: f.variants || [],
+          subsets: f.subsets || [],
+          files: f.files || {}
+        }));
+        return cachedFonts;
+      }
+      // Fallback: fetch from server proxy
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || '';
+      const r = await fetch('/api/google-fonts', { headers: { 'Authorization': 'Bearer ' + token } });
+      if (!r.ok) throw new Error('Failed to fetch fonts');
+      const data = await r.json();
+      cachedFonts = (data || []).map(f => ({
+        family: f.family,
+        category: f.category,
+        variants: f.variants || [],
+        subsets: f.subsets || [],
+        files: f.files || {}
+      }));
+      return cachedFonts;
+    } catch (e) {
+      console.error('FontSelectDialog: fetch error', e);
+      return [];
+    }
+  }
+
+  function loadFontCSS(family) {
+    if (loadedFontFamilies.has(family)) return;
+    loadedFontFamilies.add(family);
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(family) + '&display=swap';
+    document.head.appendChild(link);
+  }
+
+  /**
+   * Show font select dialog
+   * @param {Object} opts
+   * @param {string} opts.title - dialog title
+   * @param {string} opts.apiKey - Google Fonts API key (optional, works without for limited usage)
+   * @param {string} opts.selectedFont - pre-selected font family
+   * @param {string} opts.sampleText - custom sample text
+   * @returns {Promise<{family,category,variants}|null>}
+   */
+  function show(opts = {}) {
+    return new Promise((resolve) => {
+      const title = opts.title || '🔤 Select Font';
+      const apiKey = opts.apiKey || '';
+      const sampleText = opts.sampleText || SAMPLE_TEXT;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'fsd-overlay';
+
+      let allFonts = [];
+      let filteredFonts = [];
+      let selectedFont = opts.selectedFont ? { family: opts.selectedFont } : null;
+      let searchQuery = '';
+      let activeCategory = 'all';
+      let loading = true;
+      let visibleCount = 40;
+      let scrollDebounce = null;
+
+      function filterFonts() {
+        const q = searchQuery.toLowerCase().trim();
+        filteredFonts = allFonts.filter(f => {
+          if (activeCategory !== 'all' && f.category !== activeCategory) return false;
+          if (q && !f.family.toLowerCase().includes(q)) return false;
+          return true;
+        });
+        visibleCount = 40;
+      }
+
+      function selectItem(font) {
+        selectedFont = font;
+        loadFontCSS(font.family);
+        render();
+      }
+
+      function confirm() {
+        if (!selectedFont) return;
+        cleanup();
+        resolve({ family: selectedFont.family, category: selectedFont.category, variants: selectedFont.variants || [] });
+      }
+      function cancel() { cleanup(); resolve(null); }
+      function cleanup() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+
+      function render() {
+        const visibleFonts = filteredFonts.slice(0, visibleCount);
+        overlay.innerHTML = `
+          <div class="fsd-dialog">
+            <div class="fsd-header">
+              <h3>${title}</h3>
+              <button class="fsd-close" data-action="cancel">✕</button>
+            </div>
+            <div class="fsd-toolbar">
+              <input class="fsd-search" type="text" placeholder="Search fonts..." value="${searchQuery.replace(/"/g, '&quot;')}" />
+              <select class="fsd-category">
+                ${CATEGORIES.map(c => `<option value="${c}" ${c === activeCategory ? 'selected' : ''}>${CATEGORY_LABELS[c]}</option>`).join('')}
+              </select>
+            </div>
+            <div class="fsd-body">
+              ${loading ? `
+                <div class="fsd-loading">
+                  <div class="fsd-spinner"></div>
+                  Loading Google Fonts...
+                </div>
+              ` : filteredFonts.length === 0 ? `
+                <div class="fsd-empty">No fonts found</div>
+              ` : visibleFonts.map((f, i) => `
+                <div class="fsd-item ${selectedFont && selectedFont.family === f.family ? 'selected' : ''}" data-idx="${i}">
+                  <div class="fsd-item-preview">
+                    <div class="fsd-item-name">${f.family}</div>
+                    <div class="fsd-item-sample" style="font-family:'${f.family}',${f.category || 'sans-serif'}">${sampleText.substring(0, 40)}</div>
+                  </div>
+                  <span class="fsd-item-category">${f.category || ''}</span>
+                </div>
+              `).join('')}
+              ${!loading && filteredFonts.length > visibleCount ? `<div class="fsd-empty" style="padding:12px">Scroll down for more... (${filteredFonts.length - visibleCount} more)</div>` : ''}
+            </div>
+            ${selectedFont ? `
+              <div class="fsd-preview-area">
+                <div class="fsd-preview-label">Preview — ${selectedFont.family}</div>
+                <div class="fsd-preview-text" style="font-family:'${selectedFont.family}',sans-serif">${sampleText}</div>
+                <div class="fsd-preview-sizes">
+                  <span class="fsd-preview-size" style="font-family:'${selectedFont.family}',sans-serif;font-size:12px">12px — ${sampleText.substring(0, 30)}</span>
+                  <span class="fsd-preview-size" style="font-family:'${selectedFont.family}',sans-serif;font-size:16px">16px — ${sampleText.substring(0, 25)}</span>
+                  <span class="fsd-preview-size" style="font-family:'${selectedFont.family}',sans-serif;font-size:20px">20px — ${sampleText.substring(0, 20)}</span>
+                </div>
+              </div>
+            ` : ''}
+            <div class="fsd-footer">
+              <span class="fsd-font-count">${loading ? 'Loading...' : filteredFonts.length + ' fonts'}</span>
+              <div class="fsd-footer-actions">
+                <button class="fsd-btn fsd-btn-cancel" data-action="cancel">Cancel</button>
+                <button class="fsd-btn fsd-btn-ok" data-action="confirm" ${!selectedFont ? 'disabled' : ''}>Select</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Events
+        overlay.querySelectorAll('[data-action="cancel"]').forEach(b => b.addEventListener('click', cancel));
+        const confirmBtn = overlay.querySelector('[data-action="confirm"]');
+        if (confirmBtn) confirmBtn.addEventListener('click', confirm);
+
+        const searchInput = overlay.querySelector('.fsd-search');
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            filterFonts();
+            render();
+            // Re-focus and restore cursor
+            const newInput = overlay.querySelector('.fsd-search');
+            if (newInput) { newInput.focus(); newInput.setSelectionRange(searchQuery.length, searchQuery.length); }
+          });
+        }
+
+        const catSelect = overlay.querySelector('.fsd-category');
+        if (catSelect) {
+          catSelect.addEventListener('change', (e) => {
+            activeCategory = e.target.value;
+            filterFonts();
+            render();
+          });
+        }
+
+        // Font item clicks + lazy-load fonts on visible items
+        const visibleItems = overlay.querySelectorAll('.fsd-item');
+        visibleItems.forEach(el => {
+          const idx = parseInt(el.dataset.idx);
+          const font = filteredFonts[idx];
+          if (font) {
+            loadFontCSS(font.family);
+            el.addEventListener('click', () => selectItem(font));
+            el.addEventListener('dblclick', () => { selectItem(font); confirm(); });
+          }
+        });
+
+        // Infinite scroll
+        const body = overlay.querySelector('.fsd-body');
+        if (body) {
+          body.addEventListener('scroll', () => {
+            if (scrollDebounce) clearTimeout(scrollDebounce);
+            scrollDebounce = setTimeout(() => {
+              if (body.scrollTop + body.clientHeight >= body.scrollHeight - 60 && visibleCount < filteredFonts.length) {
+                visibleCount += 30;
+                render();
+                body.scrollTop = body.scrollTop; // preserve scroll
+              }
+            }, 100);
+          });
+        }
+      }
+
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) cancel(); });
+
+      // Load fonts
+      fetchFonts(apiKey).then(fonts => {
+        allFonts = fonts;
+        loading = false;
+        filterFonts();
+        render();
+      });
+
+      render();
+    });
+  }
+
+  return {
+    show,
+    clearCache() { cachedFonts = null; }
+  };
+})();
+
 // ── Auth helpers (global scope) ──
 function getToken() { try { return localStorage.getItem('auth_token') || ''; } catch { return ''; } }
 function authHeaders() { return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' }; }
@@ -1734,10 +2069,10 @@ const I18N = {
     // Volume
     volMute: '🔇 Sessiz', volUnmute: '🔈 Sesi Aç',
     // Wallpaper
-    settingsWallpaper: 'Duvar Kağıdı', wpMode: 'Uygulama Modu', wpModeDesc: 'Tüm masaüstlerine aynı veya ayrı duvar kağıdı',
+    settingsWallpaper: 'Duvar Kağıdı', wpMode: 'Mod', wpModeDesc: 'Tüm masaüstlerine aynı veya ayrı duvar kağıdı',
     wpAll: 'Tümüne Aynı', wpPer: 'Ayrı Ayrı', wpDesktopSelect: 'Masaüstü Seç',
     wpUpload: 'Resim Yükle', wpUploadBtn: 'Yükle', wpGallery: 'Duvar Kağıtları',
-    wpUploading: 'Yükleniyor...', wpDefault: 'Varsayılan',
+    wpUploading: 'Yükleniyor...', wpDefault: 'Varsayılan', wpPreview: 'Önizleme',
     settingsSession: 'Oturum', restoreApps: 'Uygulamaları Geri Yükle', restoreAppsDesc: 'Sayfa yenilendiğinde açık uygulamalar tekrar açılsın',
     skbTrayToggle: 'Ekran Klavyesi Simgesi', skbTrayToggleDesc: 'Görev çubuğunda ekran klavyesi simgesini göster',
     magTrayShow: 'Büyüteci Göster', magTrayToggle: 'Büyüteç Simgesi', magTrayToggleDesc: 'Görev çubuğunda büyüteç simgesini göster',
@@ -1746,6 +2081,7 @@ const I18N = {
     twoFAEnterCode: 'Doğrulama kodu', twoFAVerify: 'Doğrula', twoFAActivated: '2FA başarıyla etkinleştirildi',
     twoFADeactivated: '2FA devre dışı bırakıldı', twoFADisablePrompt: 'Devre dışı bırakmak için authenticator kodunuzu girin',
     twoFADisableBtn: 'Devre Dışı Bırak', twoFALoginTitle: 'İki Faktörlü Doğrulama', twoFALoginDesc: 'Authenticator uygulamanızdaki 6 haneli kodu girin',
+    settingsFonts: 'Fontlar', fontsMyFonts: 'Fontlarım', fontsMyFontsDesc: 'Font Dialog\'da görüntülenecek fontlar', fontsEmpty: 'Henüz font eklenmedi. Aşağıdan Google Fonts\'tan font ekleyin.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Font arayın ve kullanmak istediklerinizi ekleyin', fontsSearchPlaceholder: 'Font ara...', fontsLoading: 'Google Fonts yükleniyor...', fontsNoResults: 'Font bulunamadı', fontsAdd: 'Ekle', fontsAdded: 'Eklendi', fontsClickToLoad: 'Arama kutusuna tıklayarak fontları yükleyin',
     settingsAI: 'Yapay Zeka', aiTokens: 'API Anahtarları', aiTokensDesc: 'Tüm uygulamalarda kullanılacak AI servis anahtarları',
     aiAgents: 'Ajanlar', aiAgentsDesc: 'Kullanılacak AI ajanlarını yapılandır',
     aiProvider: 'Sağlayıcı', aiApiKey: 'API Anahtarı', aiModel: 'Model', aiEnabled: 'Aktif',
@@ -1785,7 +2121,7 @@ const I18N = {
     settingsWallpaper: 'Wallpaper', wpMode: 'Mode', wpModeDesc: 'Same wallpaper for all desktops or different for each',
     wpAll: 'Same for All', wpPer: 'Per Desktop', wpDesktopSelect: 'Select Desktop',
     wpUpload: 'Upload Image', wpUploadBtn: 'Upload', wpGallery: 'Wallpapers',
-    wpUploading: 'Uploading...', wpDefault: 'Default',
+    wpUploading: 'Uploading...', wpDefault: 'Default', wpPreview: 'Preview',
     settingsSession: 'Session', restoreApps: 'Restore Apps', restoreAppsDesc: 'Reopen apps after page refresh',
     skbTrayToggle: 'Screen Keyboard Icon', skbTrayToggleDesc: 'Show screen keyboard icon in taskbar',
     magTrayShow: 'Show Magnifier', magTrayToggle: 'Magnifier Icon', magTrayToggleDesc: 'Show magnifier icon in taskbar',
@@ -1794,6 +2130,7 @@ const I18N = {
     twoFAEnterCode: 'Verification code', twoFAVerify: 'Verify', twoFAActivated: '2FA enabled successfully',
     twoFADeactivated: '2FA disabled', twoFADisablePrompt: 'Enter your authenticator code to disable 2FA',
     twoFADisableBtn: 'Disable', twoFALoginTitle: 'Two-Factor Authentication', twoFALoginDesc: 'Enter the 6-digit code from your authenticator app',
+    settingsFonts: 'Fonts', fontsMyFonts: 'My Fonts', fontsMyFontsDesc: 'Fonts displayed in Font Dialog', fontsEmpty: 'No fonts added yet. Add fonts from Google Fonts below.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Search and add fonts you want to use', fontsSearchPlaceholder: 'Search fonts...', fontsLoading: 'Loading Google Fonts...', fontsNoResults: 'No fonts found', fontsAdd: 'Add', fontsAdded: 'Added', fontsClickToLoad: 'Click the search box to load fonts',
     settingsAI: 'Artificial Intelligence', aiTokens: 'API Keys', aiTokensDesc: 'AI service keys available across all apps',
     aiAgents: 'Agents', aiAgentsDesc: 'Configure AI agents to use',
     aiProvider: 'Provider', aiApiKey: 'API Key', aiModel: 'Model', aiEnabled: 'Enabled',
@@ -1833,10 +2170,11 @@ const I18N = {
     settingsWallpaper: 'Hintergrundbild', wpMode: 'Modus', wpModeDesc: 'Gleiches oder verschiedenes Hintergrundbild für alle Desktops',
     wpAll: 'Für alle gleich', wpPer: 'Pro Desktop', wpDesktopSelect: 'Desktop auswählen',
     wpUpload: 'Bild hochladen', wpUploadBtn: 'Hochladen', wpGallery: 'Hintergrundbilder',
-    wpUploading: 'Wird hochgeladen...', wpDefault: 'Standard',
+    wpUploading: 'Wird hochgeladen...', wpDefault: 'Standard', wpPreview: 'Vorschau',
     settingsSession: 'Sitzung', restoreApps: 'Apps wiederherstellen', restoreAppsDesc: 'Offene Apps nach Seitenaktualisierung erneut öffnen',
     skbTrayToggle: 'Bildschirmtastatur-Symbol', skbTrayToggleDesc: 'Bildschirmtastatur-Symbol in der Taskleiste anzeigen',
     magTrayShow: 'Lupe anzeigen', magTrayToggle: 'Lupen-Symbol', magTrayToggleDesc: 'Lupen-Symbol in der Taskleiste anzeigen',
+    settingsFonts: 'Schriftarten', fontsMyFonts: 'Meine Schriftarten', fontsMyFontsDesc: 'Im Schriftarten-Dialog angezeigte Schriftarten', fontsEmpty: 'Noch keine Schriftarten hinzugefügt. Fügen Sie unten Schriftarten aus Google Fonts hinzu.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Schriftarten suchen und hinzufügen', fontsSearchPlaceholder: 'Schriftarten suchen...', fontsLoading: 'Google Fonts werden geladen...', fontsNoResults: 'Keine Schriftarten gefunden', fontsAdd: 'Hinzufügen', fontsAdded: 'Hinzugefügt', fontsClickToLoad: 'Klicken Sie auf das Suchfeld um Schriftarten zu laden',
     settingsAI: 'Künstliche Intelligenz', aiTokens: 'API-Schlüssel', aiTokensDesc: 'KI-Dienstschlüssel für alle Apps verfügbar',
     aiAgents: 'Agenten', aiAgentsDesc: 'KI-Agenten konfigurieren',
     aiProvider: 'Anbieter', aiApiKey: 'API-Schlüssel', aiModel: 'Modell', aiEnabled: 'Aktiviert',
@@ -1876,10 +2214,11 @@ const I18N = {
     settingsWallpaper: 'Fond d\'écran', wpMode: 'Mode', wpModeDesc: 'Même fond d\'écran pour tous les bureaux ou différent pour chacun',
     wpAll: 'Identique pour tous', wpPer: 'Par bureau', wpDesktopSelect: 'Sélectionner le bureau',
     wpUpload: 'Charger une image', wpUploadBtn: 'Charger', wpGallery: 'Fonds d\'écran',
-    wpUploading: 'Chargement...', wpDefault: 'Par défaut',
+    wpUploading: 'Chargement...', wpDefault: 'Par défaut', wpPreview: 'Aperçu',
     settingsSession: 'Session', restoreApps: 'Restaurer les applications', restoreAppsDesc: 'Rouvrir les applications après actualisation de la page',
     skbTrayToggle: 'Icône clavier virtuel', skbTrayToggleDesc: 'Afficher l\'icône du clavier virtuel dans la barre des tâches',
     magTrayShow: 'Afficher la loupe', magTrayToggle: 'Icône loupe', magTrayToggleDesc: 'Afficher l\'icône de la loupe dans la barre des tâches',
+    settingsFonts: 'Polices', fontsMyFonts: 'Mes polices', fontsMyFontsDesc: 'Polices affichées dans le dialogue de polices', fontsEmpty: 'Aucune police ajoutée. Ajoutez des polices depuis Google Fonts ci-dessous.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Recherchez et ajoutez les polices souhaitées', fontsSearchPlaceholder: 'Rechercher des polices...', fontsLoading: 'Chargement de Google Fonts...', fontsNoResults: 'Aucune police trouvée', fontsAdd: 'Ajouter', fontsAdded: 'Ajouté', fontsClickToLoad: 'Cliquez sur la barre de recherche pour charger les polices',
     settingsAI: 'Intelligence Artificielle', aiTokens: 'Clés API', aiTokensDesc: 'Clés de service IA disponibles pour toutes les applications',
     aiAgents: 'Agents', aiAgentsDesc: 'Configurer les agents IA à utiliser',
     aiProvider: 'Fournisseur', aiApiKey: 'Clé API', aiModel: 'Modèle', aiEnabled: 'Activé',
@@ -1919,10 +2258,11 @@ const I18N = {
     settingsWallpaper: 'Fondo de pantalla', wpMode: 'Modo', wpModeDesc: 'Mismo fondo para todos los escritorios o diferente para cada uno',
     wpAll: 'Igual para todos', wpPer: 'Por escritorio', wpDesktopSelect: 'Seleccionar escritorio',
     wpUpload: 'Subir imagen', wpUploadBtn: 'Subir', wpGallery: 'Fondos de pantalla',
-    wpUploading: 'Subiendo...', wpDefault: 'Predeterminado',
+    wpUploading: 'Subiendo...', wpDefault: 'Predeterminado', wpPreview: 'Vista previa',
     settingsSession: 'Sesión', restoreApps: 'Restaurar aplicaciones', restoreAppsDesc: 'Reabrir aplicaciones tras actualizar la página',
     skbTrayToggle: 'Icono de teclado', skbTrayToggleDesc: 'Mostrar icono de teclado en pantalla en la barra de tareas',
     magTrayShow: 'Mostrar lupa', magTrayToggle: 'Icono de lupa', magTrayToggleDesc: 'Mostrar icono de lupa en la barra de tareas',
+    settingsFonts: 'Fuentes', fontsMyFonts: 'Mis fuentes', fontsMyFontsDesc: 'Fuentes mostradas en el diálogo de fuentes', fontsEmpty: 'Aún no se han añadido fuentes. Añada fuentes desde Google Fonts abajo.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Busque y añada las fuentes que desee usar', fontsSearchPlaceholder: 'Buscar fuentes...', fontsLoading: 'Cargando Google Fonts...', fontsNoResults: 'No se encontraron fuentes', fontsAdd: 'Añadir', fontsAdded: 'Añadido', fontsClickToLoad: 'Haga clic en el cuadro de búsqueda para cargar fuentes',
     settingsAI: 'Inteligencia Artificial', aiTokens: 'Claves API', aiTokensDesc: 'Claves de servicio IA disponibles en todas las aplicaciones',
     aiAgents: 'Agentes', aiAgentsDesc: 'Configurar los agentes IA a utilizar',
     aiProvider: 'Proveedor', aiApiKey: 'Clave API', aiModel: 'Modelo', aiEnabled: 'Activado',
@@ -1962,10 +2302,11 @@ const I18N = {
     settingsWallpaper: 'Обои', wpMode: 'Режим', wpModeDesc: 'Одинаковые обои для всех рабочих столов или разные',
     wpAll: 'Одинаковые для всех', wpPer: 'Для каждого стола', wpDesktopSelect: 'Выбрать рабочий стол',
     wpUpload: 'Загрузить изображение', wpUploadBtn: 'Загрузить', wpGallery: 'Обои',
-    wpUploading: 'Загрузка...', wpDefault: 'По умолчанию',
+    wpUploading: 'Загрузка...', wpDefault: 'По умолчанию', wpPreview: 'Предпросмотр',
     settingsSession: 'Сессия', restoreApps: 'Восстановить приложения', restoreAppsDesc: 'Открывать приложения заново после обновления страницы',
     skbTrayToggle: 'Значок клавиатуры', skbTrayToggleDesc: 'Показать значок экранной клавиатуры на панели задач',
     magTrayShow: 'Показать лупу', magTrayToggle: 'Значок лупы', magTrayToggleDesc: 'Показать значок лупы на панели задач',
+    settingsFonts: 'Шрифты', fontsMyFonts: 'Мои шрифты', fontsMyFontsDesc: 'Шрифты отображаемые в диалоге выбора шрифтов', fontsEmpty: 'Шрифты ещё не добавлены. Добавьте шрифты из Google Fonts ниже.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Ищите и добавляйте нужные шрифты', fontsSearchPlaceholder: 'Поиск шрифтов...', fontsLoading: 'Загрузка Google Fonts...', fontsNoResults: 'Шрифты не найдены', fontsAdd: 'Добавить', fontsAdded: 'Добавлено', fontsClickToLoad: 'Нажмите на строку поиска для загрузки шрифтов',
     settingsAI: 'Искусственный интеллект', aiTokens: 'API-ключи', aiTokensDesc: 'Ключи ИИ-сервисов доступны для всех приложений',
     aiAgents: 'Агенты', aiAgentsDesc: 'Настроить используемых ИИ-агентов',
     aiProvider: 'Провайдер', aiApiKey: 'API-ключ', aiModel: 'Модель', aiEnabled: 'Включено',
@@ -2005,10 +2346,11 @@ const I18N = {
     settingsWallpaper: '壁纸', wpMode: '模式', wpModeDesc: '为所有桌面设置相同或不同的壁纸',
     wpAll: '全部相同', wpPer: '各自不同', wpDesktopSelect: '选择桌面',
     wpUpload: '上传图片', wpUploadBtn: '上传', wpGallery: '壁纸库',
-    wpUploading: '上传中...', wpDefault: '默认',
+    wpUploading: '上传中...', wpDefault: '默认', wpPreview: '预览',
     settingsSession: '会话', restoreApps: '恢复应用', restoreAppsDesc: '页面刷新后重新打开应用',
     skbTrayToggle: '键盘图标', skbTrayToggleDesc: '在任务栏显示屏幕键盘图标',
     magTrayShow: '显示放大镜', magTrayToggle: '放大镜图标', magTrayToggleDesc: '在任务栏显示放大镜图标',
+    settingsFonts: '字体', fontsMyFonts: '我的字体', fontsMyFontsDesc: '在字体对话框中显示的字体', fontsEmpty: '尚未添加字体。从下方的Google Fonts添加字体。', fontsBrowse: 'Google Fonts', fontsBrowseDesc: '搜索并添加您想使用的字体', fontsSearchPlaceholder: '搜索字体...', fontsLoading: '正在加载Google Fonts...', fontsNoResults: '未找到字体', fontsAdd: '添加', fontsAdded: '已添加', fontsClickToLoad: '点击搜索框加载字体',
     settingsAI: '人工智能', aiTokens: 'API密钥', aiTokensDesc: '所有应用可用的AI服务密钥',
     aiAgents: '代理', aiAgentsDesc: '配置要使用的AI代理',
     aiProvider: '提供商', aiApiKey: 'API密钥', aiModel: '模型', aiEnabled: '已启用',
@@ -2048,10 +2390,11 @@ const I18N = {
     settingsWallpaper: '壁紙', wpMode: 'モード', wpModeDesc: 'すべてのデスクトップに同じ壁紙または個別に設定',
     wpAll: 'すべて同じ', wpPer: 'デスクトップごと', wpDesktopSelect: 'デスクトップを選択',
     wpUpload: '画像をアップロード', wpUploadBtn: 'アップロード', wpGallery: '壁紙ギャラリー',
-    wpUploading: 'アップロード中...', wpDefault: 'デフォルト',
+    wpUploading: 'アップロード中...', wpDefault: 'デフォルト', wpPreview: 'プレビュー',
     settingsSession: 'セッション', restoreApps: 'アプリを復元', restoreAppsDesc: 'ページ更新後にアプリを再度開く',
     skbTrayToggle: 'キーボードアイコン', skbTrayToggleDesc: 'タスクバーにスクリーンキーボードアイコンを表示',
     magTrayShow: '拡大鏡を表示', magTrayToggle: '拡大鏡アイコン', magTrayToggleDesc: 'タスクバーに拡大鏡アイコンを表示',
+    settingsFonts: 'フォント', fontsMyFonts: 'マイフォント', fontsMyFontsDesc: 'フォントダイアログに表示されるフォント', fontsEmpty: 'まだフォントが追加されていません。下のGoogle Fontsからフォントを追加してください。', fontsBrowse: 'Google Fonts', fontsBrowseDesc: '使用したいフォントを検索して追加', fontsSearchPlaceholder: 'フォント検索...', fontsLoading: 'Google Fontsを読み込み中...', fontsNoResults: 'フォントが見つかりません', fontsAdd: '追加', fontsAdded: '追加済み', fontsClickToLoad: '検索ボックスをクリックしてフォントを読み込む',
     settingsAI: '人工知能', aiTokens: 'APIキー', aiTokensDesc: 'すべてのアプリで利用可能なAIサービスキー',
     aiAgents: 'エージェント', aiAgentsDesc: '使用するAIエージェントを設定',
     aiProvider: 'プロバイダー', aiApiKey: 'APIキー', aiModel: 'モデル', aiEnabled: '有効',
@@ -2091,10 +2434,11 @@ const I18N = {
     settingsWallpaper: 'Sfondo', wpMode: 'Modalità', wpModeDesc: 'Stesso sfondo per tutti i desktop o diverso per ciascuno',
     wpAll: 'Uguale per tutti', wpPer: 'Per desktop', wpDesktopSelect: 'Seleziona desktop',
     wpUpload: 'Carica immagine', wpUploadBtn: 'Carica', wpGallery: 'Sfondi',
-    wpUploading: 'Caricamento...', wpDefault: 'Predefinito',
+    wpUploading: 'Caricamento...', wpDefault: 'Predefinito', wpPreview: 'Anteprima',
     settingsSession: 'Sessione', restoreApps: 'Ripristina app', restoreAppsDesc: 'Riapri le app dopo l\'aggiornamento della pagina',
     skbTrayToggle: 'Icona tastiera', skbTrayToggleDesc: 'Mostra icona della tastiera su schermo nella barra delle applicazioni',
     magTrayShow: 'Mostra lente', magTrayToggle: 'Icona lente', magTrayToggleDesc: 'Mostra icona della lente di ingrandimento nella barra delle applicazioni',
+    settingsFonts: 'Font', fontsMyFonts: 'I miei font', fontsMyFontsDesc: 'Font visualizzati nella finestra di selezione font', fontsEmpty: 'Nessun font aggiunto. Aggiungi font da Google Fonts qui sotto.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Cerca e aggiungi i font che vuoi usare', fontsSearchPlaceholder: 'Cerca font...', fontsLoading: 'Caricamento Google Fonts...', fontsNoResults: 'Nessun font trovato', fontsAdd: 'Aggiungi', fontsAdded: 'Aggiunto', fontsClickToLoad: 'Clicca sulla barra di ricerca per caricare i font',
     settingsAI: 'Intelligenza Artificiale', aiTokens: 'Chiavi API', aiTokensDesc: 'Chiavi dei servizi IA disponibili in tutte le app',
     aiAgents: 'Agenti', aiAgentsDesc: 'Configura gli agenti IA da utilizzare',
     aiProvider: 'Provider', aiApiKey: 'Chiave API', aiModel: 'Modello', aiEnabled: 'Abilitato',
@@ -2134,10 +2478,11 @@ const I18N = {
     settingsWallpaper: 'خلفية الشاشة', wpMode: 'الوضع', wpModeDesc: 'نفس الخلفية لجميع أسطح المكتب أو مختلفة لكل واحد',
     wpAll: 'نفسها للجميع', wpPer: 'لكل سطح مكتب', wpDesktopSelect: 'اختر سطح المكتب',
     wpUpload: 'رفع صورة', wpUploadBtn: 'رفع', wpGallery: 'الخلفيات',
-    wpUploading: 'جاري الرفع...', wpDefault: 'افتراضي',
+    wpUploading: 'جاري الرفع...', wpDefault: 'افتراضي', wpPreview: 'معاينة',
     settingsSession: 'الجلسة', restoreApps: 'استعادة التطبيقات', restoreAppsDesc: 'إعادة فتح التطبيقات بعد تحديث الصفحة',
     skbTrayToggle: 'أيقونة لوحة المفاتيح', skbTrayToggleDesc: 'إظهار أيقونة لوحة المفاتيح في شريط المهام',
     magTrayShow: 'إظهار المكبر', magTrayToggle: 'أيقونة المكبر', magTrayToggleDesc: 'إظهار أيقونة المكبر في شريط المهام',
+    settingsFonts: 'الخطوط', fontsMyFonts: 'خطوطي', fontsMyFontsDesc: 'الخطوط المعروضة في مربع حوار الخطوط', fontsEmpty: 'لم تتم إضافة خطوط بعد. أضف خطوطاً من Google Fonts أدناه.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'ابحث وأضف الخطوط التي تريد استخدامها', fontsSearchPlaceholder: 'بحث الخطوط...', fontsLoading: 'جاري تحميل Google Fonts...', fontsNoResults: 'لم يتم العثور على خطوط', fontsAdd: 'إضافة', fontsAdded: 'تمت الإضافة', fontsClickToLoad: 'انقر على مربع البحث لتحميل الخطوط',
     settingsAI: 'الذكاء الاصطناعي', aiTokens: 'مفاتيح API', aiTokensDesc: 'مفاتيح خدمة الذكاء الاصطناعي المتاحة لجميع التطبيقات',
     aiAgents: 'الوكلاء', aiAgentsDesc: 'تكوين وكلاء الذكاء الاصطناعي للاستخدام',
     aiProvider: 'المزود', aiApiKey: 'مفتاح API', aiModel: 'النموذج', aiEnabled: 'مفعل',
@@ -2177,10 +2522,11 @@ const I18N = {
     settingsWallpaper: '배경화면', wpMode: '모드', wpModeDesc: '모든 데스크톱에 같은 배경 또는 각각 다르게 설정',
     wpAll: '모두 동일', wpPer: '데스크톱별', wpDesktopSelect: '데스크톱 선택',
     wpUpload: '이미지 업로드', wpUploadBtn: '업로드', wpGallery: '배경화면',
-    wpUploading: '업로드 중...', wpDefault: '기본값',
+    wpUploading: '업로드 중...', wpDefault: '기본값', wpPreview: '미리보기',
     settingsSession: '세션', restoreApps: '앱 복원', restoreAppsDesc: '페이지 새로고침 후 앱 다시 열기',
     skbTrayToggle: '키보드 아이콘', skbTrayToggleDesc: '작업 표시줄에 화면 키보드 아이콘 표시',
     magTrayShow: '돋보기 표시', magTrayToggle: '돋보기 아이콘', magTrayToggleDesc: '작업 표시줄에 돋보기 아이콘 표시',
+    settingsFonts: '글꼴', fontsMyFonts: '내 글꼴', fontsMyFontsDesc: '글꼴 대화 상자에 표시되는 글꼴', fontsEmpty: '아직 글꼴이 추가되지 않았습니다. 아래 Google Fonts에서 글꼴을 추가하세요.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: '사용하려는 글꼴을 검색하고 추가', fontsSearchPlaceholder: '글꼴 검색...', fontsLoading: 'Google Fonts 로딩 중...', fontsNoResults: '글꼴을 찾을 수 없습니다', fontsAdd: '추가', fontsAdded: '추가됨', fontsClickToLoad: '검색 상자를 클릭하여 글꼴을 로드합니다',
     settingsAI: '인공지능', aiTokens: 'API 키', aiTokensDesc: '모든 앱에서 사용할 수 있는 AI 서비스 키',
     aiAgents: '에이전트', aiAgentsDesc: '사용할 AI 에이전트 구성',
     aiProvider: '제공업체', aiApiKey: 'API 키', aiModel: '모델', aiEnabled: '활성화',
@@ -2220,10 +2566,11 @@ const I18N = {
     settingsWallpaper: 'वॉलपेपर', wpMode: 'मोड', wpModeDesc: 'सभी डेस्कटॉप के लिए एक ही या अलग-अलग वॉलपेपर',
     wpAll: 'सभी के लिए समान', wpPer: 'प्रति डेस्कटॉप', wpDesktopSelect: 'डेस्कटॉप चुनें',
     wpUpload: 'इमेज अपलोड करें', wpUploadBtn: 'अपलोड', wpGallery: 'वॉलपेपर',
-    wpUploading: 'अपलोड हो रहा है...', wpDefault: 'डिफ़ॉल्ट',
+    wpUploading: 'अपलोड हो रहा है...', wpDefault: 'डिफ़ॉल्ट', wpPreview: 'पूर्वावलोकन',
     settingsSession: 'सत्र', restoreApps: 'ऐप्स पुनर्स्थापित करें', restoreAppsDesc: 'पेज रीफ़्रेश के बाद ऐप दोबारा खोलें',
     skbTrayToggle: 'कीबोर्ड आइकन', skbTrayToggleDesc: 'टास्कबार में स्क्रीन कीबोर्ड आइकन दिखाएं',
     magTrayShow: 'मैग्निफायर दिखाएं', magTrayToggle: 'मैग्निफायर आइकन', magTrayToggleDesc: 'टास्कबार में मैग्निफायर आइकन दिखाएं',
+    settingsFonts: 'फ़ॉन्ट', fontsMyFonts: 'मेरे फ़ॉन्ट', fontsMyFontsDesc: 'फ़ॉन्ट डायलॉग में प्रदर्शित फ़ॉन्ट', fontsEmpty: 'अभी तक कोई फ़ॉन्ट नहीं जोड़ा गया। नीचे Google Fonts से फ़ॉन्ट जोड़ें।', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'उपयोग करने के लिए फ़ॉन्ट खोजें और जोड़ें', fontsSearchPlaceholder: 'फ़ॉन्ट खोजें...', fontsLoading: 'Google Fonts लोड हो रहा है...', fontsNoResults: 'कोई फ़ॉन्ट नहीं मिला', fontsAdd: 'जोड़ें', fontsAdded: 'जोड़ा गया', fontsClickToLoad: 'फ़ॉन्ट लोड करने के लिए खोज बॉक्स पर क्लिक करें',
     settingsAI: 'कृत्रिम बुद्धिमत्ता', aiTokens: 'API कुंजियाँ', aiTokensDesc: 'सभी ऐप्स में उपलब्ध AI सेवा कुंजियाँ',
     aiAgents: 'एजेंट', aiAgentsDesc: 'उपयोग करने के लिए AI एजेंट कॉन्फ़िगर करें',
     aiProvider: 'प्रदाता', aiApiKey: 'API कुंजी', aiModel: 'मॉडल', aiEnabled: 'सक्रिय',
@@ -2263,10 +2610,11 @@ const I18N = {
     settingsWallpaper: 'Papel de Parede', wpMode: 'Modo', wpModeDesc: 'Mesmo papel de parede para todas as áreas de trabalho ou diferente para cada uma',
     wpAll: 'Igual para Todos', wpPer: 'Por Área de Trabalho', wpDesktopSelect: 'Selecionar Área de Trabalho',
     wpUpload: 'Enviar Imagem', wpUploadBtn: 'Enviar', wpGallery: 'Papéis de Parede',
-    wpUploading: 'Enviando...', wpDefault: 'Padrão',
+    wpUploading: 'Enviando...', wpDefault: 'Padrão', wpPreview: 'Pré-visualização',
     settingsSession: 'Sessão', restoreApps: 'Restaurar Apps', restoreAppsDesc: 'Reabrir apps após atualização da página',
     skbTrayToggle: 'Ícone do Teclado', skbTrayToggleDesc: 'Mostrar ícone do teclado virtual na barra de tarefas',
     magTrayShow: 'Mostrar Lupa', magTrayToggle: 'Ícone da Lupa', magTrayToggleDesc: 'Mostrar ícone da lupa na barra de tarefas',
+    settingsFonts: 'Fontes', fontsMyFonts: 'Minhas fontes', fontsMyFontsDesc: 'Fontes exibidas no diálogo de fontes', fontsEmpty: 'Nenhuma fonte adicionada ainda. Adicione fontes do Google Fonts abaixo.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Pesquise e adicione as fontes que deseja usar', fontsSearchPlaceholder: 'Pesquisar fontes...', fontsLoading: 'Carregando Google Fonts...', fontsNoResults: 'Nenhuma fonte encontrada', fontsAdd: 'Adicionar', fontsAdded: 'Adicionado', fontsClickToLoad: 'Clique na caixa de pesquisa para carregar as fontes',
     settingsAI: 'Inteligência Artificial', aiTokens: 'Chaves API', aiTokensDesc: 'Chaves de serviço IA disponíveis em todos os apps',
     aiAgents: 'Agentes', aiAgentsDesc: 'Configurar agentes IA a utilizar',
     aiProvider: 'Provedor', aiApiKey: 'Chave API', aiModel: 'Modelo', aiEnabled: 'Ativado',
@@ -2968,6 +3316,7 @@ const SettingsApp = {
     const tabs = computed(() => [
       { id: 'display', icon: '🖥️', name: t('settingsDisplay') },
       { id: 'wallpaper', icon: '🖼️', name: t('settingsWallpaper') || 'Duvar Kağıdı' },
+      { id: 'fonts', icon: '🔤', name: t('settingsFonts') || 'Fonts' },
       { id: 'location', icon: '📍', name: t('settingsLocation') },
       { id: 'language', icon: '🌐', name: t('settingsLanguage') },
       { id: 'sound', icon: '🔊', name: t('settingsSound') },
@@ -3163,6 +3512,65 @@ const SettingsApp = {
 
     function applyWallpaper() {
       if (window._applyWallpaper) window._applyWallpaper();
+    }
+
+    function wpAuthUrl(url) {
+      if (!url) return '';
+      const token = localStorage.getItem('token') || localStorage.getItem('auth_token') || '';
+      return url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
+    }
+
+    // ── Fonts ──
+    const userFonts = ref([...(settingsStore.fonts || [])]);
+    const gfAllFonts = ref([]);
+    const gfSearch = ref('');
+    const gfCategory = ref('all');
+    const gfLoading = ref(false);
+    const gfLoaded = ref(false);
+
+    const gfFilteredFonts = computed(() => {
+      const q = gfSearch.value.toLowerCase().trim();
+      const cat = gfCategory.value;
+      return gfAllFonts.value.filter(f => {
+        if (cat !== 'all' && f.category !== cat) return false;
+        if (q && !f.family.toLowerCase().includes(q)) return false;
+        return true;
+      }).slice(0, 60);
+    });
+
+    function isFontAdded(family) {
+      return userFonts.value.some(f => f.family === family);
+    }
+
+    async function loadGoogleFonts() {
+      if (gfLoaded.value) return;
+      gfLoading.value = true;
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('auth_token') || '';
+        const res = await fetch('/api/google-fonts', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) {
+          gfAllFonts.value = await res.json();
+          gfLoaded.value = true;
+        }
+      } catch {}
+      gfLoading.value = false;
+    }
+
+    function addFont(font) {
+      if (isFontAdded(font.family)) return;
+      userFonts.value.push({ family: font.family, category: font.category, variants: font.variants || [] });
+      saveFonts();
+    }
+
+    function removeFont(family) {
+      userFonts.value = userFonts.value.filter(f => f.family !== family);
+      saveFonts();
+    }
+
+    function saveFonts() {
+      settingsStore.fonts = [...userFonts.value];
+      settingsStore.save({ fonts: [...userFonts.value] });
+      if (window.FontSelectDialog) window.FontSelectDialog.clearCache();
     }
 
     // ── Session restore ──
@@ -3366,7 +3774,7 @@ const SettingsApp = {
       load2FAStatus();
     });
 
-    return { active, tabs, currentRows, zoomLevel, zoomOptions, darkModeVal, onZoomChange, screenInfo, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray, twoFAEnabled, twoFASetup, twoFASecret, twoFAQRUrl, twoFACode, twoFAError, twoFADisabling, twoFADisableCode, toggle2FA, verify2FASetup, confirm2FADisable, aiProviders, aiAgents, addProvider, removeProvider, addAgent, removeAgent, saveAISettings };
+    return { active, tabs, currentRows, zoomLevel, zoomOptions, darkModeVal, onZoomChange, screenInfo, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, wpAuthUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray, twoFAEnabled, twoFASetup, twoFASecret, twoFAQRUrl, twoFACode, twoFAError, twoFADisabling, twoFADisableCode, toggle2FA, verify2FASetup, confirm2FADisable, aiProviders, aiAgents, addProvider, removeProvider, addAgent, removeAgent, saveAISettings, userFonts, gfAllFonts, gfSearch, gfCategory, gfLoading, gfLoaded, gfFilteredFonts, isFontAdded, loadGoogleFonts, addFont, removeFont };
   }
 };
 
@@ -5031,10 +5439,11 @@ createApp({
       }
     }
 
-    function doLogout() {
-      document.cookie = 'token=; Path=/; Max-Age=0';
+    async function doLogout() {
+      try { await fetch('/api/logout', { method: 'POST' }); } catch {}
+      localStorage.removeItem('token');
       localStorage.removeItem('auth_token');
-      location.href = '/';
+      location.href = '/login.html';
     }
 
     const notifCount = ref(0);
@@ -5917,7 +6326,7 @@ createApp({
     }
 
     function aiHandleOutsideClick(e) {
-      if (aiPanelOpen.value && !e.target.closest('.ai-panel') && !e.target.closest('.ai-tray-btn')) {
+      if (aiPanelOpen.value && !e.target.closest('.ai-panel') && !e.target.closest('.ai-tray-btn') && !e.target.closest('.ai-desktop-fab')) {
         aiPanelOpen.value = false;
       }
     }
@@ -5940,6 +6349,7 @@ window.__applyZoom = function(z) {
   el.style.height = s === 1 ? '100vh' : (100 / s) + 'vh';
 };
 const _bootStore = useSettingsStore();
+window.__settingsStore = _bootStore;
 _bootStore.load().then(() => {
   if (window._applyWallpaper) window._applyWallpaper();
 });

@@ -1,0 +1,87 @@
+<div class="vp-root">
+  <div class="vp-header">
+    <div class="vp-header-left">
+      <span class="vp-app-icon">&#x1F5A5;</span>
+      <span class="vp-app-title">VirtPC</span>
+      <span class="vp-app-subtitle">Virtual Desktop Manager</span>
+    </div>
+    <div class="vp-header-right">
+      <button class="vp-btn vp-btn-secondary" @click="refreshAll" title="Refresh status">&#x1F504; Refresh</button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div v-if="statusMsg" class="vp-msg vp-msg-info">{{ statusMsg }}</div>
+  <div v-if="errorMsg" class="vp-msg vp-msg-error">{{ errorMsg }}</div>
+
+  <div class="vp-content">
+    <!-- CREATE NEW VM -->
+    <div class="vp-create-section">
+      <div class="vp-section-title">Create New Virtual Machine</div>
+      <div class="vp-create-form">
+        <div class="vp-form-group">
+          <label>Name</label>
+          <input class="vp-input" type="text" v-model="newVmName" placeholder="e.g. my-desktop"
+            maxlength="30" @keyup.enter="createVm" />
+        </div>
+        <div class="vp-form-group">
+          <label>Resolution</label>
+          <select class="vp-select" v-model="newVmResolution">
+            <option v-for="r in resolutions" :key="r" :value="r">{{ r }}</option>
+          </select>
+        </div>
+        <button class="vp-btn vp-btn-primary" @click="createVm" :disabled="creating || !newVmName.trim()">
+          {{ creating ? 'Creating...' : '+ Create VM' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- MACHINES LIST -->
+    <div class="vp-section-title" style="margin-top:16px">
+      Virtual Machines
+      <span class="vp-count">({{ machines.length }})</span>
+    </div>
+
+    <div v-if="machines.length === 0" class="vp-empty">
+      <div class="vp-empty-icon">&#x1F5A5;</div>
+      <div>No virtual machines yet</div>
+      <div class="vp-empty-hint">Create one above to get started</div>
+    </div>
+
+    <div class="vp-machines-grid">
+      <div v-for="vm in machines" :key="vm.name" class="vp-machine-card" :class="'vp-status-' + vm.status">
+        <div class="vp-card-header">
+          <span class="vp-card-status" :style="{ color: statusColor(vm.status) }">{{ statusIcon(vm.status) }}</span>
+          <span class="vp-card-name">{{ vm.name }}</span>
+          <span class="vp-card-badge">{{ vm.status }}</span>
+        </div>
+        <div class="vp-card-body">
+          <div class="vp-card-info">
+            <span>&#x1F4BB; {{ vm.resolution }}</span>
+            <span>&#x1F4C5; {{ formatDate(vm.createdAt) }}</span>
+            <span v-if="vm.port">Port: {{ vm.port }}</span>
+          </div>
+        </div>
+        <div class="vp-card-actions">
+          <template v-if="vm.status === 'running'">
+            <button class="vp-btn vp-btn-connect" @click="connectVm(vm)">&#x1F310; Connect</button>
+            <button class="vp-btn vp-btn-danger-sm" @click="stopVm(vm)">&#x23F9; Stop</button>
+          </template>
+          <template v-else-if="vm.status === 'stopped'">
+            <button class="vp-btn vp-btn-primary-sm" @click="startVm(vm)">&#x25B6; Start</button>
+            <button class="vp-btn vp-btn-danger-sm" @click="deleteVm(vm)">&#x1F5D1; Delete</button>
+          </template>
+          <template v-else>
+            <span class="vp-card-loading">&#x23F3;</span>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-footer">
+    <span>Image: dorowu/ubuntu-desktop-lxde-vnc:latest</span>
+    <span>|</span>
+    <span>Ubuntu + LXDE Desktop via noVNC</span>
+  </div>
+</div>

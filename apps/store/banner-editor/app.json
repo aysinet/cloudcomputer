@@ -1,0 +1,68 @@
+{
+  "id": "banner-editor",
+  "name": "Banner Editor",
+  "icon": "🖼️",
+  "color": "linear-gradient(135deg,#6366f1,#ec4899)",
+  "type": "internal",
+  "size": {
+    "w": 1100,
+    "h": 720
+  },
+  "global": false,
+  "description": "Banner tasarımcısı — standart boyutlar, metin, görsel ekleme ve düzenleme",
+  "lang": {
+    "tr": {
+      "name": "Banner Editör",
+      "description": "Banner tasarımcısı — standart boyutlar, metin, görsel ekleme ve düzenleme"
+    },
+    "en": {
+      "name": "Banner Editor",
+      "description": "Banner designer — standard sizes, text, image editing"
+    },
+    "de": {
+      "name": "Banner Editor",
+      "description": "Banner-Designer — Standardgrößen, Text, Bildbearbeitung"
+    },
+    "fr": {
+      "name": "Éditeur de bannière",
+      "description": "Concepteur de bannières — tailles standard, texte, images"
+    },
+    "es": {
+      "name": "Editor de Banner",
+      "description": "Diseñador de banners — tamaños estándar, texto, imágenes"
+    },
+    "ru": {
+      "name": "Редактор баннеров",
+      "description": "Дизайнер баннеров — стандартные размеры, текст, изображения"
+    },
+    "zh": {
+      "name": "横幅编辑器",
+      "description": "横幅设计器 — 标准尺寸、文字、图片编辑"
+    },
+    "ja": {
+      "name": "バナーエディタ",
+      "description": "バナーデザイナー — 標準サイズ、テキスト、画像編集"
+    },
+    "it": {
+      "name": "Editor Banner",
+      "description": "Designer di banner — dimensioni standard, testo, immagini"
+    },
+    "ar": {
+      "name": "محرر البانر",
+      "description": "مصمم البانرات — أحجام قياسية، نصوص، صور"
+    },
+    "ko": {
+      "name": "배너 편집기",
+      "description": "배너 디자이너 — 표준 크기, 텍스트, 이미지 편집"
+    },
+    "hi": {
+      "name": "बैनर एडिटर",
+      "description": "बैनर डिज़ाइनर — मानक आकार, टेक्स्ट, छवि संपादन"
+    },
+    "pt": {
+      "name": "Editor de Banner",
+      "description": "Designer de banners — tamanhos padrão, texto, imagens"
+    }
+  },
+  "category": "productivity"
+}

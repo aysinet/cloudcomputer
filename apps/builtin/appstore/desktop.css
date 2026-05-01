@@ -23,7 +23,7 @@
 .store-list .el-collapse-item__header{background:#f5f7fa;border-bottom:1px solid #ebeef5;padding:0 10px;font-size:14px}
 .store-list .el-collapse-item__wrap{background:#f5f7fa}
 .store-list .el-collapse-item__content{padding:0 6px 6px}
-.service-install-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center}
+.service-install-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);z-index:300000;display:flex;align-items:center;justify-content:center}
 .service-install-dialog{background:#1e1e2e;border-radius:12px;min-width:380px;max-width:460px;box-shadow:0 8px 32px rgba(0,0,0,.4);overflow:hidden}
 .service-install-content{max-height:80vh;overflow-y:auto}
 .service-install-loading{padding:40px;text-align:center;color:#aaa}
