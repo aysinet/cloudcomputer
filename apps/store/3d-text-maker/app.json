@@ -1,0 +1,56 @@
+{
+  "id": "3d-text-maker",
+  "name": "3D Text Maker",
+  "icon": "🔤",
+  "color": "linear-gradient(135deg,#667eea,#764ba2)",
+  "type": "internal",
+  "size": {
+    "w": 1150,
+    "h": 750
+  },
+  "global": false,
+  "category": "designer",
+  "description": "3D metin oluşturucu — font seçimi, 3D efektler, animasyonlar ve dışa aktarma",
+  "lang": {
+    "tr": {
+      "name": "3D Metin Yapıcı",
+      "description": "3D metin oluşturucu — font seçimi, 3D efektler, animasyonlar ve dışa aktarma"
+    },
+    "en": {
+      "name": "3D Text Maker",
+      "description": "3D text creator — font selection, 3D effects, animations and export"
+    },
+    "de": {
+      "name": "3D-Textersteller",
+      "description": "3D-Textersteller — Schriftauswahl, 3D-Effekte, Animationen und Export"
+    },
+    "fr": {
+      "name": "Créateur de texte 3D",
+      "description": "Créateur de texte 3D — sélection de polices, effets 3D, animations et export"
+    },
+    "es": {
+      "name": "Creador de texto 3D",
+      "description": "Creador de texto 3D — selección de fuentes, efectos 3D, animaciones y exportación"
+    },
+    "ru": {
+      "name": "3D текст",
+      "description": "Создатель 3D-текста — выбор шрифта, 3D-эффекты, анимации и экспорт"
+    },
+    "zh": {
+      "name": "3D文字制作器",
+      "description": "3D文字制作器 — 字体选择、3D效果、动画和导出"
+    },
+    "ja": {
+      "name": "3Dテキストメーカー",
+      "description": "3Dテキスト作成 — フォント選択、3Dエフェクト、アニメーション、エクスポート"
+    },
+    "it": {
+      "name": "Creatore testo 3D",
+      "description": "Creatore di testo 3D — selezione font, effetti 3D, animazioni ed esportazione"
+    },
+    "ar": {
+      "name": "صانع نص ثلاثي الأبعاد",
+      "description": "صانع نص ثلاثي الأبعاد — اختيار الخط، تأثيرات ثلاثية الأبعاد، رسوم متحركة وتصدير"
+    }
+  }
+}

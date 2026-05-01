@@ -1,0 +1,148 @@
+<div class="home3d-app">
+  <!-- Toolbar -->
+  <div class="h3d-toolbar">
+    <div class="h3d-toolbar-left">
+      <button class="h3d-btn" :class="{active: mode==='select'}" @click="mode='select'" :title="L('select')">
+        <span>↖</span>
+      </button>
+      <button class="h3d-btn" :class="{active: mode==='room'}" @click="mode='room'" :title="L('room')">
+        <span>▭</span>
+      </button>
+      <button class="h3d-btn" :class="{active: mode==='door'}" @click="mode='door'" :title="L('door')">
+        <span>🚪</span>
+      </button>
+      <button class="h3d-btn" :class="{active: mode==='window'}" @click="mode='window'" :title="L('window')">
+        <span>🪟</span>
+      </button>
+      <span class="h3d-sep"></span>
+      <button class="h3d-btn" :class="{active: mode==='furniture'}" @click="toggleFurniturePanel()" :title="L('furniture')">
+        <span>🛋️</span>
+      </button>
+      <span class="h3d-sep"></span>
+      <button class="h3d-btn" @click="deleteSelected()" :title="L('delete')" :disabled="!selectedItem">
+        <span>🗑️</span>
+      </button>
+      <button class="h3d-btn" @click="undo()" :title="L('undo')"><span>↩</span></button>
+      <button class="h3d-btn" @click="redo()" :title="L('redo')"><span>↪</span></button>
+    </div>
+    <div class="h3d-toolbar-right">
+      <button class="h3d-btn" :class="{active: view==='2d'}" @click="view='2d'">2D</button>
+      <button class="h3d-btn" :class="{active: view==='3d'}" @click="switchTo3D()">3D</button>
+      <span class="h3d-sep"></span>
+      <!-- File menu -->
+      <div class="h3d-dropdown" v-if="showFileMenu" @click.stop>
+        <button class="h3d-dropdown-item" @click="newProject()">{{ L('new') }}</button>
+        <button class="h3d-dropdown-item" @click="saveProject()">{{ L('save') }}</button>
+        <button class="h3d-dropdown-item" @click="showLoadDialog=true; showFileMenu=false">{{ L('load') }}</button>
+        <button class="h3d-dropdown-item" @click="exportJSON()">{{ L('exportJSON') }}</button>
+        <button class="h3d-dropdown-item" @click="importJSON()">{{ L('importJSON') }}</button>
+      </div>
+      <button class="h3d-btn" @click="showFileMenu=!showFileMenu">📁 {{ L('file') }}</button>
+    </div>
+  </div>
+
+  <!-- Furniture panel -->
+  <div class="h3d-furniture-panel" v-if="showFurniture">
+    <div class="h3d-furniture-title">{{ L('furniture') }}</div>
+    <div class="h3d-furniture-grid">
+      <div class="h3d-furniture-item" v-for="f in furnitureList" :key="f.type"
+           @click="selectFurniture(f)" :title="L(f.type)">
+        <span class="h3d-furniture-icon">{{ f.icon }}</span>
+        <span class="h3d-furniture-label">{{ L(f.type) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2D Canvas -->
+  <div class="h3d-canvas-wrap" v-show="view==='2d'"
+       @mousedown="onCanvasDown" @mousemove="onCanvasMove" @mouseup="onCanvasUp"
+       @wheel="onCanvasWheel" ref="canvasWrap">
+    <canvas ref="canvas2d"></canvas>
+    <!-- Grid size label -->
+    <div class="h3d-grid-info">{{ L('gridSize') }}: {{ gridSize }}m</div>
+  </div>
+
+  <!-- 3D Canvas -->
+  <div class="h3d-canvas-wrap" v-show="view==='3d'" ref="canvas3dWrap">
+    <canvas ref="canvas3d"></canvas>
+    <div class="h3d-3d-controls">
+      <button class="h3d-btn h3d-small" @click="resetCamera3D()" :title="L('resetView')">🔄</button>
+      <label class="h3d-wall-height-label">
+        {{ L('wallHeight') }}:
+        <input type="range" min="2" max="5" step="0.1" v-model.number="wallHeight" @input="rebuild3D()">
+        {{ wallHeight }}m
+      </label>
+    </div>
+  </div>
+
+  <!-- Properties panel -->
+  <div class="h3d-props" v-if="selectedItem && view==='2d'">
+    <div class="h3d-props-title">{{ L('properties') }}</div>
+    <div class="h3d-prop-row" v-if="selectedItem.kind==='room'">
+      <label>{{ L('roomName') }}:</label>
+      <input type="text" v-model="selectedItem.name" @input="render2D()" maxlength="30">
+    </div>
+    <div class="h3d-prop-row" v-if="selectedItem.kind==='room'">
+      <label>{{ L('floorColor') }}:</label>
+      <input type="color" v-model="selectedItem.floorColor" @input="render2D()">
+    </div>
+    <div class="h3d-prop-row" v-if="selectedItem.kind==='room'">
+      <label>{{ L('wallColor') }}:</label>
+      <input type="color" v-model="selectedItem.wallColor" @input="render2D()">
+    </div>
+    <div class="h3d-prop-row">
+      <label>{{ L('width') }}:</label>
+      <input type="number" v-model.number="selectedItem.w" min="0.5" step="0.1" @input="render2D()">m
+    </div>
+    <div class="h3d-prop-row" v-if="selectedItem.kind!=='door' && selectedItem.kind!=='window'">
+      <label>{{ L('height') }}:</label>
+      <input type="number" v-model.number="selectedItem.h" min="0.5" step="0.1" @input="render2D()">m
+    </div>
+    <div class="h3d-prop-row">
+      <label>{{ L('rotation') }}:</label>
+      <input type="number" v-model.number="selectedItem.rotation" step="15" @input="render2D()">°
+    </div>
+  </div>
+
+  <!-- Load dialog -->
+  <div class="h3d-overlay" v-if="showLoadDialog" @click.self="showLoadDialog=false">
+    <div class="h3d-dialog">
+      <div class="h3d-dialog-title">{{ L('load') }}</div>
+      <div class="h3d-dialog-body">
+        <div v-if="savedProjects.length===0" class="h3d-empty">{{ L('noProjects') }}</div>
+        <div v-for="p in savedProjects" :key="p.id" class="h3d-project-item" @click="loadProject(p.id)">
+          <span>{{ p.name }}</span>
+          <span class="h3d-project-date">{{ p.date }}</span>
+          <button class="h3d-btn h3d-small h3d-danger" @click.stop="deleteProject(p.id)">🗑️</button>
+        </div>
+      </div>
+      <div class="h3d-dialog-footer">
+        <button class="h3d-btn" @click="showLoadDialog=false">{{ L('close') }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save dialog -->
+  <div class="h3d-overlay" v-if="showSaveDialog" @click.self="showSaveDialog=false">
+    <div class="h3d-dialog">
+      <div class="h3d-dialog-title">{{ L('save') }}</div>
+      <div class="h3d-dialog-body">
+        <label>{{ L('projectName') }}:</label>
+        <input type="text" v-model="projectName" class="h3d-input" maxlength="50" @keyup.enter="doSave()">
+      </div>
+      <div class="h3d-dialog-footer">
+        <button class="h3d-btn" @click="showSaveDialog=false">{{ L('cancel') }}</button>
+        <button class="h3d-btn h3d-primary" @click="doSave()">{{ L('save') }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="h3d-statusbar" v-if="view==='2d'">
+    <span>{{ L('rooms') }}: {{ rooms.length }}</span>
+    <span>{{ L('doors') }}: {{ doors.length }}</span>
+    <span>{{ L('windows') }}: {{ windows.length }}</span>
+    <span>{{ L('furnitureCount') }}: {{ furnitureItems.length }}</span>
+    <span v-if="statusMsg">{{ statusMsg }}</span>
+  </div>
+</div>

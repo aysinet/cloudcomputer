@@ -1,0 +1,93 @@
+<div class="sw-root">
+  <!-- History View -->
+  <template v-if="showHistory">
+    <div class="sw-history-header">
+      <button class="sw-btn sw-btn-back" @click="showHistory = false">← {{ t('back') }}</button>
+      <span class="sw-history-title">{{ t('history') }}</span>
+    </div>
+    <div class="sw-history-list" v-if="history.length > 0">
+      <div v-for="item in history" :key="item.id" class="sw-history-item">
+        <div class="sw-history-item-head" @click="toggleExpand(item.id)">
+          <div class="sw-history-item-info">
+            <span class="sw-history-item-time">{{ formatTime(item.totalMs) }}</span>
+            <span v-if="item.label" class="sw-history-item-label">{{ item.label }}</span>
+          </div>
+          <div class="sw-history-item-meta">
+            <span class="sw-history-item-date">{{ formatDate(item.createdAt) }}</span>
+            <span class="sw-history-item-laps-count" v-if="item.laps && item.laps.length">{{ item.laps.length }} {{ t('lap') }}</span>
+          </div>
+          <button class="sw-btn-delete" @click.stop="deleteResult(item.id)" :title="t('delete')">✕</button>
+        </div>
+        <div v-if="expandedId === item.id && item.laps && item.laps.length" class="sw-history-laps">
+          <div class="sw-laps-header">
+            <span class="sw-laps-col-num">#</span>
+            <span class="sw-laps-col-split">{{ t('diff') }}</span>
+            <span class="sw-laps-col-total">{{ t('total') }}</span>
+          </div>
+          <div v-for="l in item.laps" :key="l.num" class="sw-lap-row">
+            <span class="sw-laps-col-num">{{ t('lapN') }} {{ l.num }}</span>
+            <span class="sw-laps-col-split">{{ formatTime(l.splitMs) }}</span>
+            <span class="sw-laps-col-total">{{ formatTime(l.totalMs) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-else class="sw-no-laps">{{ t('noHistory') }}</div>
+  </template>
+
+  <!-- Main Stopwatch View -->
+  <template v-else>
+    <!-- Timer display -->
+    <div class="sw-display-area">
+      <div class="sw-time">{{ display }}</div>
+    </div>
+
+    <!-- Controls -->
+    <div class="sw-controls">
+      <template v-if="!running && laps.length === 0 && display === '00:00.00'">
+        <button class="sw-btn sw-btn-start" @click="start">▶ {{ t('start') }}</button>
+      </template>
+      <template v-else-if="running">
+        <button class="sw-btn sw-btn-lap" @click="lap">⏱️ {{ t('lap') }}</button>
+        <button class="sw-btn sw-btn-stop" @click="stop">⏸ {{ t('stop') }}</button>
+      </template>
+      <template v-else>
+        <button class="sw-btn sw-btn-reset" @click="reset">↺ {{ t('reset') }}</button>
+        <button class="sw-btn sw-btn-resume" @click="start">▶ {{ t('resume') }}</button>
+      </template>
+    </div>
+
+    <!-- Save bar (visible when stopped with time) -->
+    <div v-if="!running && elapsed > 0" class="sw-save-bar">
+      <input class="sw-save-input" type="text" v-model="saveLabel" :placeholder="t('labelPlaceholder')" maxlength="100" @keyup.enter="saveResult" />
+      <button class="sw-btn sw-btn-save" @click="saveResult" :disabled="saving">
+        {{ saving ? '...' : ('💾 ' + t('save')) }}
+      </button>
+      <span v-if="savedMsg" class="sw-saved-msg">✓ {{ t('saved') }}</span>
+    </div>
+
+    <!-- History toggle -->
+    <div class="sw-history-toggle">
+      <button class="sw-btn sw-btn-history" @click="showHistory = true">📋 {{ t('history') }}</button>
+    </div>
+
+    <!-- Laps list -->
+    <div class="sw-laps">
+      <div v-if="laps.length > 0" class="sw-laps-header">
+        <span class="sw-laps-col-num">#</span>
+        <span class="sw-laps-col-split">{{ t('diff') }}</span>
+        <span class="sw-laps-col-total">{{ t('total') }}</span>
+      </div>
+      <div class="sw-laps-list">
+        <div v-for="(lap, idx) in laps" :key="lap.num"
+          class="sw-lap-row"
+          :class="{ 'sw-lap-best': idx === bestLapIdx, 'sw-lap-worst': idx === worstLapIdx }">
+          <span class="sw-laps-col-num">{{ t('lapN') }} {{ lap.num }}</span>
+          <span class="sw-laps-col-split">{{ formatTime(lap.splitMs) }}</span>
+          <span class="sw-laps-col-total">{{ formatTime(lap.totalMs) }}</span>
+        </div>
+      </div>
+      <div v-if="laps.length === 0" class="sw-no-laps">{{ t('noLaps') }}</div>
+    </div>
+  </template>
+</div>

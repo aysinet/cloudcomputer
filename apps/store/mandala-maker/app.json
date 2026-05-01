@@ -2,7 +2,7 @@
   "id": "mandala-maker",
   "name": "Mandala Maker",
   "icon": "🕸️",
-  "color": "linear-gradient(135deg,#8e44ad,#3498db)",
+  "color": "linear-gradient(135deg,#e91e63,#9c27b0)",
   "type": "internal",
   "size": {
     "w": 780,

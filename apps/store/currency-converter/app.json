@@ -1,0 +1,69 @@
+{
+  "id": "currency-converter",
+  "name": "Döviz Çevirici",
+  "icon": "💱",
+  "color": "linear-gradient(135deg,#00b09b,#96c93d)",
+  "type": "internal",
+  "size": {
+    "w": 480,
+    "h": 560
+  },
+  "global": false,
+  "hasStyle": true,
+  "description": "Gerçek zamanlı döviz kuru çevirici – 200+ para birimi desteği",
+  "lang": {
+    "tr": {
+      "name": "Döviz Çevirici",
+      "description": "Gerçek zamanlı döviz kuru çevirici – 200+ para birimi desteği"
+    },
+    "en": {
+      "name": "Currency Converter",
+      "description": "Real-time currency converter – 200+ currencies supported"
+    },
+    "de": {
+      "name": "Währungsrechner",
+      "description": "Echtzeit-Währungsrechner – 200+ Währungen"
+    },
+    "fr": {
+      "name": "Convertisseur de Devises",
+      "description": "Convertisseur de devises en temps réel – 200+ devises"
+    },
+    "es": {
+      "name": "Conversor de Divisas",
+      "description": "Conversor de divisas en tiempo real – 200+ monedas"
+    },
+    "ru": {
+      "name": "Конвертер Валют",
+      "description": "Конвертер валют в реальном времени – 200+ валют"
+    },
+    "zh": {
+      "name": "货币转换器",
+      "description": "实时汇率转换器 – 支持200+货币"
+    },
+    "ja": {
+      "name": "通貨換算",
+      "description": "リアルタイム通貨換算 – 200以上の通貨"
+    },
+    "it": {
+      "name": "Convertitore Valute",
+      "description": "Convertitore valute in tempo reale – 200+ valute"
+    },
+    "ar": {
+      "name": "محول العملات",
+      "description": "محول عملات فوري – أكثر من 200 عملة"
+    },
+    "ko": {
+      "name": "환율 변환기",
+      "description": "실시간 환율 변환기 – 200+ 통화 지원"
+    },
+    "hi": {
+      "name": "मुद्रा परिवर्तक",
+      "description": "रियल-टाइम मुद्रा परिवर्तक – 200+ मुद्राएं"
+    },
+    "pt": {
+      "name": "Conversor de Moedas",
+      "description": "Conversor de moedas em tempo real – 200+ moedas"
+    }
+  },
+  "category": "finance"
+}

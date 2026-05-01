@@ -1,0 +1,131 @@
+.qr-app {
+  display: flex; flex-direction: column; height: 100%; background: #111118; color: #e1e4ea;
+  font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden;
+}
+
+/* Header */
+.qr-header {
+  display: flex; align-items: center; padding: 10px 16px;
+  background: #181825; border-bottom: 1px solid #23233a;
+}
+.qr-title { font-size: 15px; font-weight: 600; }
+
+/* Body layout */
+.qr-body {
+  display: flex; flex: 1; overflow: hidden;
+}
+
+.qr-input-panel {
+  flex: 1; padding: 12px 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+  border-right: 1px solid #23233a;
+}
+.qr-input-panel::-webkit-scrollbar { width: 5px; }
+.qr-input-panel::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+.qr-preview-panel {
+  width: 220px; min-width: 180px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 16px; gap: 14px;
+}
+
+/* Type selector */
+.qr-type-bar {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+.qr-type-btn {
+  background: #1e1e2e; border: 1px solid #2a2a3e; color: #c5cde8;
+  padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer;
+  transition: all .15s;
+}
+.qr-type-btn:hover { background: #282840; border-color: #444; }
+.qr-type-btn.active {
+  background: #2563eb; border-color: #2563eb; color: #fff; font-weight: 500;
+}
+
+/* Fields */
+.qr-field-group {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.qr-flex1 { flex: 1; }
+.qr-label {
+  font-size: 11px; color: #8888a8; font-weight: 500; text-transform: uppercase; letter-spacing: .3px;
+}
+.qr-input, .qr-textarea, .qr-select {
+  background: #1a1a2e; border: 1px solid #2a2a3e; color: #e1e4ea;
+  border-radius: 6px; padding: 7px 10px; font-size: 13px; font-family: inherit;
+  outline: none; transition: border-color .15s;
+}
+.qr-input:focus, .qr-textarea:focus, .qr-select:focus {
+  border-color: #2563eb;
+}
+.qr-textarea { resize: vertical; min-height: 40px; }
+.qr-select { cursor: pointer; }
+.qr-select option { background: #1a1a2e; color: #e1e4ea; }
+
+/* Row layout */
+.qr-field-row {
+  display: flex; gap: 10px; align-items: flex-end;
+}
+
+/* Checkbox */
+.qr-checkbox-label {
+  display: flex; align-items: center; gap: 6px; font-size: 12px; color: #c5cde8;
+  cursor: pointer; padding-bottom: 7px;
+}
+.qr-checkbox-label input[type="checkbox"] {
+  accent-color: #2563eb;
+}
+
+/* Color input */
+.qr-color-input {
+  width: 40px; height: 30px; padding: 2px; border: 1px solid #2a2a3e;
+  border-radius: 6px; background: #1a1a2e; cursor: pointer;
+}
+
+/* Options section */
+.qr-options {
+  display: flex; flex-direction: column; gap: 8px;
+  padding-top: 6px; border-top: 1px solid #23233a;
+}
+
+/* Canvas preview */
+.qr-canvas-wrap {
+  display: flex; align-items: center; justify-content: center;
+  background: #fff; border-radius: 10px; padding: 10px;
+  width: 180px; height: 180px; position: relative;
+}
+.qr-canvas-wrap canvas {
+  max-width: 100%; max-height: 100%; image-rendering: pixelated;
+}
+.qr-placeholder {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: #aaa;
+}
+.qr-placeholder-icon { font-size: 36px; opacity: .4; }
+.qr-placeholder-text { font-size: 12px; opacity: .6; }
+
+/* Action buttons */
+.qr-actions {
+  display: flex; flex-direction: column; gap: 6px; width: 100%;
+}
+.qr-btn {
+  border: none; border-radius: 6px; padding: 7px 12px; font-size: 12px;
+  cursor: pointer; font-family: inherit; font-weight: 500; transition: all .15s;
+  text-align: center;
+}
+.qr-btn-download {
+  background: #2563eb; color: #fff;
+}
+.qr-btn-download:hover { background: #1d4ed8; }
+.qr-btn-copy {
+  background: #1e1e2e; color: #c5cde8; border: 1px solid #2a2a3e;
+}
+.qr-btn-copy:hover { background: #282840; }
+
+/* Responsive: stack on narrow windows */
+@media (max-width: 460px) {
+  .qr-body { flex-direction: column; }
+  .qr-input-panel { border-right: none; border-bottom: 1px solid #23233a; }
+  .qr-preview-panel { width: 100%; min-width: unset; flex-direction: row; padding: 12px; }
+  .qr-canvas-wrap { width: 120px; height: 120px; }
+  .qr-actions { flex-direction: row; }
+}

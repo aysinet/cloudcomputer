@@ -1,0 +1,29 @@
+{
+  "id": "qrcode-maker",
+  "name": "QR Kod Oluşturucu",
+  "icon": "📱",
+  "color": "linear-gradient(135deg,#0f0f23,#1a1a3e)",
+  "type": "internal",
+  "size": {
+    "w": 520,
+    "h": 600
+  },
+  "global": false,
+  "description": "Metin, URL, Wi-Fi, e-posta ve daha fazlası için QR kod oluşturucu",
+  "lang": {
+    "tr": { "name": "QR Kod Oluşturucu", "description": "Metin, URL, Wi-Fi, e-posta ve daha fazlası için QR kod oluşturucu" },
+    "en": { "name": "QR Code Maker", "description": "Generate QR codes for text, URL, Wi-Fi, email and more" },
+    "de": { "name": "QR-Code Ersteller", "description": "QR-Codes für Text, URL, WLAN, E-Mail und mehr generieren" },
+    "fr": { "name": "Générateur QR Code", "description": "Générer des codes QR pour texte, URL, Wi-Fi, e-mail et plus" },
+    "es": { "name": "Generador de QR", "description": "Genera códigos QR para texto, URL, Wi-Fi, correo y más" },
+    "ru": { "name": "Генератор QR-кодов", "description": "Создание QR-кодов для текста, URL, Wi-Fi, электронной почты и др." },
+    "zh": { "name": "二维码生成器", "description": "为文本、网址、Wi-Fi、电子邮件等生成二维码" },
+    "ja": { "name": "QRコードメーカー", "description": "テキスト、URL、Wi-Fi、メールなどのQRコードを作成" },
+    "it": { "name": "Generatore QR Code", "description": "Genera codici QR per testo, URL, Wi-Fi, email e altro" },
+    "ar": { "name": "صانع رمز QR", "description": "إنشاء رموز QR للنص والروابط والواي فاي والبريد الإلكتروني والمزيد" },
+    "ko": { "name": "QR 코드 생성기", "description": "텍스트, URL, Wi-Fi, 이메일 등을 위한 QR 코드 생성" },
+    "hi": { "name": "QR कोड मेकर", "description": "टेक्स्ट, URL, वाई-फाई, ईमेल और अधिक के लिए QR कोड बनाएं" },
+    "pt": { "name": "Gerador de QR Code", "description": "Gerar códigos QR para texto, URL, Wi-Fi, e-mail e mais" }
+  },
+  "category": "designer"
+}

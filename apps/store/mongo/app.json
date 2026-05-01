@@ -1,0 +1,38 @@
+{
+  "id": "mongo",
+  "name": "MongoDB",
+  "icon": "🍃",
+  "color": "linear-gradient(135deg,#4DB33D,#3F9B2F)",
+  "type": "service",
+  "size": {
+    "w": 500,
+    "h": 400
+  },
+  "global": false,
+  "description": "MongoDB NoSQL veritabanı servisi — esnek belge tabanlı veritabanı",
+  "lang": {
+    "tr": { "name": "MongoDB", "description": "MongoDB NoSQL veritabanı servisi — esnek belge tabanlı veritabanı" },
+    "en": { "name": "MongoDB", "description": "MongoDB NoSQL database service — flexible document-based database" },
+    "de": { "name": "MongoDB", "description": "MongoDB NoSQL-Datenbankdienst — flexible dokumentenbasierte Datenbank" },
+    "fr": { "name": "MongoDB", "description": "Service MongoDB NoSQL — base de données documentaire flexible" },
+    "es": { "name": "MongoDB", "description": "Servicio MongoDB NoSQL — base de datos documental flexible" },
+    "ru": { "name": "MongoDB", "description": "Сервис MongoDB NoSQL — гибкая документная база данных" },
+    "zh": { "name": "MongoDB", "description": "MongoDB NoSQL 数据库服务 — 灵活的文档数据库" },
+    "ja": { "name": "MongoDB", "description": "MongoDB NoSQLデータベースサービス — 柔軟なドキュメントDB" },
+    "it": { "name": "MongoDB", "description": "Servizio database MongoDB NoSQL — database documentale flessibile" },
+    "ar": { "name": "MongoDB", "description": "خدمة قاعدة بيانات MongoDB NoSQL — قاعدة بيانات مستندية مرنة" },
+    "ko": { "name": "MongoDB", "description": "MongoDB NoSQL 데이터베이스 서비스 — 유연한 문서 기반 데이터베이스" },
+    "hi": { "name": "MongoDB", "description": "MongoDB NoSQL डेटाबेस सेवा — लचीला दस्तावेज़ आधारित डेटाबेस" },
+    "pt": { "name": "MongoDB", "description": "Serviço de banco de dados MongoDB NoSQL — banco de dados documental flexível" }
+  },
+  "category": "development",
+  "docker": {
+    "image": "mongo:latest",
+    "containerPort": 27017,
+    "volumes": [
+      "${APP_VOLUME}:/data/db"
+    ],
+    "env": [],
+    "restart": "always"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "id": "memory-match",
+  "name": "Memory Match",
+  "icon": "🧠",
+  "color": "linear-gradient(135deg,#8e44ad,#3498db)",
+  "type": "internal",
+  "size": {
+    "w": 520,
+    "h": 620
+  },
+  "global": false,
+  "category": "games",
+  "description": "Klasik hafıza kartı eşleştirme oyunu — kartları çevir, eşlerini bul",
+  "lang": {
+    "tr": {
+      "name": "Hafıza Eşleştirme",
+      "description": "Klasik hafıza kartı eşleştirme oyunu — kartları çevir, eşlerini bul"
+    },
+    "en": {
+      "name": "Memory Match",
+      "description": "Classic memory card matching game — flip cards and find pairs"
+    },
+    "de": {
+      "name": "Memory",
+      "description": "Klassisches Memory-Kartenspiel — Karten umdrehen und Paare finden"
+    },
+    "fr": {
+      "name": "Memory",
+      "description": "Jeu de mémoire classique — retournez les cartes et trouvez les paires"
+    },
+    "es": {
+      "name": "Memoria",
+      "description": "Juego clásico de memoria — voltea cartas y encuentra los pares"
+    },
+    "ru": {
+      "name": "Мемори",
+      "description": "Классическая игра на память — переворачивай карты и находи пары"
+    },
+    "zh": {
+      "name": "记忆配对",
+      "description": "经典记忆卡片配对游戏 — 翻转卡片并找到配对"
+    },
+    "ja": {
+      "name": "神経衰弱",
+      "description": "クラシック神経衰弱ゲーム — カードをめくってペアを見つけよう"
+    },
+    "it": {
+      "name": "Memory",
+      "description": "Gioco di memoria classico — gira le carte e trova le coppie"
+    }
+  }
+}

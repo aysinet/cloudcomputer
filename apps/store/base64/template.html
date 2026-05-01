@@ -1,0 +1,80 @@
+<div class="b64-app">
+  <div class="b64-header">
+    <span class="b64-title">🔐 {{L('title')}}</span>
+    <div class="b64-header-actions">
+      <el-switch v-model="urlSafe" :active-text="L('urlSafe')" size="small" />
+    </div>
+  </div>
+
+  <!-- Mode toggle -->
+  <div class="b64-mode-bar">
+    <el-radio-group v-model="mode" size="default" style="width:100%">
+      <el-radio-button value="encode" style="width:50%">⬆️ {{L('encode')}}</el-radio-button>
+      <el-radio-button value="decode" style="width:50%">⬇️ {{L('decode')}}</el-radio-button>
+    </el-radio-group>
+  </div>
+
+  <!-- Input area -->
+  <div class="b64-section">
+    <div class="b64-section-header">
+      <label class="b64-label">{{L('input')}}</label>
+      <div class="b64-section-actions">
+        <el-button size="small" @click="pasteInput" text>📋 {{L('paste')}}</el-button>
+        <el-button size="small" @click="clearAll" text>🗑️ {{L('clear')}}</el-button>
+      </div>
+    </div>
+
+    <!-- File drop zone -->
+    <div v-if="isFileMode" class="b64-drop-zone"
+         @drop="handleFileDrop" @dragover.prevent @dragenter.prevent
+         @click="$refs.fileInput.click()">
+      <input type="file" ref="fileInput" style="display:none" @change="handleFileSelect" />
+      <div class="b64-drop-text">📁 {{L('dropFile')}}</div>
+      <div v-if="fileName" class="b64-file-info">
+        {{L('fileName')}}: {{fileName}} · {{L('fileSize')}}: {{formatBytes(fileSize)}}
+      </div>
+    </div>
+
+    <!-- Text input -->
+    <textarea v-else class="b64-textarea"
+              v-model="inputText"
+              :placeholder="L('inputPlaceholder')"
+              spellcheck="false"></textarea>
+
+    <div class="b64-stats" v-if="inputStats">
+      {{inputStats.chars}} {{L('charCount')}} · {{inputStats.lines}} {{L('lineCount')}} · {{formatBytes(inputStats.bytes)}}
+    </div>
+  </div>
+
+  <!-- Swap button -->
+  <div class="b64-swap-row">
+    <el-button circle @click="swapValues" class="b64-swap-btn">🔄</el-button>
+    <el-button size="small" @click="isFileMode = !isFileMode" text class="b64-mode-toggle">
+      {{isFileMode ? '📝 ' + L('textMode') : '📁 ' + L('fileMode')}}
+    </el-button>
+  </div>
+
+  <!-- Error message -->
+  <div v-if="errorMsg" class="b64-error">⚠️ {{errorMsg}}</div>
+
+  <!-- Output area -->
+  <div class="b64-section">
+    <div class="b64-section-header">
+      <label class="b64-label">{{L('output')}}</label>
+      <div class="b64-section-actions">
+        <el-button size="small" @click="copyOutput" text :class="{'b64-copied': copiedFlag}">
+          {{copiedFlag ? '✅ ' + L('copied') : '📋 ' + L('copy')}}
+        </el-button>
+        <el-button v-if="mode === 'decode'" size="small" @click="downloadDecoded" text>💾 {{L('download')}}</el-button>
+      </div>
+    </div>
+    <textarea class="b64-textarea b64-output"
+              :value="outputText"
+              :placeholder="L('outputPlaceholder')"
+              readonly
+              spellcheck="false"></textarea>
+    <div class="b64-stats" v-if="outputStats">
+      {{outputStats.chars}} {{L('charCount')}} · {{formatBytes(outputStats.bytes)}}
+    </div>
+  </div>
+</div>

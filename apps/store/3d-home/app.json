@@ -1,0 +1,68 @@
+{
+  "id": "3d-home",
+  "name": "3D Ev Planlayıcı",
+  "icon": "🏠",
+  "color": "linear-gradient(135deg,#00b894,#00cec9)",
+  "type": "internal",
+  "size": {
+    "w": 1100,
+    "h": 700
+  },
+  "global": false,
+  "description": "2D ev planı çizin ve 3D olarak görüntüleyin — oda, kapı, pencere, mobilya",
+  "lang": {
+    "tr": {
+      "name": "3D Ev Planlayıcı",
+      "description": "2D ev planı çizin ve 3D olarak görüntüleyin — oda, kapı, pencere, mobilya"
+    },
+    "en": {
+      "name": "3D Home Planner",
+      "description": "Draw 2D floor plans and view in 3D — rooms, doors, windows, furniture"
+    },
+    "de": {
+      "name": "3D Hausplaner",
+      "description": "2D-Grundrisse zeichnen und in 3D anzeigen — Räume, Türen, Fenster, Möbel"
+    },
+    "fr": {
+      "name": "Planificateur 3D",
+      "description": "Dessinez des plans 2D et visualisez en 3D — pièces, portes, fenêtres, meubles"
+    },
+    "es": {
+      "name": "Planificador 3D",
+      "description": "Dibuje planos 2D y visualice en 3D — habitaciones, puertas, ventanas, muebles"
+    },
+    "ru": {
+      "name": "3D Планировщик",
+      "description": "Рисуйте 2D планы и просматривайте в 3D — комнаты, двери, окна, мебель"
+    },
+    "zh": {
+      "name": "3D 家居规划师",
+      "description": "绘制2D平面图并以3D查看 — 房间、门、窗户、家具"
+    },
+    "ja": {
+      "name": "3Dホームプランナー",
+      "description": "2D間取り図を描いて3Dで表示 — 部屋、ドア、窓、家具"
+    },
+    "it": {
+      "name": "Pianificatore 3D",
+      "description": "Disegna planimetrie 2D e visualizza in 3D — stanze, porte, finestre, mobili"
+    },
+    "ar": {
+      "name": "مخطط المنزل ثلاثي الأبعاد",
+      "description": "ارسم مخططات ثنائية الأبعاد واعرضها بالأبعاد الثلاثية — غرف، أبواب، نوافذ، أثاث"
+    },
+    "ko": {
+      "name": "3D 홈 플래너",
+      "description": "2D 평면도를 그리고 3D로 보기 — 방, 문, 창문, 가구"
+    },
+    "hi": {
+      "name": "3D होम प्लानर",
+      "description": "2D फ्लोर प्लान बनाएं और 3D में देखें — कमरे, दरवाजे, खिड़कियां, फर्नीचर"
+    },
+    "pt": {
+      "name": "Planejador 3D",
+      "description": "Desenhe plantas 2D e visualize em 3D — quartos, portas, janelas, móveis"
+    }
+  },
+  "category": "tools"
+}

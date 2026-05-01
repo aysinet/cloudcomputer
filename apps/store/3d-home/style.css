@@ -1,0 +1,44 @@
+.home3d-app{display:flex;flex-direction:column;height:100%;background:#1e1e2e;color:#cdd6f4;font-family:system-ui,sans-serif;position:relative;overflow:hidden;user-select:none}
+.h3d-toolbar{display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:#181825;border-bottom:1px solid #313244;gap:4px;z-index:10;flex-shrink:0}
+.h3d-toolbar-left,.h3d-toolbar-right{display:flex;align-items:center;gap:2px}
+.h3d-btn{background:#313244;border:1px solid #45475a;color:#cdd6f4;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.h3d-btn:hover{background:#45475a}
+.h3d-btn.active{background:#89b4fa;color:#1e1e2e}
+.h3d-btn:disabled{opacity:.4;cursor:default}
+.h3d-btn.h3d-small{padding:2px 6px;font-size:12px}
+.h3d-btn.h3d-primary{background:#89b4fa;color:#1e1e2e}
+.h3d-btn.h3d-danger{background:#f38ba8;color:#1e1e2e}
+.h3d-sep{width:1px;height:20px;background:#45475a;margin:0 4px}
+.h3d-canvas-wrap{flex:1;position:relative;overflow:hidden}
+.h3d-canvas-wrap canvas{position:absolute;top:0;left:0;width:100%;height:100%}
+.h3d-grid-info{position:absolute;bottom:30px;right:8px;background:rgba(0,0,0,.6);padding:2px 8px;border-radius:4px;font-size:11px;color:#a6adc8}
+.h3d-furniture-panel{position:absolute;top:40px;left:0;width:160px;background:#181825;border-right:1px solid #313244;z-index:8;overflow-y:auto;max-height:calc(100% - 70px)}
+.h3d-furniture-title{padding:6px 10px;font-weight:600;font-size:12px;border-bottom:1px solid #313244;color:#89b4fa}
+.h3d-furniture-grid{display:flex;flex-direction:column;gap:2px;padding:4px}
+.h3d-furniture-item{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:4px;cursor:pointer;font-size:12px}
+.h3d-furniture-item:hover{background:#313244}
+.h3d-furniture-icon{font-size:18px}
+.h3d-furniture-label{font-size:11px;color:#a6adc8}
+.h3d-props{position:absolute;top:40px;right:0;width:200px;background:#181825;border-left:1px solid #313244;z-index:8;padding:8px}
+.h3d-props-title{font-weight:600;font-size:12px;color:#89b4fa;margin-bottom:8px}
+.h3d-prop-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px}
+.h3d-prop-row label{min-width:60px;color:#a6adc8}
+.h3d-prop-row input[type="text"],.h3d-prop-row input[type="number"]{background:#313244;border:1px solid #45475a;color:#cdd6f4;padding:3px 6px;border-radius:3px;width:70px;font-size:12px}
+.h3d-prop-row input[type="color"]{width:30px;height:22px;border:none;background:none;cursor:pointer}
+.h3d-prop-row input[type="range"]{width:60px}
+.h3d-statusbar{position:absolute;bottom:0;left:0;right:0;display:flex;gap:16px;padding:3px 10px;background:#181825;border-top:1px solid #313244;font-size:11px;color:#a6adc8;z-index:5}
+.h3d-3d-controls{position:absolute;top:8px;right:8px;display:flex;align-items:center;gap:8px;z-index:5;background:rgba(0,0,0,.5);padding:4px 8px;border-radius:6px}
+.h3d-wall-height-label{font-size:11px;color:#a6adc8;display:flex;align-items:center;gap:4px}
+.h3d-overlay{position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50}
+.h3d-dialog{background:#1e1e2e;border:1px solid #45475a;border-radius:8px;min-width:320px;max-width:450px}
+.h3d-dialog-title{padding:10px 16px;font-weight:600;border-bottom:1px solid #313244;color:#89b4fa}
+.h3d-dialog-body{padding:12px 16px;max-height:300px;overflow-y:auto}
+.h3d-dialog-footer{padding:8px 16px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid #313244}
+.h3d-input{background:#313244;border:1px solid #45475a;color:#cdd6f4;padding:6px 10px;border-radius:4px;width:100%;font-size:13px;margin-top:6px}
+.h3d-project-item{display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:4px;cursor:pointer;gap:8px}
+.h3d-project-item:hover{background:#313244}
+.h3d-project-date{font-size:11px;color:#6c7086}
+.h3d-empty{text-align:center;color:#6c7086;padding:20px}
+.h3d-dropdown{position:absolute;top:32px;right:0;background:#181825;border:1px solid #45475a;border-radius:6px;z-index:20;min-width:150px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.h3d-dropdown-item{display:block;width:100%;padding:8px 14px;border:none;background:none;color:#cdd6f4;cursor:pointer;font-size:13px;text-align:left}
+.h3d-dropdown-item:hover{background:#313244}

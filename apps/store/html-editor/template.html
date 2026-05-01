@@ -1,0 +1,112 @@
+<div class="he-root">
+  <!-- Toolbar -->
+  <div class="he-toolbar">
+    <div class="he-toolbar-left">
+      <button class="he-tb-btn" @click="newFile" :title="t('newFile')">📄</button>
+      <button class="he-tb-btn" @click="openFile" :title="t('open')">📂</button>
+      <button class="he-tb-btn" @click="saveFile" :title="t('save')">💾</button>
+      <button class="he-tb-btn" @click="saveFileAs" :title="t('saveAs')">📥</button>
+      <span class="he-sep"></span>
+      <button class="he-tb-btn" @click="insertSnippet('boilerplate')" :title="t('boilerplate')">📋</button>
+      <el-dropdown trigger="click" size="small">
+        <button class="he-tb-btn" :title="t('insertTag')">🏷️▾</button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item @click="insertSnippet('div')">div</el-dropdown-item>
+            <el-dropdown-item @click="insertSnippet('p')">p</el-dropdown-item>
+            <el-dropdown-item @click="insertSnippet('h1')">h1-h6</el-dropdown-item>
+            <el-dropdown-item @click="insertSnippet('a')">a (link)</el-dropdown-item>
+            <el-dropdown-item @click="insertSnippet('img')">img</el-dropdown-item>
+            <el-dropdown-item @click="insertSnippet('ul')">ul (list)</el-dropdown-item>
+            <el-dropdown-item @click="insertSnippet('table')">table</el-dropdown-item>
+            <el-dropdown-item @click="insertSnippet('form')">form</el-dropdown-item>
+            <el-dropdown-item @click="insertSnippet('input')">input</el-dropdown-item>
+            <el-dropdown-item @click="insertSnippet('button')">button</el-dropdown-item>
+            <el-dropdown-item @click="insertSnippet('video')">video</el-dropdown-item>
+            <el-dropdown-item @click="insertSnippet('canvas')">canvas</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <span class="he-sep"></span>
+      <button class="he-tb-btn" @click="formatCode" :title="t('format')">✨</button>
+      <button class="he-tb-btn" @click="toggleWrap" :class="{active: wordWrap}" :title="t('wordWrap')">↩</button>
+    </div>
+    <div class="he-toolbar-right">
+      <el-radio-group v-model="layout" size="small">
+        <el-radio-button value="horizontal">⬌</el-radio-button>
+        <el-radio-button value="vertical">⬍</el-radio-button>
+      </el-radio-group>
+      <span class="he-sep"></span>
+      <select class="he-theme-select" :value="editorTheme" @change="setTheme($event.target.value)">
+        <option value="vs-dark">Dark</option>
+        <option value="vs">Light</option>
+        <option value="hc-black">High Contrast</option>
+      </select>
+      <select class="he-fontsize-select" :value="fontSize" @change="setFontSize(Number($event.target.value))">
+        <option v-for="s in [12,13,14,15,16,18,20,22]" :key="s" :value="s">{{ s }}px</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- File label -->
+  <div class="he-file-label" v-if="currentFilePath">
+    📄 {{ currentFilePath }}
+  </div>
+
+  <!-- Main content -->
+  <div class="he-main" :class="'he-layout-' + layout">
+    <!-- Editor panel -->
+    <div class="he-editor-panel">
+      <!-- Tabs -->
+      <div class="he-tabs">
+        <button v-for="tab in tabs" :key="tab.id"
+          class="he-tab" :class="{active: activeTab === tab.id}"
+          @click="switchTab(tab.id)">
+          <span class="he-tab-icon">{{ tab.icon }}</span> {{ tab.label }}
+        </button>
+      </div>
+      <!-- Editor container -->
+      <div ref="editorEl" class="he-editor-container"></div>
+    </div>
+
+    <!-- Resize handle -->
+    <div class="he-resize-handle" :class="'he-resize-' + layout" @mousedown="startResize"></div>
+
+    <!-- Preview panel -->
+    <div class="he-preview-panel" :style="previewStyle">
+      <div class="he-preview-toolbar">
+        <span class="he-preview-title">👁️ {{ t('preview') }}</span>
+        <div class="he-preview-actions">
+          <button class="he-tb-btn" @click="refreshPreview" :title="t('refresh')">🔄</button>
+          <button class="he-tb-btn" @click="toggleAutoRefresh" :class="{active: autoRefresh}" :title="t('autoRefresh')">⚡</button>
+          <button class="he-tb-btn" @click="openInNewWindow" :title="t('openExternal')">🔗</button>
+          <button class="he-tb-btn" @click="toggleConsole" :class="{active: showConsole}" :title="t('console')">🖥️</button>
+        </div>
+      </div>
+      <iframe ref="previewFrame" class="he-preview-frame" sandbox="allow-scripts allow-modals"></iframe>
+      <!-- Console -->
+      <div class="he-console" v-if="showConsole">
+        <div class="he-console-header">
+          <span>🖥️ Console</span>
+          <button class="he-tb-btn" @click="consoleLogs = []">🧹</button>
+        </div>
+        <div class="he-console-body">
+          <div v-for="(log, i) in consoleLogs" :key="i" class="he-console-line" :class="'he-log-' + log.type">
+            <span class="he-log-type">{{ log.type }}</span>
+            <span class="he-log-msg">{{ log.text }}</span>
+          </div>
+          <div v-if="consoleLogs.length === 0" class="he-console-empty">No console output</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="he-statusbar">
+    <span>{{ activeTab.toUpperCase() }}</span>
+    <span>{{ cursorInfo }}</span>
+    <span>UTF-8</span>
+    <span>{{ lineCount }} {{ t('lines') }}</span>
+    <span v-if="autoRefresh" class="he-auto-badge">⚡ {{ t('autoRefresh') }}</span>
+  </div>
+</div>

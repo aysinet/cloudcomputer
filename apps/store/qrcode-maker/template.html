@@ -1,0 +1,137 @@
+<div class="qr-app">
+  <!-- Header -->
+  <div class="qr-header">
+    <span class="qr-title">📱 {{ t('title') }}</span>
+  </div>
+
+  <div class="qr-body">
+    <!-- Left: Input Panel -->
+    <div class="qr-input-panel">
+      <!-- Type selector -->
+      <div class="qr-type-bar">
+        <button v-for="tp in TYPES" :key="tp.key"
+          class="qr-type-btn" :class="{ active: qrType === tp.key }"
+          @click="qrType = tp.key">
+          {{ tp.icon }} {{ t(tp.key) }}
+        </button>
+      </div>
+
+      <!-- Text input -->
+      <div v-if="qrType === 'text'" class="qr-field-group">
+        <label class="qr-label">{{ t('inputLabel') }}</label>
+        <textarea v-model="textInput" class="qr-textarea" :placeholder="t('placeholder')" rows="3"></textarea>
+      </div>
+
+      <!-- URL input -->
+      <div v-if="qrType === 'url'" class="qr-field-group">
+        <label class="qr-label">URL</label>
+        <input v-model="urlInput" type="url" class="qr-input" placeholder="https://example.com" />
+      </div>
+
+      <!-- Wi-Fi input -->
+      <template v-if="qrType === 'wifi'">
+        <div class="qr-field-group">
+          <label class="qr-label">{{ t('ssid') }}</label>
+          <input v-model="wifiSSID" type="text" class="qr-input" :placeholder="t('ssid')" />
+        </div>
+        <div class="qr-field-group">
+          <label class="qr-label">{{ t('wifiPass') }}</label>
+          <input v-model="wifiPass" type="text" class="qr-input" :placeholder="t('wifiPass')" />
+        </div>
+        <div class="qr-field-row">
+          <div class="qr-field-group qr-flex1">
+            <label class="qr-label">{{ t('encryption') }}</label>
+            <select v-model="wifiEnc" class="qr-select">
+              <option value="WPA">WPA/WPA2</option>
+              <option value="WEP">WEP</option>
+              <option value="nopass">{{ t('none') }}</option>
+            </select>
+          </div>
+          <label class="qr-checkbox-label">
+            <input type="checkbox" v-model="wifiHidden" /> {{ t('hidden') }}
+          </label>
+        </div>
+      </template>
+
+      <!-- Email input -->
+      <template v-if="qrType === 'email'">
+        <div class="qr-field-group">
+          <label class="qr-label">{{ t('emailAddr') }}</label>
+          <input v-model="emailAddr" type="email" class="qr-input" :placeholder="t('emailAddr')" />
+        </div>
+        <div class="qr-field-group">
+          <label class="qr-label">{{ t('subject') }}</label>
+          <input v-model="emailSubject" type="text" class="qr-input" :placeholder="t('subject')" />
+        </div>
+        <div class="qr-field-group">
+          <label class="qr-label">{{ t('body') }}</label>
+          <textarea v-model="emailBody" class="qr-textarea" :placeholder="t('body')" rows="2"></textarea>
+        </div>
+      </template>
+
+      <!-- Phone input -->
+      <div v-if="qrType === 'phone'" class="qr-field-group">
+        <label class="qr-label">{{ t('phoneNum') }}</label>
+        <input v-model="phoneNum" type="tel" class="qr-input" placeholder="+90 555 123 4567" />
+      </div>
+
+      <!-- Options -->
+      <div class="qr-options">
+        <div class="qr-field-row">
+          <div class="qr-field-group qr-flex1">
+            <label class="qr-label">{{ t('errLevel') }}</label>
+            <select v-model="errLevel" class="qr-select">
+              <option v-for="e in ERR_OPTIONS" :key="e" :value="e">{{ e }} - {{ t(ERR_LABEL_KEYS[e]) }}</option>
+            </select>
+          </div>
+          <div class="qr-field-group">
+            <label class="qr-label">{{ t('size') }}</label>
+            <select v-model.number="qrSize" class="qr-select">
+              <option :value="128">128px</option>
+              <option :value="256">256px</option>
+              <option :value="384">384px</option>
+              <option :value="512">512px</option>
+            </select>
+          </div>
+        </div>
+        <div class="qr-field-row">
+          <div class="qr-field-group">
+            <label class="qr-label">{{ t('fgColor') }}</label>
+            <input v-model="fgColor" type="color" class="qr-color-input" />
+          </div>
+          <div class="qr-field-group">
+            <label class="qr-label">{{ t('bgColor') }}</label>
+            <input v-model="bgColor" type="color" class="qr-color-input" />
+          </div>
+          <div class="qr-field-group qr-flex1">
+            <label class="qr-label">{{ t('margin') }}</label>
+            <select v-model.number="margin" class="qr-select">
+              <option :value="0">0</option>
+              <option :value="1">1</option>
+              <option :value="2">2</option>
+              <option :value="3">3</option>
+              <option :value="4">4</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Preview Panel -->
+    <div class="qr-preview-panel">
+      <div class="qr-canvas-wrap">
+        <canvas v-show="hasContent && libReady" id="qr-canvas" width="256" height="256"></canvas>
+        <div v-if="!hasContent" class="qr-placeholder">
+          <span class="qr-placeholder-icon">📱</span>
+          <span class="qr-placeholder-text">{{ t('noContent') }}</span>
+        </div>
+      </div>
+      <div class="qr-actions" v-if="hasContent && libReady">
+        <button class="qr-btn qr-btn-download" @click="downloadPNG">⬇️ {{ t('download') }}</button>
+        <button class="qr-btn qr-btn-copy" @click="copyToClipboard">
+          {{ copiedMsg ? ('✅ ' + t('copied')) : ('📋 ' + t('copy')) }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

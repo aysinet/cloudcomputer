@@ -1,0 +1,97 @@
+.b64-app {
+  display: flex; flex-direction: column; height: 100%; background: #111118; color: #fff;
+  font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden;
+}
+
+/* Header */
+.b64-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; background: #181825; border-bottom: 1px solid #23233a;
+}
+.b64-title { font-size: 15px; font-weight: 600; }
+.b64-header-actions { display: flex; align-items: center; gap: 8px; }
+
+/* Mode bar */
+.b64-mode-bar {
+  padding: 10px 16px 6px;
+}
+.b64-mode-bar .el-radio-group { display: flex; }
+.b64-mode-bar .el-radio-button { flex: 1; text-align: center; }
+.b64-mode-bar .el-radio-button__inner { width: 100%; }
+
+/* Sections */
+.b64-section {
+  flex: 1; display: flex; flex-direction: column; padding: 0 16px;
+  min-height: 0;
+}
+.b64-section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 0 4px;
+}
+.b64-section-actions { display: flex; gap: 2px; }
+.b64-label {
+  font-size: 12px; color: #aaa; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+
+/* Textarea */
+.b64-textarea {
+  flex: 1; width: 100%; background: #1a1a2e; color: #e0e0e0;
+  border: 1px solid #2a2a4a; border-radius: 8px;
+  padding: 10px 12px; font-size: 13px; font-family: 'Consolas', 'Courier New', monospace;
+  resize: none; outline: none; min-height: 80px;
+  box-sizing: border-box;
+}
+.b64-textarea:focus { border-color: #667eea; }
+.b64-textarea::placeholder { color: #555; }
+.b64-output { background: #141428; }
+.b64-textarea::-webkit-scrollbar { width: 5px; }
+.b64-textarea::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+
+/* Stats */
+.b64-stats {
+  font-size: 11px; color: #666; padding: 3px 4px; text-align: right;
+}
+
+/* Swap row */
+.b64-swap-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; padding: 2px 0;
+}
+.b64-swap-btn { font-size: 16px !important; }
+.b64-mode-toggle { font-size: 12px !important; }
+
+/* Error */
+.b64-error {
+  margin: 0 16px; padding: 6px 12px; background: #2d1b1b;
+  border: 1px solid #5a2a2a; border-radius: 6px;
+  font-size: 12px; color: #f87171; text-align: center;
+}
+
+/* Copied animation */
+.b64-copied { color: #4ade80 !important; }
+
+/* File drop zone */
+.b64-drop-zone {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; background: #1a1a2e; border: 2px dashed #2a2a5a;
+  border-radius: 8px; cursor: pointer; min-height: 80px;
+  transition: border-color .2s;
+}
+.b64-drop-zone:hover { border-color: #667eea; }
+.b64-drop-text { font-size: 14px; color: #888; }
+.b64-file-info {
+  margin-top: 8px; font-size: 12px; color: #aaa;
+  background: #141428; padding: 4px 10px; border-radius: 4px;
+}
+
+/* Element Plus dark overrides */
+.b64-app .el-radio-button__inner {
+  background: #1a1a2e; border-color: #2a2a4a; color: #ccc;
+}
+.b64-app .el-radio-button__original-radio:checked + .el-radio-button__inner {
+  background: #667eea; border-color: #667eea; color: #fff;
+}
+.b64-app .el-switch__label { color: #aaa; font-size: 12px; }
+.b64-app .el-button--text { color: #aaa; }
+.b64-app .el-button--text:hover { color: #667eea; }

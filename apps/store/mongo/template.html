@@ -1,0 +1,27 @@
+<div class="mongo-service-root">
+  <div class="mongo-service-header">
+    <span class="mongo-service-icon">🍃</span>
+    <h3>MongoDB</h3>
+    <span :class="['mongo-status-badge', status]">
+      {{ status === 'running' ? '● Çalışıyor' : status === 'stopped' ? '○ Durdu' : status === 'loading' ? '◌ Yükleniyor...' : status === 'restarting' ? '◌ Yeniden başlatılıyor...' : '⚠ Hata' }}
+    </span>
+  </div>
+
+  <div v-if="status === 'error'" class="mongo-error">
+    <p>{{ errorMsg }}</p>
+    <button @click="loadStatus">Tekrar Dene</button>
+  </div>
+
+  <div v-if="connInfo && status === 'running'" class="mongo-conn-info">
+    <h4>Bağlantı Bilgileri</h4>
+    <div class="mongo-conn-row"><span class="mongo-conn-label">Host (harici):</span><code>localhost</code></div>
+    <div class="mongo-conn-row"><span class="mongo-conn-label">Host (dahili):</span><code>{{ connInfo.internalHost }}</code></div>
+    <div class="mongo-conn-row"><span class="mongo-conn-label">Port:</span><code>{{ connInfo.port }}</code></div>
+    <div class="mongo-conn-row"><span class="mongo-conn-label">URI:</span><code>mongodb://{{ connInfo.internalHost }}:27017</code></div>
+  </div>
+
+  <div v-if="status === 'running' || status === 'stopped'" class="mongo-actions">
+    <button class="mongo-restart-btn" @click="restart" :disabled="status === 'restarting'">🔄 Yeniden Başlat</button>
+    <button class="mongo-refresh-btn" @click="loadStatus">↻ Yenile</button>
+  </div>
+</div>

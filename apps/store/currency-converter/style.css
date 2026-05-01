@@ -1,0 +1,200 @@
+.cc-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #111118;
+  color: #e1e4ea;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  overflow: hidden;
+}
+
+.cc-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #181825;
+  border-bottom: 1px solid #23233a;
+}
+
+.cc-icon {
+  font-size: 20px;
+}
+
+.cc-title {
+  font-size: 15px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.cc-body {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.cc-section {
+  background: #1a1a2e;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cc-label {
+  font-size: 12px;
+  color: #8a8fa8;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  font-weight: 600;
+}
+
+.cc-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.cc-amount-input {
+  flex: 1;
+}
+
+.cc-swap-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  margin: -2px 0;
+  z-index: 2;
+}
+
+.cc-swap-btn {
+  font-size: 18px;
+}
+
+.cc-rate-info {
+  font-size: 13px;
+  color: #00d4b8;
+  font-weight: 500;
+}
+
+.cc-result-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #1b2838, #1a1a3e);
+  border: 1px solid #2a2a5a;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color .2s;
+  min-height: 42px;
+}
+
+.cc-result-box:hover {
+  border-color: #00b09b;
+}
+
+.cc-result-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #a78bfa;
+}
+
+.cc-result-value.placeholder {
+  color: #5a5e72;
+  font-weight: 400;
+  font-size: 16px;
+}
+
+.cc-copy-icon {
+  font-size: 14px;
+  opacity: .6;
+}
+
+.cc-copied-tag {
+  flex-shrink: 0;
+}
+
+.cc-error {
+  margin-top: 4px;
+}
+
+.cc-footer {
+  text-align: center;
+  padding: 8px 0 4px;
+  font-size: 12px;
+  color: #5a5e72;
+}
+
+/* Element Plus dark theme overrides */
+.cc-app .el-select {
+  --el-fill-color-blank: #22223a;
+  --el-text-color-regular: #ddd;
+  --el-border-color: #333;
+}
+
+.cc-app .el-input {
+  --el-fill-color-blank: #22223a;
+  --el-text-color-regular: #fff;
+  --el-border-color: #333;
+}
+
+.cc-app .el-input__inner {
+  color: #fff !important;
+  font-size: 18px;
+}
+
+.cc-app .el-select-dropdown {
+  background: #1a1a2e !important;
+  border-color: #333 !important;
+}
+
+.cc-app .el-select-dropdown__item {
+  color: #ddd !important;
+}
+
+.cc-app .el-select-dropdown__item.hover,
+.cc-app .el-select-dropdown__item:hover {
+  background: #2a2a5a !important;
+}
+
+.cc-app .el-select-dropdown__item.selected {
+  color: #a78bfa !important;
+  font-weight: 700;
+}
+
+.cc-app .el-select-group__title {
+  color: #8a8fa8 !important;
+}
+
+.cc-app .el-button.is-circle {
+  background: #22223a !important;
+  border-color: #444 !important;
+  color: #ddd !important;
+}
+
+.cc-app .el-button.is-circle:hover {
+  border-color: #00b09b !important;
+  color: #00d4b8 !important;
+}
+
+.cc-app .el-alert--error.is-light {
+  background: rgba(245, 108, 108, .1) !important;
+  border-radius: 8px;
+}
+
+.cc-app .el-popper {
+  --el-bg-color-overlay: #1a1a2e;
+}
+
+.cc-app .el-tag--success {
+  --el-tag-bg-color: rgba(0, 212, 184, .15);
+  --el-tag-text-color: #00d4b8;
+  --el-tag-border-color: rgba(0, 212, 184, .3);
+}

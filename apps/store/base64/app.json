@@ -1,0 +1,64 @@
+{
+  "id": "base64",
+  "name": "Base64 Encode/Decode",
+  "icon": "🔐",
+  "color": "linear-gradient(135deg,#667eea,#764ba2)",
+  "type": "internal",
+  "size": {
+    "w": 520,
+    "h": 540
+  },
+  "global": false,
+  "description": "Base64 kodlama ve çözme aracı",
+  "lang": {
+    "tr": {
+      "name": "Base64 Kodlayıcı",
+      "description": "Metin ve dosyaları Base64 formatında kodlayın ve çözün"
+    },
+    "en": {
+      "name": "Base64 Encode/Decode",
+      "description": "Encode and decode text and files in Base64 format"
+    },
+    "de": {
+      "name": "Base64 Kodierer",
+      "description": "Text und Dateien im Base64-Format kodieren und dekodieren"
+    },
+    "fr": {
+      "name": "Base64 Encodeur",
+      "description": "Encoder et décoder du texte et des fichiers au format Base64"
+    },
+    "es": {
+      "name": "Base64 Codificador",
+      "description": "Codificar y decodificar texto y archivos en formato Base64"
+    },
+    "pt": {
+      "name": "Base64 Codificador",
+      "description": "Codificar e decodificar texto e arquivos no formato Base64"
+    },
+    "ru": {
+      "name": "Base64 Кодировщик",
+      "description": "Кодирование и декодирование текста и файлов в формат Base64"
+    },
+    "zh": {
+      "name": "Base64 编码器",
+      "description": "以Base64格式编码和解码文本和文件"
+    },
+    "ja": {
+      "name": "Base64 エンコーダー",
+      "description": "Base64形式でテキストやファイルをエンコード・デコード"
+    },
+    "ko": {
+      "name": "Base64 인코더",
+      "description": "Base64 형식으로 텍스트와 파일을 인코딩 및 디코딩"
+    },
+    "ar": {
+      "name": "Base64 مشفر",
+      "description": "تشفير وفك تشفير النصوص والملفات بتنسيق Base64"
+    },
+    "it": {
+      "name": "Base64 Codificatore",
+      "description": "Codifica e decodifica testo e file in formato Base64"
+    }
+  },
+  "category": "utilities"
+}

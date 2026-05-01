@@ -1,0 +1,68 @@
+{
+  "id": "html-editor",
+  "name": "HTML Editörü",
+  "icon": "🌐",
+  "color": "linear-gradient(135deg,#e44d26,#f16529)",
+  "type": "internal",
+  "size": {
+    "w": 1100,
+    "h": 700
+  },
+  "global": false,
+  "description": "HTML/CSS/JS editörü — canlı ön izleme, söz dizimi vurgulama, dosya aç/kaydet",
+  "lang": {
+    "tr": {
+      "name": "HTML Editörü",
+      "description": "HTML/CSS/JS editörü — canlı ön izleme, söz dizimi vurgulama, dosya aç/kaydet"
+    },
+    "en": {
+      "name": "HTML Editor",
+      "description": "HTML/CSS/JS editor — live preview, syntax highlighting, file open/save"
+    },
+    "de": {
+      "name": "HTML-Editor",
+      "description": "HTML/CSS/JS-Editor — Live-Vorschau, Syntaxhervorhebung, Datei öffnen/speichern"
+    },
+    "fr": {
+      "name": "Éditeur HTML",
+      "description": "Éditeur HTML/CSS/JS — aperçu en direct, coloration syntaxique, ouvrir/enregistrer"
+    },
+    "es": {
+      "name": "Editor HTML",
+      "description": "Editor HTML/CSS/JS — vista previa en vivo, resaltado de sintaxis, abrir/guardar"
+    },
+    "ru": {
+      "name": "HTML-редактор",
+      "description": "Редактор HTML/CSS/JS — предварительный просмотр, подсветка синтаксиса, открытие/сохранение"
+    },
+    "zh": {
+      "name": "HTML编辑器",
+      "description": "HTML/CSS/JS编辑器 — 实时预览、语法高亮、文件打开/保存"
+    },
+    "ja": {
+      "name": "HTMLエディタ",
+      "description": "HTML/CSS/JSエディタ — ライブプレビュー、構文ハイライト、ファイル開く/保存"
+    },
+    "it": {
+      "name": "Editor HTML",
+      "description": "Editor HTML/CSS/JS — anteprima live, evidenziazione sintassi, apri/salva"
+    },
+    "ar": {
+      "name": "محرر HTML",
+      "description": "محرر HTML/CSS/JS — معاينة مباشرة، تمييز بناء الجملة، فتح/حفظ"
+    },
+    "ko": {
+      "name": "HTML 편집기",
+      "description": "HTML/CSS/JS 편집기 — 실시간 미리보기, 구문 강조, 파일 열기/저장"
+    },
+    "hi": {
+      "name": "HTML एडिटर",
+      "description": "HTML/CSS/JS एडिटर — लाइव प्रीव्यू, सिंटैक्स हाइलाइटिंग, फ़ाइल खोलें/सहेजें"
+    },
+    "pt": {
+      "name": "Editor HTML",
+      "description": "Editor HTML/CSS/JS — pré-visualização ao vivo, destaque de sintaxe, abrir/salvar"
+    }
+  },
+  "category": "designer"
+}

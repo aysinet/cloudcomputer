@@ -6,7 +6,7 @@
   "type": "internal",
   "size": { "w": 520, "h": 620 },
   "global": false,
-  "category": "tools",
+  "category": "education",
   "description": "İngilizce kelime kartları ile öğrenme uygulaması",
   "lang": {
     "tr": { "name": "İngilizce Kartlar", "description": "1000 kelime ile İngilizce kelime kartları" },

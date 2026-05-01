@@ -1,0 +1,29 @@
+{
+  "id": "presentation",
+  "name": "Sunum",
+  "icon": "📊",
+  "color": "linear-gradient(135deg,#1a1a2e,#e94560)",
+  "type": "internal",
+  "size": {
+    "w": 1100,
+    "h": 700
+  },
+  "global": false,
+  "description": "Sunum oluşturucu — 10+ şablon, slayt anahat paneli",
+  "lang": {
+    "tr": { "name": "Sunum", "description": "Sunum oluşturucu — 10+ şablon, slayt anahat paneli" },
+    "en": { "name": "Presentation", "description": "Presentation maker — 10+ templates, slide outline panel" },
+    "de": { "name": "Präsentation", "description": "Präsentationsersteller — 10+ Vorlagen, Folienübersicht" },
+    "fr": { "name": "Présentation", "description": "Créateur de présentations — 10+ modèles, panneau de plan" },
+    "es": { "name": "Presentación", "description": "Creador de presentaciones — 10+ plantillas, panel de esquema" },
+    "ru": { "name": "Презентация", "description": "Создатель презентаций — 10+ шаблонов, панель структуры" },
+    "zh": { "name": "演示文稿", "description": "演示文稿制作 — 10+ 模板，幻灯片大纲面板" },
+    "ja": { "name": "プレゼンテーション", "description": "プレゼンテーション作成 — 10+テンプレート、スライドアウトライン" },
+    "it": { "name": "Presentazione", "description": "Creatore di presentazioni — 10+ modelli, pannello struttura" },
+    "ar": { "name": "عرض تقديمي", "description": "منشئ العروض التقديمية — 10+ قوالب، لوحة مخطط الشرائح" },
+    "ko": { "name": "프레젠테이션", "description": "프레젠테이션 메이커 — 10+ 템플릿, 슬라이드 개요 패널" },
+    "hi": { "name": "प्रस्तुति", "description": "प्रस्तुति निर्माता — 10+ टेम्पलेट, स्लाइड रूपरेखा पैनल" },
+    "pt": { "name": "Apresentação", "description": "Criador de apresentações — 10+ modelos, painel de esboço" }
+  },
+  "category": "designer"
+}

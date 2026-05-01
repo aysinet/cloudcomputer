@@ -1,0 +1,24 @@
+/* LoopStudio — Mobile Overrides */
+.ls-topbar {
+  flex-wrap: wrap;
+  padding: 4px 6px;
+  gap: 4px;
+}
+.ls-topbar-left { order: 1; flex: 0 0 100%; justify-content: center; }
+.ls-topbar-center { order: 2; flex: 0 0 100%; justify-content: center; flex-wrap: wrap; gap: 4px; }
+.ls-topbar-right { order: 3; flex: 0 0 100%; justify-content: center; flex-wrap: wrap; gap: 3px; }
+
+.ls-logo { font-size: 14px; }
+.ls-bpm-input { width: 44px; }
+.ls-slider { width: 44px; }
+
+.ls-track-headers { width: 140px; min-width: 140px; }
+.ls-track-name { font-size: 10px; }
+.ls-track-sample-name { font-size: 8px; }
+.ls-track-controls { flex-wrap: wrap; }
+
+.ls-step { width: 28px; min-width: 28px; height: 44px; }
+.ls-ruler-num { width: 28px; min-width: 28px; font-size: 8px; }
+
+.ls-dialog { width: 95%; }
+.ls-btn-play { width: 34px; height: 34px; font-size: 14px; }

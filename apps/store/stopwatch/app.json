@@ -1,0 +1,29 @@
+{
+  "id": "stopwatch",
+  "name": "Kronometre",
+  "icon": "⏱️",
+  "color": "linear-gradient(135deg,#1a1a2e,#16213e)",
+  "type": "internal",
+  "size": {
+    "w": 400,
+    "h": 520
+  },
+  "global": false,
+  "description": "Kronometre — çoklu tur desteği",
+  "lang": {
+    "tr": { "name": "Kronometre", "description": "Kronometre — çoklu tur desteği" },
+    "en": { "name": "Stopwatch", "description": "Stopwatch — multi-lap support" },
+    "de": { "name": "Stoppuhr", "description": "Stoppuhr — Mehrrunden" },
+    "fr": { "name": "Chronomètre", "description": "Chronomètre — multi-tours" },
+    "es": { "name": "Cronómetro", "description": "Cronómetro — soporte multi-vuelta" },
+    "ru": { "name": "Секундомер", "description": "Секундомер — поддержка кругов" },
+    "zh": { "name": "秒表", "description": "秒表 — 多圈支持" },
+    "ja": { "name": "ストップウォッチ", "description": "ストップウォッチ — マルチラップ" },
+    "it": { "name": "Cronometro", "description": "Cronometro — supporto multi-giro" },
+    "ar": { "name": "ساعة إيقاف", "description": "ساعة إيقاف — دعم لفات متعددة" },
+    "ko": { "name": "스톱워치", "description": "스톱워치 — 멀티랩 지원" },
+    "hi": { "name": "स्टॉपवॉच", "description": "स्टॉपवॉच — मल्टी-लैप" },
+    "pt": { "name": "Cronómetro", "description": "Cronómetro — suporte multi-volta" }
+  },
+  "category": "tools"
+}

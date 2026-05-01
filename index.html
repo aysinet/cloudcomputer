@@ -267,7 +267,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
   <div class="desktop" :style="desktopStyle" @contextmenu.prevent="showDesktopCtx($event)" @click.self="hideDesktopCtx();hideIconCtx()">
     <div class="wallpaper-grid"></div>
     <div class="desktop-icons" @dragover.prevent @drop.self="onIconDrop($event,-1)">
-      <div v-for="(app,idx) in desktopApps" :key="app.id" class="desktop-icon" :class="{'dragging':dragState.dragging&&dragState.appId===app.id,'drag-over':dragState.overIdx===idx&&dragState.appId!==app.id}" draggable="true" @dragstart="onIconDragStart($event,app,idx)" @dragenter.prevent="onIconDragEnter(idx)" @dragover.prevent @drop.stop="onIconDrop($event,idx)" @dragend="onIconDragEnd" @click="openApp(app)" @contextmenu.prevent="showIconCtx($event, app)">
+      <div v-for="(app,idx) in desktopApps" :key="app.id" class="desktop-icon" :class="{'dragging':dragState.dragging&&dragState.appId===app.id,'drag-over':dragState.overIdx===idx&&dragState.appId!==app.id}" draggable="true" @dragstart="onIconDragStart($event,app,idx)" @dragenter.prevent="onIconDragEnter(idx)" @dragover.prevent @drop.stop="onIconDrop($event,idx)" @dragend="onIconDragEnd" @click="openApp(app)" @contextmenu.prevent.stop="showIconCtx($event, app)">
         <div class="icon-img" :style="{background:app.color}">{{app.icon}}</div>
         <span class="icon-label" :title="appName(app)">{{appName(app)}}</span>
       </div>
@@ -829,37 +829,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:12px">
           <div class="lbl" style="margin-bottom:4px">{{t('fontsBrowse') || 'Google Fonts'}}</div>
           <div class="sub" style="margin-bottom:8px">{{t('fontsBrowseDesc') || 'Font arayın ve kullanmak istediklerinizi ekleyin'}}</div>
-          <div style="display:flex;gap:8px;margin-bottom:10px">
-            <input v-model="gfSearch" type="text" :placeholder="t('fontsSearchPlaceholder') || 'Font ara...'" @focus="loadGoogleFonts"
-              style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:7px 12px;color:#e1e4ea;font-size:13px;outline:none" />
-            <select v-model="gfCategory" style="background:#2a2a3e;color:#c5cde8;border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:6px 8px;font-size:12px;outline:none;cursor:pointer" @focus="loadGoogleFonts">
-              <option value="all">All</option>
-              <option value="serif">Serif</option>
-              <option value="sans-serif">Sans Serif</option>
-              <option value="display">Display</option>
-              <option value="handwriting">Handwriting</option>
-              <option value="monospace">Monospace</option>
-            </select>
-          </div>
-          <div v-if="gfLoading" style="text-align:center;color:#6aabf7;padding:20px 0;font-size:13px">
-            <div style="width:24px;height:24px;border:3px solid #333;border-top-color:#4a90c4;border-radius:50%;animation:fsd-spin .8s linear infinite;margin:0 auto 8px"></div>
-            {{t('fontsLoading') || 'Google Fonts yükleniyor...'}}
-          </div>
-          <div v-else-if="gfLoaded && gfFilteredFonts.length === 0" style="text-align:center;color:#666;padding:16px 0;font-size:12px">{{t('fontsNoResults') || 'Font bulunamadı'}}</div>
-          <div v-else-if="gfLoaded" style="max-height:320px;overflow-y:auto;border:1px solid rgba(255,255,255,.06);border-radius:8px">
-            <div v-for="f in gfFilteredFonts" :key="f.family" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .12s;cursor:default" @mouseenter="$event.currentTarget.style.background='rgba(255,255,255,.04)'" @mouseleave="$event.currentTarget.style.background='transparent'">
-              <div style="flex:1;min-width:0">
-                <div style="font-size:13px;font-weight:500;color:#e1e4ea;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{f.family}}</div>
-                <div style="font-size:10px;color:#5a5e72">{{f.category}} · {{(f.variants||[]).length}} variants</div>
-              </div>
-              <button v-if="!isFontAdded(f.family)" @click="addFont(f)"
-                style="padding:4px 12px;border-radius:5px;border:1px solid rgba(74,144,217,.4);background:rgba(74,144,217,.12);color:#6aabf7;cursor:pointer;font-size:11px;white-space:nowrap;transition:.15s">
-                + {{t('fontsAdd') || 'Ekle'}}
-              </button>
-              <span v-else style="font-size:11px;color:#67c23a;padding:4px 8px">✓ {{t('fontsAdded') || 'Eklendi'}}</span>
-            </div>
-          </div>
-          <div v-else style="text-align:center;color:#666;font-size:12px;padding:16px 0">{{t('fontsClickToLoad') || 'Arama kutusuna tıklayarak fontları yükleyin'}}</div>
+          <button @click="showGoogleFontsDialog" style="padding:8px 20px;border-radius:6px;border:1px solid rgba(74,144,217,.4);background:rgba(74,144,217,.15);color:#6aabf7;cursor:pointer;font-size:13px;font-weight:500;transition:.15s;display:inline-flex;align-items:center;gap:8px" onmouseenter="this.style.background='rgba(74,144,217,.25)'" onmouseleave="this.style.background='rgba(74,144,217,.15)'">🔤 Google Fonts</button>
         </div>
       </template>
       <template v-else-if="active==='ai'">
@@ -2081,7 +2051,7 @@ const I18N = {
     twoFAEnterCode: 'Doğrulama kodu', twoFAVerify: 'Doğrula', twoFAActivated: '2FA başarıyla etkinleştirildi',
     twoFADeactivated: '2FA devre dışı bırakıldı', twoFADisablePrompt: 'Devre dışı bırakmak için authenticator kodunuzu girin',
     twoFADisableBtn: 'Devre Dışı Bırak', twoFALoginTitle: 'İki Faktörlü Doğrulama', twoFALoginDesc: 'Authenticator uygulamanızdaki 6 haneli kodu girin',
-    settingsFonts: 'Fontlar', fontsMyFonts: 'Fontlarım', fontsMyFontsDesc: 'Font Dialog\'da görüntülenecek fontlar', fontsEmpty: 'Henüz font eklenmedi. Aşağıdan Google Fonts\'tan font ekleyin.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Font arayın ve kullanmak istediklerinizi ekleyin', fontsSearchPlaceholder: 'Font ara...', fontsLoading: 'Google Fonts yükleniyor...', fontsNoResults: 'Font bulunamadı', fontsAdd: 'Ekle', fontsAdded: 'Eklendi', fontsClickToLoad: 'Arama kutusuna tıklayarak fontları yükleyin',
+    settingsFonts: 'Fontlar', fontsMyFonts: 'Fontlarım', fontsMyFontsDesc: 'Font Dialog\'da görüntülenecek fontlar', fontsEmpty: 'Henüz font eklenmedi. Aşağıdan Google Fonts\'tan font ekleyin.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Font arayın ve kullanmak istediklerinizi ekleyin', fontsSearchPlaceholder: 'Font ara...', fontsLoading: 'Google Fonts yükleniyor...', fontsNoResults: 'Font bulunamadı', fontsAdd: 'Ekle', fontsAdded: 'Eklendi', fontsSelected: 'seçili', fontsClickToLoad: 'Arama kutusuna tıklayarak fontları yükleyin',
     settingsAI: 'Yapay Zeka', aiTokens: 'API Anahtarları', aiTokensDesc: 'Tüm uygulamalarda kullanılacak AI servis anahtarları',
     aiAgents: 'Ajanlar', aiAgentsDesc: 'Kullanılacak AI ajanlarını yapılandır',
     aiProvider: 'Sağlayıcı', aiApiKey: 'API Anahtarı', aiModel: 'Model', aiEnabled: 'Aktif',
@@ -2130,7 +2100,7 @@ const I18N = {
     twoFAEnterCode: 'Verification code', twoFAVerify: 'Verify', twoFAActivated: '2FA enabled successfully',
     twoFADeactivated: '2FA disabled', twoFADisablePrompt: 'Enter your authenticator code to disable 2FA',
     twoFADisableBtn: 'Disable', twoFALoginTitle: 'Two-Factor Authentication', twoFALoginDesc: 'Enter the 6-digit code from your authenticator app',
-    settingsFonts: 'Fonts', fontsMyFonts: 'My Fonts', fontsMyFontsDesc: 'Fonts displayed in Font Dialog', fontsEmpty: 'No fonts added yet. Add fonts from Google Fonts below.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Search and add fonts you want to use', fontsSearchPlaceholder: 'Search fonts...', fontsLoading: 'Loading Google Fonts...', fontsNoResults: 'No fonts found', fontsAdd: 'Add', fontsAdded: 'Added', fontsClickToLoad: 'Click the search box to load fonts',
+    settingsFonts: 'Fonts', fontsMyFonts: 'My Fonts', fontsMyFontsDesc: 'Fonts displayed in Font Dialog', fontsEmpty: 'No fonts added yet. Add fonts from Google Fonts below.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Search and add fonts you want to use', fontsSearchPlaceholder: 'Search fonts...', fontsLoading: 'Loading Google Fonts...', fontsNoResults: 'No fonts found', fontsAdd: 'Add', fontsAdded: 'Added', fontsSelected: 'selected', fontsClickToLoad: 'Click the search box to load fonts',
     settingsAI: 'Artificial Intelligence', aiTokens: 'API Keys', aiTokensDesc: 'AI service keys available across all apps',
     aiAgents: 'Agents', aiAgentsDesc: 'Configure AI agents to use',
     aiProvider: 'Provider', aiApiKey: 'API Key', aiModel: 'Model', aiEnabled: 'Enabled',
@@ -3562,6 +3532,17 @@ const SettingsApp = {
       saveFonts();
     }
 
+    function addFonts(fonts) {
+      let added = 0;
+      for (const font of fonts) {
+        if (!isFontAdded(font.family)) {
+          userFonts.value.push({ family: font.family, category: font.category, variants: font.variants || [] });
+          added++;
+        }
+      }
+      if (added > 0) saveFonts();
+    }
+
     function removeFont(family) {
       userFonts.value = userFonts.value.filter(f => f.family !== family);
       saveFonts();
@@ -3571,6 +3552,149 @@ const SettingsApp = {
       settingsStore.fonts = [...userFonts.value];
       settingsStore.save({ fonts: [...userFonts.value] });
       if (window.FontSelectDialog) window.FontSelectDialog.clearCache();
+    }
+
+    const _gfLoadedFamilies = new Set();
+    function _loadFontCSS(family) {
+      if (_gfLoadedFamilies.has(family)) return;
+      _gfLoadedFamilies.add(family);
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(family) + '&display=swap';
+      document.head.appendChild(link);
+    }
+
+    async function showGoogleFontsDialog() {
+      const SAMPLE = 'The quick brown fox jumps over the lazy dog. 0123456789';
+      const CATS = ['all','serif','sans-serif','display','handwriting','monospace'];
+      const CAT_LABELS = {all:'All',serif:'Serif','sans-serif':'Sans Serif',display:'Display',handwriting:'Handwriting',monospace:'Monospace'};
+
+      let allFonts = [];
+      let filtered = [];
+      let selected = new Set();
+      let search = '';
+      let cat = 'all';
+      let loading = true;
+      let visibleCount = 40;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'fsd-overlay';
+
+      function filterFonts() {
+        const q = search.toLowerCase().trim();
+        filtered = allFonts.filter(f => {
+          if (cat !== 'all' && f.category !== cat) return false;
+          if (q && !f.family.toLowerCase().includes(q)) return false;
+          return true;
+        });
+        visibleCount = 40;
+      }
+
+      function render() {
+        const visible = filtered.slice(0, visibleCount);
+        // Lazy-load font CSS for visible items
+        visible.forEach(f => _loadFontCSS(f.family));
+
+        overlay.innerHTML = `
+          <div class="fsd-dialog" style="width:640px;max-height:85vh">
+            <div class="fsd-header">
+              <h3>🔤 Google Fonts</h3>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:12px;color:#6aabf7">${selected.size > 0 ? selected.size + ' ' + (t('fontsSelected') || 'seçili') : ''}</span>
+                <button class="fsd-close" data-action="cancel">✕</button>
+              </div>
+            </div>
+            <div class="fsd-toolbar">
+              <input class="fsd-search" type="text" placeholder="${t('fontsSearchPlaceholder') || 'Font ara...'}" value="${search.replace(/"/g,'&quot;')}" />
+              <select class="fsd-category">
+                ${CATS.map(c => '<option value="'+c+'"'+(c===cat?' selected':'')+'>'+CAT_LABELS[c]+'</option>').join('')}
+              </select>
+            </div>
+            <div class="fsd-body" style="min-height:350px">
+              ${loading ? '<div class="fsd-loading"><div class="fsd-spinner"></div>'+(t('fontsLoading') || 'Google Fonts yükleniyor...')+'</div>' :
+                filtered.length === 0 ? '<div class="fsd-empty">'+(t('fontsNoResults') || 'Font bulunamadı')+'</div>' :
+                visible.map((f, i) => {
+                  const isAdded = isFontAdded(f.family);
+                  const isSel = selected.has(f.family);
+                  return '<div class="fsd-item'+(isSel?' selected':'')+'" data-idx="'+i+'" data-family="'+f.family.replace(/"/g,'&quot;')+'" style="padding:10px 12px;cursor:pointer">'+
+                    '<div style="display:flex;align-items:center;gap:10px;width:100%">'+
+                      '<div style="width:22px;height:22px;border-radius:4px;border:2px solid '+(isSel?'#4a90c4':'rgba(255,255,255,.15)')+';background:'+(isSel?'#4a90c4':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s">'+(isSel?'<span style="color:#fff;font-size:14px">✓</span>':'')+'</div>'+
+                      '<div style="flex:1;min-width:0">'+
+                        '<div style="display:flex;align-items:baseline;gap:8px">'+
+                          '<span style="font-size:13px;font-weight:500;color:#e1e4ea">'+f.family+'</span>'+
+                          '<span class="fsd-item-category">'+f.category+'</span>'+
+                          (isAdded?'<span style="font-size:10px;color:#67c23a">✓ '+(t('fontsAdded') || 'Eklendi')+'</span>':'')+
+                        '</div>'+
+                        '<div class="fsd-item-sample" style="font-family:\''+f.family.replace(/'/g,"\\'")+'\','+( f.category||'sans-serif')+';font-size:18px;margin-top:4px">'+SAMPLE.substring(0,44)+'</div>'+
+                      '</div>'+
+                    '</div>'+
+                  '</div>';
+                }).join('')+
+                (filtered.length > visibleCount ? '<div class="fsd-empty" style="padding:12px;font-size:12px">↓ '+(filtered.length - visibleCount)+' more</div>' : '')
+              }
+            </div>
+            <div class="fsd-footer">
+              <span class="fsd-font-count">${loading ? (t('fontsLoading') || 'Yükleniyor...') : filtered.length + ' fonts'}</span>
+              <div class="fsd-footer-actions">
+                <button class="fsd-btn fsd-btn-cancel" data-action="cancel">${t('cancel') || 'İptal'}</button>
+                <button class="fsd-btn fsd-btn-ok" data-action="add" ${selected.size===0?'disabled':''}>${(t('fontsAdd') || 'Ekle')} ${selected.size > 0 ? '('+selected.size+')' : ''}</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Bind events
+        const searchInput = overlay.querySelector('.fsd-search');
+        searchInput.addEventListener('input', (e) => { search = e.target.value; filterFonts(); render(); });
+        setTimeout(() => searchInput.focus(), 50);
+
+        overlay.querySelector('.fsd-category').addEventListener('change', (e) => { cat = e.target.value; filterFonts(); render(); });
+
+        overlay.querySelectorAll('.fsd-item').forEach(el => {
+          el.addEventListener('click', () => {
+            const fam = el.dataset.family;
+            if (selected.has(fam)) selected.delete(fam); else selected.add(fam);
+            render();
+          });
+        });
+
+        const body = overlay.querySelector('.fsd-body');
+        body.addEventListener('scroll', () => {
+          if (body.scrollTop + body.clientHeight >= body.scrollHeight - 60 && visibleCount < filtered.length) {
+            visibleCount += 30;
+            const newFonts = filtered.slice(visibleCount - 30, visibleCount);
+            newFonts.forEach(f => _loadFontCSS(f.family));
+            render();
+          }
+        });
+
+        overlay.querySelector('[data-action="cancel"]').addEventListener('click', close);
+        overlay.querySelector('[data-action="add"]')?.addEventListener('click', () => {
+          const fontsToAdd = allFonts.filter(f => selected.has(f.family));
+          addFonts(fontsToAdd);
+          close();
+        });
+      }
+
+      function close() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+      document.body.appendChild(overlay);
+      render();
+
+      // Load fonts
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('auth_token') || '';
+        const res = await fetch('/api/google-fonts', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) {
+          allFonts = await res.json();
+          gfAllFonts.value = allFonts;
+          gfLoaded.value = true;
+        }
+      } catch {}
+      loading = false;
+      filterFonts();
+      render();
     }
 
     // ── Session restore ──
@@ -3774,7 +3898,7 @@ const SettingsApp = {
       load2FAStatus();
     });
 
-    return { active, tabs, currentRows, zoomLevel, zoomOptions, darkModeVal, onZoomChange, screenInfo, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, wpAuthUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray, twoFAEnabled, twoFASetup, twoFASecret, twoFAQRUrl, twoFACode, twoFAError, twoFADisabling, twoFADisableCode, toggle2FA, verify2FASetup, confirm2FADisable, aiProviders, aiAgents, addProvider, removeProvider, addAgent, removeAgent, saveAISettings, userFonts, gfAllFonts, gfSearch, gfCategory, gfLoading, gfLoaded, gfFilteredFonts, isFontAdded, loadGoogleFonts, addFont, removeFont };
+    return { active, tabs, currentRows, zoomLevel, zoomOptions, darkModeVal, onZoomChange, screenInfo, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, wpAuthUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray, twoFAEnabled, twoFASetup, twoFASecret, twoFAQRUrl, twoFACode, twoFAError, twoFADisabling, twoFADisableCode, toggle2FA, verify2FASetup, confirm2FADisable, aiProviders, aiAgents, addProvider, removeProvider, addAgent, removeAgent, saveAISettings, userFonts, isFontAdded, addFont, removeFont, showGoogleFontsDialog };
   }
 };
 
@@ -4858,9 +4982,15 @@ const BrowserApp = {
       saveBookmarks();
     }
     function removeBookmark(i) { bookmarks.value.splice(i, 1); saveBookmarks(); }
-    function saveBookmarks() { localStorage.setItem('browser_bookmarks', JSON.stringify(bookmarks.value)); }
-    function loadBookmarks() {
-      try { bookmarks.value = JSON.parse(localStorage.getItem('browser_bookmarks') || '[]'); } catch { bookmarks.value = []; }
+    async function saveBookmarks() {
+      try { await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ browserBookmarks: bookmarks.value }) }); } catch {}
+    }
+    async function loadBookmarks() {
+      try {
+        const res = await fetch('/api/settings');
+        const s = await res.json();
+        bookmarks.value = Array.isArray(s.browserBookmarks) ? s.browserBookmarks : [];
+      } catch { bookmarks.value = []; }
     }
 
     onMounted(() => { loadBookmarks(); showBookmarks.value = !!localStorage.getItem('browser_bookmarks_open'); window.addEventListener('browser-open-url', onBrowserOpenUrl); });
@@ -4895,6 +5025,8 @@ const APP_CATEGORY_META = {
   social: { icon: '📱', order: 9 },
   finance: { icon: '💰', order: 10 },
   health: { icon: '🩺', order: 11 },
+  education: { icon: '🎓', order: 12 },
+  designer: { icon: '🎨', order: 13 },
   other: { icon: '📦', order: 99 }
 };
 const APP_CATEGORY_NAMES = {
@@ -4909,6 +5041,8 @@ const APP_CATEGORY_NAMES = {
   social: { tr: 'Sosyal', en: 'Social', de: 'Sozial', fr: 'Social', es: 'Social', ru: 'Социальные', zh: '社交', ja: 'ソーシャル', it: 'Social' },
   finance: { tr: 'Finans', en: 'Finance', de: 'Finanzen', fr: 'Finance', es: 'Finanzas', ru: 'Финансы', zh: '金融', ja: 'ファイナンス', it: 'Finanza' },
   health: { tr: 'Sağlık', en: 'Health', de: 'Gesundheit', fr: 'Santé', es: 'Salud', ru: 'Здоровье', zh: '健康', ja: '健康', it: 'Salute', ar: 'الصحة', ko: '건강', hi: 'स्वास्थ्य', pt: 'Saúde' },
+  education: { tr: 'Eğitim', en: 'Education', de: 'Bildung', fr: 'Éducation', es: 'Educación', ru: 'Образование', zh: '教育', ja: '教育', it: 'Istruzione', ar: 'التعليم', ko: '교육', hi: 'शिक्षा', pt: 'Educação' },
+  designer: { tr: 'Tasarım', en: 'Designer', de: 'Design', fr: 'Design', es: 'Diseño', ru: 'Дизайн', zh: '设计', ja: 'デザイン', it: 'Design', ar: 'تصميم', ko: '디자인', hi: 'डिज़ाइन', pt: 'Design' },
   other: { tr: 'Diğer', en: 'Other', de: 'Sonstige', fr: 'Autres', es: 'Otros', ru: 'Другое', zh: '其他', ja: 'その他', it: 'Altro' }
 };
 function getAppCatName(catId, locale) {
@@ -5179,8 +5313,8 @@ createApp({
     }
     const openWindows = ref([]);
     const currentDesktop = ref(1);
-    const iconDesktopMap = ref(JSON.parse(localStorage.getItem('iconDesktopMap') || '{}'));
-    const iconOrderMap = ref(JSON.parse(localStorage.getItem('iconOrderMap') || '{}'));
+    const iconDesktopMap = ref({});
+    const iconOrderMap = ref({});
     const dragState = ref({ dragging: false, appId: null, fromIdx: -1, overIdx: -1 });
     const desktopCtx = ref({ show: false, x: 0, y: 0 });
     const iconCtx = ref({ show: false, x: 0, y: 0, app: null });
@@ -5195,8 +5329,20 @@ createApp({
     let clockTimer = null;
     let skipFocusEvent = false;
 
-    function saveIconMap() { localStorage.setItem('iconDesktopMap', JSON.stringify(iconDesktopMap.value)); }
-    function saveIconOrder() { localStorage.setItem('iconOrderMap', JSON.stringify(iconOrderMap.value)); }
+    async function saveIconMap() {
+      try { await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ iconDesktopMap: iconDesktopMap.value }) }); } catch {}
+    }
+    async function saveIconOrder() {
+      try { await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ iconOrderMap: iconOrderMap.value }) }); } catch {}
+    }
+    async function loadDesktopLayout() {
+      try {
+        const res = await fetch('/api/settings');
+        const s = await res.json();
+        if (s.iconDesktopMap && typeof s.iconDesktopMap === 'object') iconDesktopMap.value = s.iconDesktopMap;
+        if (s.iconOrderMap && typeof s.iconOrderMap === 'object') iconOrderMap.value = s.iconOrderMap;
+      } catch {}
+    }
 
     function getIconDesktops(appId) {
       const mapped = iconDesktopMap.value[appId];
@@ -5999,6 +6145,7 @@ createApp({
       window.addEventListener('app-uninstalled', onAppUninstalled);
       window.addEventListener('open-app-action', onOpenAppAction);
       window.addEventListener('keydown', onGlobalKeyDown);
+      loadDesktopLayout();
       loadInstalledApps().then(() => {
         restoreSessionApps();
         // Auto-open PostIt app if there are visible postits (independent of session restore)

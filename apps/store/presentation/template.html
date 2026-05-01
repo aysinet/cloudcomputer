@@ -1,0 +1,278 @@
+<div class="pres-app" :class="{ 'pres-presenting': presenting }">
+
+  <!-- ═══ PRESENTATION MODE (fullscreen overlay) ═══ -->
+  <div v-if="presenting" class="pres-fullscreen" @click.self="nextSlide">
+    <div class="pres-fs-slide" :style="getSlidePreviewStyle(currentSlide)" v-if="currentSlide">
+      <canvas ref="fsCanvasEl" class="pres-fs-canvas"></canvas>
+    </div>
+    <div class="pres-fs-nav">
+      <span>{{ currentIndex + 1 }} {{ t('of') }} {{ slides.length }}</span>
+      <el-button size="small" @click="prevSlide" :disabled="currentIndex===0">{{ t('prev') }}</el-button>
+      <el-button size="small" @click="nextSlide" :disabled="currentIndex===slides.length-1">{{ t('next') }}</el-button>
+      <el-button size="small" type="danger" @click="exitPresentation">{{ t('exitPresent') }}</el-button>
+    </div>
+  </div>
+
+  <!-- ═══ EDITOR MODE ═══ -->
+  <div v-else class="pres-editor">
+
+    <!-- ─── Toolbar ─── -->
+    <div class="pres-toolbar">
+      <el-button size="small" @click="newPresentation">{{ t('newPres') }}</el-button>
+      <el-button size="small" @click="addSlide('content')">{{ t('addSlide') }}</el-button>
+      <el-button size="small" @click="duplicateSlide" :disabled="!currentSlide">{{ t('duplicateSlide') }}</el-button>
+      <el-button size="small" @click="deleteSlide" :disabled="slides.length<=1" type="danger">{{ t('deleteSlide') }}</el-button>
+      <div class="pres-toolbar-sep"></div>
+      <el-button size="small" @click="moveSlide(-1)" :disabled="currentIndex===0">{{ t('moveUp') }}</el-button>
+      <el-button size="small" @click="moveSlide(1)" :disabled="currentIndex===slides.length-1">{{ t('moveDown') }}</el-button>
+      <div class="pres-toolbar-sep"></div>
+      <el-button size="small" @click="addTextObject">🔤 {{ t('addText') }}</el-button>
+      <el-button size="small" @click="addShape('rect')">⬜</el-button>
+      <el-button size="small" @click="addShape('circle')">⭕</el-button>
+      <el-button size="small" @click="addShape('triangle')">🔺</el-button>
+      <el-dropdown @command="handleImageInsert" trigger="click" size="small">
+        <el-button size="small">🖼️ {{ t('addImage') }}</el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="client-object">{{ t('imgFromClient') }}</el-dropdown-item>
+            <el-dropdown-item command="server-object">{{ t('imgFromServer') }}</el-dropdown-item>
+            <el-dropdown-item command="client-bg" divided>{{ t('bgFromClient') }}</el-dropdown-item>
+            <el-dropdown-item command="server-bg">{{ t('bgFromServer') }}</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <el-button size="small" @click="deleteSelectedObject" :disabled="!hasSelectedObject" type="danger">🗑️</el-button>
+      <div class="pres-toolbar-sep"></div>
+      <el-button size="small" type="success" @click="startPresentation">▶ {{ t('present') }}</el-button>
+      <div class="pres-toolbar-sep"></div>
+      <el-button size="small" @click="showSaveDialog=true">💾 {{ t('save') }}</el-button>
+      <el-button size="small" @click="loadSavedList">📂 {{ t('load') }}</el-button>
+      <el-dropdown @command="handleExport" trigger="click" size="small">
+        <el-button size="small">📄 {{ t('export') }}</el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="html">{{ t('exportHTML') }}</el-dropdown-item>
+            <el-dropdown-item command="pptx">{{ t('exportPPTX') }}</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <el-button size="small" @click="showGenerateDialog=true">🤖 {{ t('generate') }}</el-button>
+    </div>
+
+    <!-- ─── Main area: 3-panel splitter ─── -->
+    <div class="pres-main">
+      <el-splitter style="height:100%;width:100%">
+
+        <!-- LEFT: Outline -->
+        <el-splitter-panel :size="180" :min="140" :max="300">
+          <div class="pres-outline">
+            <div class="pres-outline-title">{{ t('outline') }}</div>
+            <div class="pres-outline-list">
+              <div v-for="(sl, idx) in slides" :key="sl.id"
+                   class="pres-outline-item" :class="{ active: idx === currentIndex }"
+                   @click="selectSlide(idx)">
+                <div class="pres-outline-thumb" :style="getSlidePreviewStyle(sl)">
+                  <div class="pres-thumb-num">{{ idx + 1 }}</div>
+                  <div class="pres-thumb-title">{{ sl.title || '—' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </el-splitter-panel>
+
+        <!-- MIDDLE: Fabric.js Preview -->
+        <el-splitter-panel :min="400">
+          <div class="pres-slide-area" v-if="currentSlide">
+            <div class="pres-preview-wrap" ref="previewWrapRef">
+              <div class="pres-canvas-container">
+                <canvas ref="fabricCanvasEl"></canvas>
+              </div>
+            </div>
+          </div>
+        </el-splitter-panel>
+
+        <!-- RIGHT: Template + Properties -->
+        <el-splitter-panel :size="280" :min="220" :max="400">
+          <div class="pres-right-panel" v-if="currentSlide">
+            <el-tabs v-model="rightTab" class="pres-right-tabs">
+
+              <!-- Template Tab -->
+              <el-tab-pane :label="t('template')" name="template">
+                <div class="pres-template-grid">
+                  <div v-for="tpl in TEMPLATES" :key="tpl.id"
+                       class="pres-template-card" :class="{ active: currentSlide.template === tpl.id }"
+                       :style="{ background: tpl.bg, color: tpl.textColor }"
+                       @click="applyTemplate(tpl.id)">
+                    <div class="pres-template-name">{{ t(tpl.id+'Slide') || tpl.id }}</div>
+                  </div>
+                </div>
+              </el-tab-pane>
+
+              <!-- Properties Tab -->
+              <el-tab-pane :label="t('properties')" name="props">
+                <div class="pres-props-inner">
+                  <div class="pres-props-section">
+                    <label>{{ t('slideTitle') }}</label>
+                    <el-input v-model="currentSlide.title" size="small" @input="debouncedSync"></el-input>
+                  </div>
+                  <div class="pres-props-section" v-if="currentSlide.layout==='title' || currentSlide.layout==='section' || currentSlide.layout==='end'">
+                    <label>{{ t('slideSubtitle') }}</label>
+                    <el-input v-model="currentSlide.subtitle" size="small" @input="debouncedSync"></el-input>
+                  </div>
+                  <div class="pres-props-section" v-if="currentSlide.layout==='content' || currentSlide.layout==='image-left' || currentSlide.layout==='image-right' || currentSlide.layout==='blank'">
+                    <label>{{ t('slideContent') }}</label>
+                    <el-input v-model="currentSlide.content" type="textarea" :rows="4" size="small" @input="debouncedSync"></el-input>
+                  </div>
+                  <div class="pres-props-section" v-if="currentSlide.layout==='two-column'">
+                    <label>{{ t('twoColumn') }} — L</label>
+                    <el-input v-model="currentSlide.leftContent" type="textarea" :rows="3" size="small" @input="debouncedSync"></el-input>
+                    <label style="margin-top:6px">{{ t('twoColumn') }} — R</label>
+                    <el-input v-model="currentSlide.rightContent" type="textarea" :rows="3" size="small" @input="debouncedSync"></el-input>
+                  </div>
+                  <div class="pres-props-section" v-if="currentSlide.layout==='quote'">
+                    <label>{{ t('quoteSlide') }}</label>
+                    <el-input v-model="currentSlide.quoteText" type="textarea" :rows="3" size="small" @input="debouncedSync"></el-input>
+                    <label style="margin-top:6px">Author</label>
+                    <el-input v-model="currentSlide.quoteAuthor" size="small" @input="debouncedSync"></el-input>
+                  </div>
+                  <div class="pres-props-section" v-if="currentSlide.layout==='bullet'">
+                    <label>{{ t('bulletSlide') }}</label>
+                    <div v-for="(b, bi) in currentSlide.bullets" :key="bi" style="display:flex;gap:4px;margin-bottom:4px">
+                      <el-input v-model="currentSlide.bullets[bi]" size="small" style="flex:1" @input="debouncedSync"></el-input>
+                      <el-button size="small" type="danger" @click="removeBullet(bi)">✕</el-button>
+                    </div>
+                    <el-button size="small" @click="addBullet">+</el-button>
+                  </div>
+                  <div class="pres-props-section" v-if="currentSlide.layout==='stats' || currentSlide.layout==='timeline' || currentSlide.layout==='comparison'">
+                    <label>{{ t(currentSlide.layout+'Slide') || currentSlide.layout }}</label>
+                    <div v-for="(it, ii) in currentSlide.items" :key="ii" style="display:flex;gap:4px;margin-bottom:4px">
+                      <el-input v-model="currentSlide.items[ii].label" size="small" placeholder="Label" style="flex:1" @input="debouncedSync"></el-input>
+                      <el-input v-model="currentSlide.items[ii].value" size="small" placeholder="Value" style="flex:1" @input="debouncedSync"></el-input>
+                      <el-button size="small" type="danger" @click="removeItem(ii)">✕</el-button>
+                    </div>
+                    <el-button size="small" @click="addItem">+</el-button>
+                  </div>
+                  <div class="pres-props-section">
+                    <label>{{ t('bgColor') }}</label>
+                    <el-input v-model="currentSlide.bg" size="small" @input="debouncedSync"></el-input>
+                  </div>
+                  <div class="pres-props-section">
+                    <label>{{ t('textColor') }}</label>
+                    <el-color-picker v-model="currentSlide.textColor" size="small" @change="syncSlideToCanvas"></el-color-picker>
+                  </div>
+                  <div class="pres-props-section">
+                    <label>{{ t('fontSize') }}</label>
+                    <el-slider v-model="currentSlide.fontSize" :min="12" :max="48" :step="1" size="small" @input="debouncedSync"></el-slider>
+                  </div>
+                  <div class="pres-props-section">
+                    <label>{{ t('notes') }}</label>
+                    <el-input v-model="currentSlide.notes" type="textarea" :rows="3" size="small"></el-input>
+                  </div>
+                </div>
+              </el-tab-pane>
+
+              <!-- Object Properties Tab -->
+              <el-tab-pane :label="t('objectProps')" name="object" v-if="hasSelectedObject">
+                <div class="pres-props-inner">
+                  <div class="pres-props-section">
+                    <label>X</label>
+                    <el-input-number v-model="selectedObjProps.left" size="small" :step="1" @change="updateSelectedObject"></el-input-number>
+                  </div>
+                  <div class="pres-props-section">
+                    <label>Y</label>
+                    <el-input-number v-model="selectedObjProps.top" size="small" :step="1" @change="updateSelectedObject"></el-input-number>
+                  </div>
+                  <div class="pres-props-section" v-if="selectedObjProps.type !== 'image'">
+                    <label>{{ t('objFill') }}</label>
+                    <el-color-picker v-model="selectedObjProps.fill" size="small" @change="updateSelectedObject"></el-color-picker>
+                  </div>
+                  <div class="pres-props-section">
+                    <label>{{ t('objOpacity') }}</label>
+                    <el-slider v-model="selectedObjProps.opacity" :min="0" :max="1" :step="0.05" size="small" @input="updateSelectedObject"></el-slider>
+                  </div>
+                  <div class="pres-props-section" v-if="selectedObjProps.type === 'textbox' || selectedObjProps.type === 'i-text'">
+                    <label>{{ t('fontSize') }}</label>
+                    <el-input-number v-model="selectedObjProps.fontSize" size="small" :min="8" :max="120" @change="updateSelectedObject"></el-input-number>
+                  </div>
+                  <div class="pres-props-section">
+                    <el-button size="small" type="danger" @click="deleteSelectedObject">🗑️ {{ t('deleteObj') }}</el-button>
+                    <el-button size="small" @click="bringForward">⬆</el-button>
+                    <el-button size="small" @click="sendBackward">⬇</el-button>
+                  </div>
+                </div>
+              </el-tab-pane>
+
+            </el-tabs>
+          </div>
+        </el-splitter-panel>
+
+      </el-splitter>
+    </div>
+  </div>
+
+  <!-- ═══ SAVE DIALOG ═══ -->
+  <el-dialog v-model="showSaveDialog" :title="t('save')" width="400px" append-to-body>
+    <el-input v-model="saveName" :placeholder="t('saveName')" size="default"></el-input>
+    <template #footer>
+      <el-button @click="showSaveDialog=false">{{ t('cancelBtn') }}</el-button>
+      <el-button type="primary" @click="saveToServer" :loading="saving" :disabled="!saveName.trim()">{{ t('saveBtn') }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ═══ LOAD DIALOG ═══ -->
+  <el-dialog v-model="showLoadDialog" :title="t('savedList')" width="500px" append-to-body>
+    <div v-if="!savedList.length" style="text-align:center;padding:20px;opacity:.5">{{ t('noSaved') }}</div>
+    <div v-for="item in savedList" :key="item.id" class="pres-saved-item">
+      <div class="pres-saved-info">
+        <strong>{{ item.name }}</strong>
+        <small>{{ new Date(item.modifiedAt).toLocaleString() }}</small>
+      </div>
+      <div style="display:flex;gap:6px">
+        <el-button size="small" type="primary" @click="loadFromServer(item.id)">{{ t('loadBtn') }}</el-button>
+        <el-button size="small" type="danger" @click="deleteFromServer(item.id)">{{ t('deleteBtn') }}</el-button>
+      </div>
+    </div>
+  </el-dialog>
+
+  <!-- ═══ GENERATE DIALOG ═══ -->
+  <el-dialog v-model="showGenerateDialog" :title="t('generate')" width="450px" append-to-body>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <label>{{ t('topicLabel') }}</label>
+        <el-input v-model="generateTopic" size="default" :placeholder="t('topicLabel')"></el-input>
+      </div>
+      <div>
+        <label>{{ t('slideCount') }}</label>
+        <el-slider v-model="generateCount" :min="3" :max="20" :step="1" show-input size="small"></el-slider>
+      </div>
+    </div>
+    <template #footer>
+      <el-button @click="showGenerateDialog=false">{{ t('cancelBtn') }}</el-button>
+      <el-button type="primary" @click="clientGenerate()" :disabled="!generateTopic.trim()">{{ t('generateBtn') }} (Client)</el-button>
+      <el-button type="success" @click="serverGenerate" :loading="generating" :disabled="!generateTopic.trim()">{{ t('generateBtn') }} (Server)</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ═══ SERVER IMAGE BROWSER ═══ -->
+  <el-dialog v-model="showImageBrowser" :title="t('selectImage')" width="600px" append-to-body>
+    <div class="pres-image-browser">
+      <div v-if="serverImages.length === 0" style="text-align:center;padding:30px;opacity:.5">{{ t('noImages') }}</div>
+      <div class="pres-image-grid">
+        <div v-for="img in serverImages" :key="img.filename" class="pres-image-thumb"
+             :class="{ selected: selectedServerImage === img.url }"
+             @click="selectedServerImage = img.url">
+          <img :src="img.url" :alt="img.name" />
+          <div class="pres-image-name">{{ img.name }}</div>
+        </div>
+      </div>
+    </div>
+    <template #footer>
+      <el-button @click="showImageBrowser=false">{{ t('cancelBtn') }}</el-button>
+      <el-button type="primary" @click="confirmServerImage" :disabled="!selectedServerImage">{{ t('selectBtn') }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- Hidden file input -->
+  <input type="file" ref="imageFileInput" style="display:none" accept="image/*" @change="onImageFileSelected" />
+
+</div>

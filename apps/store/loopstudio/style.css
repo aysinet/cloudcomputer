@@ -1,0 +1,418 @@
+/* LoopStudio — FL Studio-like DAW — Desktop Styles */
+.ls-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: #0d0d1a;
+  color: #d4d6e4;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 12px;
+  user-select: none;
+  overflow: hidden;
+}
+
+/* ── Top Bar ── */
+.ls-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, #1a1030 0%, #12091f 100%);
+  border-bottom: 1px solid #2a1a4a;
+  padding: 6px 12px;
+  gap: 10px;
+  flex-shrink: 0;
+  min-height: 44px;
+  flex-wrap: wrap;
+}
+.ls-topbar-left { display: flex; align-items: center; gap: 10px; }
+.ls-topbar-center { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ls-topbar-right { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+
+.ls-logo {
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #a855f7, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 0.5px;
+}
+.ls-project-name {
+  font-size: 11px;
+  color: #a0a4bc;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ls-dirty {
+  color: #f59e0b;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* ── Buttons ── */
+.ls-btn {
+  background: #1e1640;
+  color: #d4d6e4;
+  border: 1px solid #3b2870;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.ls-btn:hover { background: #2a1e55; border-color: #6b3fa0; }
+.ls-btn:active { transform: scale(0.96); }
+.ls-btn:disabled { opacity: 0.4; cursor: default; }
+.ls-btn-sm { padding: 3px 8px; font-size: 11px; }
+.ls-btn-xs { padding: 2px 6px; font-size: 10px; }
+
+.ls-btn-play {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #6b21a8, #a855f7);
+  border: 2px solid #9333ea;
+  color: #fff;
+  padding: 0;
+}
+.ls-btn-play.active {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  border-color: #ef4444;
+  box-shadow: 0 0 12px rgba(239,68,68,.5);
+}
+.ls-btn-play:hover { box-shadow: 0 0 14px rgba(168,85,247,.5); }
+
+.ls-btn-active {
+  background: #6b21a8 !important;
+  border-color: #a855f7 !important;
+  color: #fff !important;
+}
+
+.ls-btn-icon {
+  background: none;
+  border: none;
+  color: #8888aa;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: all .15s;
+}
+.ls-btn-icon:hover { background: rgba(255,255,255,.08); color: #d4d6e4; }
+.ls-btn-icon.active { color: #f59e0b; }
+.ls-btn-icon.ls-danger:hover { color: #ef4444; }
+
+/* ── Inputs ── */
+.ls-input {
+  background: #110b20;
+  border: 1px solid #2a1a4a;
+  border-radius: 4px;
+  color: #d4d6e4;
+  padding: 3px 6px;
+  font-size: 11px;
+  outline: none;
+}
+.ls-input:focus { border-color: #7c3aed; }
+.ls-bpm-input { width: 52px; text-align: center; }
+
+.ls-bpm-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ls-bpm-group label {
+  font-size: 10px;
+  color: #7c7fa0;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.ls-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: #2a1a4a;
+  outline: none;
+  width: 60px;
+}
+.ls-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #a855f7;
+  cursor: pointer;
+  border: 2px solid #7c3aed;
+}
+.ls-slider-sm { width: 50px; }
+
+.ls-step-group { display: flex; gap: 2px; }
+
+/* ── Main Layout ── */
+.ls-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Track Headers (left panel) ── */
+.ls-track-headers {
+  width: 220px;
+  min-width: 220px;
+  background: #110b22;
+  border-right: 1px solid #2a1a4a;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.ls-track-headers::-webkit-scrollbar { width: 4px; }
+.ls-track-headers::-webkit-scrollbar-thumb { background: #3b2870; border-radius: 2px; }
+
+.ls-step-ruler-pad {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  border-bottom: 1px solid #1e1540;
+  background: #0d0918;
+}
+
+.ls-track-header {
+  border-bottom: 1px solid #1a1030;
+  padding: 6px 8px;
+  border-left: 3px solid transparent;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ls-track-top {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ls-track-color {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ls-track-name {
+  background: transparent;
+  border: none;
+  color: #d4d6e4;
+  font-size: 11px;
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  outline: none;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.ls-track-name:focus {
+  background: #1e1640;
+  border: 1px solid #3b2870;
+}
+.ls-track-sample-name {
+  font-size: 9px;
+  color: #7c7fa0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-left: 12px;
+}
+.ls-track-controls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+/* ── Grid Area ── */
+.ls-grid-scroll {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+.ls-grid-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.ls-grid-scroll::-webkit-scrollbar-thumb { background: #3b2870; border-radius: 3px; }
+.ls-grid-scroll::-webkit-scrollbar-corner { background: #0d0918; }
+
+.ls-step-ruler {
+  display: flex;
+  height: 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #0d0918;
+  border-bottom: 1px solid #1e1540;
+}
+.ls-ruler-num {
+  width: 32px;
+  min-width: 32px;
+  text-align: center;
+  font-size: 9px;
+  color: #5a5e72;
+  line-height: 24px;
+}
+.ls-ruler-num.ls-ruler-beat {
+  color: #a0a4bc;
+  font-weight: 600;
+}
+
+.ls-track-row {
+  display: flex;
+  border-bottom: 1px solid #110b22;
+  min-height: 52px;
+}
+
+/* ── Step Cells ── */
+.ls-step {
+  width: 32px;
+  min-width: 32px;
+  height: 52px;
+  border-right: 1px solid #15102a;
+  cursor: pointer;
+  transition: background .08s, box-shadow .08s;
+  position: relative;
+  background: #0f0a1e;
+}
+.ls-step:hover {
+  background: rgba(168,85,247,.12) !important;
+}
+.ls-step.ls-step-beat {
+  border-left: 1px solid #231845;
+}
+.ls-step.ls-step-on {
+  border-radius: 2px;
+  box-shadow: inset 0 0 8px rgba(0,0,0,.3);
+}
+.ls-step.ls-step-current {
+  box-shadow: inset 0 0 0 2px rgba(168,85,247,.6);
+}
+.ls-step.ls-step-current::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(168,85,247,.08);
+  pointer-events: none;
+}
+
+/* ── Dialogs / Overlays ── */
+.ls-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.ls-dialog {
+  background: #1a1030;
+  border: 1px solid #3b2870;
+  border-radius: 12px;
+  width: 420px;
+  max-width: 95%;
+  max-height: 80%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,.7);
+}
+.ls-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #2a1a4a;
+  font-size: 14px;
+  font-weight: 600;
+}
+.ls-dialog-tabs {
+  display: flex;
+  border-bottom: 1px solid #2a1a4a;
+}
+.ls-dialog-tabs button {
+  background: none;
+  border: none;
+  color: #7c7fa0;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 11px;
+  border-bottom: 2px solid transparent;
+  transition: all .15s;
+}
+.ls-dialog-tabs button:hover { color: #d4d6e4; }
+.ls-dialog-tabs button.ls-tab-active {
+  color: #a855f7;
+  border-bottom-color: #a855f7;
+}
+.ls-dialog-body {
+  padding: 12px 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+.ls-dialog-body::-webkit-scrollbar { width: 4px; }
+.ls-dialog-body::-webkit-scrollbar-thumb { background: #3b2870; border-radius: 2px; }
+
+.ls-sample-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+.ls-sample-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: #110b22;
+  border: 1px solid #1e1540;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all .12s;
+}
+.ls-sample-item:hover {
+  background: #1e1640;
+  border-color: #3b2870;
+}
+.ls-sample-name {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ls-empty {
+  text-align: center;
+  color: #5a5e72;
+  padding: 20px;
+  font-size: 12px;
+}
+
+.ls-busy {
+  background: #1a1030;
+  color: #a855f7;
+  padding: 24px 40px;
+  border-radius: 12px;
+  font-size: 14px;
+  border: 1px solid #3b2870;
+  box-shadow: 0 10px 30px rgba(0,0,0,.5);
+}
+
+/* ── Pan Slider Center Mark ── */
+.ls-pan { position: relative; }
+
+/* ── Add Track Button ── */
+.ls-btn-add { width: 100%; text-align: center; }
+
+/* ── Scrollbar Dark ── */
+.ls-root ::-webkit-scrollbar { width: 6px; height: 6px; }
+.ls-root ::-webkit-scrollbar-track { background: transparent; }
+.ls-root ::-webkit-scrollbar-thumb { background: #2a1a4a; border-radius: 3px; }

@@ -1,0 +1,29 @@
+{
+  "id": "loopstudio",
+  "name": "LoopStudio",
+  "icon": "🎛️",
+  "color": "linear-gradient(135deg,#1a0a2e,#6b21a8)",
+  "type": "internal",
+  "size": {
+    "w": 1200,
+    "h": 750
+  },
+  "global": false,
+  "description": "FL Studio benzeri müzik loop uygulaması — step sequencer, mixer, proje kaydetme",
+  "lang": {
+    "en": { "name": "LoopStudio", "description": "FL Studio-like music loop app — step sequencer, mixer, save projects" },
+    "de": { "name": "LoopStudio", "description": "FL Studio-ähnliche Musik-Loop-App — Step Sequencer, Mixer, Projekte speichern" },
+    "fr": { "name": "LoopStudio", "description": "Application de boucle musicale type FL Studio — séquenceur, mixer, sauvegarde" },
+    "es": { "name": "LoopStudio", "description": "App de loops musicales tipo FL Studio — secuenciador, mixer, guardar proyectos" },
+    "ru": { "name": "LoopStudio", "description": "Музыкальный лупер в стиле FL Studio — степ-секвенсор, микшер, сохранение" },
+    "zh": { "name": "LoopStudio", "description": "类似FL Studio的音乐循环应用 — 步进音序器、混音器、保存项目" },
+    "ja": { "name": "LoopStudio", "description": "FL Studio風の音楽ループアプリ — ステップシーケンサー、ミキサー、保存" },
+    "it": { "name": "LoopStudio", "description": "App di loop musicali tipo FL Studio — step sequencer, mixer, salva progetti" },
+    "pt": { "name": "LoopStudio", "description": "App de loops musicais tipo FL Studio — sequenciador, mixer, salvar projetos" },
+    "ar": { "name": "LoopStudio", "description": "تطبيق حلقات موسيقية بأسلوب FL Studio — مُتسلسِل خطوي ومازج وحفظ المشاريع" },
+    "hi": { "name": "LoopStudio", "description": "FL Studio जैसा म्यूज़िक लूप ऐप — स्टेप सीक्वेंसर, मिक्सर, प्रोजेक्ट सेव" },
+    "ko": { "name": "LoopStudio", "description": "FL Studio 스타일 음악 루프 앱 — 스텝 시퀀서, 믹서, 프로젝트 저장" },
+    "tr": { "name": "LoopStudio", "description": "FL Studio benzeri müzik loop uygulaması — step sequencer, mixer, proje kaydetme" }
+  },
+  "category": "media"
+}

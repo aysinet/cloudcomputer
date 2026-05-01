@@ -1,0 +1,161 @@
+<div class="ls-root">
+  <!-- Top Bar -->
+  <div class="ls-topbar">
+    <div class="ls-topbar-left">
+      <span class="ls-logo">🎛️ {{L.title}}</span>
+      <span class="ls-project-name">{{ projectName || L.noProject }}</span>
+      <span v-if="dirty" class="ls-dirty">●</span>
+    </div>
+    <div class="ls-topbar-center">
+      <button class="ls-btn ls-btn-play" @click="togglePlay" :class="{active:playing}">
+        <span v-if="!playing">▶</span><span v-else>■</span>
+      </button>
+      <div class="ls-bpm-group">
+        <label>{{L.bpm}}</label>
+        <input type="number" v-model.number="bpm" min="40" max="300" class="ls-input ls-bpm-input" />
+      </div>
+      <div class="ls-bpm-group">
+        <label>{{L.swing}}</label>
+        <input type="range" v-model.number="swing" min="0" max="1" step="0.05" class="ls-slider" />
+      </div>
+      <div class="ls-bpm-group">
+        <label>{{L.master}}</label>
+        <input type="range" v-model.number="masterVol" min="0" max="1" step="0.01" class="ls-slider" />
+      </div>
+      <div class="ls-step-group">
+        <button @click="setStepCount(16)" :class="{'ls-btn-active': stepCount===16}" class="ls-btn ls-btn-sm">16</button>
+        <button @click="setStepCount(32)" :class="{'ls-btn-active': stepCount===32}" class="ls-btn ls-btn-sm">32</button>
+        <button @click="setStepCount(64)" :class="{'ls-btn-active': stepCount===64}" class="ls-btn ls-btn-sm">64</button>
+      </div>
+      <button class="ls-btn ls-btn-sm" :class="{'ls-btn-active': loopEnabled}" @click="loopEnabled=!loopEnabled" :title="loopEnabled?L.loopOn:L.loopOff">🔁</button>
+      <button class="ls-btn ls-btn-sm" :class="{'ls-btn-active': metronome}" @click="metronome=!metronome" :title="L.metronome">🔔</button>
+    </div>
+    <div class="ls-topbar-right">
+      <button class="ls-btn ls-btn-sm" @click="saveCurrentProject">💾 {{L.save}}</button>
+      <button class="ls-btn ls-btn-sm" @click="saveProjectAs">{{L.saveAs}}</button>
+      <button class="ls-btn ls-btn-sm" @click="showProjectDialog=true;loadProjects()">📂 {{L.load}}</button>
+      <button class="ls-btn ls-btn-sm" @click="newProject">{{L.newProject}}</button>
+      <button class="ls-btn ls-btn-sm" @click="exportWav" :disabled="exportBusy">{{L.export}}</button>
+    </div>
+  </div>
+
+  <!-- Main Grid Area -->
+  <div class="ls-main">
+    <!-- Track Headers -->
+    <div class="ls-track-headers">
+      <div class="ls-step-ruler-pad">
+        <button class="ls-btn ls-btn-xs ls-btn-add" @click="addTrack">+ {{L.addTrack}}</button>
+      </div>
+      <div v-for="(track, ti) in tracks" :key="track.id" class="ls-track-header" :style="{borderLeftColor: track.color}">
+        <div class="ls-track-top">
+          <span class="ls-track-color" :style="{background: track.color}"></span>
+          <input class="ls-track-name" v-model="track.name" @change="dirty=true" />
+          <button class="ls-btn-icon" @click="openSamplePicker(ti)" :title="L.assignSample">🎵</button>
+        </div>
+        <div class="ls-track-sample-name" v-if="track.sampleName" :title="track.sampleName">{{ track.sampleName }}</div>
+        <div class="ls-track-controls">
+          <button class="ls-btn-icon" :class="{active:track.mute}" @click="track.mute=!track.mute;dirty=true" :title="L.mute">M</button>
+          <button class="ls-btn-icon" :class="{active:track.solo}" @click="track.solo=!track.solo;dirty=true" :title="L.solo">S</button>
+          <input type="range" v-model.number="track.volume" min="0" max="1" step="0.01" class="ls-slider ls-slider-sm" :title="L.volume" />
+          <input type="range" v-model.number="track.pan" min="-1" max="1" step="0.01" class="ls-slider ls-slider-sm ls-pan" :title="L.pan" />
+          <button class="ls-btn-icon ls-danger" @click="removeTrack(ti)" :title="L.removeTrack">✕</button>
+          <button class="ls-btn-icon" @click="clearTrack(ti)" :title="L.clearTrack">🗑</button>
+          <button class="ls-btn-icon" @click="duplicateTrack(ti)" :title="L.duplicate">⧉</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step Grid -->
+    <div class="ls-grid-scroll">
+      <!-- Step Ruler -->
+      <div class="ls-step-ruler">
+        <span v-for="s in stepCount" :key="s" class="ls-ruler-num" :class="{'ls-ruler-beat': (s-1)%4===0}">{{s}}</span>
+      </div>
+      <!-- Track Rows -->
+      <div v-for="(track, ti) in tracks" :key="track.id" class="ls-track-row">
+        <div
+          v-for="(step, si) in track.steps" :key="si"
+          class="ls-step"
+          :class="{
+            'ls-step-on': step.on,
+            'ls-step-beat': si%4===0,
+            'ls-step-current': si===currentStep && playing
+          }"
+          :style="step.on ? {background: track.color, opacity: 0.3 + step.velocity*0.7} : {}"
+          @click="toggleStep(ti, si)"
+          @contextmenu.prevent="step.on && setStepVelocity(ti, si, step.velocity > 0.5 ? 0.4 : 1.0)"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sample Picker Dialog -->
+  <div v-if="showSamplePicker" class="ls-overlay" @click.self="showSamplePicker=false">
+    <div class="ls-dialog">
+      <div class="ls-dialog-header">
+        <span>{{L.selectSample}}</span>
+        <button class="ls-btn-icon" @click="showSamplePicker=false">✕</button>
+      </div>
+      <div class="ls-dialog-tabs">
+        <button :class="{'ls-tab-active': sampleTab==='uploaded'}" @click="sampleTab='uploaded'">{{L.samples}}</button>
+        <button :class="{'ls-tab-active': sampleTab==='music'}" @click="sampleTab='music';loadMusicFiles()">{{L.music}}</button>
+        <button :class="{'ls-tab-active': sampleTab==='recording'}" @click="sampleTab='recording';loadRecordings()">{{L.recording}}</button>
+      </div>
+      <div class="ls-dialog-body">
+        <!-- Upload -->
+        <div v-if="sampleTab==='uploaded'">
+          <button class="ls-btn ls-btn-sm" @click="uploadSamples" :disabled="uploading">
+            {{ uploading ? L.loading : L.uploadSample }}
+          </button>
+          <div class="ls-sample-list">
+            <div v-if="!samples.length" class="ls-empty">{{L.noSamples}}</div>
+            <div v-for="s in samples" :key="s.filename" class="ls-sample-item" @click="assignUploadedSample(s)">
+              <span class="ls-sample-name">🎵 {{ s.name || s.filename }}</span>
+              <button class="ls-btn-icon ls-danger" @click.stop="deleteSample(s)">✕</button>
+            </div>
+          </div>
+        </div>
+        <!-- Music Files -->
+        <div v-if="sampleTab==='music'">
+          <div class="ls-sample-list">
+            <div v-for="f in musicFiles" :key="f.url" class="ls-sample-item" @click="assignMusicFile(f)">
+              <span class="ls-sample-name">🎶 {{ f.name || f.filename }}</span>
+            </div>
+          </div>
+        </div>
+        <!-- Recordings -->
+        <div v-if="sampleTab==='recording'">
+          <div class="ls-sample-list">
+            <div v-for="r in recordingFiles" :key="r.filename" class="ls-sample-item" @click="assignRecording(r)">
+              <span class="ls-sample-name">🎙 {{ r.filename }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Browser Dialog -->
+  <div v-if="showProjectDialog" class="ls-overlay" @click.self="showProjectDialog=false">
+    <div class="ls-dialog">
+      <div class="ls-dialog-header">
+        <span>{{L.projects}}</span>
+        <button class="ls-btn-icon" @click="showProjectDialog=false">✕</button>
+      </div>
+      <div class="ls-dialog-body">
+        <div class="ls-sample-list">
+          <div v-if="!projects.length" class="ls-empty">{{L.noProject}}</div>
+          <div v-for="p in projects" :key="p.name" class="ls-sample-item">
+            <span class="ls-sample-name" @click="openProject(p.name)" style="cursor:pointer;flex:1">📁 {{ p.name }}</span>
+            <button class="ls-btn-icon ls-danger" @click.stop="deleteProject(p.name)">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Busy overlay -->
+  <div v-if="exportBusy" class="ls-overlay">
+    <div class="ls-busy">{{ busyText || L.loading }}</div>
+  </div>
+</div>

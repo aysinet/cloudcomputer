@@ -1,0 +1,61 @@
+<div class="mongo-install-form">
+  <div class="mongo-install-header">
+    <span class="mongo-install-icon">🍃</span>
+    <h3>MongoDB</h3>
+    <p class="mongo-install-subtitle">NoSQL veritabanı kuruluma hazır</p>
+  </div>
+  <div class="mongo-install-body">
+    <p class="mongo-install-info">MongoDB, kimlik doğrulaması olmadan başlatılacaktır. Kurulumdan sonra güvenlik ayarlarını yapılandırabilirsiniz.</p>
+    <div class="mongo-install-error" id="mongo-install-error" style="display:none"></div>
+  </div>
+  <div class="mongo-install-footer">
+    <button class="mongo-cancel-btn" onclick="cancelServiceInstall()">İptal</button>
+    <button class="mongo-install-btn" onclick="confirmServiceInstall()">Kur ve Başlat</button>
+  </div>
+</div>
+
+<script>
+  const MONGO_I18N = {
+    tr: { subtitle: 'NoSQL veritabanı kuruluma hazır', info: 'MongoDB, kimlik doğrulaması olmadan başlatılacaktır. Kurulumdan sonra güvenlik ayarlarını yapılandırabilirsiniz.', cancel: 'İptal', installBtn: 'Kur ve Başlat' },
+    en: { subtitle: 'NoSQL database ready to install', info: 'MongoDB will start without authentication. You can configure security settings after installation.', cancel: 'Cancel', installBtn: 'Install & Start' },
+    de: { subtitle: 'NoSQL-Datenbank bereit zur Installation', info: 'MongoDB wird ohne Authentifizierung gestartet. Sie können die Sicherheitseinstellungen nach der Installation konfigurieren.', cancel: 'Abbrechen', installBtn: 'Installieren & Starten' },
+    fr: { subtitle: 'Base de données NoSQL prête à installer', info: 'MongoDB démarrera sans authentification. Vous pourrez configurer la sécurité après l\'installation.', cancel: 'Annuler', installBtn: 'Installer & Démarrer' },
+    es: { subtitle: 'Base de datos NoSQL lista para instalar', info: 'MongoDB se iniciará sin autenticación. Puede configurar la seguridad después de la instalación.', cancel: 'Cancelar', installBtn: 'Instalar e Iniciar' }
+  };
+
+  function getMongoLocale() { try { return window.__serviceInstallLocale || 'tr'; } catch { return 'tr'; } }
+  function getMongoI18n(key) { const loc = getMongoLocale(); return (MONGO_I18N[loc] || MONGO_I18N.tr)[key] || (MONGO_I18N.tr)[key] || key; }
+
+  (function applyI18n() {
+    const loc = getMongoLocale();
+    const t = MONGO_I18N[loc] || MONGO_I18N.tr;
+    const sub = document.querySelector('.mongo-install-subtitle');
+    if (sub) sub.textContent = t.subtitle;
+    const info = document.querySelector('.mongo-install-info');
+    if (info) info.textContent = t.info;
+    const cancelBtn = document.querySelector('.mongo-cancel-btn');
+    if (cancelBtn) cancelBtn.textContent = t.cancel;
+    const installBtn = document.querySelector('.mongo-install-btn');
+    if (installBtn) installBtn.textContent = t.installBtn;
+  })();
+
+  function getInstallConfig() {
+    return {};
+  }
+</script>
+
+<style>
+  .mongo-install-form { padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; }
+  .mongo-install-header { text-align: center; margin-bottom: 20px; }
+  .mongo-install-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+  .mongo-install-header h3 { margin: 0 0 4px; font-size: 20px; color: #fff; }
+  .mongo-install-subtitle { margin: 0; font-size: 13px; color: #aaa; }
+  .mongo-install-body { margin-bottom: 16px; }
+  .mongo-install-info { font-size: 13px; color: #bbb; line-height: 1.5; background: #222238; padding: 12px 16px; border-radius: 8px; margin: 0; }
+  .mongo-install-error { color: #ff6b6b; font-size: 12px; margin-top: 8px; padding: 6px 10px; background: rgba(255,0,0,0.1); border-radius: 4px; }
+  .mongo-install-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .mongo-cancel-btn { padding: 8px 20px; border: 1px solid #555; border-radius: 6px; background: transparent; color: #ccc; cursor: pointer; font-size: 13px; }
+  .mongo-cancel-btn:hover { background: #333; }
+  .mongo-install-btn { padding: 8px 24px; border: none; border-radius: 6px; background: linear-gradient(135deg, #4DB33D, #3F9B2F); color: #fff; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .mongo-install-btn:hover { opacity: 0.9; }
+</style>

@@ -2354,14 +2354,13 @@ const ClockApp = {
 const CalendarApp = {
   template: '#CalendarApp',
   setup() {
-    const STORAGE_KEY = 'calendarEvents';
     const year = ref(new Date().getFullYear());
     const month = ref(new Date().getMonth());
     const showDialog = ref(false);
     const selectedDate = ref('');
     const newTitle = ref('');
     const newColor = ref('');
-    const events = ref(JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'));
+    const events = ref({});
     const colorMap = { '': '#409eff', green: '#67c23a', orange: '#e6a23c', red: '#f56c6c', purple: '#6f5ef7' };
     const dayNames = computed(() => {
       const loc = getIntlLocale();
@@ -2372,7 +2371,12 @@ const CalendarApp = {
       return Array.from({length:12}, (_,i) => new Intl.DateTimeFormat(loc, {month:'long'}).format(new Date(2024,i,1)));
     });
 
-    function saveEvents() { localStorage.setItem(STORAGE_KEY, JSON.stringify(events.value)); }
+    async function loadEvents() {
+      try {
+        const res = await fetch('/api/calendar/events', { headers: authHeaders() });
+        if (res.ok) events.value = await res.json();
+      } catch {}
+    }
 
     const monthLabel = computed(() => monthNames.value[month.value] + ' ' + year.value);
 
@@ -2429,64 +2433,97 @@ const CalendarApp = {
       showDialog.value = true;
     }
 
-    function addEvent() {
+    async function addEvent() {
       if (!newTitle.value.trim()) return;
-      if (!events.value[selectedDate.value]) events.value[selectedDate.value] = [];
-      events.value[selectedDate.value].push({ title: newTitle.value.trim(), color: newColor.value });
-      newTitle.value = '';
-      newColor.value = '';
-      saveEvents();
+      try {
+        const res = await fetch('/api/calendar/events', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ date: selectedDate.value, title: newTitle.value.trim(), color: newColor.value })
+        });
+        if (res.ok) {
+          const { id } = await res.json();
+          if (!events.value[selectedDate.value]) events.value[selectedDate.value] = [];
+          events.value[selectedDate.value].push({ id, title: newTitle.value.trim(), color: newColor.value });
+          newTitle.value = '';
+          newColor.value = '';
+        }
+      } catch {}
     }
 
-    function removeEvent(index) {
+    async function removeEvent(index) {
+      const ev = events.value[selectedDate.value][index];
       events.value[selectedDate.value].splice(index, 1);
       if (events.value[selectedDate.value].length === 0) delete events.value[selectedDate.value];
-      saveEvents();
+      if (ev && ev.id) {
+        try { await fetch('/api/calendar/events/' + ev.id, { method: 'DELETE', headers: authHeaders() }); } catch {}
+      }
     }
 
     function prevMonth() { if (month.value === 0) { month.value = 11; year.value--; } else { month.value--; } }
     function nextMonth() { if (month.value === 11) { month.value = 0; year.value++; } else { month.value++; } }
     function goToday() { const n = new Date(); year.value = n.getFullYear(); month.value = n.getMonth(); }
 
+    onMounted(() => loadEvents());
+
     return { year, month, showDialog, selectedDate, newTitle, newColor, events, colorMap, dayNames, monthLabel, calendarGrid, getEvents, dialogDate, selectedEvents, selectDate, openAdd, addEvent, removeEvent, prevMonth, nextMonth, goToday, t };
   }
 };
 
 /* ── NotificationsApp ── */
-const NOTIF_STORAGE_KEY = 'desktopNotifications';
-function loadNotifications() {
-  const d = JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY) || 'null');
-  if (d) return d;
-  return [
-    {icon:'📅',bg:'#ecf5ff',title:t('notifCalTitle'),text:t('notifCalText'),time:t('notifTime2h'),read:false},
-    {icon:'✅',bg:'#f0f9eb',title:t('notifTaskTitle'),text:t('notifTaskText'),time:t('notifTime4h'),read:false},
-    {icon:'⚙️',bg:'#fdf6ec',title:t('notifSysTitle'),text:t('notifSysText'),time:t('notifYesterday'),read:true},
-    {icon:'💻',bg:'#f4ecfb',title:t('notifTermTitle'),text:t('notifTermText'),time:t('notifYesterday'),read:true}
-  ];
-}
-
 const NotificationsApp = {
   template: '#NotificationsApp',
   setup() {
-    const notifications = ref(loadNotifications());
+    const notifications = ref([]);
     const newText = ref('');
     const unreadCount = computed(() => notifications.value.filter(n => !n.read).length);
-    function save() { localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(notifications.value)); }
-    function markAllRead() { notifications.value.forEach(n => n.read = true); save(); }
-    function remove(i) { notifications.value.splice(i, 1); save(); }
-    function addNotif() {
-      if (!newText.value.trim()) return;
-      notifications.value.unshift({ icon:'📌', bg:'#ecf5ff', title:t('notifLabel'), text: newText.value.trim(), time:t('notifNow'), read:false });
-      newText.value = '';
-      save();
+
+    async function loadNotifications() {
+      try {
+        const res = await fetch('/api/notifications', { headers: authHeaders() });
+        if (res.ok) notifications.value = await res.json();
+      } catch (e) { console.error('Notifications load error', e); }
     }
+
+    async function markAllRead() {
+      notifications.value.forEach(n => n.read = true);
+      try { await fetch('/api/notifications/read-all', { method: 'PATCH', headers: authHeaders() }); } catch {}
+    }
+
+    async function remove(i) {
+      const n = notifications.value[i];
+      notifications.value.splice(i, 1);
+      if (n && n.id) {
+        try { await fetch('/api/notifications/' + n.id, { method: 'DELETE', headers: authHeaders() }); } catch {}
+      }
+    }
+
+    async function addNotif() {
+      if (!newText.value.trim()) return;
+      try {
+        const res = await fetch('/api/notifications', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ title: t('notifLabel'), text: newText.value.trim() })
+        });
+        if (res.ok) {
+          const notif = await res.json();
+          notifications.value.unshift(notif);
+        }
+      } catch {}
+      newText.value = '';
+    }
+
     function openAction(n) {
       n.read = true;
-      save();
+      if (n.id) {
+        fetch('/api/notifications/' + n.id + '/read', { method: 'PATCH', headers: authHeaders() }).catch(() => {});
+      }
       if (n.action && n.action.app) {
         window.dispatchEvent(new CustomEvent('open-app-action', { detail: n.action }));
       }
     }
+
     function formatTime(t) {
       if (!t) return '';
       try {
@@ -2497,7 +2534,24 @@ const NotificationsApp = {
         return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
       } catch { return t; }
     }
-    return { notifications, newText, unreadCount, markAllRead, remove, addNotif, save, openAction, formatTime, t };
+
+    window.addEventListener('notif-push', (e) => {
+      const notif = e.detail;
+      if (!notifications.value.find(n => n.id === notif.id)) {
+        notifications.value.unshift(notif);
+      }
+    });
+    window.addEventListener('notif-deleted', (e) => {
+      const idx = notifications.value.findIndex(n => n.id === e.detail.id);
+      if (idx >= 0) notifications.value.splice(idx, 1);
+    });
+    window.addEventListener('notif-read-all', () => {
+      notifications.value.forEach(n => n.read = true);
+    });
+
+    onMounted(() => loadNotifications());
+
+    return { notifications, newText, unreadCount, markAllRead, remove, addNotif, openAction, formatTime, t };
   }
 };
 
@@ -2654,9 +2708,15 @@ const BrowserApp = {
       saveBookmarks();
     }
     function removeBookmark(i) { bookmarks.value.splice(i, 1); saveBookmarks(); }
-    function saveBookmarks() { localStorage.setItem('browser_bookmarks', JSON.stringify(bookmarks.value)); }
-    function loadBookmarks() {
-      try { bookmarks.value = JSON.parse(localStorage.getItem('browser_bookmarks') || '[]'); } catch { bookmarks.value = []; }
+    async function saveBookmarks() {
+      try { await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ browserBookmarks: bookmarks.value }) }); } catch {}
+    }
+    async function loadBookmarks() {
+      try {
+        const res = await fetch('/api/settings');
+        const s = await res.json();
+        bookmarks.value = Array.isArray(s.browserBookmarks) ? s.browserBookmarks : [];
+      } catch { bookmarks.value = []; }
     }
 
     onMounted(() => { loadBookmarks(); showBookmarks.value = !!localStorage.getItem('browser_bookmarks_open'); window.addEventListener('browser-open-url', onBrowserOpenUrl); });
@@ -2690,6 +2750,7 @@ const APP_CATEGORY_META = {
   internet: { icon: '🌐', order: 8 },
   social: { icon: '📱', order: 9 },
   finance: { icon: '💰', order: 10 },
+  education: { icon: '🎓', order: 12 },
   other: { icon: '📦', order: 99 }
 };
 const APP_CATEGORY_NAMES = {
@@ -2703,6 +2764,7 @@ const APP_CATEGORY_NAMES = {
   internet: { tr: 'İnternet', en: 'Internet', de: 'Internet', fr: 'Internet', es: 'Internet', ru: 'Интернет', zh: '互联网', ja: 'インターネット', it: 'Internet' },
   social: { tr: 'Sosyal', en: 'Social', de: 'Sozial', fr: 'Social', es: 'Social', ru: 'Социальные', zh: '社交', ja: 'ソーシャル', it: 'Social' },
   finance: { tr: 'Finans', en: 'Finance', de: 'Finanzen', fr: 'Finance', es: 'Finanzas', ru: 'Финансы', zh: '金融', ja: 'ファイナンス', it: 'Finanza' },
+  education: { tr: 'Eğitim', en: 'Education', de: 'Bildung', fr: 'Éducation', es: 'Educación', ru: 'Образование', zh: '教育', ja: '教育', it: 'Istruzione', ar: 'التعليم', ko: '교육', hi: 'शिक्षा', pt: 'Educação' },
   other: { tr: 'Diğer', en: 'Other', de: 'Sonstige', fr: 'Autres', es: 'Otros', ru: 'Другое', zh: '其他', ja: 'その他', it: 'Altro' }
 };
 function getAppCatName(catId, locale) {
@@ -2862,7 +2924,7 @@ createApp({
     }
     const openWindows = ref([]);
     const currentDesktop = ref(1);
-    const iconDesktopMap = ref(JSON.parse(localStorage.getItem('iconDesktopMap') || '{}'));
+    const iconDesktopMap = ref({});
     const iconCtx = ref({ show: false, x: 0, y: 0, app: null });
     const menuOpen = ref(false);
     const volOpen = ref(false);
@@ -2874,7 +2936,16 @@ createApp({
     let clockTimer = null;
     let skipFocusEvent = false;
 
-    function saveIconMap() { localStorage.setItem('iconDesktopMap', JSON.stringify(iconDesktopMap.value)); }
+    async function saveIconMap() {
+      try { await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ iconDesktopMap: iconDesktopMap.value }) }); } catch {}
+    }
+    async function loadDesktopLayout() {
+      try {
+        const res = await fetch('/api/settings');
+        const s = await res.json();
+        if (s.iconDesktopMap && typeof s.iconDesktopMap === 'object') iconDesktopMap.value = s.iconDesktopMap;
+      } catch {}
+    }
 
     function getIconDesktops(appId) {
       return iconDesktopMap.value[appId] || [1];
@@ -2912,9 +2983,14 @@ createApp({
     }
 
     const notifCount = ref(0);
-    function updateNotifCount() {
-      const d = JSON.parse(localStorage.getItem('desktopNotifications') || 'null');
-      notifCount.value = d ? d.filter(n => !n.read).length : 2;
+    async function updateNotifCount() {
+      try {
+        const res = await fetch('/api/notifications', { headers: authHeaders() });
+        if (res.ok) {
+          const data = await res.json();
+          notifCount.value = data.filter(n => !n.read).length;
+        }
+      } catch {}
     }
 
     function updateClock() {
@@ -3210,11 +3286,16 @@ createApp({
         try {
           const msg = JSON.parse(e.data);
           if (msg.type === 'notification' && msg.data) {
-            const stored = JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY) || '[]');
-            stored.unshift(msg.data);
-            if (stored.length > 200) stored.length = 200;
-            localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(stored));
+            window.dispatchEvent(new CustomEvent('notif-push', { detail: msg.data }));
             updateNotifCount();
+          }
+          if (msg.type === 'notification-deleted' && msg.data) {
+            window.dispatchEvent(new CustomEvent('notif-deleted', { detail: msg.data }));
+            updateNotifCount();
+          }
+          if (msg.type === 'notifications-read-all') {
+            window.dispatchEvent(new CustomEvent('notif-read-all'));
+            notifCount.value = 0;
           }
           if (msg.type === 'reminder-alert' && msg.data) {
             showReminderAlert(msg.data);
@@ -3325,6 +3406,7 @@ createApp({
       window.addEventListener('app-installed', onAppInstalled);
       window.addEventListener('app-uninstalled', onAppUninstalled);
       window.addEventListener('open-app-action', onOpenAppAction);
+      loadDesktopLayout();
       loadInstalledApps();
       connectWS();
     });

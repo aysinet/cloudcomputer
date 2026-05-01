@@ -1,0 +1,233 @@
+<div class="tdm-root">
+  <!-- TOOLBAR -->
+  <div class="tdm-toolbar">
+    <div class="tdm-tb-group">
+      <button class="tdm-tb-btn tdm-accent" @click="openFontDialog" title="Font Selection">🔤 Font</button>
+      <span class="tdm-font-label">{{ fontFamily }}</span>
+    </div>
+    <div class="tdm-tb-sep"></div>
+    <div class="tdm-tb-group">
+      <button class="tdm-tb-btn" @click="exportStillImage('png')" :disabled="exporting" title="Save PNG to server">💾 PNG</button>
+      <button class="tdm-tb-btn" @click="exportStillImage('jpg')" :disabled="exporting" title="Save JPG to server">🖼️ JPG</button>
+      <button class="tdm-tb-btn" @click="exportGIF()" :disabled="exporting || !animEnabled || animType==='none'" title="Save animated GIF">🎞️ GIF</button>
+      <button class="tdm-tb-btn" @click="exportVideo('webm')" :disabled="exporting || !animEnabled || animType==='none'" title="Save Video">🎬 Video</button>
+      <button class="tdm-tb-btn" @click="downloadLocal" title="Download PNG locally">⬇️</button>
+    </div>
+    <div class="tdm-tb-sep"></div>
+    <div class="tdm-tb-group">
+      <label class="tdm-tb-label">Size</label>
+      <input class="tdm-input tdm-input-sm" type="number" v-model.number="canvasW" min="200" max="2000" @change="updatePreview" title="Width" />
+      <span class="tdm-tb-label">×</span>
+      <input class="tdm-input tdm-input-sm" type="number" v-model.number="canvasH" min="100" max="1200" @change="updatePreview" title="Height" />
+    </div>
+    <div class="tdm-tb-sep"></div>
+    <div class="tdm-tb-group" v-if="exporting">
+      <div class="tdm-progress-bar">
+        <div class="tdm-progress-fill" :style="{ width: exportProgress + '%' }"></div>
+      </div>
+      <span class="tdm-tb-label">{{ exportProgress }}%</span>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <div class="tdm-main">
+    <!-- LEFT PANEL -->
+    <div class="tdm-panel tdm-panel-left">
+      <!-- TEXT -->
+      <div class="tdm-section">
+        <div class="tdm-section-title">📝 Text</div>
+        <textarea class="tdm-textarea" v-model="text" rows="2" placeholder="Enter your text..."></textarea>
+        <div class="tdm-row">
+          <label class="tdm-label">Size</label>
+          <input class="tdm-input" type="number" v-model.number="fontSize" min="12" max="300" />
+        </div>
+        <div class="tdm-row">
+          <label class="tdm-label">Color</label>
+          <input type="color" v-model="textColor" class="tdm-color" />
+          <label class="tdm-label" style="margin-left:8px">BG</label>
+          <input type="color" v-model="bgColor" class="tdm-color" />
+        </div>
+        <div class="tdm-row">
+          <button class="tdm-toggle" :class="{ active: bold }" @click="bold = !bold" title="Bold">B</button>
+          <button class="tdm-toggle" :class="{ active: italic }" @click="italic = !italic" title="Italic" style="font-style:italic">I</button>
+          <select class="tdm-select tdm-select-sm" v-model="textAlign">
+            <option value="left">Left</option>
+            <option value="center">Center</option>
+            <option value="right">Right</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 3D EFFECT -->
+      <div class="tdm-section">
+        <div class="tdm-section-title">🧊 3D Effect</div>
+        <select class="tdm-select" v-model="effect3d">
+          <option v-for="e in effects3dList" :key="e.value" :value="e.value">{{ e.label }}</option>
+        </select>
+
+        <!-- Depth params -->
+        <template v-if="effect3d === 'depth'">
+          <div class="tdm-row">
+            <label class="tdm-label">Depth</label>
+            <input type="range" v-model.number="depthLength" min="1" max="30" class="tdm-range" />
+            <span class="tdm-val">{{ depthLength }}</span>
+          </div>
+          <div class="tdm-row">
+            <label class="tdm-label">Angle</label>
+            <input type="range" v-model.number="depthAngle" min="0" max="360" class="tdm-range" />
+            <span class="tdm-val">{{ depthAngle }}°</span>
+          </div>
+          <div class="tdm-row">
+            <label class="tdm-label">Color</label>
+            <input type="color" v-model="depthColor" class="tdm-color" />
+          </div>
+        </template>
+
+        <!-- Shadow params -->
+        <template v-if="effect3d === 'shadow'">
+          <div class="tdm-row">
+            <label class="tdm-label">Color</label>
+            <input type="color" v-model="shadowColor" class="tdm-color" />
+          </div>
+          <div class="tdm-row">
+            <label class="tdm-label">Blur</label>
+            <input type="range" v-model.number="shadowBlur" min="0" max="50" class="tdm-range" />
+            <span class="tdm-val">{{ shadowBlur }}</span>
+          </div>
+          <div class="tdm-row">
+            <label class="tdm-label">Offset X</label>
+            <input type="range" v-model.number="shadowOffX" min="-30" max="30" class="tdm-range" />
+            <span class="tdm-val">{{ shadowOffX }}</span>
+          </div>
+          <div class="tdm-row">
+            <label class="tdm-label">Offset Y</label>
+            <input type="range" v-model.number="shadowOffY" min="-30" max="30" class="tdm-range" />
+            <span class="tdm-val">{{ shadowOffY }}</span>
+          </div>
+        </template>
+
+        <!-- Outline params -->
+        <template v-if="effect3d === 'outline'">
+          <div class="tdm-row">
+            <label class="tdm-label">Color</label>
+            <input type="color" v-model="outlineColor" class="tdm-color" />
+          </div>
+          <div class="tdm-row">
+            <label class="tdm-label">Width</label>
+            <input type="range" v-model.number="outlineWidth" min="1" max="20" class="tdm-range" />
+            <span class="tdm-val">{{ outlineWidth }}</span>
+          </div>
+        </template>
+
+        <!-- Bevel params -->
+        <template v-if="effect3d === 'bevel'">
+          <div class="tdm-row">
+            <label class="tdm-label">Light</label>
+            <input type="color" v-model="bevelLight" class="tdm-color" />
+            <label class="tdm-label" style="margin-left:6px">Dark</label>
+            <input type="color" v-model="bevelDark" class="tdm-color" />
+          </div>
+          <div class="tdm-row">
+            <label class="tdm-label">Size</label>
+            <input type="range" v-model.number="bevelSize" min="1" max="10" class="tdm-range" />
+            <span class="tdm-val">{{ bevelSize }}</span>
+          </div>
+        </template>
+
+        <!-- Glossy params -->
+        <template v-if="effect3d === 'gloss'">
+          <div class="tdm-row">
+            <label class="tdm-label">Gloss</label>
+            <input type="range" v-model.number="glossOpacity" min="0" max="1" step="0.05" class="tdm-range" />
+            <span class="tdm-val">{{ Math.round(glossOpacity * 100) }}%</span>
+          </div>
+        </template>
+
+        <!-- Neon params -->
+        <template v-if="effect3d === 'neon'">
+          <div class="tdm-row">
+            <label class="tdm-label">Glow</label>
+            <input type="color" v-model="neonGlow" class="tdm-color" />
+          </div>
+          <div class="tdm-row">
+            <label class="tdm-label">Blur</label>
+            <input type="range" v-model.number="neonBlur" min="5" max="60" class="tdm-range" />
+            <span class="tdm-val">{{ neonBlur }}</span>
+          </div>
+        </template>
+
+        <!-- Retro params -->
+        <template v-if="effect3d === 'retro'">
+          <div class="tdm-row">
+            <label class="tdm-label">Layers</label>
+            <input type="range" v-model.number="retroLayers" min="2" max="12" class="tdm-range" />
+            <span class="tdm-val">{{ retroLayers }}</span>
+          </div>
+          <div class="tdm-row">
+            <label class="tdm-label">Spread</label>
+            <input type="range" v-model.number="retroSpread" min="1" max="10" class="tdm-range" />
+            <span class="tdm-val">{{ retroSpread }}</span>
+          </div>
+        </template>
+
+        <!-- Emboss params -->
+        <template v-if="effect3d === 'emboss'">
+          <div class="tdm-row">
+            <label class="tdm-label">Strength</label>
+            <input type="range" v-model.number="embossStrength" min="1" max="10" class="tdm-range" />
+            <span class="tdm-val">{{ embossStrength }}</span>
+          </div>
+        </template>
+      </div>
+
+      <!-- ANIMATION -->
+      <div class="tdm-section">
+        <div class="tdm-section-title">
+          🎬 Animation
+          <label class="tdm-switch">
+            <input type="checkbox" v-model="animEnabled" />
+            <span class="tdm-switch-slider"></span>
+          </label>
+        </div>
+        <template v-if="animEnabled">
+          <select class="tdm-select" v-model="animType">
+            <option v-for="a in animTypes" :key="a.value" :value="a.value">{{ a.label }}</option>
+          </select>
+          <div class="tdm-row">
+            <label class="tdm-label">Duration</label>
+            <input type="range" v-model.number="animDuration" min="0.5" max="10" step="0.5" class="tdm-range" />
+            <span class="tdm-val">{{ animDuration }}s</span>
+          </div>
+          <div class="tdm-row">
+            <label class="tdm-label">Easing</label>
+            <select class="tdm-select tdm-select-sm" v-model="animEasing">
+              <option v-for="e in easings" :key="e" :value="e">{{ e }}</option>
+            </select>
+          </div>
+          <div class="tdm-row">
+            <label class="tdm-switch-inline">
+              <input type="checkbox" v-model="loopAnim" />
+              Loop
+            </label>
+          </div>
+          <div class="tdm-row" style="gap:6px">
+            <button class="tdm-tb-btn tdm-accent" @click="startPreview" :disabled="animType==='none' || isPlaying" title="Play">▶️ Play</button>
+            <button class="tdm-tb-btn" @click="stopPreview" :disabled="!isPlaying" title="Stop">⏹️ Stop</button>
+          </div>
+          <!-- Export options -->
+          <div class="tdm-row">
+            <label class="tdm-label">FPS</label>
+            <input class="tdm-input tdm-input-sm" type="number" v-model.number="exportFps" min="5" max="30" />
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- CANVAS PREVIEW -->
+    <div class="tdm-canvas-area">
+      <div class="tdm-canvas-wrap">
+        <canvas ref="previewCanvas" :width="canvasW" :height="canvasH"></canvas>
+      </div>
+    </div>
+  </div>
+</div>

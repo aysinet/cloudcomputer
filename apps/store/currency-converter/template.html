@@ -1,0 +1,61 @@
+<div class="cc-app">
+  <div class="cc-header">
+    <span class="cc-icon">💱</span>
+    <span class="cc-title">{{ L('title') }}</span>
+    <el-button circle size="small" @click="fetchRates" :disabled="loading" :title="L('lastUpdate')">↻</el-button>
+  </div>
+
+  <div class="cc-body">
+    <!-- From Section -->
+    <div class="cc-section">
+      <label class="cc-label">{{ L('from') }}</label>
+      <div class="cc-row">
+        <el-select v-model="baseCurrency" filterable :placeholder="L('search')" style="width:120px" @change="fetchRates">
+          <el-option-group :label="L('popular')">
+            <el-option v-for="c in popularList" :key="'p-'+c" :label="c" :value="c" />
+          </el-option-group>
+          <el-option-group :label="L('all')">
+            <el-option v-for="c in allCurrencies" :key="'a-'+c" :label="c" :value="c" />
+          </el-option-group>
+        </el-select>
+        <el-input v-model.number="amount" type="number" :placeholder="L('amount')" size="large" class="cc-amount-input" />
+      </div>
+    </div>
+
+    <!-- Swap -->
+    <div class="cc-swap-row">
+      <el-button circle @click="swapCurrencies" class="cc-swap-btn" :title="L('swap')">⇅</el-button>
+      <span class="cc-rate-info" v-if="currentRate">1 {{ baseCurrency }} = {{ currentRate }} {{ targetCurrency }}</span>
+    </div>
+
+    <!-- To Section -->
+    <div class="cc-section">
+      <label class="cc-label">{{ L('to') }}</label>
+      <div class="cc-row">
+        <el-select v-model="targetCurrency" filterable :placeholder="L('search')" style="width:120px">
+          <el-option-group :label="L('popular')">
+            <el-option v-for="c in popularList" :key="'tp-'+c" :label="c" :value="c" />
+          </el-option-group>
+          <el-option-group :label="L('all')">
+            <el-option v-for="c in allCurrencies" :key="'ta-'+c" :label="c" :value="c" />
+          </el-option-group>
+        </el-select>
+        <div class="cc-result-box" @click="copyResult">
+          <span class="cc-result-value" v-if="convertedAmount && !loading">{{ convertedAmount }}</span>
+          <span class="cc-result-value placeholder" v-else-if="loading">{{ L('loading') }}</span>
+          <span class="cc-result-value placeholder" v-else>—</span>
+          <el-tag v-if="copiedFlag" type="success" size="small" class="cc-copied-tag">{{ L('copied') }}</el-tag>
+          <span class="cc-copy-icon" v-else-if="convertedAmount && !loading">📋</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <el-alert v-if="errorMsg" :title="errorMsg" type="error" show-icon :closable="false" class="cc-error" />
+
+    <!-- Last Update -->
+    <div class="cc-footer" v-if="lastUpdate && !errorMsg">
+      {{ L('lastUpdate') }}: {{ lastUpdate }}
+    </div>
+  </div>
+</div>
