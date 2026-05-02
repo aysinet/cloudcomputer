@@ -5,7 +5,7 @@
   },
   "auth": {
     "jwtSecret": "62cc267bce025bfe314d22028b6a064741ace4caa5a214718543c794ae25ebde",
-    "jwtExpiresIn": "24h",
+    "jwtExpiresIn": "240h",
     "users": [
       "admin"
     ]

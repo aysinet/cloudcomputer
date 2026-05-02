@@ -1,0 +1,109 @@
+<div class="hm-root" ref="rootEl" tabindex="0" @keydown="onKeyDown">
+
+  <!-- Header -->
+  <div class="hm-header">
+    <div class="hm-stat">
+      <span class="hm-stat-label">{{ L('wins') }}</span>
+      <span class="hm-stat-val">{{ wins }}</span>
+    </div>
+    <div class="hm-lang-select">
+      <label>{{ L('wordLang') }}</label>
+      <select v-model="wordLang" @change="onLangChange">
+        <option v-for="wl in wordLangs" :key="wl.code" :value="wl.code">{{ wl.flag }} {{ wl.name }}</option>
+      </select>
+    </div>
+    <div class="hm-stat">
+      <span class="hm-stat-label">{{ L('losses') }}</span>
+      <span class="hm-stat-val">{{ losses }}</span>
+    </div>
+  </div>
+
+  <!-- Game body -->
+  <div class="hm-body">
+
+    <!-- SVG Hangman -->
+    <div class="hm-canvas-wrap">
+      <svg width="180" height="180" viewBox="0 0 200 200">
+        <!-- base -->
+        <line x1="20" y1="190" x2="100" y2="190" stroke="#8e44ad" stroke-width="4" stroke-linecap="round"/>
+        <!-- pole -->
+        <line x1="60" y1="190" x2="60" y2="20" stroke="#8e44ad" stroke-width="4" stroke-linecap="round"/>
+        <!-- top -->
+        <line x1="60" y1="20" x2="140" y2="20" stroke="#8e44ad" stroke-width="4" stroke-linecap="round"/>
+        <!-- rope -->
+        <line x1="140" y1="20" x2="140" y2="45" stroke="#8e44ad" stroke-width="3" stroke-linecap="round"/>
+        <!-- head -->
+        <circle v-if="wrongCount >= 1" cx="140" cy="60" r="15" stroke="#e74c3c" stroke-width="3" fill="none"/>
+        <!-- body -->
+        <line v-if="wrongCount >= 2" x1="140" y1="75" x2="140" y2="120" stroke="#e74c3c" stroke-width="3" stroke-linecap="round"/>
+        <!-- left arm -->
+        <line v-if="wrongCount >= 3" x1="140" y1="85" x2="115" y2="105" stroke="#e74c3c" stroke-width="3" stroke-linecap="round"/>
+        <!-- right arm -->
+        <line v-if="wrongCount >= 4" x1="140" y1="85" x2="165" y2="105" stroke="#e74c3c" stroke-width="3" stroke-linecap="round"/>
+        <!-- left leg -->
+        <line v-if="wrongCount >= 5" x1="140" y1="120" x2="118" y2="150" stroke="#e74c3c" stroke-width="3" stroke-linecap="round"/>
+        <!-- right leg -->
+        <line v-if="wrongCount >= 6" x1="140" y1="120" x2="162" y2="150" stroke="#e74c3c" stroke-width="3" stroke-linecap="round"/>
+        <!-- face X eyes on death -->
+        <template v-if="state === 'lost'">
+          <line x1="132" y1="55" x2="138" y2="61" stroke="#e74c3c" stroke-width="2"/>
+          <line x1="138" y1="55" x2="132" y2="61" stroke="#e74c3c" stroke-width="2"/>
+          <line x1="142" y1="55" x2="148" y2="61" stroke="#e74c3c" stroke-width="2"/>
+          <line x1="148" y1="55" x2="142" y2="61" stroke="#e74c3c" stroke-width="2"/>
+        </template>
+      </svg>
+    </div>
+
+    <!-- Category -->
+    <div class="hm-category" v-if="currentCategory">{{ currentCategory }}</div>
+
+    <!-- Word display -->
+    <div class="hm-word-area">
+      <div v-for="(ch, i) in wordDisplay" :key="i"
+           class="hm-letter-box"
+           :class="{ revealed: ch !== '_' && state === 'playing', 'wrong-reveal': state === 'lost' && ch !== '_' && !guessed.has(wordLetters[i]) }">
+        <template v-if="ch === ' '">&nbsp;</template>
+        <template v-else>{{ ch }}</template>
+      </div>
+    </div>
+
+    <!-- Hint -->
+    <div class="hm-hint" v-if="hint">💡 {{ hint }}</div>
+
+    <!-- Overlay -->
+    <div class="hm-overlay" v-if="state !== 'playing'">
+      <div class="hm-overlay-content">
+        <template v-if="state === 'idle'">
+          <div class="hm-overlay-title">🪢 {{ L('title') }}</div>
+          <div class="hm-overlay-sub">{{ L('subtitle') }}</div>
+          <el-button type="primary" size="large" @click="startGame">{{ L('start') }}</el-button>
+        </template>
+        <template v-if="state === 'won'">
+          <div class="hm-overlay-title">🎉 {{ L('youWon') }}</div>
+          <div class="hm-overlay-word">{{ currentWord }}</div>
+          <el-button type="success" size="large" @click="startGame">{{ L('playAgain') }}</el-button>
+        </template>
+        <template v-if="state === 'lost'">
+          <div class="hm-overlay-title">💀 {{ L('youLost') }}</div>
+          <div class="hm-overlay-sub">{{ L('theWord') }}</div>
+          <div class="hm-overlay-word">{{ currentWord }}</div>
+          <el-button type="danger" size="large" @click="startGame">{{ L('tryAgain') }}</el-button>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keyboard -->
+  <div class="hm-keyboard">
+    <div class="hm-kb-row" v-for="(row, ri) in keyboard" :key="ri">
+      <button v-for="letter in row" :key="letter"
+              class="hm-key"
+              :class="{ correct: guessed.has(letter) && wordLetters.includes(letter), wrong: guessed.has(letter) && !wordLetters.includes(letter) }"
+              :disabled="guessed.has(letter) || state !== 'playing'"
+              @click="guess(letter)">
+        {{ letter }}
+      </button>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,113 @@
+<div class="ss-root">
+  <!-- Toolbar -->
+  <div class="ss-toolbar">
+    <div class="ss-toolbar-left">
+      <div class="ss-file-menu-wrap">
+        <button class="ss-tb-btn" @click.stop="showFileMenu=!showFileMenu">📁 {{ t('file') }}</button>
+        <div v-if="showFileMenu" class="ss-dropdown-menu" @click.stop>
+          <button @click="newFile">📄 {{ t('new') }}</button>
+          <button @click="openSaveDialog">💾 {{ t('save') }}</button>
+          <button @click="openLoadDialog">📂 {{ t('load') }}</button>
+          <div class="ss-menu-sep"></div>
+          <button @click="exportCSV">📤 {{ t('exportCSV') }}</button>
+          <div class="ss-menu-sep"></div>
+          <button @click="importFile">📥 {{ t('importFile') }}</button>
+        </div>
+      </div>
+      <span class="ss-separator"></span>
+      <button class="ss-tb-btn" @click="doUndo" :title="t('undo')">↩️</button>
+      <button class="ss-tb-btn" @click="doRedo" :title="t('redo')">↪️</button>
+      <span class="ss-separator"></span>
+      <button class="ss-tb-btn" @click="formatBold" :title="t('bold')" :class="{active:isBold}">𝐁</button>
+      <button class="ss-tb-btn" @click="formatItalic" :title="t('italic')" :class="{active:isItalic}">𝐼</button>
+      <button class="ss-tb-btn" @click="formatStrike" :title="t('strikethrough')" :class="{active:isStrike}">S̶</button>
+      <button class="ss-tb-btn" @click="formatUnderline" :title="t('underline')" :class="{active:isUnderline}">U̲</button>
+      <span class="ss-separator"></span>
+      <label class="ss-color-wrap" :title="t('textColor')">
+        <span class="ss-color-icon" :style="{borderBottomColor: textColor}">A</span>
+        <input type="color" class="ss-color-input" :value="textColor" @input="setTextColor($event.target.value)">
+      </label>
+      <label class="ss-color-wrap" :title="t('bgColor')">
+        <span class="ss-color-icon ss-bg-icon" :style="{backgroundColor: bgColor}"></span>
+        <input type="color" class="ss-color-input" :value="bgColor" @input="setBgColor($event.target.value)">
+      </label>
+      <span class="ss-separator"></span>
+      <select class="ss-select" :value="hAlign" @change="setHAlign($event.target.value)" :title="t('align')">
+        <option value="left">⬅</option>
+        <option value="center">⬌</option>
+        <option value="right">➡</option>
+      </select>
+      <span class="ss-separator"></span>
+      <button class="ss-tb-btn" @click="mergeCells" :title="t('merge')">⊞</button>
+      <button class="ss-tb-btn" @click="insertRow" :title="t('insertRow')">＋⇣</button>
+      <button class="ss-tb-btn" @click="insertCol" :title="t('insertCol')">＋⇢</button>
+      <button class="ss-tb-btn" @click="deleteRow" :title="t('deleteRow')">－⇣</button>
+      <button class="ss-tb-btn" @click="deleteCol" :title="t('deleteCol')">－⇢</button>
+      <span class="ss-separator"></span>
+      <button class="ss-tb-btn" @click="freezeCell" :title="t('freeze')">❄️</button>
+    </div>
+    <div class="ss-toolbar-right">
+      <span v-if="statusMsg" class="ss-status-msg">{{ statusMsg }}</span>
+      <span class="ss-cell-info">{{ cellRef }}</span>
+    </div>
+  </div>
+
+  <!-- Formula Bar -->
+  <div class="ss-formula-bar">
+    <span class="ss-formula-label">𝑓𝑥</span>
+    <input
+      class="ss-formula-input"
+      :value="formulaText"
+      @input="onFormulaInput($event.target.value)"
+      @keydown.enter="applyFormula"
+      @blur="applyFormula"
+      :placeholder="t('formulaPlaceholder')"
+    />
+  </div>
+
+  <!-- Spreadsheet Container -->
+  <div class="ss-sheet-wrap">
+    <div ref="sheetContainer" class="ss-sheet-container"></div>
+  </div>
+
+  <!-- Save Dialog -->
+  <div v-if="showSaveModal" class="ss-modal-overlay" @click.self="showSaveModal=false">
+    <div class="ss-modal">
+      <div class="ss-modal-header">
+        <span>💾 {{ t('save') }}</span>
+        <button class="ss-modal-close" @click="showSaveModal=false">✕</button>
+      </div>
+      <div class="ss-modal-body">
+        <label class="ss-label">{{ t('projectName') }}</label>
+        <input v-model="projectName" class="ss-input" :placeholder="t('projectName')" maxlength="50" @keydown.enter="doSave" />
+      </div>
+      <div class="ss-modal-footer">
+        <button class="ss-btn ss-btn-cancel" @click="showSaveModal=false">{{ t('cancel') }}</button>
+        <button class="ss-btn ss-btn-primary" @click="doSave">{{ t('save') }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Dialog -->
+  <div v-if="showLoadModal" class="ss-modal-overlay" @click.self="showLoadModal=false">
+    <div class="ss-modal ss-modal-wide">
+      <div class="ss-modal-header">
+        <span>📂 {{ t('load') }}</span>
+        <button class="ss-modal-close" @click="showLoadModal=false">✕</button>
+      </div>
+      <div class="ss-modal-body">
+        <div v-if="!savedFiles.length" class="ss-empty-text">{{ t('noFiles') }}</div>
+        <div v-for="f in savedFiles" :key="f.id" class="ss-file-item">
+          <div class="ss-file-info" @click="loadFile(f.id)">
+            <span class="ss-file-icon">📊</span>
+            <div>
+              <div class="ss-file-name">{{ f.name }}</div>
+              <div class="ss-file-date">{{ f.date }}</div>
+            </div>
+          </div>
+          <button class="ss-file-delete" @click.stop="deleteFile(f.id)" :title="t('delete')">🗑️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

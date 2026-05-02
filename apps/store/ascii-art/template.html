@@ -1,0 +1,112 @@
+<div class="aa-root">
+  <!-- Tabs -->
+  <div class="aa-tabs">
+    <button :class="['aa-tab', {active: tab==='text'}]" @click="tab='text'">🔤 {{ t('textTab') }}</button>
+    <button :class="['aa-tab', {active: tab==='image'}]" @click="tab='image'">🖼️ {{ t('imageTab') }}</button>
+    <button :class="['aa-tab', {active: tab==='gallery'}]" @click="tab='gallery'">📁 {{ t('galleryTab') }}</button>
+  </div>
+
+  <!-- Text to ASCII -->
+  <div v-if="tab==='text'" class="aa-panel">
+    <div class="aa-form">
+      <input v-model="textInput" :placeholder="t('textPlaceholder')" class="aa-input" maxlength="100" @keyup.enter="generateText" />
+      <div class="aa-row">
+        <label class="aa-label">{{ t('font') }}</label>
+        <select v-model="selectedFont" class="aa-select">
+          <option v-for="f in fonts" :key="f" :value="f">{{ f }}</option>
+        </select>
+      </div>
+      <button class="aa-btn aa-btn-primary" @click="generateText" :disabled="textLoading || !textInput.trim()">
+        {{ textLoading ? t('generating') : t('generate') }}
+      </button>
+    </div>
+    <div v-if="textResult" class="aa-result-wrap">
+      <div class="aa-toolbar">
+        <button class="aa-btn aa-btn-sm" @click="copyResult(textResult)" :title="t('copy')">📋 {{ t('copy') }}</button>
+        <button class="aa-btn aa-btn-sm" @click="saveToServer(textResult, 'text')" :title="t('save')">💾 {{ t('save') }}</button>
+        <button class="aa-btn aa-btn-sm" @click="downloadTxt(textResult)" :title="t('download')">⬇️ {{ t('download') }}</button>
+      </div>
+      <pre class="aa-result">{{ textResult }}</pre>
+    </div>
+  </div>
+
+  <!-- Image to ASCII -->
+  <div v-if="tab==='image'" class="aa-panel">
+    <div class="aa-form">
+      <div class="aa-upload-area" @click="$refs.fileInput.click()" @dragover.prevent @drop.prevent="onDrop">
+        <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="onFileSelect" />
+        <div v-if="!imagePreview" class="aa-upload-placeholder">
+          <span style="font-size:36px">📤</span>
+          <p>{{ t('uploadHint') }}</p>
+        </div>
+        <img v-else :src="imagePreview" class="aa-preview-img" />
+      </div>
+      <div class="aa-row">
+        <label class="aa-label">{{ t('width') }}</label>
+        <input v-model.number="imgWidth" type="range" min="40" max="200" class="aa-range" />
+        <span class="aa-range-val">{{ imgWidth }}</span>
+      </div>
+      <div class="aa-row">
+        <label class="aa-label">{{ t('charset') }}</label>
+        <select v-model="charsetMode" class="aa-select">
+          <option value="standard">Standard</option>
+          <option value="detailed">Detailed</option>
+          <option value="blocks">Blocks</option>
+          <option value="simple">Simple</option>
+        </select>
+      </div>
+      <div class="aa-row">
+        <label class="aa-label">{{ t('invert') }}</label>
+        <input v-model="invertColors" type="checkbox" class="aa-check" />
+      </div>
+      <button class="aa-btn aa-btn-primary" @click="generateImage" :disabled="imgLoading || !selectedFile">
+        {{ imgLoading ? t('generating') : t('generate') }}
+      </button>
+    </div>
+    <div v-if="imageResult" class="aa-result-wrap">
+      <div class="aa-toolbar">
+        <button class="aa-btn aa-btn-sm" @click="copyResult(imageResult)" :title="t('copy')">📋 {{ t('copy') }}</button>
+        <button class="aa-btn aa-btn-sm" @click="saveToServer(imageResult, 'image')" :title="t('save')">💾 {{ t('save') }}</button>
+        <button class="aa-btn aa-btn-sm" @click="downloadTxt(imageResult)" :title="t('download')">⬇️ {{ t('download') }}</button>
+      </div>
+      <pre class="aa-result aa-result-img">{{ imageResult }}</pre>
+    </div>
+  </div>
+
+  <!-- Gallery (saved files) -->
+  <div v-if="tab==='gallery'" class="aa-panel">
+    <div class="aa-gallery-toolbar">
+      <button class="aa-btn aa-btn-sm" @click="loadGallery">🔄 {{ t('refresh') }}</button>
+      <label class="aa-btn aa-btn-sm aa-upload-btn">
+        📤 {{ t('upload') }}
+        <input type="file" accept=".txt,.text" style="display:none" @change="uploadFile" />
+      </label>
+    </div>
+    <div v-if="galleryLoading" class="aa-center">{{ t('loading') }}</div>
+    <div v-else-if="!galleryItems.length" class="aa-center aa-empty">{{ t('noFiles') }}</div>
+    <div v-else class="aa-gallery-list">
+      <div v-for="item in galleryItems" :key="item.name" class="aa-gallery-item" @click="viewFile(item)">
+        <div class="aa-gallery-icon">📄</div>
+        <div class="aa-gallery-info">
+          <div class="aa-gallery-name">{{ item.name }}</div>
+          <div class="aa-gallery-meta">{{ formatSize(item.size) }} · {{ formatDate(item.mtime) }}</div>
+        </div>
+        <button class="aa-btn aa-btn-sm aa-btn-danger" @click.stop="deleteFile(item)" :title="t('delete')">🗑️</button>
+      </div>
+    </div>
+    <!-- File viewer -->
+    <div v-if="viewingFile" class="aa-viewer-overlay" @click.self="viewingFile=null">
+      <div class="aa-viewer">
+        <div class="aa-viewer-header">
+          <span>{{ viewingFile.name }}</span>
+          <div>
+            <button class="aa-btn aa-btn-sm" @click="copyResult(viewingFile.content)">📋</button>
+            <button class="aa-btn aa-btn-sm" @click="downloadTxt(viewingFile.content, viewingFile.name)">⬇️</button>
+            <button class="aa-btn aa-btn-sm" @click="viewingFile=null">✕</button>
+          </div>
+        </div>
+        <pre class="aa-result">{{ viewingFile.content }}</pre>
+      </div>
+    </div>
+  </div>
+</div>

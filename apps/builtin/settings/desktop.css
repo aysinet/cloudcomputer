@@ -53,3 +53,14 @@
 .ai-add-btn:hover{border-color:#667eea;color:#667eea;background:#f8f9ff}
 .ai-save-btn{padding:8px 24px;border:none;border-radius:8px;background:#667eea;color:#fff;font-size:13px;font-weight:600;cursor:pointer}
 .ai-save-btn:hover{filter:brightness(1.1)}
+/* ── Location Form ── */
+.loc-form{display:flex;flex-direction:column;gap:16px;max-width:500px}
+.loc-form-row{display:grid;grid-template-columns:120px 1fr;align-items:center;gap:12px}
+.loc-form-label{font-size:13px;font-weight:500;color:#333;display:flex;flex-direction:column;gap:2px}
+.loc-form-sub{font-size:11px;font-weight:400;color:#999}
+.loc-form-ctrl{min-width:0}
+/* ── Network Table ── */
+.net-table{width:100%;border-collapse:collapse;font-size:13px}
+.net-table th{text-align:left;padding:8px 10px;border-bottom:2px solid #e0e0ee;font-weight:600;color:#555;font-size:12px}
+.net-table td{padding:8px 10px;border-bottom:1px solid #f0f0f5;color:#333}
+.net-table tr:hover td{background:#f8f9ff}

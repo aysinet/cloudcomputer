@@ -41,7 +41,8 @@
 
     <div v-for="group in groupedMatches" :key="group.competition.id" class="ss-group">
       <!-- Competition Header -->
-      <div class="ss-comp-header">
+      <div class="ss-comp-header" @click="toggleGroup(group.competition.id)" :class="{ 'ss-comp-collapsed': isCollapsed(group.competition.id, group.competition) }">
+        <span class="ss-collapse-arrow">{{ isCollapsed(group.competition.id, group.competition) ? '▶' : '▼' }}</span>
         <span class="ss-comp-flag">{{ countryFlag(group.competition) }}</span>
         <span class="ss-comp-country">{{ group.competition.country ? group.competition.country.name : '' }}</span>
         <span class="ss-comp-sep">–</span>
@@ -49,6 +50,7 @@
         <span class="ss-comp-sport">{{ sportIcon(group.competition.sport) }}</span>
       </div>
 
+      <div v-show="!isCollapsed(group.competition.id, group.competition)" class="ss-group-matches">
       <!-- Soccer/Basketball Matches -->
       <template v-if="group.competition.sport !== 'T'">
         <div v-for="m in group.matches" :key="m.id" :class="['ss-match', m.state === 'live' && 'ss-match-live']">
@@ -106,6 +108,7 @@
           </div>
         </div>
       </template>
+      </div>
     </div>
   </div>
 </div>

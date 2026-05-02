@@ -1,0 +1,79 @@
+{
+  "id": "tiddlywiki",
+  "name": "TiddlyWiki",
+  "icon": "📓",
+  "color": "linear-gradient(135deg,#5778d8,#2c3e50)",
+  "type": "internal",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Kişisel wiki ve not defteri — doğrusal olmayan bilgi yönetimi",
+  "lang": {
+    "tr": {
+      "name": "TiddlyWiki",
+      "description": "Kişisel wiki ve not defteri — doğrusal olmayan bilgi yönetimi"
+    },
+    "en": {
+      "name": "TiddlyWiki",
+      "description": "Personal wiki & notebook — non-linear knowledge management"
+    },
+    "de": {
+      "name": "TiddlyWiki",
+      "description": "Persönliches Wiki & Notizbuch — nichtlineare Wissensverwaltung"
+    },
+    "fr": {
+      "name": "TiddlyWiki",
+      "description": "Wiki personnel et carnet — gestion non linéaire des connaissances"
+    },
+    "es": {
+      "name": "TiddlyWiki",
+      "description": "Wiki personal y cuaderno — gestión no lineal del conocimiento"
+    },
+    "ru": {
+      "name": "TiddlyWiki",
+      "description": "Персональная вики и блокнот — нелинейное управление знаниями"
+    },
+    "zh": {
+      "name": "太微笔记",
+      "description": "个人维基与笔记本——非线性知识管理"
+    },
+    "ja": {
+      "name": "TiddlyWiki",
+      "description": "個人ウィキとノート — 非線形ナレッジ管理"
+    },
+    "it": {
+      "name": "TiddlyWiki",
+      "description": "Wiki personale e taccuino — gestione non lineare della conoscenza"
+    },
+    "ar": {
+      "name": "تيدلي ويكي",
+      "description": "ويكي شخصي ودفتر ملاحظات — إدارة المعرفة غير الخطية"
+    },
+    "ko": {
+      "name": "TiddlyWiki",
+      "description": "개인 위키 및 노트 — 비선형 지식 관리"
+    },
+    "hi": {
+      "name": "TiddlyWiki",
+      "description": "व्यक्तिगत विकी और नोटबुक — गैर-रैखिक ज्ञान प्रबंधन"
+    },
+    "pt": {
+      "name": "TiddlyWiki",
+      "description": "Wiki pessoal e caderno — gestão não linear do conhecimento"
+    }
+  },
+  "category": "productivity",
+  "docker": {
+    "build": {
+      "context": "./apps/store/tiddlywiki"
+    },
+    "image": "cloudpc-tiddlywiki:latest",
+    "containerPort": 8080,
+    "volumes": [
+      "${APP_VOLUME}:/wiki"
+    ],
+    "env": []
+  }
+}

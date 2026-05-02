@@ -98,6 +98,7 @@
       const loading = ref(false);
       const competitions = ref({});
       const matches = ref({});
+      const toggledGroups = reactive({});
       let refreshTimer = null;
 
       const dateStr = computed(() => formatDate(currentDate.value));
@@ -160,34 +161,42 @@
       function getCompPriority(comp, userCountryName) {
         const cn = comp.country && comp.country.name ? comp.country.name : '';
         const compName = comp.name || '';
+        const compNameLower = compName.toLowerCase();
+        const isSuperLeague = compNameLower.includes('süper') || compNameLower.includes('super');
 
-        // 1. User's country leagues
+        // 1. User's country super league (highest priority)
+        if (userCountryName && cn === userCountryName && isSuperLeague) return 5;
+
+        // 2. User's country other leagues
         if (userCountryName && cn === userCountryName) return 10;
 
-        // 2. Continental championships (Champions League, Europa League, etc.)
+        // 3. Continental championships (Champions League, Europa League, etc.)
         if (cn === 'Avrupa' || cn === 'Dünya' || cn === 'Güney Amerika' || cn === 'Kuzey / Orta Amerika' || cn === 'Afrika' || cn === 'Asya') {
-          if (compName.includes('Şampiyonlar') || compName.includes('Champions')) return 20;
-          return 25;
+          if (compName.includes('Şampiyonlar') || compName.includes('Champions')) return 15;
+          return 20;
         }
 
-        // 3. Top leagues
+        // 4. Other countries' super leagues
+        if (isSuperLeague) return 28;
+
+        // 5. Top leagues
         if (cn === 'İngiltere' && (compName.includes('Premier') || comp.code === 'İPL')) return 30;
         if (cn === 'İspanya' && (compName.includes('La Liga') || compName === 'La Liga' || comp.code === 'LL')) return 31;
         if (cn === 'Almanya' && (compName.includes('Bundesliga') || comp.code === 'BL')) return 32;
         if (cn === 'İtalya' && (compName.includes('Serie A') || comp.code === 'İSA')) return 33;
         if (cn === 'Fransa' && (compName.includes('Ligue 1') || comp.code === 'FL')) return 34;
 
-        // 4. NBA
+        // 6. NBA, EuroLeague
         if (compName === 'NBA' || comp.code === 'AN') return 35;
         if (compName === 'EuroLeague') return 36;
 
-        // 5. Other top-division leagues
-        if (compName.includes('Süper Lig') || compName.includes('Premier') || compName.includes('1. Lig') || compName.includes('Serie A')) return 50;
+        // 7. Other top-division leagues
+        if (compName.includes('Premier') || compName.includes('1. Lig') || compName.includes('Serie A')) return 50;
 
-        // 6. Cups
+        // 8. Cups
         if (compName.includes('Kupa') || compName.includes('Cup')) return 60;
 
-        // 7. Lower divisions, youth, women
+        // 9. Lower divisions, youth, women
         if (compName.includes('U19') || compName.includes('U21') || compName.includes('U23') || compName.includes('U18') || compName.includes('U17')) return 80;
         if (compName.includes('Kadın') || compName.includes('(K)')) return 75;
 
@@ -201,6 +210,27 @@
         }
         return c;
       });
+
+      function isTopGroup(comp) {
+        const compName = (comp.name || '').toLowerCase();
+        const cn = comp.country && comp.country.name ? comp.country.name : '';
+        const uc = COUNTRY_MAP[userCountry.value] || '';
+        if (compName.includes('süper') || compName.includes('super')) return true;
+        if (['Avrupa', 'Dünya', 'Güney Amerika', 'Kuzey / Orta Amerika', 'Afrika', 'Asya'].includes(cn)) return true;
+        if (uc && cn === uc) return true;
+        if (compName.includes('premier') || compName === 'la liga' || compName.includes('bundesliga') || compName.includes('serie a') || compName.includes('ligue 1') || compName === 'nba' || compName === 'euroleague') return true;
+        return false;
+      }
+
+      function isCollapsed(compId, comp) {
+        const defaultOpen = isTopGroup(comp);
+        const toggled = toggledGroups[compId] || false;
+        return defaultOpen ? toggled : !toggled;
+      }
+
+      function toggleGroup(compId) {
+        toggledGroups[compId] = !toggledGroups[compId];
+      }
 
       async function fetchScores() {
         loading.value = true;
@@ -326,7 +356,8 @@
         sport, filter, loading, liveCount,
         groupedMatches, prevDay, nextDay, goToday, fetchScores,
         getMatchTime, getMatchStatus, getScore, getHalfTimeScore, getTennisScore,
-        teamLogo, onImgError, sportIcon, countryFlag
+        teamLogo, onImgError, sportIcon, countryFlag,
+        isCollapsed, toggleGroup
       };
     }
   };

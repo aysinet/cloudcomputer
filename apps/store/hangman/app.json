@@ -1,0 +1,25 @@
+{
+  "id": "hangman",
+  "name": "Hangman",
+  "icon": "🪢",
+  "color": "linear-gradient(135deg,#6c3483,#8e44ad)",
+  "type": "internal",
+  "size": { "w": 520, "h": 620 },
+  "global": false,
+  "category": "games",
+  "description": "Classic Hangman word-guessing game. Choose a language and guess the hidden word letter by letter before the stick figure is completed!",
+  "lang": {
+    "tr": { "name": "Adam Asmaca", "description": "Klasik Adam Asmaca kelime tahmin oyunu. Dil seçin ve çöp adam tamamlanmadan gizli kelimeyi harf harf tahmin edin!" },
+    "en": { "name": "Hangman", "description": "Classic Hangman word-guessing game. Choose a language and guess the hidden word letter by letter before the stick figure is completed!" },
+    "de": { "name": "Galgenmännchen", "description": "Klassisches Galgenmännchen-Wortratespiel. Wählen Sie eine Sprache und erraten Sie das versteckte Wort Buchstabe für Buchstabe!" },
+    "fr": { "name": "Pendu", "description": "Jeu classique du Pendu. Choisissez une langue et devinez le mot caché lettre par lettre !" },
+    "es": { "name": "Ahorcado", "description": "Juego clásico del Ahorcado. ¡Elige un idioma y adivina la palabra oculta letra por letra!" },
+    "ru": { "name": "Виселица", "description": "Классическая игра «Виселица». Выберите язык и угадайте скрытое слово буква за буквой!" },
+    "zh": { "name": "猜单词", "description": "经典的猜单词游戏。选择语言，逐字母猜出隐藏的单词！" },
+    "ja": { "name": "ハングマン", "description": "古典的なハングマンゲーム。言語を選択して、隠された単語を一文字ずつ当てましょう！" },
+    "it": { "name": "Impiccato", "description": "Classico gioco dell'impiccato. Scegli una lingua e indovina la parola nascosta lettera per lettera!" },
+    "pt": { "name": "Forca", "description": "Jogo clássico da Forca. Escolha um idioma e adivinhe a palavra escondida letra por letra!" },
+    "ar": { "name": "الرجل المشنوق", "description": "لعبة الرجل المشنوق الكلاسيكية. اختر لغة وخمن الكلمة المخفية حرفًا بحرف!" },
+    "ko": { "name": "행맨", "description": "클래식 행맨 단어 맞추기 게임. 언어를 선택하고 숨겨진 단어를 글자별로 맞춰보세요!" }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "ascii-art",
+  "name": "ASCII Art",
+  "icon": "🔤",
+  "color": "linear-gradient(135deg,#00c853,#1de9b6)",
+  "type": "internal",
+  "size": { "w": 920, "h": 660 },
+  "global": false,
+  "description": "Resimden ve metinden ASCII sanatı oluşturun — figlet, kaydet, paylaş",
+  "lang": {
+    "tr": { "name": "ASCII Art", "description": "Resimden ve metinden ASCII sanatı oluşturun — figlet, kaydet, paylaş" },
+    "en": { "name": "ASCII Art", "description": "Generate ASCII art from images and text — figlet, save, share" },
+    "de": { "name": "ASCII Art", "description": "ASCII-Kunst aus Bildern und Text erstellen — Figlet, speichern, teilen" },
+    "fr": { "name": "ASCII Art", "description": "Générez de l'art ASCII à partir d'images et de texte — figlet, enregistrer, partager" },
+    "es": { "name": "ASCII Art", "description": "Genera arte ASCII a partir de imágenes y texto — figlet, guardar, compartir" },
+    "pt": { "name": "ASCII Art", "description": "Gere arte ASCII a partir de imagens e texto — figlet, salvar, compartilhar" },
+    "ru": { "name": "ASCII Art", "description": "Создание ASCII-арта из изображений и текста — figlet, сохранить, поделиться" },
+    "zh": { "name": "ASCII Art", "description": "从图片和文本生成ASCII艺术 — figlet、保存、分享" },
+    "ja": { "name": "ASCII Art", "description": "画像とテキストからASCIIアートを生成 — figlet、保存、共有" },
+    "ko": { "name": "ASCII Art", "description": "이미지와 텍스트에서 ASCII 아트 생성 — figlet, 저장, 공유" },
+    "ar": { "name": "ASCII Art", "description": "إنشاء فن ASCII من الصور والنص — figlet، حفظ، مشاركة" },
+    "hi": { "name": "ASCII Art", "description": "छवियों और पाठ से ASCII कला बनाएं — figlet, सहेजें, साझा करें" }
+  },
+  "category": "productivity"
+}

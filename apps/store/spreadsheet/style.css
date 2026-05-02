@@ -1,0 +1,314 @@
+.ss-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1a1a2e;
+  color: #cdd6f4;
+  font-family: system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+}
+
+/* Toolbar */
+.ss-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-bottom: 1px solid #2a2a4a;
+  background: #141428;
+  gap: 4px;
+  flex-shrink: 0;
+  min-height: 36px;
+}
+.ss-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+.ss-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.ss-separator {
+  width: 1px;
+  height: 20px;
+  background: #2a2a4a;
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+.ss-tb-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #cdd6f4;
+  cursor: pointer;
+  padding: 4px 7px;
+  border-radius: 4px;
+  font-size: 13px;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+.ss-tb-btn:hover { background: #2a2a4a; }
+.ss-tb-btn.active { background: #313244; border-color: #45475a; }
+.ss-select {
+  background: #141428;
+  color: #cdd6f4;
+  border: 1px solid #2a2a4a;
+  border-radius: 4px;
+  padding: 3px 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Color picker */
+.ss-color-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.ss-color-icon {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  text-align: center;
+  line-height: 18px;
+  font-weight: bold;
+  font-size: 14px;
+  border-bottom: 3px solid #cdd6f4;
+  color: #cdd6f4;
+}
+.ss-bg-icon {
+  border: 1px solid #45475a;
+  border-radius: 3px;
+  border-bottom: 3px solid #45475a;
+}
+.ss-color-input {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  opacity: 0;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+}
+
+/* File menu */
+.ss-file-menu-wrap { position: relative; }
+.ss-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #1e1e2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  padding: 4px 0;
+  z-index: 100;
+  min-width: 180px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5);
+}
+.ss-dropdown-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: #cdd6f4;
+  padding: 7px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ss-dropdown-menu button:hover { background: #313244; }
+.ss-menu-sep {
+  height: 1px;
+  background: #2a2a4a;
+  margin: 4px 0;
+}
+
+/* Formula bar */
+.ss-formula-bar {
+  display: flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-bottom: 1px solid #2a2a4a;
+  background: #161630;
+  flex-shrink: 0;
+}
+.ss-formula-label {
+  color: #6c7086;
+  font-size: 14px;
+  margin-right: 8px;
+  font-style: italic;
+  flex-shrink: 0;
+}
+.ss-formula-input {
+  flex: 1;
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  color: #cdd6f4;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  outline: none;
+}
+.ss-formula-input:focus { border-color: #89b4fa; }
+
+/* Sheet area */
+.ss-sheet-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+.ss-sheet-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Hide x-spreadsheet built-in toolbar (we use our own) */
+.ss-sheet-container .x-spreadsheet-toolbar {
+  display: none !important;
+}
+
+/* Status */
+.ss-cell-info {
+  font-size: 12px;
+  color: #6c7086;
+  font-family: monospace;
+}
+.ss-status-msg {
+  font-size: 12px;
+  color: #a6e3a1;
+  animation: ss-fade 2s forwards;
+}
+@keyframes ss-fade { 0%,70%{opacity:1} 100%{opacity:0} }
+
+/* Modals */
+.ss-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.ss-modal {
+  background: #1e1e2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 10px;
+  min-width: 340px;
+  max-width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,.6);
+}
+.ss-modal-wide { min-width: 420px; }
+.ss-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #2a2a4a;
+  font-weight: 600;
+}
+.ss-modal-close {
+  background: none;
+  border: none;
+  color: #6c7086;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 6px;
+}
+.ss-modal-close:hover { color: #f38ba8; }
+.ss-modal-body { padding: 16px; }
+.ss-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid #2a2a4a;
+}
+.ss-label {
+  display: block;
+  font-size: 12px;
+  color: #6c7086;
+  margin-bottom: 6px;
+}
+.ss-input {
+  width: 100%;
+  background: #141428;
+  border: 1px solid #2a2a4a;
+  color: #cdd6f4;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+.ss-input:focus { border-color: #89b4fa; }
+
+.ss-btn {
+  padding: 7px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+.ss-btn-cancel {
+  background: #313244;
+  color: #cdd6f4;
+}
+.ss-btn-cancel:hover { background: #45475a; }
+.ss-btn-primary {
+  background: #217346;
+  color: #fff;
+}
+.ss-btn-primary:hover { background: #28a058; }
+
+/* File list */
+.ss-empty-text {
+  text-align: center;
+  color: #6c7086;
+  padding: 24px;
+  font-size: 14px;
+}
+.ss-file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.ss-file-item:hover { background: #313244; }
+.ss-file-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+.ss-file-icon { font-size: 20px; flex-shrink: 0; }
+.ss-file-name {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ss-file-date {
+  font-size: 11px;
+  color: #6c7086;
+}
+.ss-file-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  opacity: 0.5;
+}
+.ss-file-delete:hover { opacity: 1; }

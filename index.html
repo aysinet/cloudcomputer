@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vue Desktop OS</title>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.min.js","three/":"https://cdn.jsdelivr.net/npm/three@0.164.1/"}}
+</script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/winbox@0.2.82/dist/css/winbox.min.css">
 <script src="https://unpkg.com/winbox@0.2.82/dist/js/winbox.min.js"></script>
@@ -31,7 +34,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 #app{width:100vw;height:100vh;display:flex;flex-direction:column;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%);transform-origin:0 0}
 .desktop{flex:1;position:relative;overflow:hidden}
 .wallpaper-grid{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
-.desktop-icons{display:flex;flex-direction:column;flex-wrap:wrap;gap:16px;padding:20px;max-height:calc(100vh - 56px);align-content:flex-start}
+.desktop-icons{display:flex;flex-direction:column;flex-wrap:wrap;gap:16px;padding:20px;max-height:100%;max-width:100%;overflow:hidden;align-content:flex-start;box-sizing:border-box}
 .desktop-icon{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;padding:8px;border-radius:8px;transition:.15s;width:80px;user-select:none}
 .desktop-icon:hover{background:rgba(255,255,255,.12)}
 .desktop-icon:active{background:rgba(255,255,255,.2);transform:scale(.95)}
@@ -583,7 +586,16 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       <div class="notepad-sep"></div>
       <button class="notepad-tb-btn" @click="clearCurrent">{{t('notepadClear')}}</button>
       <button class="notepad-tb-btn" @click="copy">{{t('notepadCopy')}}</button>
+      <div class="notepad-sep"></div>
+      <button class="notepad-tb-btn" @click="saveToClient" title="💻">{{t('notepadSaveClient')}}</button>
+      <button class="notepad-tb-btn" @click="$refs.fileInput.click()" title="💻">{{t('notepadOpenClient')}}</button>
+      <div class="notepad-sep"></div>
+      <input class="notepad-path-input" v-model="serverPath" :placeholder="t('notepadFilePath')">
+      <button class="notepad-tb-btn" @click="saveToServer">{{t('notepadSaveServer')}}</button>
+      <button class="notepad-tb-btn" @click="openFromServer">{{t('notepadOpenServer')}}</button>
     </div>
+    <input type="file" ref="fileInput" style="display:none" @change="openFromClient">
+    <div v-if="statusMsg" class="notepad-status-msg" :class="statusType">{{statusMsg}}</div>
     <textarea v-model="currentText" :placeholder="t('notepadPlaceholder')" :style="{fontFamily:font,fontSize:size+'px',fontWeight:bold?'bold':'normal',fontStyle:italic?'italic':'normal'}"></textarea>
     <div class="notepad-status">{{currentText.length}} {{t('notepadChars')}} · {{wordCount}} {{t('notepadWords')}} · {{currentTab.name}}</div>
   </div>
@@ -732,34 +744,36 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         </div>
       </template>
       <template v-else-if="active==='location'">
-        <div class="settings-row">
-          <div><div class="lbl">{{t('country')}}</div><div class="sub">{{t('countryDesc')}}</div></div>
-          <div class="ctrl">
-            <el-select v-model="locCountry" filterable clearable :placeholder="t('selectPlaceholder')" style="width:220px" @change="onCountryChange">
-              <el-option v-for="c in countries" :key="c.iso2" :label="c.name" :value="c.iso2" />
-            </el-select>
+        <div class="loc-form">
+          <div class="loc-form-row">
+            <label class="loc-form-label">{{t('country')}}<span class="loc-form-sub">{{t('countryDesc')}}</span></label>
+            <div class="loc-form-ctrl">
+              <el-select v-model="locCountry" filterable clearable :placeholder="t('selectPlaceholder')" style="width:100%" @change="onCountryChange">
+                <el-option v-for="c in countries" :key="c.iso2" :label="c.name" :value="c.iso2" />
+              </el-select>
+            </div>
           </div>
-        </div>
-        <div class="settings-row">
-          <div><div class="lbl">{{t('city')}}</div><div class="sub">{{cities.length}} {{t('cityListing')}}</div></div>
-          <div class="ctrl">
-            <el-select v-model="locCity" filterable clearable :placeholder="t('selectPlaceholder')" style="width:220px" @change="onCityChange">
-              <el-option v-for="c in cities" :key="c.city_ascii" :label="c.city + ' (' + (c.admin_name||'') + ')'" :value="c.city_ascii" />
-            </el-select>
+          <div class="loc-form-row">
+            <label class="loc-form-label">{{t('city')}}<span class="loc-form-sub">{{cities.length}} {{t('cityListing')}}</span></label>
+            <div class="loc-form-ctrl">
+              <el-select v-model="locCity" filterable clearable :placeholder="t('selectPlaceholder')" style="width:100%" @change="onCityChange">
+                <el-option v-for="c in cities" :key="c.city_ascii" :label="c.city + ' (' + (c.admin_name||'') + ')'" :value="c.city_ascii" />
+              </el-select>
+            </div>
           </div>
-        </div>
-        <div class="settings-row">
-          <div><div class="lbl">{{t('timezone')}}</div></div>
-          <div class="ctrl">
-            <el-select v-model="locTimezone" filterable clearable :placeholder="t('timezoneAuto')" style="width:220px" @change="saveLocation">
-              <el-option :label="t('timezoneAuto')" value="" />
-              <el-option v-for="tz in timezones" :key="tz" :label="tz" :value="tz" />
-            </el-select>
+          <div class="loc-form-row">
+            <label class="loc-form-label">{{t('timezone')}}</label>
+            <div class="loc-form-ctrl">
+              <el-select v-model="locTimezone" filterable clearable :placeholder="t('timezoneAuto')" style="width:100%" @change="saveLocation">
+                <el-option :label="t('timezoneAuto')" value="" />
+                <el-option v-for="tz in timezones" :key="tz" :label="tz" :value="tz" />
+              </el-select>
+            </div>
           </div>
-        </div>
-        <div class="settings-row" v-if="locCity">
-          <div><div class="lbl">{{t('location')}}</div><div class="sub">Lat: {{locLat}}, Lng: {{locLng}}</div></div>
-          <div class="ctrl"><span style="font-size:12px;color:#67c23a">✓ {{t('locationSaved')}}</span></div>
+          <div class="loc-form-row" v-if="locCity">
+            <label class="loc-form-label">{{t('location')}}<span class="loc-form-sub">Lat: {{locLat}}, Lng: {{locLng}}</span></label>
+            <div class="loc-form-ctrl"><span style="font-size:12px;color:#67c23a">✓ {{t('locationSaved')}}</span></div>
+          </div>
         </div>
       </template>
       <template v-else-if="active==='wallpaper'">
@@ -977,6 +991,43 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
             <button @click="confirm2FADisable" style="height:36px;padding:0 16px;border-radius:8px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;cursor:pointer;font-size:13px">{{t('twoFADisableBtn')}}</button>
           </div>
           <div v-if="twoFAError" style="text-align:center;color:#f87171;font-size:12px;margin-top:8px">{{twoFAError}}</div>
+        </div>
+      </template>
+      <template v-else-if="active==='network'">
+        <div v-if="netLoading" style="text-align:center;padding:24px;color:#999">⏳ Loading...</div>
+        <div v-else class="loc-form">
+          <div class="loc-form-row">
+            <label class="loc-form-label">Server Port</label>
+            <div class="loc-form-ctrl"><span style="font-size:13px;font-weight:500">{{netInfo.serverPort}}</span></div>
+          </div>
+          <div class="loc-form-row">
+            <label class="loc-form-label">Docker Manager</label>
+            <div class="loc-form-ctrl">
+              <span :style="{color: netInfo.dockerManager?.online ? '#67c23a' : '#f56c6c', fontWeight:500, fontSize:'13px'}">
+                {{netInfo.dockerManager?.online ? '● Online' : '● Offline'}}
+              </span>
+              <span style="font-size:11px;color:#999;margin-left:8px">{{netInfo.dockerManager?.url}}</span>
+            </div>
+          </div>
+          <div class="loc-form-row">
+            <label class="loc-form-label">Network</label>
+            <div class="loc-form-ctrl"><span style="font-size:13px">{{netInfo.network}}</span></div>
+          </div>
+          <div style="margin-top:12px" v-if="netInfo.containers && netInfo.containers.length">
+            <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:10px">Containers & Ports</div>
+            <table class="net-table">
+              <thead><tr><th>App</th><th>Container</th><th>Host Port</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr v-for="c in netInfo.containers" :key="c.appId">
+                  <td>{{c.appId}}</td>
+                  <td style="font-family:monospace;font-size:12px">{{c.containerName}}</td>
+                  <td style="font-weight:500">{{c.hostPort}}</td>
+                  <td><span :style="{color: c.running ? '#67c23a' : '#f56c6c'}">{{c.running ? '● Running' : '● Stopped'}}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-else style="margin-top:12px;font-size:13px;color:#999">No containers running</div>
         </div>
       </template>
       <template v-else>
@@ -1436,7 +1487,9 @@ const useSettingsStore = defineStore('settings', {
     showKeyboardTray: false,
     showMagnifierTray: false,
     fonts: [],
-    zoom: 100
+    zoom: 100,
+    windowStates: {},
+    postitWindowOpen: false
   }),
   actions: {
     async load() {
@@ -1459,6 +1512,8 @@ const useSettingsStore = defineStore('settings', {
         if (s.showMagnifierTray !== undefined) this.showMagnifierTray = s.showMagnifierTray;
         if (s.fonts) this.fonts = s.fonts;
         if (s.zoom) { this.zoom = s.zoom; window.__applyZoom && window.__applyZoom(s.zoom); }
+        if (s.windowStates) this.windowStates = s.windowStates;
+        if (s.postitWindowOpen !== undefined) this.postitWindowOpen = s.postitWindowOpen;
       } catch {}
     },
     async save(data) {
@@ -2651,6 +2706,7 @@ Object.assign(I18N.tr, {
   ctxCascade:'Basamakla', ctxTileH:'Yan Yana Döşe', ctxTileV:'Dikey Döşe', ctxMinimizeAll:'Tümünü Simge Durumuna', ctxOpenApps:'Açık Uygulamalar',
   start:'Başlat', fullscreen:'Tam Ekran', fullscreenExit:'Tam Ekrandan Çık',
   notepadClear:'Temizle', notepadCopy:'Kopyala', notepadPlaceholder:'Yazmaya başlayın...', notepadChars:'karakter', notepadWords:'kelime',
+  notepadSaveServer:'Sunucuya Kaydet', notepadOpenServer:'Sunucudan Aç', notepadSaveClient:'İndir', notepadOpenClient:'Yükle', notepadFilePath:'Dosya yolu (ör: belgeler/not.txt)', notepadSaved:'Kaydedildi', notepadLoaded:'Yüklendi', notepadNoPath:'Lütfen dosya yolu girin', notepadSaveError:'Kaydetme hatası', notepadLoadError:'Yükleme hatası',
   todoTitle:'Görev Listesi', todoCompleted:'tamamlandı', todoPlaceholder:'Yeni görev ekle...', todoAdd:'Ekle', todoEmpty:'Henüz görev yok 🎉',
   todoGroups:'Gruplar', todoAddGroup:'Grup Ekle', todoGroupName:'Grup adı...', todoAll:'Tümü', todoDeleteGroup:'Grubu Sil',
   todoPriorityLow:'Düşük', todoPriorityMed:'Orta', todoPriorityHigh:'Yüksek',
@@ -2679,6 +2735,7 @@ Object.assign(I18N.en, {
   ctxCascade:'Cascade', ctxTileH:'Tile Horizontally', ctxTileV:'Tile Vertically', ctxMinimizeAll:'Minimize All', ctxOpenApps:'Open Applications',
   start:'Start', fullscreen:'Fullscreen', fullscreenExit:'Exit Fullscreen',
   notepadClear:'Clear', notepadCopy:'Copy', notepadPlaceholder:'Start typing...', notepadChars:'characters', notepadWords:'words',
+  notepadSaveServer:'Save to Server', notepadOpenServer:'Open from Server', notepadSaveClient:'Download', notepadOpenClient:'Upload', notepadFilePath:'File path (e.g. documents/note.txt)', notepadSaved:'Saved', notepadLoaded:'Loaded', notepadNoPath:'Please enter a file path', notepadSaveError:'Save error', notepadLoadError:'Load error',
   todoTitle:'To-Do List', todoCompleted:'completed', todoPlaceholder:'Add new task...', todoAdd:'Add', todoEmpty:'No tasks yet 🎉',
   todoGroups:'Groups', todoAddGroup:'Add Group', todoGroupName:'Group name...', todoAll:'All', todoDeleteGroup:'Delete Group',
   todoPriorityLow:'Low', todoPriorityMed:'Medium', todoPriorityHigh:'High',
@@ -2705,6 +2762,7 @@ Object.assign(I18N.de, {
   ctxCascade:'Kaskadieren', ctxTileH:'Nebeneinander', ctxTileV:'Vertikal anordnen', ctxMinimizeAll:'Alle minimieren', ctxOpenApps:'Geöffnete Anwendungen',
   start:'Start', fullscreen:'Vollbild', fullscreenExit:'Vollbild beenden',
   notepadClear:'Löschen', notepadCopy:'Kopieren', notepadPlaceholder:'Schreiben Sie...', notepadChars:'Zeichen', notepadWords:'Wörter',
+  notepadSaveServer:'Auf Server speichern', notepadOpenServer:'Vom Server öffnen', notepadSaveClient:'Herunterladen', notepadOpenClient:'Hochladen', notepadFilePath:'Dateipfad (z.B. dokumente/notiz.txt)', notepadSaved:'Gespeichert', notepadLoaded:'Geladen', notepadNoPath:'Bitte Dateipfad eingeben', notepadSaveError:'Speicherfehler', notepadLoadError:'Ladefehler',
   todoTitle:'Aufgabenliste', todoCompleted:'erledigt', todoPlaceholder:'Neue Aufgabe...', todoAdd:'Hinzufügen', todoEmpty:'Noch keine Aufgaben 🎉',
   todoGroups:'Gruppen', todoAddGroup:'Gruppe hinzufügen', todoGroupName:'Gruppenname...', todoAll:'Alle', todoDeleteGroup:'Gruppe löschen',
   todoPriorityLow:'Niedrig', todoPriorityMed:'Mittel', todoPriorityHigh:'Hoch',
@@ -2731,6 +2789,7 @@ Object.assign(I18N.fr, {
   ctxCascade:'Cascade', ctxTileH:'Mosaïque horizontale', ctxTileV:'Mosaïque verticale', ctxMinimizeAll:'Réduire tout', ctxOpenApps:'Applications ouvertes',
   start:'Démarrer', fullscreen:'Plein écran', fullscreenExit:'Quitter le plein écran',
   notepadClear:'Effacer', notepadCopy:'Copier', notepadPlaceholder:'Commencez à écrire...', notepadChars:'caractères', notepadWords:'mots',
+  notepadSaveServer:'Sauver sur serveur', notepadOpenServer:'Ouvrir du serveur', notepadSaveClient:'Télécharger', notepadOpenClient:'Importer', notepadFilePath:'Chemin (ex: documents/note.txt)', notepadSaved:'Enregistré', notepadLoaded:'Chargé', notepadNoPath:'Veuillez entrer un chemin', notepadSaveError:'Erreur de sauvegarde', notepadLoadError:'Erreur de chargement',
   todoTitle:'Liste de tâches', todoCompleted:'terminées', todoPlaceholder:'Ajouter une tâche...', todoAdd:'Ajouter', todoEmpty:'Aucune tâche 🎉',
   todoGroups:'Groupes', todoAddGroup:'Ajouter un groupe', todoGroupName:'Nom du groupe...', todoAll:'Tous', todoDeleteGroup:'Supprimer le groupe',
   todoPriorityLow:'Faible', todoPriorityMed:'Moyen', todoPriorityHigh:'Élevé',
@@ -2757,6 +2816,7 @@ Object.assign(I18N.es, {
   ctxCascade:'Cascada', ctxTileH:'Mosaico horizontal', ctxTileV:'Mosaico vertical', ctxMinimizeAll:'Minimizar todo', ctxOpenApps:'Aplicaciones abiertas',
   start:'Inicio', fullscreen:'Pantalla completa', fullscreenExit:'Salir de pantalla completa',
   notepadClear:'Limpiar', notepadCopy:'Copiar', notepadPlaceholder:'Empiece a escribir...', notepadChars:'caracteres', notepadWords:'palabras',
+  notepadSaveServer:'Guardar en servidor', notepadOpenServer:'Abrir del servidor', notepadSaveClient:'Descargar', notepadOpenClient:'Subir', notepadFilePath:'Ruta (ej: documentos/nota.txt)', notepadSaved:'Guardado', notepadLoaded:'Cargado', notepadNoPath:'Ingrese una ruta de archivo', notepadSaveError:'Error al guardar', notepadLoadError:'Error al cargar',
   todoTitle:'Lista de tareas', todoCompleted:'completadas', todoPlaceholder:'Añadir tarea...', todoAdd:'Añadir', todoEmpty:'Sin tareas aún 🎉',
   todoGroups:'Grupos', todoAddGroup:'Añadir grupo', todoGroupName:'Nombre del grupo...', todoAll:'Todos', todoDeleteGroup:'Eliminar grupo',
   todoPriorityLow:'Baja', todoPriorityMed:'Media', todoPriorityHigh:'Alta',
@@ -2783,6 +2843,7 @@ Object.assign(I18N.ru, {
   ctxCascade:'Каскад', ctxTileH:'Плитка', ctxTileV:'Вертикально', ctxMinimizeAll:'Свернуть все', ctxOpenApps:'Открытые приложения',
   start:'Пуск', fullscreen:'Полный экран', fullscreenExit:'Выйти из полного экрана',
   notepadClear:'Очистить', notepadCopy:'Копировать', notepadPlaceholder:'Начните вводить...', notepadChars:'символов', notepadWords:'слов',
+  notepadSaveServer:'Сохранить на сервер', notepadOpenServer:'Открыть с сервера', notepadSaveClient:'Скачать', notepadOpenClient:'Загрузить', notepadFilePath:'Путь (напр: документы/заметка.txt)', notepadSaved:'Сохранено', notepadLoaded:'Загружено', notepadNoPath:'Укажите путь к файлу', notepadSaveError:'Ошибка сохранения', notepadLoadError:'Ошибка загрузки',
   todoTitle:'Список задач', todoCompleted:'выполнено', todoPlaceholder:'Добавить задачу...', todoAdd:'Добавить', todoEmpty:'Задач пока нет 🎉',
   todoGroups:'Группы', todoAddGroup:'Добавить группу', todoGroupName:'Название группы...', todoAll:'Все', todoDeleteGroup:'Удалить группу',
   todoPriorityLow:'Низкий', todoPriorityMed:'Средний', todoPriorityHigh:'Высокий',
@@ -2809,6 +2870,7 @@ Object.assign(I18N.zh, {
   ctxCascade:'层叠', ctxTileH:'横向平铺', ctxTileV:'纵向平铺', ctxMinimizeAll:'全部最小化', ctxOpenApps:'打开的应用',
   start:'开始', fullscreen:'全屏', fullscreenExit:'退出全屏',
   notepadClear:'清除', notepadCopy:'复制', notepadPlaceholder:'开始输入...', notepadChars:'字符', notepadWords:'字',
+  notepadSaveServer:'保存到服务器', notepadOpenServer:'从服务器打开', notepadSaveClient:'下载', notepadOpenClient:'上传', notepadFilePath:'文件路径（如：documents/note.txt）', notepadSaved:'已保存', notepadLoaded:'已加载', notepadNoPath:'请输入文件路径', notepadSaveError:'保存错误', notepadLoadError:'加载错误',
   todoTitle:'待办事项', todoCompleted:'已完成', todoPlaceholder:'添加新任务...', todoAdd:'添加', todoEmpty:'暂无任务 🎉',
   todoGroups:'分组', todoAddGroup:'添加分组', todoGroupName:'分组名称...', todoAll:'全部', todoDeleteGroup:'删除分组',
   todoPriorityLow:'低', todoPriorityMed:'中', todoPriorityHigh:'高',
@@ -2835,6 +2897,7 @@ Object.assign(I18N.ja, {
   ctxCascade:'カスケード', ctxTileH:'横に並べる', ctxTileV:'縦に並べる', ctxMinimizeAll:'すべて最小化', ctxOpenApps:'開いているアプリ',
   start:'スタート', fullscreen:'全画面', fullscreenExit:'全画面終了',
   notepadClear:'クリア', notepadCopy:'コピー', notepadPlaceholder:'入力を開始...', notepadChars:'文字', notepadWords:'語',
+  notepadSaveServer:'サーバーに保存', notepadOpenServer:'サーバーから開く', notepadSaveClient:'ダウンロード', notepadOpenClient:'アップロード', notepadFilePath:'ファイルパス（例：documents/note.txt）', notepadSaved:'保存しました', notepadLoaded:'読み込みました', notepadNoPath:'ファイルパスを入力してください', notepadSaveError:'保存エラー', notepadLoadError:'読込エラー',
   todoTitle:'ToDoリスト', todoCompleted:'完了', todoPlaceholder:'新しいタスクを追加...', todoAdd:'追加', todoEmpty:'タスクはまだありません 🎉',
   todoGroups:'グループ', todoAddGroup:'グループ追加', todoGroupName:'グループ名...', todoAll:'すべて', todoDeleteGroup:'グループ削除',
   todoPriorityLow:'低', todoPriorityMed:'中', todoPriorityHigh:'高',
@@ -2861,6 +2924,7 @@ Object.assign(I18N.it, {
   ctxCascade:'Cascata', ctxTileH:'Affianca orizzontalmente', ctxTileV:'Affianca verticalmente', ctxMinimizeAll:'Riduci tutto a icona', ctxOpenApps:'Applicazioni aperte',
   start:'Avvia', fullscreen:'Schermo intero', fullscreenExit:'Esci da schermo intero',
   notepadClear:'Cancella', notepadCopy:'Copia', notepadPlaceholder:'Inizia a scrivere...', notepadChars:'caratteri', notepadWords:'parole',
+  notepadSaveServer:'Salva su server', notepadOpenServer:'Apri dal server', notepadSaveClient:'Scarica', notepadOpenClient:'Carica', notepadFilePath:'Percorso (es: documenti/nota.txt)', notepadSaved:'Salvato', notepadLoaded:'Caricato', notepadNoPath:'Inserire un percorso file', notepadSaveError:'Errore di salvataggio', notepadLoadError:'Errore di caricamento',
   todoTitle:'Lista attività', todoCompleted:'completate', todoPlaceholder:'Aggiungi attività...', todoAdd:'Aggiungi', todoEmpty:'Nessuna attività 🎉',
   todoGroups:'Gruppi', todoAddGroup:'Aggiungi gruppo', todoGroupName:'Nome gruppo...', todoAll:'Tutti', todoDeleteGroup:'Elimina gruppo',
   todoPriorityLow:'Bassa', todoPriorityMed:'Media', todoPriorityHigh:'Alta',
@@ -3063,7 +3127,55 @@ const NotepadApp = {
     function clearCurrent() { currentTab.value.text = ''; currentTab.value.modified = false; }
     function copy() { navigator.clipboard.writeText(currentText.value); }
 
-    return { tabs, activeTab, currentTab, currentText, font, size, bold, italic, wordCount, addTab, closeTab, clearCurrent, copy, t };
+    const serverPath = ref('');
+    const statusMsg = ref('');
+    const statusType = ref('success');
+    let statusTimer = null;
+    function showStatus(msg, type = 'success') {
+      statusMsg.value = msg; statusType.value = type;
+      clearTimeout(statusTimer);
+      statusTimer = setTimeout(() => { statusMsg.value = ''; }, 3000);
+    }
+
+    async function saveToServer() {
+      const p = serverPath.value.trim();
+      if (!p) { showStatus(t('notepadNoPath'), 'error'); return; }
+      try {
+        const r = await fetch('/api/fs/write', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ filePath: p, content: currentText.value }) });
+        if (r.ok) { showStatus(t('notepadSaved')); currentTab.value.name = p.split('/').pop() || p; currentTab.value.modified = false; }
+        else { const e = await r.json().catch(() => ({})); showStatus(e.error || t('notepadSaveError'), 'error'); }
+      } catch { showStatus(t('notepadSaveError'), 'error'); }
+    }
+
+    async function openFromServer() {
+      const p = serverPath.value.trim();
+      if (!p) { showStatus(t('notepadNoPath'), 'error'); return; }
+      try {
+        const r = await fetch('/api/fs/read?path=' + encodeURIComponent(p), { headers: authHeaders() });
+        if (r.ok) { const d = await r.json(); currentTab.value.text = d.content; currentTab.value.name = d.name || p.split('/').pop(); currentTab.value.modified = false; showStatus(t('notepadLoaded')); }
+        else { const e = await r.json().catch(() => ({})); showStatus(e.error || t('notepadLoadError'), 'error'); }
+      } catch { showStatus(t('notepadLoadError'), 'error'); }
+    }
+
+    function saveToClient() {
+      const name = currentTab.value.name.includes('.') ? currentTab.value.name : currentTab.value.name + '.txt';
+      const blob = new Blob([currentText.value], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = name; a.click();
+      URL.revokeObjectURL(a.href);
+      showStatus(t('notepadSaved'));
+    }
+
+    function openFromClient(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => { currentTab.value.text = reader.result; currentTab.value.name = file.name; currentTab.value.modified = false; showStatus(t('notepadLoaded')); };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+    return { tabs, activeTab, currentTab, currentText, font, size, bold, italic, wordCount, addTab, closeTab, clearCurrent, copy, serverPath, statusMsg, statusType, saveToServer, openFromServer, saveToClient, openFromClient, t };
   }
 };
 
@@ -3313,11 +3425,7 @@ const SettingsApp = {
         { label: t('systemSound'), type: 'toggle', val: ref(true) },
         { label: t('notifSound'), type: 'toggle', val: ref(true) }
       ],
-      network: [
-        { label: t('wifi'), sub: t('wifiDesc'), type: 'toggle', val: ref(true) },
-        { label: t('bluetooth'), type: 'toggle', val: ref(false) },
-        { label: t('vpn'), sub: t('vpnDesc'), type: 'toggle', val: ref(false) }
-      ],
+      network: [],
       about: [
         { label: t('version'), type: 'select', options: ['Vue Desktop 1.0'], val: ref('Vue Desktop 1.0') },
         { label: t('checkUpdates'), type: 'toggle', val: ref(true) }
@@ -3898,7 +4006,21 @@ const SettingsApp = {
       load2FAStatus();
     });
 
-    return { active, tabs, currentRows, zoomLevel, zoomOptions, darkModeVal, onZoomChange, screenInfo, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, wpAuthUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray, twoFAEnabled, twoFASetup, twoFASecret, twoFAQRUrl, twoFACode, twoFAError, twoFADisabling, twoFADisableCode, toggle2FA, verify2FASetup, confirm2FADisable, aiProviders, aiAgents, addProvider, removeProvider, addAgent, removeAgent, saveAISettings, userFonts, isFontAdded, addFont, removeFont, showGoogleFontsDialog };
+    // ── Network tab ──
+    const netInfo = ref({ serverPort: null, dockerManager: null, network: '', containers: [] });
+    const netLoading = ref(false);
+    async function loadNetworkInfo() {
+      netLoading.value = true;
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/docker/network', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) netInfo.value = await res.json();
+      } catch {}
+      netLoading.value = false;
+    }
+    watch(active, (v) => { if (v === 'network') loadNetworkInfo(); });
+
+    return { active, tabs, currentRows, zoomLevel, zoomOptions, darkModeVal, onZoomChange, screenInfo, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, wpAuthUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray, twoFAEnabled, twoFASetup, twoFASecret, twoFAQRUrl, twoFACode, twoFAError, twoFADisabling, twoFADisableCode, toggle2FA, verify2FASetup, confirm2FADisable, aiProviders, aiAgents, addProvider, removeProvider, addAgent, removeAgent, saveAISettings, userFonts, isFontAdded, addFont, removeFont, showGoogleFontsDialog, netInfo, netLoading };
   }
 };
 
@@ -5406,16 +5528,18 @@ createApp({
       // Don't show desktop ctx if clicked inside a WinBox window
       if (e.target.closest('.winbox')) return;
       hideIconCtx(); hideSmCtx();
-      desktopCtx.value = { show: true, x: e.clientX, y: e.clientY };
+      const zs = (settingsStore.zoom || 100) / 100;
+      const cx = e.clientX / zs, cy = e.clientY / zs;
+      desktopCtx.value = { show: true, x: cx, y: cy };
       nextTick(() => {
         const el = desktopCtxEl.value;
         if (!el) return;
         const mw = el.offsetWidth;
         const mh = el.offsetHeight;
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        let x = e.clientX;
-        let y = e.clientY;
+        const vw = window.innerWidth / zs;
+        const vh = window.innerHeight / zs;
+        let x = cx;
+        let y = cy;
         if (x + mw > vw) x = vw - mw - 4;
         if (y + mh > vh) y = vh - mh - 4;
         if (x < 0) x = 4;
@@ -5447,8 +5571,9 @@ createApp({
     function tileWindowsH() {
       const wins = openWindows.value.filter(w => w.desktop === currentDesktop.value);
       if (!wins.length) return;
-      const vw = window.innerWidth;
-      const vh = window.innerHeight - 56;
+      const zs = (settingsStore.zoom || 100) / 100;
+      const vw = Math.floor(window.innerWidth / zs);
+      const vh = Math.floor(window.innerHeight / zs) - 56;
       const cols = Math.ceil(Math.sqrt(wins.length));
       const rows = Math.ceil(wins.length / cols);
       const tileW = Math.floor(vw / cols);
@@ -5468,8 +5593,9 @@ createApp({
     function tileWindowsV() {
       const wins = openWindows.value.filter(w => w.desktop === currentDesktop.value);
       if (!wins.length) return;
-      const vw = window.innerWidth;
-      const vh = window.innerHeight - 56;
+      const zs = (settingsStore.zoom || 100) / 100;
+      const vw = Math.floor(window.innerWidth / zs);
+      const vh = Math.floor(window.innerHeight / zs) - 56;
       const tileW = Math.floor(vw / wins.length);
       wins.forEach((w, i) => {
         const wb = wbMap[w.id];
@@ -5500,18 +5626,20 @@ createApp({
     }
 
     function showIconCtx(e, app) {
-      iconCtx.value = { show: true, x: e.clientX, y: e.clientY, app };
+      const zs = (settingsStore.zoom || 100) / 100;
+      const cx = e.clientX / zs, cy = e.clientY / zs;
+      iconCtx.value = { show: true, x: cx, y: cy, app };
       nextTick(() => {
         const el = iconCtxEl.value;
         if (!el) return;
         const mw = el.offsetWidth;
         const mh = el.offsetHeight;
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        let x = e.clientX;
-        let y = e.clientY;
+        const vw = window.innerWidth / zs;
+        const vh = window.innerHeight / zs;
+        let x = cx;
+        let y = cy;
         if (x + mw > vw) x = vw - mw - 4;
-        if (y + mh > vh) y = e.clientY - mh;
+        if (y + mh > vh) y = cy - mh;
         if (x < 0) x = 4;
         if (y < 0) y = 4;
         iconCtx.value = { show: true, x, y, app };
@@ -5557,18 +5685,20 @@ createApp({
     const smCtxEl = ref(null);
 
     function showSmCtx(e, app) {
-      smCtx.value = { show: true, x: e.clientX, y: e.clientY, app };
+      const zs = (settingsStore.zoom || 100) / 100;
+      const cx = e.clientX / zs, cy = e.clientY / zs;
+      smCtx.value = { show: true, x: cx, y: cy, app };
       nextTick(() => {
         const el = smCtxEl.value;
         if (!el) return;
         const mw = el.offsetWidth;
         const mh = el.offsetHeight;
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        let x = e.clientX;
-        let y = e.clientY;
+        const vw = window.innerWidth / zs;
+        const vh = window.innerHeight / zs;
+        let x = cx;
+        let y = cy;
         if (x + mw > vw) x = vw - mw - 4;
-        if (y + mh > vh) y = e.clientY - mh;
+        if (y + mh > vh) y = cy - mh;
         if (x < 0) x = 4;
         if (y < 0) y = 4;
         smCtx.value = { show: true, x, y, app };
@@ -5627,6 +5757,18 @@ createApp({
       document.head.appendChild(link);
     }
 
+    // ── Window state sync via WebSocket ──
+    const _wbStateTimers = {};
+    function sendWindowState(appId, state) {
+      localStorage.setItem('wb_' + appId, JSON.stringify(state));
+      clearTimeout(_wbStateTimers[appId]);
+      _wbStateTimers[appId] = setTimeout(() => {
+        if (wsConn && wsConn.readyState === 1) {
+          wsConn.send(JSON.stringify({ type: 'window-state', data: { appId, state } }));
+        }
+      }, 400);
+    }
+
     // ── Session save/restore ──
     let _sessionSaveTimer = null;
     function saveSessionState() {
@@ -5670,11 +5812,12 @@ createApp({
 
     async function autoOpenPostits() {
       try {
-        const res = await fetch('/api/postit/list');
-        if (!res.ok) return;
-        const list = await res.json();
-        if (!Array.isArray(list) || !list.some(p => p.visible)) return;
         if (openWindows.value.find(w => w.id === 'postit')) return;
+        const res = await fetch('/api/postit/list');
+        const list = res.ok ? await res.json() : [];
+        const hasVisible = Array.isArray(list) && list.some(p => p.visible);
+        const wasOpen = settingsStore.postitWindowOpen;
+        if (!hasVisible && !wasOpen) return;
         const app = apps.value.find(a => a.id === 'postit');
         if (app) openApp(app);
       } catch {}
@@ -5687,16 +5830,25 @@ createApp({
       loadAppCss(app.id);
 
       const sz = SIZES[app.id] || { w: 480, h: 380 };
-      const saved = JSON.parse(localStorage.getItem('wb_' + app.id) || 'null');
-      const vw = window.innerWidth, vh = window.innerHeight - 56;
+      const serverSaved = (settingsStore.$state.windowStates || {})[app.id] || null;
+      const saved = JSON.parse(localStorage.getItem('wb_' + app.id) || 'null') || serverSaved;
+      const zoomScale = (settingsStore.zoom || 100) / 100;
+      const vw = Math.floor(window.innerWidth / zoomScale), vh = Math.floor(window.innerHeight / zoomScale) - 56;
       let wbW = saved ? saved.w : sz.w;
       let wbH = saved ? saved.h : sz.h;
       if (sz.minWidth) wbW = Math.max(wbW, sz.minWidth);
       if (sz.minHeight) wbH = Math.max(wbH, sz.minHeight);
       if (sz.maxWidth) wbW = Math.min(wbW, sz.maxWidth);
       if (sz.maxHeight) wbH = Math.min(wbH, sz.maxHeight);
-      const x = saved ? saved.x : Math.max(20, Math.floor(Math.random() * (vw - sz.w - 40)));
-      const y = saved ? saved.y : Math.max(20, Math.floor(Math.random() * (vh - sz.h - 40)));
+      wbW = Math.min(wbW, vw);
+      wbH = Math.min(wbH, vh);
+      let x = saved ? saved.x : Math.max(20, Math.floor(Math.random() * (vw - wbW - 40)));
+      let y = saved ? saved.y : Math.max(20, Math.floor(Math.random() * (vh - wbH - 40)));
+      // Clamp to visible area
+      if (x + wbW > vw) x = Math.max(0, vw - wbW);
+      if (y + wbH > vh) y = Math.max(0, vh - wbH);
+      if (x < 0) x = 0;
+      if (y < 0) y = 0;
 
       const win = { id: app.id, name: appName(app), icon: app.icon, focused: true, minimized: false, desktop: currentDesktop.value };
       openWindows.value.forEach(w => w.focused = false);
@@ -5709,7 +5861,7 @@ createApp({
         x, y,
         class: ['no-full'],
         onclose() {
-          localStorage.setItem('wb_' + app.id, JSON.stringify({ x: wb.x, y: wb.y, w: wb.width, h: wb.height }));
+          sendWindowState(app.id, { x: wb.x, y: wb.y, w: wb.width, h: wb.height });
           if (subApps[app.id]) {
             subApps[app.id].unmount();
             delete subApps[app.id];
@@ -5717,6 +5869,7 @@ createApp({
           openWindows.value = openWindows.value.filter(w => w.id !== app.id);
           delete wbMap[app.id];
           saveSessionState();
+          if (app.id === 'postit') settingsStore.save({ postitWindowOpen: false });
           return false;
         },
         onfocus() {
@@ -5735,6 +5888,14 @@ createApp({
         onrestore() {
           const w = openWindows.value.find(w => w.id === app.id);
           if (w) { w.minimized = false; }
+        },
+        onmove(x, y) {
+          const _wb = wbMap[app.id];
+          if (_wb) sendWindowState(app.id, { x, y, w: _wb.width, h: _wb.height });
+        },
+        onresize(w, h) {
+          const _wb = wbMap[app.id];
+          if (_wb) sendWindowState(app.id, { x: _wb.x, y: _wb.y, w, h });
         }
       };
       if (sz.minWidth) wbOpts.minwidth = sz.minWidth;
@@ -5767,6 +5928,7 @@ createApp({
         }
       }
       saveSessionState();
+      if (app.id === 'postit') settingsStore.save({ postitWindowOpen: true });
     }
 
     // ── Locale change: update all WinBox titles + notify store apps ──

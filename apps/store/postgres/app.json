@@ -66,11 +66,13 @@
   },
   "category": "development",
   "docker": {
-    "image": "postgres:16",
+    "image": "postgres:16-alpine",
     "containerPort": 5432,
     "volumes": [
       "${APP_VOLUME}:/var/lib/postgresql/data"
     ],
-    "env": []
+    "env": [
+      "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"
+    ]
   }
 }

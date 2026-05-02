@@ -1,0 +1,48 @@
+<div class="tw-root">
+  <!-- Pulling / Building State -->
+  <div v-if="status === 'pulling'" class="tw-status-screen">
+    <div class="tw-spinner"></div>
+    <div class="tw-icon-large">📓</div>
+    <div class="tw-status-text">{{ pullProgress }}</div>
+    <div class="tw-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="tw-status-screen">
+    <div class="tw-spinner"></div>
+    <div class="tw-icon-large">📓</div>
+    <div class="tw-status-text">TiddlyWiki başlatılıyor...</div>
+    <div class="tw-sub-text">Wiki sunucusu hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="tw-status-screen tw-error">
+    <div class="tw-icon-large">⚠️</div>
+    <div class="tw-status-text">Bir hata oluştu</div>
+    <div class="tw-error-msg">{{ errorMsg }}</div>
+    <div class="tw-actions">
+      <button class="tw-btn tw-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="tw-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="tw-running">
+    <div class="tw-toolbar">
+      <span class="tw-info">📓 TiddlyWiki — Port: {{ port }}</span>
+      <div class="tw-toolbar-actions">
+        <button class="tw-btn tw-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="tw-btn tw-btn-small tw-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="tw-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="tw-status-screen">
+    <div class="tw-icon-large">📓</div>
+    <div class="tw-status-text">TiddlyWiki</div>
+    <div class="tw-sub-text">Kişisel wiki ve not defteri — bilgilerinizi yakalayın, düzenleyin, paylaşın</div>
+    <button class="tw-btn tw-btn-primary tw-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

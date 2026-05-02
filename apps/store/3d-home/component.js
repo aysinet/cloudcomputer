@@ -2,19 +2,19 @@
 const{ref,reactive,onMounted,onUnmounted,watch,nextTick,computed}=Vue;
 
 const LANGS={
-tr:{select:'Seç',room:'Oda',door:'Kapı',window:'Pencere',furniture:'Mobilya',delete:'Sil',undo:'Geri Al',redo:'Yinele',file:'Dosya',new:'Yeni Proje',save:'Kaydet',load:'Yükle',close:'Kapat',cancel:'İptal',exportJSON:'JSON Dışa Aktar',importJSON:'JSON İçe Aktar',properties:'Özellikler',roomName:'Oda Adı',floorColor:'Zemin Rengi',wallColor:'Duvar Rengi',width:'Genişlik',height:'Derinlik',rotation:'Döndürme',wallHeight:'Duvar Yüksekliği',resetView:'Görünümü Sıfırla',gridSize:'Izgara',rooms:'Oda',doors:'Kapı',windows:'Pencere',furnitureCount:'Mobilya',projectName:'Proje Adı',noProjects:'Kayıtlı proje yok',bed:'Yatak',sofa:'Kanepe',table:'Masa',chair:'Sandalye',desk:'Çalışma Masası',wardrobe:'Dolap',bathtub:'Küvet',toilet:'Tuvalet',sink:'Lavabo',stove:'Ocak',fridge:'Buzdolabı',washingMachine:'Çamaşır Makinesi',tv:'Televizyon',bookshelf:'Kitaplık',diningTable:'Yemek Masası',plant:'Bitki',lamp:'Lamba',rug:'Halı',saved:'Kaydedildi!',deleted:'Silindi!',loaded:'Yüklendi!'},
-en:{select:'Select',room:'Room',door:'Door',window:'Window',furniture:'Furniture',delete:'Delete',undo:'Undo',redo:'Redo',file:'File',new:'New Project',save:'Save',load:'Load',close:'Close',cancel:'Cancel',exportJSON:'Export JSON',importJSON:'Import JSON',properties:'Properties',roomName:'Room Name',floorColor:'Floor Color',wallColor:'Wall Color',width:'Width',height:'Depth',rotation:'Rotation',wallHeight:'Wall Height',resetView:'Reset View',gridSize:'Grid',rooms:'Rooms',doors:'Doors',windows:'Windows',furnitureCount:'Furniture',projectName:'Project Name',noProjects:'No saved projects',bed:'Bed',sofa:'Sofa',table:'Table',chair:'Chair',desk:'Desk',wardrobe:'Wardrobe',bathtub:'Bathtub',toilet:'Toilet',sink:'Sink',stove:'Stove',fridge:'Fridge',washingMachine:'Washing Machine',tv:'TV',bookshelf:'Bookshelf',diningTable:'Dining Table',plant:'Plant',lamp:'Lamp',rug:'Rug',saved:'Saved!',deleted:'Deleted!',loaded:'Loaded!'},
-de:{select:'Auswählen',room:'Raum',door:'Tür',window:'Fenster',furniture:'Möbel',delete:'Löschen',undo:'Rückgängig',redo:'Wiederholen',file:'Datei',new:'Neues Projekt',save:'Speichern',load:'Laden',close:'Schließen',cancel:'Abbrechen',exportJSON:'JSON Export',importJSON:'JSON Import',properties:'Eigenschaften',roomName:'Raumname',floorColor:'Bodenfarbe',wallColor:'Wandfarbe',width:'Breite',height:'Tiefe',rotation:'Drehung',wallHeight:'Wandhöhe',resetView:'Ansicht zurücksetzen',gridSize:'Raster',rooms:'Räume',doors:'Türen',windows:'Fenster',furnitureCount:'Möbel',projectName:'Projektname',noProjects:'Keine gespeicherten Projekte',bed:'Bett',sofa:'Sofa',table:'Tisch',chair:'Stuhl',desk:'Schreibtisch',wardrobe:'Schrank',bathtub:'Badewanne',toilet:'Toilette',sink:'Waschbecken',stove:'Herd',fridge:'Kühlschrank',washingMachine:'Waschmaschine',tv:'Fernseher',bookshelf:'Bücherregal',diningTable:'Esstisch',plant:'Pflanze',lamp:'Lampe',rug:'Teppich',saved:'Gespeichert!',deleted:'Gelöscht!',loaded:'Geladen!'},
-fr:{select:'Sélectionner',room:'Pièce',door:'Porte',window:'Fenêtre',furniture:'Meubles',delete:'Supprimer',undo:'Annuler',redo:'Rétablir',file:'Fichier',new:'Nouveau Projet',save:'Enregistrer',load:'Charger',close:'Fermer',cancel:'Annuler',exportJSON:'Exporter JSON',importJSON:'Importer JSON',properties:'Propriétés',roomName:'Nom de la pièce',floorColor:'Couleur du sol',wallColor:'Couleur du mur',width:'Largeur',height:'Profondeur',rotation:'Rotation',wallHeight:'Hauteur du mur',resetView:'Réinitialiser la vue',gridSize:'Grille',rooms:'Pièces',doors:'Portes',windows:'Fenêtres',furnitureCount:'Meubles',projectName:'Nom du projet',noProjects:'Aucun projet enregistré',bed:'Lit',sofa:'Canapé',table:'Table',chair:'Chaise',desk:'Bureau',wardrobe:'Armoire',bathtub:'Baignoire',toilet:'Toilettes',sink:'Évier',stove:'Cuisinière',fridge:'Réfrigérateur',washingMachine:'Lave-linge',tv:'Télévision',bookshelf:'Bibliothèque',diningTable:'Table à manger',plant:'Plante',lamp:'Lampe',rug:'Tapis',saved:'Enregistré!',deleted:'Supprimé!',loaded:'Chargé!'},
-es:{select:'Seleccionar',room:'Habitación',door:'Puerta',window:'Ventana',furniture:'Muebles',delete:'Eliminar',undo:'Deshacer',redo:'Rehacer',file:'Archivo',new:'Nuevo Proyecto',save:'Guardar',load:'Cargar',close:'Cerrar',cancel:'Cancelar',exportJSON:'Exportar JSON',importJSON:'Importar JSON',properties:'Propiedades',roomName:'Nombre',floorColor:'Color del suelo',wallColor:'Color de pared',width:'Ancho',height:'Profundidad',rotation:'Rotación',wallHeight:'Altura de pared',resetView:'Restablecer vista',gridSize:'Cuadrícula',rooms:'Habitaciones',doors:'Puertas',windows:'Ventanas',furnitureCount:'Muebles',projectName:'Nombre del proyecto',noProjects:'No hay proyectos guardados',bed:'Cama',sofa:'Sofá',table:'Mesa',chair:'Silla',desk:'Escritorio',wardrobe:'Armario',bathtub:'Bañera',toilet:'Inodoro',sink:'Lavabo',stove:'Cocina',fridge:'Nevera',washingMachine:'Lavadora',tv:'Televisión',bookshelf:'Estantería',diningTable:'Mesa de comedor',plant:'Planta',lamp:'Lámpara',rug:'Alfombra',saved:'¡Guardado!',deleted:'¡Eliminado!',loaded:'¡Cargado!'},
-ru:{select:'Выбрать',room:'Комната',door:'Дверь',window:'Окно',furniture:'Мебель',delete:'Удалить',undo:'Отменить',redo:'Вперёд',file:'Файл',new:'Новый проект',save:'Сохранить',load:'Загрузить',close:'Закрыть',cancel:'Отмена',exportJSON:'Экспорт JSON',importJSON:'Импорт JSON',properties:'Свойства',roomName:'Название',floorColor:'Цвет пола',wallColor:'Цвет стен',width:'Ширина',height:'Глубина',rotation:'Поворот',wallHeight:'Высота стен',resetView:'Сброс',gridSize:'Сетка',rooms:'Комнаты',doors:'Двери',windows:'Окна',furnitureCount:'Мебель',projectName:'Название проекта',noProjects:'Нет сохранённых проектов',bed:'Кровать',sofa:'Диван',table:'Стол',chair:'Стул',desk:'Рабочий стол',wardrobe:'Шкаф',bathtub:'Ванна',toilet:'Туалет',sink:'Раковина',stove:'Плита',fridge:'Холодильник',washingMachine:'Стиральная машина',tv:'Телевизор',bookshelf:'Книжная полка',diningTable:'Обеденный стол',plant:'Растение',lamp:'Лампа',rug:'Ковёр',saved:'Сохранено!',deleted:'Удалено!',loaded:'Загружено!'},
-zh:{select:'选择',room:'房间',door:'门',window:'窗户',furniture:'家具',delete:'删除',undo:'撤销',redo:'重做',file:'文件',new:'新项目',save:'保存',load:'加载',close:'关闭',cancel:'取消',exportJSON:'导出JSON',importJSON:'导入JSON',properties:'属性',roomName:'房间名',floorColor:'地板颜色',wallColor:'墙壁颜色',width:'宽度',height:'深度',rotation:'旋转',wallHeight:'墙高',resetView:'重置视图',gridSize:'网格',rooms:'房间',doors:'门',windows:'窗户',furnitureCount:'家具',projectName:'项目名称',noProjects:'没有保存的项目',bed:'床',sofa:'沙发',table:'桌子',chair:'椅子',desk:'书桌',wardrobe:'衣柜',bathtub:'浴缸',toilet:'马桶',sink:'水槽',stove:'炉灶',fridge:'冰箱',washingMachine:'洗衣机',tv:'电视',bookshelf:'书架',diningTable:'餐桌',plant:'植物',lamp:'台灯',rug:'地毯',saved:'已保存！',deleted:'已删除！',loaded:'已加载！'},
-ja:{select:'選択',room:'部屋',door:'ドア',window:'窓',furniture:'家具',delete:'削除',undo:'元に戻す',redo:'やり直し',file:'ファイル',new:'新規プロジェクト',save:'保存',load:'読込',close:'閉じる',cancel:'キャンセル',exportJSON:'JSONエクスポート',importJSON:'JSONインポート',properties:'プロパティ',roomName:'部屋名',floorColor:'床の色',wallColor:'壁の色',width:'幅',height:'奥行き',rotation:'回転',wallHeight:'壁の高さ',resetView:'ビューリセット',gridSize:'グリッド',rooms:'部屋',doors:'ドア',windows:'窓',furnitureCount:'家具',projectName:'プロジェクト名',noProjects:'保存されたプロジェクトはありません',bed:'ベッド',sofa:'ソファ',table:'テーブル',chair:'椅子',desk:'デスク',wardrobe:'ワードローブ',bathtub:'浴槽',toilet:'トイレ',sink:'シンク',stove:'コンロ',fridge:'冷蔵庫',washingMachine:'洗濯機',tv:'テレビ',bookshelf:'本棚',diningTable:'ダイニングテーブル',plant:'植物',lamp:'ランプ',rug:'ラグ',saved:'保存しました！',deleted:'削除しました！',loaded:'読み込みました！'},
-it:{select:'Seleziona',room:'Stanza',door:'Porta',window:'Finestra',furniture:'Mobili',delete:'Elimina',undo:'Annulla',redo:'Ripeti',file:'File',new:'Nuovo Progetto',save:'Salva',load:'Carica',close:'Chiudi',cancel:'Annulla',exportJSON:'Esporta JSON',importJSON:'Importa JSON',properties:'Proprietà',roomName:'Nome stanza',floorColor:'Colore pavimento',wallColor:'Colore parete',width:'Larghezza',height:'Profondità',rotation:'Rotazione',wallHeight:'Altezza pareti',resetView:'Reset vista',gridSize:'Griglia',rooms:'Stanze',doors:'Porte',windows:'Finestre',furnitureCount:'Mobili',projectName:'Nome progetto',noProjects:'Nessun progetto salvato',bed:'Letto',sofa:'Divano',table:'Tavolo',chair:'Sedia',desk:'Scrivania',wardrobe:'Armadio',bathtub:'Vasca',toilet:'WC',sink:'Lavandino',stove:'Fornello',fridge:'Frigorifero',washingMachine:'Lavatrice',tv:'TV',bookshelf:'Libreria',diningTable:'Tavolo da pranzo',plant:'Pianta',lamp:'Lampada',rug:'Tappeto',saved:'Salvato!',deleted:'Eliminato!',loaded:'Caricato!'},
-ar:{select:'تحديد',room:'غرفة',door:'باب',window:'نافذة',furniture:'أثاث',delete:'حذف',undo:'تراجع',redo:'إعادة',file:'ملف',new:'مشروع جديد',save:'حفظ',load:'تحميل',close:'إغلاق',cancel:'إلغاء',exportJSON:'تصدير JSON',importJSON:'استيراد JSON',properties:'خصائص',roomName:'اسم الغرفة',floorColor:'لون الأرضية',wallColor:'لون الجدار',width:'العرض',height:'العمق',rotation:'الدوران',wallHeight:'ارتفاع الجدار',resetView:'إعادة ضبط',gridSize:'الشبكة',rooms:'غرف',doors:'أبواب',windows:'نوافذ',furnitureCount:'أثاث',projectName:'اسم المشروع',noProjects:'لا توجد مشاريع محفوظة',bed:'سرير',sofa:'أريكة',table:'طاولة',chair:'كرسي',desk:'مكتب',wardrobe:'خزانة',bathtub:'حوض استحمام',toilet:'مرحاض',sink:'حوض',stove:'موقد',fridge:'ثلاجة',washingMachine:'غسالة',tv:'تلفاز',bookshelf:'رف كتب',diningTable:'طاولة طعام',plant:'نبتة',lamp:'مصباح',rug:'سجادة',saved:'!تم الحفظ',deleted:'!تم الحذف',loaded:'!تم التحميل'},
-ko:{select:'선택',room:'방',door:'문',window:'창문',furniture:'가구',delete:'삭제',undo:'실행취소',redo:'다시실행',file:'파일',new:'새 프로젝트',save:'저장',load:'불러오기',close:'닫기',cancel:'취소',exportJSON:'JSON 내보내기',importJSON:'JSON 가져오기',properties:'속성',roomName:'방 이름',floorColor:'바닥 색상',wallColor:'벽 색상',width:'너비',height:'깊이',rotation:'회전',wallHeight:'벽 높이',resetView:'뷰 리셋',gridSize:'격자',rooms:'방',doors:'문',windows:'창문',furnitureCount:'가구',projectName:'프로젝트 이름',noProjects:'저장된 프로젝트 없음',bed:'침대',sofa:'소파',table:'테이블',chair:'의자',desk:'책상',wardrobe:'옷장',bathtub:'욕조',toilet:'변기',sink:'세면대',stove:'가스레인지',fridge:'냉장고',washingMachine:'세탁기',tv:'TV',bookshelf:'책장',diningTable:'식탁',plant:'식물',lamp:'램프',rug:'러그',saved:'저장됨!',deleted:'삭제됨!',loaded:'불러옴!'},
-hi:{select:'चुनें',room:'कमरा',door:'दरवाज़ा',window:'खिड़की',furniture:'फ़र्नीचर',delete:'हटाएं',undo:'पूर्ववत',redo:'फिर से',file:'फ़ाइल',new:'नया प्रोजेक्ट',save:'सेव',load:'लोड',close:'बंद',cancel:'रद्द',exportJSON:'JSON निर्यात',importJSON:'JSON आयात',properties:'गुण',roomName:'कमरे का नाम',floorColor:'फर्श का रंग',wallColor:'दीवार का रंग',width:'चौड़ाई',height:'गहराई',rotation:'घुमाव',wallHeight:'दीवार ऊंचाई',resetView:'रीसेट',gridSize:'ग्रिड',rooms:'कमरे',doors:'दरवाज़े',windows:'खिड़कियाँ',furnitureCount:'फ़र्नीचर',projectName:'प्रोजेक्ट नाम',noProjects:'कोई सेव प्रोजेक्ट नहीं',bed:'बिस्तर',sofa:'सोफा',table:'मेज़',chair:'कुर्सी',desk:'डेस्क',wardrobe:'अलमारी',bathtub:'बाथटब',toilet:'शौचालय',sink:'सिंक',stove:'चूल्हा',fridge:'फ्रिज',washingMachine:'वॉशिंग मशीन',tv:'टीवी',bookshelf:'किताबों की अलमारी',diningTable:'डाइनिंग टेबल',plant:'पौधा',lamp:'लैंप',rug:'गलीचा',saved:'सेव हो गया!',deleted:'हट गया!',loaded:'लोड हो गया!'},
-pt:{select:'Selecionar',room:'Quarto',door:'Porta',window:'Janela',furniture:'Móveis',delete:'Excluir',undo:'Desfazer',redo:'Refazer',file:'Arquivo',new:'Novo Projeto',save:'Salvar',load:'Carregar',close:'Fechar',cancel:'Cancelar',exportJSON:'Exportar JSON',importJSON:'Importar JSON',properties:'Propriedades',roomName:'Nome do cômodo',floorColor:'Cor do piso',wallColor:'Cor da parede',width:'Largura',height:'Profundidade',rotation:'Rotação',wallHeight:'Altura da parede',resetView:'Resetar vista',gridSize:'Grade',rooms:'Cômodos',doors:'Portas',windows:'Janelas',furnitureCount:'Móveis',projectName:'Nome do projeto',noProjects:'Nenhum projeto salvo',bed:'Cama',sofa:'Sofá',table:'Mesa',chair:'Cadeira',desk:'Escrivaninha',wardrobe:'Guarda-roupa',bathtub:'Banheira',toilet:'Vaso sanitário',sink:'Pia',stove:'Fogão',fridge:'Geladeira',washingMachine:'Máquina de lavar',tv:'TV',bookshelf:'Estante',diningTable:'Mesa de jantar',plant:'Planta',lamp:'Luminária',rug:'Tapete',saved:'Salvo!',deleted:'Excluído!',loaded:'Carregado!'}
+tr:{select:'Seç',room:'Oda',door:'Kapı',window:'Pencere',furniture:'Mobilya',delete:'Sil',undo:'Geri Al',redo:'Yinele',file:'Dosya',new:'Yeni Proje',save:'Kaydet',load:'Yükle',close:'Kapat',cancel:'İptal',exportJSON:'JSON Dışa Aktar',importJSON:'JSON İçe Aktar',saveFile:'Dosyaya Kaydet',openFile:'Dosyadan Aç',saveServer:'Sunucuya Kaydet',loadServer:'Sunucudan Yükle',group:'Grupla',ungroup:'Grubu Çöz',properties:'Özellikler',roomName:'Oda Adı',floorColor:'Zemin Rengi',wallColor:'Duvar Rengi',width:'Genişlik',height:'Derinlik',rotation:'Döndürme',wallHeight:'Duvar Yüksekliği',resetView:'Görünümü Sıfırla',gridSize:'Izgara',rooms:'Oda',doors:'Kapı',windows:'Pencere',furnitureCount:'Mobilya',projectName:'Proje Adı',noProjects:'Kayıtlı proje yok',bed:'Yatak',sofa:'Kanepe',table:'Masa',chair:'Sandalye',desk:'Çalışma Masası',wardrobe:'Dolap',bathtub:'Küvet',toilet:'Tuvalet',sink:'Lavabo',stove:'Ocak',fridge:'Buzdolabı',washingMachine:'Çamaşır Makinesi',tv:'Televizyon',bookshelf:'Kitaplık',diningTable:'Yemek Masası',plant:'Bitki',lamp:'Lamba',rug:'Halı',saved:'Kaydedildi!',deleted:'Silindi!',loaded:'Yüklendi!'},
+en:{select:'Select',room:'Room',door:'Door',window:'Window',furniture:'Furniture',delete:'Delete',undo:'Undo',redo:'Redo',file:'File',new:'New Project',save:'Save',load:'Load',close:'Close',cancel:'Cancel',exportJSON:'Export JSON',importJSON:'Import JSON',saveFile:'Save to File',openFile:'Open from File',saveServer:'Save to Server',loadServer:'Load from Server',group:'Group',ungroup:'Ungroup',properties:'Properties',roomName:'Room Name',floorColor:'Floor Color',wallColor:'Wall Color',width:'Width',height:'Depth',rotation:'Rotation',wallHeight:'Wall Height',resetView:'Reset View',gridSize:'Grid',rooms:'Rooms',doors:'Doors',windows:'Windows',furnitureCount:'Furniture',projectName:'Project Name',noProjects:'No saved projects',bed:'Bed',sofa:'Sofa',table:'Table',chair:'Chair',desk:'Desk',wardrobe:'Wardrobe',bathtub:'Bathtub',toilet:'Toilet',sink:'Sink',stove:'Stove',fridge:'Fridge',washingMachine:'Washing Machine',tv:'TV',bookshelf:'Bookshelf',diningTable:'Dining Table',plant:'Plant',lamp:'Lamp',rug:'Rug',saved:'Saved!',deleted:'Deleted!',loaded:'Loaded!'},
+de:{select:'Auswählen',room:'Raum',door:'Tür',window:'Fenster',furniture:'Möbel',delete:'Löschen',undo:'Rückgängig',redo:'Wiederholen',file:'Datei',new:'Neues Projekt',save:'Speichern',load:'Laden',close:'Schließen',cancel:'Abbrechen',exportJSON:'JSON Export',importJSON:'JSON Import',saveFile:'In Datei speichern',openFile:'Aus Datei öffnen',saveServer:'Auf Server speichern',loadServer:'Vom Server laden',group:'Gruppieren',ungroup:'Gruppierung aufheben',properties:'Eigenschaften',roomName:'Raumname',floorColor:'Bodenfarbe',wallColor:'Wandfarbe',width:'Breite',height:'Tiefe',rotation:'Drehung',wallHeight:'Wandhöhe',resetView:'Ansicht zurücksetzen',gridSize:'Raster',rooms:'Räume',doors:'Türen',windows:'Fenster',furnitureCount:'Möbel',projectName:'Projektname',noProjects:'Keine gespeicherten Projekte',bed:'Bett',sofa:'Sofa',table:'Tisch',chair:'Stuhl',desk:'Schreibtisch',wardrobe:'Schrank',bathtub:'Badewanne',toilet:'Toilette',sink:'Waschbecken',stove:'Herd',fridge:'Kühlschrank',washingMachine:'Waschmaschine',tv:'Fernseher',bookshelf:'Bücherregal',diningTable:'Esstisch',plant:'Pflanze',lamp:'Lampe',rug:'Teppich',saved:'Gespeichert!',deleted:'Gelöscht!',loaded:'Geladen!'},
+fr:{select:'Sélectionner',room:'Pièce',door:'Porte',window:'Fenêtre',furniture:'Meubles',delete:'Supprimer',undo:'Annuler',redo:'Rétablir',file:'Fichier',new:'Nouveau Projet',save:'Enregistrer',load:'Charger',close:'Fermer',cancel:'Annuler',exportJSON:'Exporter JSON',importJSON:'Importer JSON',saveFile:'Enregistrer dans un fichier',openFile:'Ouvrir un fichier',saveServer:'Enregistrer sur le serveur',loadServer:'Charger depuis le serveur',group:'Grouper',ungroup:'Dégrouper',properties:'Propriétés',roomName:'Nom de la pièce',floorColor:'Couleur du sol',wallColor:'Couleur du mur',width:'Largeur',height:'Profondeur',rotation:'Rotation',wallHeight:'Hauteur du mur',resetView:'Réinitialiser la vue',gridSize:'Grille',rooms:'Pièces',doors:'Portes',windows:'Fenêtres',furnitureCount:'Meubles',projectName:'Nom du projet',noProjects:'Aucun projet enregistré',bed:'Lit',sofa:'Canapé',table:'Table',chair:'Chaise',desk:'Bureau',wardrobe:'Armoire',bathtub:'Baignoire',toilet:'Toilettes',sink:'Évier',stove:'Cuisinière',fridge:'Réfrigérateur',washingMachine:'Lave-linge',tv:'Télévision',bookshelf:'Bibliothèque',diningTable:'Table à manger',plant:'Plante',lamp:'Lampe',rug:'Tapis',saved:'Enregistré!',deleted:'Supprimé!',loaded:'Chargé!'},
+es:{select:'Seleccionar',room:'Habitación',door:'Puerta',window:'Ventana',furniture:'Muebles',delete:'Eliminar',undo:'Deshacer',redo:'Rehacer',file:'Archivo',new:'Nuevo Proyecto',save:'Guardar',load:'Cargar',close:'Cerrar',cancel:'Cancelar',exportJSON:'Exportar JSON',importJSON:'Importar JSON',saveFile:'Guardar en archivo',openFile:'Abrir archivo',saveServer:'Guardar en servidor',loadServer:'Cargar del servidor',group:'Agrupar',ungroup:'Desagrupar',properties:'Propiedades',roomName:'Nombre',floorColor:'Color del suelo',wallColor:'Color de pared',width:'Ancho',height:'Profundidad',rotation:'Rotación',wallHeight:'Altura de pared',resetView:'Restablecer vista',gridSize:'Cuadrícula',rooms:'Habitaciones',doors:'Puertas',windows:'Ventanas',furnitureCount:'Muebles',projectName:'Nombre del proyecto',noProjects:'No hay proyectos guardados',bed:'Cama',sofa:'Sofá',table:'Mesa',chair:'Silla',desk:'Escritorio',wardrobe:'Armario',bathtub:'Bañera',toilet:'Inodoro',sink:'Lavabo',stove:'Cocina',fridge:'Nevera',washingMachine:'Lavadora',tv:'Televisión',bookshelf:'Estantería',diningTable:'Mesa de comedor',plant:'Planta',lamp:'Lámpara',rug:'Alfombra',saved:'¡Guardado!',deleted:'¡Eliminado!',loaded:'¡Cargado!'},
+ru:{select:'Выбрать',room:'Комната',door:'Дверь',window:'Окно',furniture:'Мебель',delete:'Удалить',undo:'Отменить',redo:'Вперёд',file:'Файл',new:'Новый проект',save:'Сохранить',load:'Загрузить',close:'Закрыть',cancel:'Отмена',exportJSON:'Экспорт JSON',importJSON:'Импорт JSON',saveFile:'Сохранить в файл',openFile:'Открыть файл',saveServer:'Сохранить на сервер',loadServer:'Загрузить с сервера',group:'Группировать',ungroup:'Разгруппировать',properties:'Свойства',roomName:'Название',floorColor:'Цвет пола',wallColor:'Цвет стен',width:'Ширина',height:'Глубина',rotation:'Поворот',wallHeight:'Высота стен',resetView:'Сброс',gridSize:'Сетка',rooms:'Комнаты',doors:'Двери',windows:'Окна',furnitureCount:'Мебель',projectName:'Название проекта',noProjects:'Нет сохранённых проектов',bed:'Кровать',sofa:'Диван',table:'Стол',chair:'Стул',desk:'Рабочий стол',wardrobe:'Шкаф',bathtub:'Ванна',toilet:'Туалет',sink:'Раковина',stove:'Плита',fridge:'Холодильник',washingMachine:'Стиральная машина',tv:'Телевизор',bookshelf:'Книжная полка',diningTable:'Обеденный стол',plant:'Растение',lamp:'Лампа',rug:'Ковёр',saved:'Сохранено!',deleted:'Удалено!',loaded:'Загружено!'},
+zh:{select:'选择',room:'房间',door:'门',window:'窗户',furniture:'家具',delete:'删除',undo:'撤销',redo:'重做',file:'文件',new:'新项目',save:'保存',load:'加载',close:'关闭',cancel:'取消',exportJSON:'导出JSON',importJSON:'导入JSON',saveFile:'保存到文件',openFile:'从文件打开',saveServer:'保存到服务器',loadServer:'从服务器加载',group:'编组',ungroup:'取消编组',properties:'属性',roomName:'房间名',floorColor:'地板颜色',wallColor:'墙壁颜色',width:'宽度',height:'深度',rotation:'旋转',wallHeight:'墙高',resetView:'重置视图',gridSize:'网格',rooms:'房间',doors:'门',windows:'窗户',furnitureCount:'家具',projectName:'项目名称',noProjects:'没有保存的项目',bed:'床',sofa:'沙发',table:'桌子',chair:'椅子',desk:'书桌',wardrobe:'衣柜',bathtub:'浴缸',toilet:'马桶',sink:'水槽',stove:'炉灶',fridge:'冰箱',washingMachine:'洗衣机',tv:'电视',bookshelf:'书架',diningTable:'餐桌',plant:'植物',lamp:'台灯',rug:'地毯',saved:'已保存！',deleted:'已删除！',loaded:'已加载！'},
+ja:{select:'選択',room:'部屋',door:'ドア',window:'窓',furniture:'家具',delete:'削除',undo:'元に戻す',redo:'やり直し',file:'ファイル',new:'新規プロジェクト',save:'保存',load:'読込',close:'閉じる',cancel:'キャンセル',exportJSON:'JSONエクスポート',importJSON:'JSONインポート',saveFile:'ファイルに保存',openFile:'ファイルから開く',saveServer:'サーバーに保存',loadServer:'サーバーから読込',group:'グループ化',ungroup:'グループ解除',properties:'プロパティ',roomName:'部屋名',floorColor:'床の色',wallColor:'壁の色',width:'幅',height:'奥行き',rotation:'回転',wallHeight:'壁の高さ',resetView:'ビューリセット',gridSize:'グリッド',rooms:'部屋',doors:'ドア',windows:'窓',furnitureCount:'家具',projectName:'プロジェクト名',noProjects:'保存されたプロジェクトはありません',bed:'ベッド',sofa:'ソファ',table:'テーブル',chair:'椅子',desk:'デスク',wardrobe:'ワードローブ',bathtub:'浴槽',toilet:'トイレ',sink:'シンク',stove:'コンロ',fridge:'冷蔵庫',washingMachine:'洗濯機',tv:'テレビ',bookshelf:'本棚',diningTable:'ダイニングテーブル',plant:'植物',lamp:'ランプ',rug:'ラグ',saved:'保存しました！',deleted:'削除しました！',loaded:'読み込みました！'},
+it:{select:'Seleziona',room:'Stanza',door:'Porta',window:'Finestra',furniture:'Mobili',delete:'Elimina',undo:'Annulla',redo:'Ripeti',file:'File',new:'Nuovo Progetto',save:'Salva',load:'Carica',close:'Chiudi',cancel:'Annulla',exportJSON:'Esporta JSON',importJSON:'Importa JSON',saveFile:'Salva su file',openFile:'Apri da file',saveServer:'Salva su server',loadServer:'Carica dal server',group:'Raggruppa',ungroup:'Separa',properties:'Proprietà',roomName:'Nome stanza',floorColor:'Colore pavimento',wallColor:'Colore parete',width:'Larghezza',height:'Profondità',rotation:'Rotazione',wallHeight:'Altezza pareti',resetView:'Reset vista',gridSize:'Griglia',rooms:'Stanze',doors:'Porte',windows:'Finestre',furnitureCount:'Mobili',projectName:'Nome progetto',noProjects:'Nessun progetto salvato',bed:'Letto',sofa:'Divano',table:'Tavolo',chair:'Sedia',desk:'Scrivania',wardrobe:'Armadio',bathtub:'Vasca',toilet:'WC',sink:'Lavandino',stove:'Fornello',fridge:'Frigorifero',washingMachine:'Lavatrice',tv:'TV',bookshelf:'Libreria',diningTable:'Tavolo da pranzo',plant:'Pianta',lamp:'Lampada',rug:'Tappeto',saved:'Salvato!',deleted:'Eliminato!',loaded:'Caricato!'},
+ar:{select:'تحديد',room:'غرفة',door:'باب',window:'نافذة',furniture:'أثاث',delete:'حذف',undo:'تراجع',redo:'إعادة',file:'ملف',new:'مشروع جديد',save:'حفظ',load:'تحميل',close:'إغلاق',cancel:'إلغاء',exportJSON:'تصدير JSON',importJSON:'استيراد JSON',saveFile:'حفظ في ملف',openFile:'فتح ملف',saveServer:'حفظ على الخادم',loadServer:'تحميل من الخادم',group:'تجميع',ungroup:'فك التجميع',properties:'خصائص',roomName:'اسم الغرفة',floorColor:'لون الأرضية',wallColor:'لون الجدار',width:'العرض',height:'العمق',rotation:'الدوران',wallHeight:'ارتفاع الجدار',resetView:'إعادة ضبط',gridSize:'الشبكة',rooms:'غرف',doors:'أبواب',windows:'نوافذ',furnitureCount:'أثاث',projectName:'اسم المشروع',noProjects:'لا توجد مشاريع محفوظة',bed:'سرير',sofa:'أريكة',table:'طاولة',chair:'كرسي',desk:'مكتب',wardrobe:'خزانة',bathtub:'حوض استحمام',toilet:'مرحاض',sink:'حوض',stove:'موقد',fridge:'ثلاجة',washingMachine:'غسالة',tv:'تلفاز',bookshelf:'رف كتب',diningTable:'طاولة طعام',plant:'نبتة',lamp:'مصباح',rug:'سجادة',saved:'!تم الحفظ',deleted:'!تم الحذف',loaded:'!تم التحميل'},
+ko:{select:'선택',room:'방',door:'문',window:'창문',furniture:'가구',delete:'삭제',undo:'실행취소',redo:'다시실행',file:'파일',new:'새 프로젝트',save:'저장',load:'불러오기',close:'닫기',cancel:'취소',exportJSON:'JSON 내보내기',importJSON:'JSON 가져오기',saveFile:'파일로 저장',openFile:'파일에서 열기',saveServer:'서버에 저장',loadServer:'서버에서 불러오기',group:'그룹화',ungroup:'그룹 해제',properties:'속성',roomName:'방 이름',floorColor:'바닥 색상',wallColor:'벽 색상',width:'너비',height:'깊이',rotation:'회전',wallHeight:'벽 높이',resetView:'뷰 리셋',gridSize:'격자',rooms:'방',doors:'문',windows:'창문',furnitureCount:'가구',projectName:'프로젝트 이름',noProjects:'저장된 프로젝트 없음',bed:'침대',sofa:'소파',table:'테이블',chair:'의자',desk:'책상',wardrobe:'옷장',bathtub:'욕조',toilet:'변기',sink:'세면대',stove:'가스레인지',fridge:'냉장고',washingMachine:'세탁기',tv:'TV',bookshelf:'책장',diningTable:'식탁',plant:'식물',lamp:'램프',rug:'러그',saved:'저장됨!',deleted:'삭제됨!',loaded:'불러옴!'},
+hi:{select:'चुनें',room:'कमरा',door:'दरवाज़ा',window:'खिड़की',furniture:'फ़र्नीचर',delete:'हटाएं',undo:'पूर्ववत',redo:'फिर से',file:'फ़ाइल',new:'नया प्रोजेक्ट',save:'सेव',load:'लोड',close:'बंद',cancel:'रद्द',exportJSON:'JSON निर्यात',importJSON:'JSON आयात',saveFile:'फ़ाइल में सेव',openFile:'फ़ाइल से खोलें',saveServer:'सर्वर पर सेव',loadServer:'सर्वर से लोड',group:'ग्रुप बनाएं',ungroup:'ग्रुप तोड़ें',properties:'गुण',roomName:'कमरे का नाम',floorColor:'फर्श का रंग',wallColor:'दीवार का रंग',width:'चौड़ाई',height:'गहराई',rotation:'घुमाव',wallHeight:'दीवार ऊंचाई',resetView:'रीसेट',gridSize:'ग्रिड',rooms:'कमरे',doors:'दरवाज़े',windows:'खिड़कियाँ',furnitureCount:'फ़र्नीचर',projectName:'प्रोजेक्ट नाम',noProjects:'कोई सेव प्रोजेक्ट नहीं',bed:'बिस्तर',sofa:'सोफा',table:'मेज़',chair:'कुर्सी',desk:'डेस्क',wardrobe:'अलमारी',bathtub:'बाथटब',toilet:'शौचालय',sink:'सिंक',stove:'चूल्हा',fridge:'फ्रिज',washingMachine:'वॉशिंग मशीन',tv:'टीवी',bookshelf:'किताबों की अलमारी',diningTable:'डाइनिंग टेबल',plant:'पौधा',lamp:'लैंप',rug:'गलीचा',saved:'सेव हो गया!',deleted:'हट गया!',loaded:'लोड हो गया!'},
+pt:{select:'Selecionar',room:'Quarto',door:'Porta',window:'Janela',furniture:'Móveis',delete:'Excluir',undo:'Desfazer',redo:'Refazer',file:'Arquivo',new:'Novo Projeto',save:'Salvar',load:'Carregar',close:'Fechar',cancel:'Cancelar',exportJSON:'Exportar JSON',importJSON:'Importar JSON',saveFile:'Salvar em arquivo',openFile:'Abrir arquivo',saveServer:'Salvar no servidor',loadServer:'Carregar do servidor',group:'Agrupar',ungroup:'Desagrupar',properties:'Propriedades',roomName:'Nome do cômodo',floorColor:'Cor do piso',wallColor:'Cor da parede',width:'Largura',height:'Profundidade',rotation:'Rotação',wallHeight:'Altura da parede',resetView:'Resetar vista',gridSize:'Grade',rooms:'Cômodos',doors:'Portas',windows:'Janelas',furnitureCount:'Móveis',projectName:'Nome do projeto',noProjects:'Nenhum projeto salvo',bed:'Cama',sofa:'Sofá',table:'Mesa',chair:'Cadeira',desk:'Escrivaninha',wardrobe:'Guarda-roupa',bathtub:'Banheira',toilet:'Vaso sanitário',sink:'Pia',stove:'Fogão',fridge:'Geladeira',washingMachine:'Máquina de lavar',tv:'TV',bookshelf:'Estante',diningTable:'Mesa de jantar',plant:'Planta',lamp:'Luminária',rug:'Tapete',saved:'Salvo!',deleted:'Excluído!',loaded:'Carregado!'}
 };
 
 function getLocale(){try{return localStorage.getItem('sys_locale')||'tr'}catch{return'tr'}}
@@ -62,6 +62,8 @@ setup(){
   const wallHeight=ref(2.8);
   const gridSize=ref(0.5);
   const selectedItem=ref(null);
+  const selectedItems=ref([]);
+  const currentFilePath=ref('');
 
   const rooms=ref([]);
   const doors=ref([]);
@@ -86,11 +88,11 @@ setup(){
   let isPanning=false,panStartX=0,panStartY=0;
   // drawing
   let isDrawing=false,drawStart=null;
-  let isDragging=false,dragOffset={x:0,y:0};
+  let isDragging=false;
   // 3D
   let threeScene=null,threeCamera=null,threeRenderer=null,threeControls=null;
   let threeLoaded=false;
-  let THREE=null;
+  let THREE=null,OrbitControls=null;
   let resizeObs=null;
 
   // ─── coordinate transforms ───
@@ -150,7 +152,8 @@ setup(){
     for(const d of doors.value)drawDoor(d);
     for(const w of windows.value)drawWindow(w);
     // selection highlight
-    if(selectedItem.value)drawSelectionHighlight(selectedItem.value);
+    if(selectedItems.value.length>0){for(const si of selectedItems.value)drawSelectionHighlight(si)}
+    else if(selectedItem.value)drawSelectionHighlight(selectedItem.value);
     // drawing preview
     if(isDrawing&&drawStart){
       const m=mode.value;
@@ -277,6 +280,9 @@ setup(){
   }
 
   // ─── mouse events ───
+  function getAllItems(){return[...rooms.value,...doors.value,...windows.value,...furnitureItems.value]}
+  function isSelected(item){return selectedItems.value.some(s=>s.id===item.id)}
+
   function onCanvasDown(e){
     const rect=canvasWrap.value.getBoundingClientRect();
     const sx=e.clientX-rect.left,sy=e.clientY-rect.top;
@@ -288,8 +294,30 @@ setup(){
 
     if(mode.value==='select'){
       const hit=hitTest(w.x,w.y);
-      selectedItem.value=hit;
-      if(hit){isDragging=true;dragOffset={x:w.x-hit.x,y:w.y-hit.y}}
+      if(e.ctrlKey||e.metaKey){
+        // Ctrl+click: toggle item in multi-select
+        if(hit){
+          if(isSelected(hit)){
+            selectedItems.value=selectedItems.value.filter(s=>s.id!==hit.id);
+            if(selectedItem.value&&selectedItem.value.id===hit.id)selectedItem.value=selectedItems.value[0]||null;
+          }else{
+            selectedItems.value.push(hit);
+            selectedItem.value=hit;
+          }
+        }
+      }else{
+        // Normal click: single select
+        if(hit){
+          if(!isSelected(hit)){selectedItems.value=[hit]}
+          selectedItem.value=hit;
+        }else{
+          selectedItems.value=[];selectedItem.value=null;
+        }
+      }
+      if(selectedItems.value.length>0&&hit){
+        isDragging=true;
+        dragOffsets=selectedItems.value.map(it=>({id:it.id,dx:w.x-it.x,dy:w.y-it.y}));
+      }
       render2D();return;
     }
 
@@ -311,10 +339,9 @@ setup(){
       windows.value.push({id:uid(),kind:'window',x:gx,y:gy,w:1.0,rotation:0});
       render2D();return;
     }
-    if(mode.value==='furniture'){
-      // placed via selectFurniture click
-    }
   }
+
+  let dragOffsets=[];
 
   function onCanvasMove(e){
     const rect=canvasWrap.value.getBoundingClientRect();
@@ -326,9 +353,12 @@ setup(){
     if(isDrawing&&drawStart){
       drawStart.ex=snapToGrid(w.x);drawStart.ey=snapToGrid(w.y);render2D();return;
     }
-    if(isDragging&&selectedItem.value){
-      const nx=snapToGrid(w.x-dragOffset.x),ny=snapToGrid(w.y-dragOffset.y);
-      selectedItem.value.x=nx;selectedItem.value.y=ny;render2D();return;
+    if(isDragging&&selectedItems.value.length>0){
+      for(const off of dragOffsets){
+        const item=selectedItems.value.find(s=>s.id===off.id);
+        if(item){item.x=snapToGrid(w.x-off.dx);item.y=snapToGrid(w.y-off.dy)}
+      }
+      render2D();return;
     }
   }
 
@@ -367,23 +397,72 @@ setup(){
   }
 
   function deleteSelected(){
-    if(!selectedItem.value)return;
+    if(selectedItems.value.length===0&&!selectedItem.value)return;
     pushHistory();
-    const id=selectedItem.value.id;
-    rooms.value=rooms.value.filter(r=>r.id!==id);
-    doors.value=doors.value.filter(d=>d.id!==id);
-    windows.value=windows.value.filter(w=>w.id!==id);
-    furnitureItems.value=furnitureItems.value.filter(f=>f.id!==id);
-    selectedItem.value=null;render2D();
+    const ids=new Set(selectedItems.value.length>0?selectedItems.value.map(s=>s.id):[selectedItem.value.id]);
+    rooms.value=rooms.value.filter(r=>!ids.has(r.id));
+    doors.value=doors.value.filter(d=>!ids.has(d.id));
+    windows.value=windows.value.filter(w=>!ids.has(w.id));
+    furnitureItems.value=furnitureItems.value.filter(f=>!ids.has(f.id));
+    selectedItem.value=null;selectedItems.value=[];render2D();
   }
+
+  // ─── group / ungroup ───
+  function groupSelected(){
+    if(selectedItems.value.length<2)return;
+    pushHistory();
+    const items=selectedItems.value;
+    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+    for(const it of items){
+      minX=Math.min(minX,it.x);minY=Math.min(minY,it.y);
+      maxX=Math.max(maxX,it.x+(it.w||0));maxY=Math.max(maxY,it.y+(it.h||0));
+    }
+    const children=items.map(it=>{
+      const c=JSON.parse(JSON.stringify(it));
+      c.relX=it.x-minX;c.relY=it.y-minY;
+      return c;
+    });
+    // remove originals
+    const ids=new Set(items.map(s=>s.id));
+    rooms.value=rooms.value.filter(r=>!ids.has(r.id));
+    doors.value=doors.value.filter(d=>!ids.has(d.id));
+    windows.value=windows.value.filter(w=>!ids.has(w.id));
+    furnitureItems.value=furnitureItems.value.filter(f=>!ids.has(f.id));
+    // create group item
+    const grp={id:uid(),kind:'group',x:minX,y:minY,w:maxX-minX,h:maxY-minY,children,rotation:0,icon:'📦',color:'#6c7086'};
+    furnitureItems.value.push(grp);
+    selectedItems.value=[grp];selectedItem.value=grp;render2D();
+  }
+
+  function ungroupSelected(){
+    const item=selectedItem.value;
+    if(!item||item.kind!=='group'||!item.children)return;
+    pushHistory();
+    const baseX=item.x,baseY=item.y;
+    for(const c of item.children){
+      const restored={...c,x:baseX+(c.relX||0),y:baseY+(c.relY||0)};
+      delete restored.relX;delete restored.relY;
+      restored.id=uid();
+      if(restored.kind==='room')rooms.value.push(restored);
+      else if(restored.kind==='door')doors.value.push(restored);
+      else if(restored.kind==='window')windows.value.push(restored);
+      else furnitureItems.value.push(restored);
+    }
+    furnitureItems.value=furnitureItems.value.filter(f=>f.id!==item.id);
+    selectedItem.value=null;selectedItems.value=[];render2D();
+  }
+
+  const canGroup=computed(()=>selectedItems.value.length>=2);
+  const canUngroup=computed(()=>selectedItem.value&&selectedItem.value.kind==='group');
+
 
   // ─── 3D ───
   async function loadThree(){
     if(threeLoaded)return;
     try{
-      THREE=await import(THREE_CDN);
-      const{OrbitControls}=await import(ORBIT_CDN);
-      THREE.OrbitControls=OrbitControls;
+      const[threeModule,orbitModule]=await Promise.all([import(THREE_CDN),import(ORBIT_CDN)]);
+      THREE=threeModule;
+      OrbitControls=orbitModule.OrbitControls;
       threeLoaded=true;
     }catch(err){console.error('Three.js load error',err)}
   }
@@ -414,7 +493,7 @@ setup(){
     threeRenderer.setPixelRatio(devicePixelRatio);
     threeRenderer.shadowMap.enabled=true;
 
-    threeControls=new THREE.OrbitControls(threeCamera,threeRenderer.domElement);
+    threeControls=new OrbitControls(threeCamera,canvas3d.value);
     threeControls.enableDamping=true;
 
     // lights
@@ -578,13 +657,26 @@ setup(){
       const res=await fetch('/api/3dhome/projects/'+encodeURIComponent(id),{headers:getAuthHeaders()});
       if(res.ok){
         const d=await res.json();
-        rooms.value=d.rooms||[];doors.value=d.doors||[];windows.value=d.windows||[];
-        furnitureItems.value=d.furnitureItems||[];wallHeight.value=d.wallHeight||2.8;
-        projectName.value=d.name||'';currentProjectId.value=d.id||'';
-        selectedItem.value=null;undoStack.value=[];redoStack.value=[];
-        render2D();showStatus(L('loaded'));
+        applyProjectData(d);
+        showStatus(L('loaded'));
       }
     }catch{}
+  }
+
+  function applyProjectData(d){
+    rooms.value=d.rooms||[];doors.value=d.doors||[];windows.value=d.windows||[];
+    furnitureItems.value=d.furnitureItems||[];wallHeight.value=d.wallHeight||2.8;
+    projectName.value=d.name||'';currentProjectId.value=d.id||'';
+    selectedItem.value=null;selectedItems.value=[];undoStack.value=[];redoStack.value=[];
+    render2D();
+  }
+
+  function getProjectJSON(){
+    return JSON.stringify({
+      name:projectName.value||'home-plan',
+      rooms:rooms.value,doors:doors.value,windows:windows.value,
+      furnitureItems:furnitureItems.value,wallHeight:wallHeight.value
+    },null,2);
   }
 
   async function deleteProject(id){
@@ -595,28 +687,74 @@ setup(){
     }catch{}
   }
 
+  // ─── FileDialog save/load ───
+  async function saveToFile(){
+    showFileMenu.value=false;
+    if(!window.FileDialog)return;
+    const result=await window.FileDialog.save({
+      title:'\uD83C\uDFE0 '+L('saveFile'),
+      defaultName:(projectName.value||'home-plan')+'.3dhome',
+      filters:[{label:'3D Home',extensions:['.3dhome','.json']}]
+    });
+    if(!result)return;
+    currentFilePath.value=result.path;
+    const content=getProjectJSON();
+    await window.FileDialog.writeFile(result.path,content);
+    showStatus(L('saved'));
+  }
+
+  async function openFromFile(){
+    showFileMenu.value=false;
+    if(!window.FileDialog)return;
+    const result=await window.FileDialog.open({
+      title:'\uD83D\uDCC2 '+L('openFile'),
+      filters:[{label:'3D Home',extensions:['.3dhome','.json']}]
+    });
+    if(!result)return;
+    try{
+      const d=JSON.parse(result.content);
+      pushHistory();
+      applyProjectData(d);
+      currentFilePath.value=result.path;
+      showStatus(L('loaded'));
+    }catch{}
+  }
+
+  async function quickSave(){
+    showFileMenu.value=false;
+    if(currentFilePath.value&&window.FileDialog){
+      const content=getProjectJSON();
+      await window.FileDialog.writeFile(currentFilePath.value,content);
+      showStatus(L('saved'));
+    }else if(currentProjectId.value){
+      await doSave();
+    }else{
+      saveToFile();
+    }
+  }
+
   function showStatus(msg){statusMsg.value=msg;setTimeout(()=>statusMsg.value='',2000)}
 
   function newProject(){
     showFileMenu.value=false;
     pushHistory();
     rooms.value=[];doors.value=[];windows.value=[];furnitureItems.value=[];
-    selectedItem.value=null;projectName.value='';currentProjectId.value='';
+    selectedItem.value=null;selectedItems.value=[];projectName.value='';currentProjectId.value='';currentFilePath.value='';
     render2D();
   }
 
   function exportJSON(){
     showFileMenu.value=false;
-    const data=JSON.stringify({rooms:rooms.value,doors:doors.value,windows:windows.value,furnitureItems:furnitureItems.value,wallHeight:wallHeight.value},null,2);
+    const data=getProjectJSON();
     const blob=new Blob([data],{type:'application/json'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-    a.download=(projectName.value||'home-plan')+'.json';a.click();
+    a.download=(projectName.value||'home-plan')+'.3dhome';a.click();
     URL.revokeObjectURL(a.href);
   }
 
   function importJSON(){
     showFileMenu.value=false;
-    const inp=document.createElement('input');inp.type='file';inp.accept='.json';
+    const inp=document.createElement('input');inp.type='file';inp.accept='.3dhome,.json';
     inp.onchange=()=>{
       const file=inp.files[0];if(!file)return;
       const reader=new FileReader();
@@ -626,7 +764,7 @@ setup(){
           pushHistory();
           rooms.value=d.rooms||[];doors.value=d.doors||[];windows.value=d.windows||[];
           furnitureItems.value=d.furnitureItems||[];wallHeight.value=d.wallHeight||2.8;
-          selectedItem.value=null;render2D();
+          selectedItem.value=null;selectedItems.value=[];render2D();
         }catch{}
       };
       reader.readAsText(file);
@@ -643,13 +781,28 @@ setup(){
     }});
     if(canvasWrap.value)resizeObs.observe(canvasWrap.value);
     document.addEventListener('click',closeMenus);
+    document.addEventListener('keydown',onKeyDown);
   });
 
   onUnmounted(()=>{
     if(resizeObs)resizeObs.disconnect();
     if(threeRenderer)threeRenderer.dispose();
     document.removeEventListener('click',closeMenus);
+    document.removeEventListener('keydown',onKeyDown);
   });
+
+  function onKeyDown(e){
+    if(e.target.closest('input,textarea'))return;
+    if((e.key==='Delete'||e.key==='Backspace')&&(selectedItems.value.length>0||selectedItem.value)){
+      e.preventDefault();deleteSelected();
+    }
+    if(e.ctrlKey&&e.key==='g'&&!e.shiftKey){e.preventDefault();groupSelected()}
+    if(e.ctrlKey&&e.key==='G'&&e.shiftKey){e.preventDefault();ungroupSelected()}
+    if(e.ctrlKey&&e.key==='s'){e.preventDefault();quickSave()}
+    if(e.ctrlKey&&e.key==='z'){e.preventDefault();undo()}
+    if(e.ctrlKey&&e.key==='y'){e.preventDefault();redo()}
+    if(e.ctrlKey&&e.key==='a'){e.preventDefault();selectedItems.value=getAllItems();selectedItem.value=selectedItems.value[0]||null;render2D()}
+  }
 
   function closeMenus(e){
     if(showFileMenu.value)showFileMenu.value=false;
@@ -660,13 +813,15 @@ setup(){
 
   return{
     L,mode,view,showFurniture,showFileMenu,showLoadDialog,showSaveDialog,
-    projectName,statusMsg,wallHeight,gridSize,selectedItem,
+    projectName,statusMsg,wallHeight,gridSize,selectedItem,selectedItems,canGroup,canUngroup,
     rooms,doors,windows,furnitureItems,furnitureList,savedProjects,
     canvas2d,canvasWrap,canvas3d,canvas3dWrap,
     onCanvasDown,onCanvasMove,onCanvasUp,onCanvasWheel,
     toggleFurniturePanel,selectFurniture,deleteSelected,
+    groupSelected,ungroupSelected,
     undo,redo,render2D,switchTo3D,resetCamera3D,rebuild3D,
     newProject,saveProject,doSave,loadProject,deleteProject,
+    saveToFile,openFromFile,quickSave,
     exportJSON,importJSON
   };
 }

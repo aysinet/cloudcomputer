@@ -1,6 +1,6 @@
 .home3d-app{display:flex;flex-direction:column;height:100%;background:#1e1e2e;color:#cdd6f4;font-family:system-ui,sans-serif;position:relative;overflow:hidden;user-select:none}
 .h3d-toolbar{display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:#181825;border-bottom:1px solid #313244;gap:4px;z-index:10;flex-shrink:0}
-.h3d-toolbar-left,.h3d-toolbar-right{display:flex;align-items:center;gap:2px}
+.h3d-toolbar-left{display:flex;align-items:center;gap:2px}
 .h3d-btn{background:#313244;border:1px solid #45475a;color:#cdd6f4;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:4px;white-space:nowrap}
 .h3d-btn:hover{background:#45475a}
 .h3d-btn.active{background:#89b4fa;color:#1e1e2e}
@@ -42,3 +42,6 @@
 .h3d-dropdown{position:absolute;top:32px;right:0;background:#181825;border:1px solid #45475a;border-radius:6px;z-index:20;min-width:150px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
 .h3d-dropdown-item{display:block;width:100%;padding:8px 14px;border:none;background:none;color:#cdd6f4;cursor:pointer;font-size:13px;text-align:left}
 .h3d-dropdown-item:hover{background:#313244}
+.h3d-dropdown-sep{height:1px;background:#45475a;margin:2px 0}
+.h3d-shortcut{float:right;font-size:11px;color:#6c7086;margin-left:16px}
+.h3d-toolbar-right{display:flex;align-items:center;gap:2px;position:relative}

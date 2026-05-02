@@ -1,0 +1,30 @@
+{
+  "id": "hex-editor",
+  "name": "Hex Editör",
+  "icon": "🔢",
+  "color": "linear-gradient(135deg,#0f2027,#2c5364)",
+  "type": "internal",
+  "size": {
+    "w": 1050,
+    "h": 680,
+    "minWidth": 700,
+    "minHeight": 450
+  },
+  "hasStyle": true,
+  "global": false,
+  "description": "Hex düzenleyici — dosya aç, hex/ASCII görüntüle ve düzenle, arama, sunucuya yükle",
+  "lang": {
+    "tr": { "name": "Hex Editör", "description": "Hex düzenleyici — dosya aç, hex/ASCII görüntüle ve düzenle, arama, sunucuya yükle" },
+    "en": { "name": "Hex Editor", "description": "Hex editor — open files, view/edit hex & ASCII, search, upload to server" },
+    "de": { "name": "Hex-Editor", "description": "Hex-Editor — Dateien öffnen, Hex/ASCII anzeigen und bearbeiten, Suche, auf Server hochladen" },
+    "fr": { "name": "Éditeur Hex", "description": "Éditeur hexadécimal — ouvrir fichiers, afficher/modifier hex & ASCII, recherche, téléverser" },
+    "es": { "name": "Editor Hex", "description": "Editor hexadecimal — abrir archivos, ver/editar hex y ASCII, buscar, subir al servidor" },
+    "pt": { "name": "Editor Hex", "description": "Editor hexadecimal — abrir arquivos, visualizar/editar hex e ASCII, pesquisar, enviar ao servidor" },
+    "ru": { "name": "Hex Редактор", "description": "Шестнадцатеричный редактор — открытие файлов, просмотр/редактирование hex и ASCII, поиск, загрузка" },
+    "ar": { "name": "محرر Hex", "description": "محرر سداسي عشري — فتح الملفات، عرض/تحرير hex و ASCII، بحث، رفع إلى الخادم" },
+    "zh": { "name": "十六进制编辑器", "description": "十六进制编辑器 — 打开文件、查看/编辑十六进制和ASCII、搜索、上传到服务器" },
+    "ja": { "name": "Hexエディタ", "description": "16進エディタ — ファイルを開く、Hex/ASCII表示・編集、検索、サーバーにアップロード" },
+    "ko": { "name": "Hex 편집기", "description": "16진수 편집기 — 파일 열기, Hex/ASCII 보기 및 편집, 검색, 서버에 업로드" }
+  },
+  "category": "development"
+}

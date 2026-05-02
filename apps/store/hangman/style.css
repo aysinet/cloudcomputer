@@ -1,0 +1,248 @@
+.hm-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1a1a2e;
+  color: #eee;
+  overflow: hidden;
+  outline: none;
+  user-select: none;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ---- Header ---- */
+.hm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: #16213e;
+  flex-shrink: 0;
+}
+
+.hm-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hm-stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #8899aa;
+  letter-spacing: 0.5px;
+}
+
+.hm-stat-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.hm-lang-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hm-lang-select label {
+  font-size: 11px;
+  color: #8899aa;
+  text-transform: uppercase;
+}
+
+.hm-lang-select select {
+  background: #0f3460;
+  color: #e2e8f0;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.hm-lang-select select:hover {
+  border-color: rgba(255,255,255,0.3);
+}
+
+/* ---- Canvas area ---- */
+.hm-canvas-wrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 8px 0;
+}
+
+.hm-canvas-wrap svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ---- Word display ---- */
+.hm-word-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 54px;
+}
+
+.hm-letter-box {
+  width: 34px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  border-bottom: 3px solid #8e44ad;
+  color: #e2e8f0;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.hm-letter-box.revealed {
+  color: #2ecc71;
+  border-bottom-color: #2ecc71;
+}
+
+.hm-letter-box.wrong-reveal {
+  color: #e74c3c;
+  border-bottom-color: #e74c3c;
+}
+
+/* ---- Hint ---- */
+.hm-hint {
+  text-align: center;
+  font-size: 13px;
+  color: #8899aa;
+  padding: 0 16px 4px;
+  min-height: 20px;
+}
+
+/* ---- Keyboard ---- */
+.hm-keyboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px 12px;
+  flex-shrink: 0;
+}
+
+.hm-kb-row {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.hm-key {
+  min-width: 32px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  background: #2c3e6d;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  padding: 0 6px;
+}
+
+.hm-key:hover:not(:disabled) {
+  background: #3d5a9e;
+  transform: translateY(-1px);
+}
+
+.hm-key:disabled {
+  cursor: default;
+}
+
+.hm-key.correct {
+  background: #27ae60;
+  color: #fff;
+}
+
+.hm-key.wrong {
+  background: #4a1a1a;
+  color: #666;
+}
+
+/* ---- Overlay ---- */
+.hm-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.7);
+  z-index: 10;
+}
+
+.hm-overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 30px 40px;
+  background: #1e1e2e;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  text-align: center;
+}
+
+.hm-overlay-title {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.hm-overlay-sub {
+  font-size: 14px;
+  color: #8899aa;
+}
+
+.hm-overlay-word {
+  font-size: 18px;
+  font-weight: 600;
+  color: #f39c12;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* ---- Game body (scrollable middle) ---- */
+.hm-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.hm-body::-webkit-scrollbar {
+  width: 4px;
+}
+.hm-body::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
+}
+
+/* ---- Category badge ---- */
+.hm-category {
+  text-align: center;
+  font-size: 11px;
+  color: #bb86fc;
+  padding: 2px 0 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}

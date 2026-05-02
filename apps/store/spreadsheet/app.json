@@ -1,0 +1,29 @@
+{
+  "id": "spreadsheet",
+  "name": "Hesap Tablosu",
+  "icon": "📊",
+  "color": "linear-gradient(135deg,#217346,#185c37)",
+  "type": "internal",
+  "size": {
+    "w": 1100,
+    "h": 700
+  },
+  "global": false,
+  "description": "Excel benzeri hesap tablosu — formüller, biçimlendirme, çoklu sayfa desteği",
+  "category": "productivity",
+  "lang": {
+    "tr": { "name": "Hesap Tablosu", "description": "Excel benzeri hesap tablosu — formüller, biçimlendirme, çoklu sayfa desteği" },
+    "en": { "name": "Spreadsheet", "description": "Excel-like spreadsheet — formulas, formatting, multi-sheet support" },
+    "de": { "name": "Tabellenkalkulation", "description": "Excel-ähnliche Tabellenkalkulation — Formeln, Formatierung, mehrere Blätter" },
+    "fr": { "name": "Tableur", "description": "Tableur type Excel — formules, mise en forme, feuilles multiples" },
+    "es": { "name": "Hoja de Cálculo", "description": "Hoja de cálculo tipo Excel — fórmulas, formato, múltiples hojas" },
+    "ru": { "name": "Электронная таблица", "description": "Электронная таблица — формулы, форматирование, многолистовая поддержка" },
+    "zh": { "name": "电子表格", "description": "类Excel电子表格 — 公式、格式化、多工作表支持" },
+    "ja": { "name": "スプレッドシート", "description": "Excel風スプレッドシート — 数式、書式設定、マルチシート対応" },
+    "it": { "name": "Foglio di Calcolo", "description": "Foglio di calcolo tipo Excel — formule, formattazione, fogli multipli" },
+    "ar": { "name": "جدول بيانات", "description": "جدول بيانات شبيه بالإكسل — صيغ، تنسيق، دعم أوراق متعددة" },
+    "ko": { "name": "스프레드시트", "description": "Excel과 유사한 스프레드시트 — 수식, 서식, 멀티시트 지원" },
+    "hi": { "name": "स्प्रेडशीट", "description": "एक्सेल जैसी स्प्रेडशीट — फ़ॉर्मूला, फ़ॉर्मेटिंग, मल्टी-शीट" },
+    "pt": { "name": "Planilha", "description": "Planilha tipo Excel — fórmulas, formatação, suporte a múltiplas folhas" }
+  }
+}

@@ -1,0 +1,142 @@
+<div class="hex-app" @dragenter.prevent="onDragEnter" @dragover.prevent>
+  <!-- Toolbar -->
+  <div class="hex-toolbar">
+    <div class="hex-toolbar-left">
+      <div class="hex-dropdown-wrap">
+        <button class="hex-tb-btn" @click="toggleOpenMenu" title="Open">📂</button>
+        <div v-if="showOpenMenu" class="hex-dropdown-menu">
+          <div class="hex-dropdown-item" @click="openLocalFile">💻 {{t('openLocal')}}</div>
+          <div class="hex-dropdown-item" @click="openServerFile">🌐 {{t('openServer')}}</div>
+        </div>
+      </div>
+      <div class="hex-dropdown-wrap">
+        <button class="hex-tb-btn" @click="toggleSaveMenu" :disabled="!fileData" title="Save">💾</button>
+        <div v-if="showSaveMenu" class="hex-dropdown-menu">
+          <div class="hex-dropdown-item" @click="saveToServer" v-if="currentFilePath">🌐 {{t('save')}}</div>
+          <div class="hex-dropdown-item" @click="saveAsServer">🌐 {{t('saveAs')}}</div>
+          <div class="hex-dropdown-item" @click="saveLocal">💻 {{t('saveLocal')}}</div>
+        </div>
+      </div>
+      <button class="hex-tb-btn" @click="uploadToServer" :disabled="!fileData || !!currentFilePath" title="Upload to server">
+        ⬆️ {{t('uploadToServer')}}
+      </button>
+      <span class="hex-sep"></span>
+      <button class="hex-tb-btn" @click="undo" :disabled="!canUndo" title="Undo">↩️</button>
+      <button class="hex-tb-btn" @click="redo" :disabled="!canRedo" title="Redo">↪️</button>
+      <span class="hex-sep"></span>
+      <button class="hex-tb-btn" :class="{active: showSearch}" @click="showSearch=!showSearch" title="Search">🔍</button>
+      <button class="hex-tb-btn" @click="goToOffset" title="Go to offset">📍 {{t('goTo')}}</button>
+    </div>
+    <div class="hex-toolbar-right">
+      <span class="hex-tb-label">{{t('columns')}}:</span>
+      <el-select v-model="columns" size="small" style="width:70px" @change="refreshView">
+        <el-option :value="8" label="8" />
+        <el-option :value="16" label="16" />
+        <el-option :value="32" label="32" />
+      </el-select>
+    </div>
+  </div>
+
+  <!-- Search bar -->
+  <div v-if="showSearch" class="hex-search-bar">
+    <el-select v-model="searchType" size="small" style="width:90px">
+      <el-option value="hex" label="Hex" />
+      <el-option value="ascii" label="ASCII" />
+    </el-select>
+    <input class="hex-search-input" v-model="searchQuery" :placeholder="searchType==='hex' ? 'FF 0A 1B...' : 'text...'" @keydown.enter="findNext" />
+    <button class="hex-tb-btn small" @click="findNext">{{t('findNext')}}</button>
+    <button class="hex-tb-btn small" @click="findPrev">{{t('findPrev')}}</button>
+    <span v-if="searchResults.length" class="hex-search-info">{{searchIndex+1}}/{{searchResults.length}}</span>
+    <span v-if="searchQuery && !searchResults.length" class="hex-search-info hex-no-match">{{t('noMatch')}}</span>
+    <button class="hex-tb-btn small" @click="showSearch=false;searchQuery='';searchResults=[]">✕</button>
+  </div>
+
+  <!-- File info bar -->
+  <div v-if="fileName" class="hex-info-bar">
+    <span>📄 {{fileName}}</span>
+    <span v-if="currentFilePath" class="hex-path-badge" :title="currentFilePath">🌐 {{currentFilePath}}</span>
+    <span v-else class="hex-path-badge hex-local-badge">💻 {{t('localFile')}}</span>
+    <span style="flex:1"></span>
+    <span>{{formatFileSize(fileData ? fileData.length : 0)}}</span>
+    <span v-if="modified" class="hex-modified-badge">● {{t('modified')}}</span>
+  </div>
+
+  <!-- Empty state -->
+  <div v-if="!fileData" class="hex-empty">
+    <div class="hex-empty-icon">🔢</div>
+    <div class="hex-empty-text">{{t('dropOrOpen')}}</div>
+    <div class="hex-empty-sub">{{t('dropOrOpenSub')}}</div>
+  </div>
+
+  <!-- Hex grid -->
+  <div v-else class="hex-grid-container" ref="gridContainer" @scroll="onScroll">
+    <div class="hex-grid-spacer" :style="{height: totalHeight + 'px'}"></div>
+    <div class="hex-grid" :style="{transform: 'translateY(' + offsetY + 'px)'}">
+      <div class="hex-row hex-header-row">
+        <span class="hex-offset-cell hex-header-cell">{{t('offset')}}</span>
+        <span class="hex-byte-cell hex-header-cell" v-for="c in columns" :key="'h'+c">{{hexByte(c-1)}}</span>
+        <span class="hex-ascii-sep"></span>
+        <span class="hex-ascii-header hex-header-cell">ASCII</span>
+      </div>
+      <div class="hex-row" v-for="(row, ri) in visibleRows" :key="row.offset"
+           :class="{'hex-row-alt': (startRow + ri) % 2 === 1}">
+        <span class="hex-offset-cell">{{hexOffset(row.offset)}}</span>
+        <span class="hex-byte-cell" v-for="(b, ci) in row.bytes" :key="ci"
+              :class="byteClass(row.offset + ci, b)"
+              @click="selectByte(row.offset + ci)"
+              @dblclick="startEditHex(row.offset + ci, b)">
+          <template v-if="editingOffset === row.offset + ci">
+            <input class="hex-edit-input"
+                   ref="editInput"
+                   :value="editValue"
+                   @input="onEditInput($event)"
+                   @keydown.enter="commitEdit"
+                   @keydown.escape="cancelEdit"
+                   @blur="commitEdit"
+                   maxlength="2" />
+          </template>
+          <template v-else>{{b !== null ? hexByte(b) : '  '}}</template>
+        </span>
+        <span class="hex-ascii-sep">│</span>
+        <span class="hex-ascii-cell">
+          <span v-for="(b, ci) in row.bytes" :key="'a'+ci"
+                :class="asciiClass(row.offset + ci, b)"
+                @click="selectByte(row.offset + ci)"
+                @dblclick="startEditAscii(row.offset + ci, b)">
+            <template v-if="editingAsciiOffset === row.offset + ci">
+              <input class="hex-edit-ascii-input"
+                     ref="editAsciiInput"
+                     :value="editAsciiValue"
+                     @input="onAsciiInput($event)"
+                     @keydown.enter="commitAsciiEdit"
+                     @keydown.escape="cancelAsciiEdit"
+                     @blur="commitAsciiEdit"
+                     maxlength="1" />
+            </template>
+            <template v-else>{{b !== null ? printableChar(b) : ' '}}</template>
+          </span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="hex-statusbar">
+    <span v-if="selectedOffset >= 0">
+      {{t('offset')}}: 0x{{hexOffset(selectedOffset)}} ({{selectedOffset}})
+    </span>
+    <span v-if="selectedOffset >= 0 && fileData">
+      {{t('value')}}: 0x{{hexByte(fileData[selectedOffset])}} ({{fileData[selectedOffset]}})
+      <template v-if="selectedOffset + 1 < fileData.length">
+        · U16LE: {{getU16LE(selectedOffset)}}
+      </template>
+    </span>
+    <span style="flex:1"></span>
+    <span v-if="fileData">{{fileData.length}} {{t('bytes')}}</span>
+  </div>
+
+  <!-- Drop overlay -->
+  <div v-if="dragging" class="hex-drop-overlay" @drop.prevent="onDrop" @dragover.prevent @dragleave="dragging=false">
+    <div class="hex-drop-text">📂 {{t('dropFile')}}</div>
+  </div>
+</div>

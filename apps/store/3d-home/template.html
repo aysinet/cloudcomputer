@@ -19,8 +19,14 @@
         <span>🛋️</span>
       </button>
       <span class="h3d-sep"></span>
-      <button class="h3d-btn" @click="deleteSelected()" :title="L('delete')" :disabled="!selectedItem">
+      <button class="h3d-btn" @click="deleteSelected()" :title="L('delete')" :disabled="!selectedItem && selectedItems.length===0">
         <span>🗑️</span>
+      </button>
+      <button class="h3d-btn" @click="groupSelected()" :title="L('group')" :disabled="!canGroup">
+        <span>📦</span>
+      </button>
+      <button class="h3d-btn" @click="ungroupSelected()" :title="L('ungroup')" :disabled="!canUngroup">
+        <span>📤</span>
       </button>
       <button class="h3d-btn" @click="undo()" :title="L('undo')"><span>↩</span></button>
       <button class="h3d-btn" @click="redo()" :title="L('redo')"><span>↪</span></button>
@@ -31,13 +37,19 @@
       <span class="h3d-sep"></span>
       <!-- File menu -->
       <div class="h3d-dropdown" v-if="showFileMenu" @click.stop>
-        <button class="h3d-dropdown-item" @click="newProject()">{{ L('new') }}</button>
-        <button class="h3d-dropdown-item" @click="saveProject()">{{ L('save') }}</button>
-        <button class="h3d-dropdown-item" @click="showLoadDialog=true; showFileMenu=false">{{ L('load') }}</button>
-        <button class="h3d-dropdown-item" @click="exportJSON()">{{ L('exportJSON') }}</button>
-        <button class="h3d-dropdown-item" @click="importJSON()">{{ L('importJSON') }}</button>
+        <button class="h3d-dropdown-item" @click="newProject()">🆕 {{ L('new') }}</button>
+        <div class="h3d-dropdown-sep"></div>
+        <button class="h3d-dropdown-item" @click="quickSave()">💾 {{ L('save') }} <span class="h3d-shortcut">Ctrl+S</span></button>
+        <button class="h3d-dropdown-item" @click="saveToFile()">📄 {{ L('saveFile') }}</button>
+        <button class="h3d-dropdown-item" @click="openFromFile()">📂 {{ L('openFile') }}</button>
+        <div class="h3d-dropdown-sep"></div>
+        <button class="h3d-dropdown-item" @click="saveProject()">☁️ {{ L('saveServer') }}</button>
+        <button class="h3d-dropdown-item" @click="showLoadDialog=true; showFileMenu=false">☁️ {{ L('loadServer') }}</button>
+        <div class="h3d-dropdown-sep"></div>
+        <button class="h3d-dropdown-item" @click="exportJSON()">📥 {{ L('exportJSON') }}</button>
+        <button class="h3d-dropdown-item" @click="importJSON()">📤 {{ L('importJSON') }}</button>
       </div>
-      <button class="h3d-btn" @click="showFileMenu=!showFileMenu">📁 {{ L('file') }}</button>
+      <button class="h3d-btn" @click.stop="showFileMenu=!showFileMenu">📁 {{ L('file') }}</button>
     </div>
   </div>
 
@@ -143,6 +155,7 @@
     <span>{{ L('doors') }}: {{ doors.length }}</span>
     <span>{{ L('windows') }}: {{ windows.length }}</span>
     <span>{{ L('furnitureCount') }}: {{ furnitureItems.length }}</span>
-    <span v-if="statusMsg">{{ statusMsg }}</span>
+    <span v-if="selectedItems.length>1" style="color:#89b4fa">{{ selectedItems.length }} {{ L('select') }}</span>
+    <span v-if="statusMsg" style="color:#a6e3a1">{{ statusMsg }}</span>
   </div>
 </div>

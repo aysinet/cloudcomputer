@@ -1,0 +1,26 @@
+{
+  "id": "featherwiki",
+  "name": "Feather Wiki",
+  "icon": "🪶",
+  "color": "linear-gradient(135deg,#6c5ce7,#a29bfe)",
+  "type": "internal",
+  "size": { "w": 1050, "h": 700 },
+  "global": false,
+  "description": "Kişisel wiki — sayfalar, etiketler, iç bağlantılar, Markdown desteği, sunucuda kayıt",
+  "category": "productivity",
+  "lang": {
+    "tr": { "name": "Feather Wiki", "description": "Kişisel wiki — sayfalar, etiketler, iç bağlantılar, Markdown desteği, sunucuda kayıt" },
+    "en": { "name": "Feather Wiki", "description": "Personal wiki — pages, tags, internal links, Markdown support, server-side storage" },
+    "de": { "name": "Feather Wiki", "description": "Persönliches Wiki — Seiten, Tags, interne Links, Markdown-Unterstützung, serverseitige Speicherung" },
+    "fr": { "name": "Feather Wiki", "description": "Wiki personnel — pages, étiquettes, liens internes, support Markdown, stockage serveur" },
+    "es": { "name": "Feather Wiki", "description": "Wiki personal — páginas, etiquetas, enlaces internos, soporte Markdown, almacenamiento en servidor" },
+    "ru": { "name": "Feather Wiki", "description": "Персональная вики — страницы, теги, внутренние ссылки, поддержка Markdown, серверное хранилище" },
+    "zh": { "name": "Feather Wiki", "description": "个人维基 — 页面、标签、内部链接、Markdown支持、服务器存储" },
+    "ja": { "name": "Feather Wiki", "description": "パーソナルウィキ — ページ、タグ、内部リンク、Markdownサポート、サーバー保存" },
+    "it": { "name": "Feather Wiki", "description": "Wiki personale — pagine, tag, link interni, supporto Markdown, archiviazione server" },
+    "ar": { "name": "Feather Wiki", "description": "ويكي شخصي — صفحات، وسوم، روابط داخلية، دعم Markdown، تخزين على الخادم" },
+    "ko": { "name": "Feather Wiki", "description": "개인 위키 — 페이지, 태그, 내부 링크, Markdown 지원, 서버 저장" },
+    "hi": { "name": "Feather Wiki", "description": "व्यक्तिगत विकी — पृष्ठ, टैग, आंतरिक लिंक, Markdown समर्थन, सर्वर स्टोरेज" },
+    "pt": { "name": "Feather Wiki", "description": "Wiki pessoal — páginas, tags, links internos, suporte Markdown, armazenamento no servidor" }
+  }
+}

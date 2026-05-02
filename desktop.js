@@ -89,13 +89,16 @@ function resolveCmd(cmdTemplate, installConfig) {
   return resolved.length > 0 ? resolved : null;
 }
 
-async function dmFetch(path, opts = {}) {
-  const url = DOCKER_MANAGER_URL + path;
+async function dmFetch(dmPath, opts = {}) {
+  const url = DOCKER_MANAGER_URL + dmPath;
   const headers = { 'Content-Type': 'application/json', 'x-dm-secret': DM_SECRET, ...(opts.headers || {}) };
+  const timeoutMs = opts.timeout || 120000;
+  const { timeout: _, ...fetchOpts } = opts;
   let res;
   try {
-    res = await fetch(url, { ...opts, headers });
+    res = await fetch(url, { ...fetchOpts, headers, signal: AbortSignal.timeout(timeoutMs) });
   } catch (e) {
+    if (e.name === 'TimeoutError') throw new Error('Docker Manager zaman aşımı (' + (timeoutMs / 1000) + 's)');
     throw new Error('Docker Manager bağlantı hatası: ' + (e.cause?.code || e.message));
   }
   const contentType = res.headers.get('content-type') || '';
@@ -110,8 +113,14 @@ async function dmFetch(path, opts = {}) {
 
 // #endregion
 // #region Middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false }));
+app.use((req, res, next) => {
+  if (req.path.startsWith('/proxy/')) return next();
+  express.json({ limit: '10mb' })(req, res, next);
+});
+app.use((req, res, next) => {
+  if (req.path.startsWith('/proxy/')) return next();
+  express.urlencoded({ extended: false })(req, res, next);
+});
 
 // #endregion
 // #region JWT Helpers
@@ -584,14 +593,14 @@ app.post('/api/apps/install', authMiddleware, (req, res) => {
       const dfPath = path.join(__dirname, appManifest.docker.build.context, 'Dockerfile');
       const dfContent = fs.existsSync(dfPath) ? fs.readFileSync(dfPath, 'utf8') : null;
       if (dfContent) {
-        dmFetch('/build', { method: 'POST', body: JSON.stringify({ dockerfile: dfContent, tag: img }) })
+        dmFetch('/build', { method: 'POST', body: JSON.stringify({ dockerfile: dfContent, tag: img }), timeout: 600000 })
           .then(() => console.log(`Docker image built: ${img}`))
           .catch(err => console.error(`Docker build failed for ${img}:`, err.message));
       } else {
         console.error(`Dockerfile not found at ${dfPath}`);
       }
     } else {
-      dmFetch('/pull', { method: 'POST', body: JSON.stringify({ image: img }) })
+      dmFetch('/pull', { method: 'POST', body: JSON.stringify({ image: img }), timeout: 600000 })
         .then(() => console.log(`Docker image pulled: ${img}`))
         .catch(err => console.error(`Docker pull failed for ${img}:`, err.message));
     }
@@ -611,8 +620,8 @@ app.post('/api/apps/uninstall', authMiddleware, async (req, res) => {
   delete userData.installedAt[appId];
   saveUserInstalled(req.user.username, userData);
 
-  // Stop Docker container if running via DockerManager
-  if (dockerContainers[appId]) {
+  // Stop Docker container if app has docker config or is tracked
+  if (dockerContainers[appId] || (appManifest && appManifest.docker)) {
     dmFetch('/stop', { method: 'POST', body: JSON.stringify({ appId }) }).catch(() => {});
     delete dockerContainers[appId];
     delete proxyCache[appId];
@@ -620,8 +629,6 @@ app.post('/api/apps/uninstall', authMiddleware, async (req, res) => {
 
   // Clean up service config
   if (appManifest && appManifest.type === 'service') {
-    // Stop the service container (may not be in dockerContainers if server restarted)
-    dmFetch('/stop', { method: 'POST', body: JSON.stringify({ appId }) }).catch(() => {});
     const serviceConfigs = getServiceConfigs(req.user.username);
     delete serviceConfigs[appId];
     saveServiceConfigs(req.user.username, serviceConfigs);
@@ -741,9 +748,9 @@ app.post('/api/services/install', authMiddleware, async (req, res) => {
     if (dockerConfig.build && dockerConfig.build.context) {
       const dfPath = path.join(__dirname, dockerConfig.build.context, 'Dockerfile');
       const dfContent = fs.readFileSync(dfPath, 'utf8');
-      await dmFetch('/build', { method: 'POST', body: JSON.stringify({ dockerfile: dfContent, tag: dockerConfig.image }) });
+      await dmFetch('/build', { method: 'POST', body: JSON.stringify({ dockerfile: dfContent, tag: dockerConfig.image }), timeout: 600000 });
     } else {
-      await dmFetch('/pull', { method: 'POST', body: JSON.stringify({ image: dockerConfig.image }) });
+      await dmFetch('/pull', { method: 'POST', body: JSON.stringify({ image: dockerConfig.image }), timeout: 600000 });
     }
 
     // Run container with restart always for services
@@ -1355,7 +1362,7 @@ app.post('/api/docker/build', authMiddleware, async (req, res) => {
   if (!fs.existsSync(dockerfilePath)) return res.status(400).json({ error: 'Dockerfile not found in context: ' + context });
   const dockerfile = fs.readFileSync(dockerfilePath, 'utf8');
   try {
-    const data = await dmFetch('/build', { method: 'POST', body: JSON.stringify({ dockerfile, tag }) });
+    const data = await dmFetch('/build', { method: 'POST', body: JSON.stringify({ dockerfile, tag }), timeout: 600000 });
     res.json(data);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -1368,7 +1375,7 @@ app.post('/api/docker/pull', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'Invalid image name' });
   }
   try {
-    const data = await dmFetch('/pull', { method: 'POST', body: JSON.stringify({ image }) });
+    const data = await dmFetch('/pull', { method: 'POST', body: JSON.stringify({ image }), timeout: 600000 });
     res.json(data);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -1488,13 +1495,44 @@ app.post('/api/docker/cleanup', authMiddleware, async (req, res) => {
   }
 });
 
+// ── Docker network info for Settings panel ──
+app.get('/api/docker/network', authMiddleware, async (req, res) => {
+  try {
+    let dmOnline = false;
+    try { const h = await dmFetch('/health'); dmOnline = h && h.ok; } catch {}
+    let containers = [];
+    if (dmOnline) {
+      try {
+        const ports = await dmFetch('/ports');
+        for (const [appId, hostPort] of Object.entries(ports)) {
+          try {
+            const status = await dmFetch('/status/' + appId);
+            containers.push({ appId, hostPort, running: status.running, containerName: status.containerName || 'cloudpc-' + appId });
+          } catch {
+            containers.push({ appId, hostPort, running: false, containerName: 'cloudpc-' + appId });
+          }
+        }
+      } catch {}
+    }
+    res.json({
+      serverPort: config.server.port,
+      dockerManager: { url: DOCKER_MANAGER_URL, online: dmOnline },
+      network: IS_DOCKER ? 'cloudpc-net' : 'host',
+      containers
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // #endregion
 // #region External App Proxy
 // Supports multiple proxy modes via app.json "proxyMode" field:
-//   "hpm"     — http-proxy-middleware (best for non-standard HTTP responses, e.g. rmeira/chess)
-//   "default" — http.request with IPv4 forcing (default for all apps without proxyMode)
+//   "hpm"        — http-proxy-middleware (best for non-standard HTTP responses, e.g. rmeira/chess)
+//   "pathprefix" — keeps /proxy/{appId} prefix in forwarded path (for apps using path-prefix, e.g. TiddlyWiki)
+//   "default"    — http.request with IPv4 forcing, strips /proxy/{appId} prefix (default)
 
-app.use('/proxy/:appId', (req, res, next) => {
+app.use('/proxy/:appId', async (req, res, next) => {
   const appId = req.params.appId.replace(/[^a-zA-Z0-9_-]/g, '');
 
   // Determine target base URL and proxy mode
@@ -1514,6 +1552,20 @@ app.use('/proxy/:appId', (req, res, next) => {
     }
   }
 
+  // Auto-discover running Docker container if proxyCache miss
+  if (!targetBase) {
+    try {
+      const data = await dmFetch('/status/' + appId);
+      if (data.running) {
+        const proxyTarget = IS_DOCKER ? data.internalUrl : `http://localhost:${data.hostPort}`;
+        dockerContainers[appId] = { containerId: data.containerId, containerName: data.containerName, hostPort: data.hostPort, internalUrl: data.internalUrl };
+        proxyCache[appId] = { target: proxyTarget, appId, dynamic: true, proxyMode: getProxyMode(appId) };
+        targetBase = proxyTarget;
+        proxyMode = proxyCache[appId].proxyMode;
+      }
+    } catch {}
+  }
+
   if (!targetBase) return res.status(404).json({ error: 'App proxy not found' });
 
   // ── HPM mode: use http-proxy-middleware (original simple approach) ──
@@ -1528,6 +1580,49 @@ app.use('/proxy/:appId', (req, res, next) => {
       });
     }
     if (dynP && dynP.middleware) return dynP.middleware(req, res, next);
+  }
+
+  // ── Pathprefix mode: keep /proxy/{appId} prefix (app uses path-prefix to expect it) ──
+  if (proxyMode === 'pathprefix') {
+    const target = new URL(req.originalUrl, targetBase);
+    const hostname = (target.hostname === 'localhost') ? '127.0.0.1' : target.hostname;
+
+    const options = {
+      hostname,
+      port: target.port || 80,
+      path: target.pathname + target.search,
+      method: req.method,
+      headers: { ...req.headers, host: target.host, connection: 'close' },
+      insecureHTTPParser: true
+    };
+    delete options.headers['authorization'];
+
+    const proxyReq = http.request(options, (proxyRes) => {
+      const resHeaders = { ...proxyRes.headers };
+      delete resHeaders['transfer-encoding'];
+      res.writeHead(proxyRes.statusCode, resHeaders);
+      proxyRes.pipe(res, { end: true });
+    });
+
+    proxyReq.on('error', (err) => {
+      console.error(`[PROXY] ${appId} error:`, err.message);
+      if (!res.headersSent) res.status(502).json({ error: 'Proxy error: ' + err.message });
+    });
+
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      if (req.readable) {
+        req.pipe(proxyReq, { end: true });
+      } else if (req.body) {
+        const bodyStr = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+        proxyReq.setHeader('content-length', Buffer.byteLength(bodyStr));
+        proxyReq.end(bodyStr);
+      } else {
+        proxyReq.end();
+      }
+    } else {
+      proxyReq.end();
+    }
+    return;
   }
 
   // ── Default mode: http.request with IPv4 forcing ──
@@ -3688,6 +3783,22 @@ function handleWSMessage(ws, msg) {
     case 'terminal-exec':
       handleTerminalExec(ws, msg.data || {});
       break;
+    case 'window-state': {
+      const { appId, state } = msg.data || {};
+      if (!appId || !state || !ws.user) break;
+      const safeAppId = String(appId).replace(/[^a-zA-Z0-9_-]/g, '');
+      if (!safeAppId) break;
+      const settings = getUserSettings(ws.user.username);
+      const windowStates = settings.windowStates || {};
+      windowStates[safeAppId] = {
+        x: Number(state.x) || 0,
+        y: Number(state.y) || 0,
+        w: Number(state.w) || 480,
+        h: Number(state.h) || 380
+      };
+      saveUserSettings(ws.user.username, { ...settings, windowStates });
+      break;
+    }
     default:
       ws.send(JSON.stringify({ type: 'echo', data: msg }));
   }
@@ -7683,6 +7794,131 @@ app.delete('/api/3dhome/projects/:id', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 // #endregion
+// #region Spreadsheet App
+function getUserSpreadsheetPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  return path.join(dir, 'spreadsheet.json');
+}
+function getUserSpreadsheetData(username) {
+  const fp = getUserSpreadsheetPath(username);
+  if (!fs.existsSync(fp)) return { files: [] };
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return { files: [] }; }
+}
+function saveUserSpreadsheetData(username, data) {
+  fs.writeFileSync(getUserSpreadsheetPath(username), JSON.stringify(data, null, 2));
+}
+
+app.get('/api/spreadsheet/files', authMiddleware, (req, res) => {
+  const data = getUserSpreadsheetData(req.user.username);
+  res.json({ files: data.files.map(f => ({ id: f.id, name: f.name, date: f.date })) });
+});
+
+app.get('/api/spreadsheet/files/:id', authMiddleware, (req, res) => {
+  const data = getUserSpreadsheetData(req.user.username);
+  const file = data.files.find(f => f.id === req.params.id);
+  if (!file) return res.status(404).json({ error: 'Not found' });
+  res.json(file);
+});
+
+app.post('/api/spreadsheet/files', authMiddleware, (req, res) => {
+  const { id, name, date, sheets } = req.body;
+  if (!id || !name) return res.status(400).json({ error: 'id and name required' });
+  const sanitizedSheets = Array.isArray(sheets) ? sheets.slice(0, 20).map(s => ({
+    name: String(s.name || 'Sheet').slice(0, 50),
+    rows: typeof s.rows === 'object' && s.rows ? s.rows : {},
+    cols: typeof s.cols === 'object' && s.cols ? s.cols : {},
+    merges: Array.isArray(s.merges) ? s.merges.slice(0, 500) : [],
+    freeze: s.freeze ? String(s.freeze).slice(0, 10) : undefined,
+    styles: Array.isArray(s.styles) ? s.styles.slice(0, 5000) : []
+  })) : [];
+  const file = {
+    id: String(id).slice(0, 50),
+    name: String(name).slice(0, 50),
+    date: String(date || new Date().toISOString().slice(0, 10)).slice(0, 10),
+    sheets: sanitizedSheets
+  };
+  const data = getUserSpreadsheetData(req.user.username);
+  const idx = data.files.findIndex(f => f.id === file.id);
+  if (idx >= 0) data.files[idx] = file; else data.files.push(file);
+  if (data.files.length > 50) data.files = data.files.slice(-50);
+  saveUserSpreadsheetData(req.user.username, data);
+  res.json({ ok: true });
+});
+
+app.delete('/api/spreadsheet/files/:id', authMiddleware, (req, res) => {
+  const data = getUserSpreadsheetData(req.user.username);
+  data.files = data.files.filter(f => f.id !== req.params.id);
+  saveUserSpreadsheetData(req.user.username, data);
+  res.json({ ok: true });
+});
+
+// Spreadsheet file import (xls, xlsx, csv)
+const spreadsheetUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.xls', '.xlsx', '.csv'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, allowed.includes(ext));
+  }
+});
+
+app.post('/api/spreadsheet/import', authMiddleware, spreadsheetUpload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  try {
+    const XLSX = require('xlsx');
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    let workbook;
+    if (ext === '.csv') {
+      const csvText = req.file.buffer.toString('utf-8');
+      workbook = XLSX.read(csvText, { type: 'string' });
+    } else {
+      workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+    }
+    const sheets = [];
+    for (const sheetName of workbook.SheetNames.slice(0, 20)) {
+      const ws = workbook.Sheets[sheetName];
+      const rows = {};
+      const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+      for (let r = range.s.r; r <= Math.min(range.e.r, 9999); r++) {
+        const rowObj = { cells: {} };
+        let hasData = false;
+        for (let c = range.s.c; c <= Math.min(range.e.c, 255); c++) {
+          const addr = XLSX.utils.encode_cell({ r, c });
+          const cell = ws[addr];
+          if (cell) {
+            const text = cell.w !== undefined ? cell.w : (cell.v !== undefined ? String(cell.v) : '');
+            rowObj.cells[c] = { text };
+            hasData = true;
+          }
+        }
+        if (hasData) rows[r] = rowObj;
+      }
+      // Column widths
+      const cols = {};
+      if (ws['!cols']) {
+        ws['!cols'].forEach((col, i) => {
+          if (col && col.wpx) cols[i] = { width: Math.min(Math.max(col.wpx, 40), 500) };
+        });
+      }
+      // Merge cells
+      const merges = [];
+      if (ws['!merges']) {
+        ws['!merges'].slice(0, 500).forEach(m => {
+          merges.push(XLSX.utils.encode_range(m));
+        });
+      }
+      sheets.push({ name: String(sheetName).slice(0, 50), rows, cols, merges });
+    }
+    res.json({ ok: true, sheets });
+  } catch (err) {
+    console.error('Spreadsheet import error:', err.message);
+    res.status(400).json({ error: 'Failed to parse file' });
+  }
+});
+// #endregion
 // #region YouTube Search Proxy (Invidious)
 const YT_INVIDIOUS_INSTANCES = [
   'https://vid.puffyan.us',
@@ -8129,6 +8365,202 @@ app.get('/api/currency-rates', authMiddleware, async (req, res) => {
     res.status(502).json({ error: 'Failed to fetch currency rates' });
   }
 });
+
+// #endregion
+// #region ASCII Art API
+const figlet = require('figlet');
+const { createCanvas: createAsciiCanvas, loadImage: loadAsciiImage } = require('canvas');
+
+function getAsciiArtDir(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(__dirname, 'data', 'appdata', safe + '_ascii-art');
+  ensureDir(dir);
+  return dir;
+}
+
+const asciiUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter(req, file, cb) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, ['.jpg','.jpeg','.png','.gif','.webp','.bmp'].includes(ext) || file.mimetype.startsWith('image/'));
+  }
+});
+
+const asciiFileUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter(req, file, cb) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, ['.txt','.text'].includes(ext));
+  }
+});
+
+// Text → ASCII (figlet)
+app.post('/api/ascii-art/text', authMiddleware, (req, res) => {
+  const { text, font } = req.body;
+  if (!text || typeof text !== 'string' || !text.trim()) return res.status(400).json({ error: 'text required' });
+  const safeText = text.trim().substring(0, 100);
+  const allowedFonts = figlet.fontsSync();
+  const safeFont = allowedFonts.includes(font) ? font : 'Standard';
+  try {
+    const result = figlet.textSync(safeText, { font: safeFont });
+    res.json({ result });
+  } catch (e) {
+    res.status(500).json({ error: 'Figlet generation failed' });
+  }
+});
+
+// Image → ASCII
+app.post('/api/ascii-art/image', authMiddleware, asciiUpload.single('image'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'image required' });
+  try {
+    const width = Math.max(20, Math.min(200, parseInt(req.body.width) || 100));
+    const charset = req.body.charset || 'standard';
+    const invert = req.body.invert === '1';
+
+    const CHARSETS = {
+      standard: ' .:-=+*#%@',
+      detailed: ' .\'`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$',
+      blocks: ' ░▒▓█',
+      simple: ' .oO#@'
+    };
+    let chars = CHARSETS[charset] || CHARSETS.standard;
+    if (invert) chars = chars.split('').reverse().join('');
+
+    const img = await loadAsciiImage(req.file.buffer);
+    const ratio = img.height / img.width;
+    const h = Math.round(width * ratio * 0.45);
+    const canvas = createAsciiCanvas(width, h);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, width, h);
+    const imageData = ctx.getImageData(0, 0, width, h);
+    const pixels = imageData.data;
+
+    let ascii = '';
+    for (let y = 0; y < h; y++) {
+      let line = '';
+      for (let x = 0; x < width; x++) {
+        const idx = (y * width + x) * 4;
+        const r = pixels[idx], g = pixels[idx + 1], b = pixels[idx + 2], a = pixels[idx + 3];
+        const brightness = a === 0 ? 255 : (0.299 * r + 0.587 * g + 0.114 * b);
+        const charIdx = Math.floor((brightness / 255) * (chars.length - 1));
+        line += chars[charIdx];
+      }
+      ascii += line + '\n';
+    }
+
+    res.json({ result: ascii.trimEnd() });
+  } catch (e) {
+    res.status(500).json({ error: 'Image processing failed' });
+  }
+});
+
+// Save ASCII art to user directory
+app.post('/api/ascii-art/save', authMiddleware, (req, res) => {
+  const { content, prefix } = req.body;
+  if (!content || typeof content !== 'string') return res.status(400).json({ error: 'content required' });
+  if (content.length > 500000) return res.status(400).json({ error: 'Content too large' });
+  const dir = getAsciiArtDir(req.user.username);
+  const safePrefix = (prefix || 'ascii').replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 20);
+  const filename = safePrefix + '_' + Date.now() + '.txt';
+  fs.writeFileSync(path.join(dir, filename), content, 'utf-8');
+  res.json({ ok: true, filename });
+});
+
+// List saved files
+app.get('/api/ascii-art/files', authMiddleware, (req, res) => {
+  const dir = getAsciiArtDir(req.user.username);
+  const files = fs.readdirSync(dir)
+    .filter(f => f.endsWith('.txt'))
+    .map(f => {
+      const stat = fs.statSync(path.join(dir, f));
+      return { name: f, size: stat.size, mtime: stat.mtime };
+    })
+    .sort((a, b) => new Date(b.mtime) - new Date(a.mtime));
+  res.json({ files });
+});
+
+// Read a specific file
+app.get('/api/ascii-art/files/:name', authMiddleware, (req, res) => {
+  const name = req.params.name.replace(/[^a-zA-Z0-9_.\-]/g, '');
+  if (!name.endsWith('.txt')) return res.status(400).json({ error: 'Invalid filename' });
+  const dir = getAsciiArtDir(req.user.username);
+  const filePath = path.join(dir, name);
+  if (!filePath.startsWith(dir) || !fs.existsSync(filePath)) return res.status(404).json({ error: 'Not found' });
+  const content = fs.readFileSync(filePath, 'utf-8');
+  res.json({ content });
+});
+
+// Delete a file
+app.delete('/api/ascii-art/files/:name', authMiddleware, (req, res) => {
+  const name = req.params.name.replace(/[^a-zA-Z0-9_.\-]/g, '');
+  if (!name.endsWith('.txt')) return res.status(400).json({ error: 'Invalid filename' });
+  const dir = getAsciiArtDir(req.user.username);
+  const filePath = path.join(dir, name);
+  if (!filePath.startsWith(dir) || !fs.existsSync(filePath)) return res.status(404).json({ error: 'Not found' });
+  fs.unlinkSync(filePath);
+  res.json({ ok: true });
+});
+
+// Upload a .txt file
+app.post('/api/ascii-art/upload', authMiddleware, asciiFileUpload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'file required' });
+  const dir = getAsciiArtDir(req.user.username);
+  const orig = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+  const base = path.basename(orig, path.extname(orig)).replace(/[^a-zA-Z0-9_\-. ]/g, '_').substring(0, 60);
+  const filename = base + '_' + Date.now() + '.txt';
+  fs.writeFileSync(path.join(dir, filename), req.file.buffer);
+  res.json({ ok: true, filename });
+});
+
+// #region Feather Wiki
+function getUserFeatherWikiPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  return path.join(dir, 'featherwiki.json');
+}
+function getUserFeatherWikiData(username) {
+  const fp = getUserFeatherWikiPath(username);
+  if (!fs.existsSync(fp)) return { pages: [], settings: { title: 'Feather Wiki', description: '', customCss: '' } };
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return { pages: [], settings: { title: 'Feather Wiki', description: '', customCss: '' } }; }
+}
+function saveUserFeatherWikiData(username, data) {
+  fs.writeFileSync(getUserFeatherWikiPath(username), JSON.stringify(data, null, 2));
+}
+
+app.get('/api/featherwiki/data', authMiddleware, (req, res) => {
+  res.json(getUserFeatherWikiData(req.user.username));
+});
+
+app.post('/api/featherwiki/data', authMiddleware, (req, res) => {
+  const { pages, settings } = req.body;
+  if (!Array.isArray(pages) || typeof settings !== 'object') {
+    return res.status(400).json({ error: 'pages array and settings object required' });
+  }
+  const sanitized = {
+    pages: pages.slice(0, 2000).map(p => ({
+      id: String(p.id || '').slice(0, 50),
+      slug: String(p.slug || '').slice(0, 80),
+      title: String(p.title || '').slice(0, 200),
+      content: String(p.content || '').slice(0, 50000),
+      tags: Array.isArray(p.tags) ? p.tags.slice(0, 50).map(t => String(t).slice(0, 30)) : [],
+      parent: String(p.parent || '').slice(0, 50),
+      pinned: !!p.pinned,
+      createdAt: p.createdAt || new Date().toISOString(),
+      updatedAt: p.updatedAt || new Date().toISOString()
+    })),
+    settings: {
+      title: String(settings.title || 'Feather Wiki').slice(0, 100),
+      description: String(settings.description || '').slice(0, 500),
+      customCss: String(settings.customCss || '').slice(0, 5000)
+    }
+  };
+  saveUserFeatherWikiData(req.user.username, sanitized);
+  res.json({ ok: true });
+});
+// #endregion
 
 server.listen(config.server.port, config.server.host, () => {
   console.log(`Desktop Server running at http://${config.server.host}:${config.server.port}`);

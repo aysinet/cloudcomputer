@@ -1,0 +1,206 @@
+<div class="fwiki-app" :class="{'fwiki-sidebar-collapsed': sidebarCollapsed}">
+  <!-- Sidebar -->
+  <aside class="fwiki-sidebar">
+    <div class="fwiki-sidebar-header">
+      <span class="fwiki-logo">🪶</span>
+      <span class="fwiki-title" v-if="!sidebarCollapsed">{{wikiSettings.title || 'Feather Wiki'}}</span>
+      <button class="fwiki-btn-icon" @click="sidebarCollapsed=!sidebarCollapsed" :title="sidebarCollapsed?t('expand'):t('collapse')">
+        {{sidebarCollapsed?'▶':'◀'}}
+      </button>
+    </div>
+
+    <div class="fwiki-sidebar-body" v-show="!sidebarCollapsed">
+      <!-- Search -->
+      <div class="fwiki-search">
+        <input type="text" v-model="searchQuery" :placeholder="t('search')" class="fwiki-input" />
+      </div>
+
+      <!-- Actions -->
+      <div class="fwiki-actions">
+        <button class="fwiki-btn fwiki-btn-primary" @click="createPage" :title="t('newPage')">+ {{t('newPage')}}</button>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="fwiki-nav">
+        <div class="fwiki-nav-section" v-if="pinnedPages.length">
+          <div class="fwiki-nav-label">📌 {{t('pinned')}}</div>
+          <div v-for="p in pinnedPages" :key="'pin-'+p.id"
+               class="fwiki-nav-item" :class="{active:currentPageId===p.id}"
+               @click="openPage(p.id)">
+            {{p.title || t('untitled')}}
+          </div>
+        </div>
+
+        <div class="fwiki-nav-section">
+          <div class="fwiki-nav-label">📄 {{t('pages')}} ({{filteredPages.length}})</div>
+          <div v-for="p in filteredPages" :key="'pg-'+p.id"
+               class="fwiki-nav-item" :class="{active:currentPageId===p.id}"
+               @click="openPage(p.id)"
+               :title="p.title">
+            <span class="fwiki-nav-icon" v-if="p.children && p.children.length">📁</span>
+            {{p.title || t('untitled')}}
+          </div>
+        </div>
+
+        <div class="fwiki-nav-section" v-if="allTags.length">
+          <div class="fwiki-nav-label">🏷️ {{t('tags')}}</div>
+          <div class="fwiki-tags-cloud">
+            <span v-for="tg in allTags" :key="'tag-'+tg"
+                  class="fwiki-tag-chip" :class="{active:filterTag===tg}"
+                  @click="filterTag=filterTag===tg?'':tg">
+              {{tg}}
+            </span>
+          </div>
+        </div>
+
+        <div class="fwiki-nav-section">
+          <div class="fwiki-nav-label">⏱️ {{t('recent')}}</div>
+          <div v-for="p in recentPages" :key="'rec-'+p.id"
+               class="fwiki-nav-item" :class="{active:currentPageId===p.id}"
+               @click="openPage(p.id)">
+            {{p.title || t('untitled')}}
+          </div>
+        </div>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="fwiki-main">
+    <!-- Toolbar -->
+    <div class="fwiki-toolbar">
+      <div class="fwiki-toolbar-left">
+        <button class="fwiki-btn-icon" @click="goHome" title="Home">🏠</button>
+        <button class="fwiki-btn-icon" v-if="historyStack.length>1" @click="goBack" :title="t('back')">←</button>
+        <span class="fwiki-breadcrumb" v-if="currentPage">
+          <span v-if="currentPage.parent" class="fwiki-breadcrumb-parent" @click="openPage(currentPage.parent)">
+            {{getPageTitle(currentPage.parent)}} /
+          </span>
+          {{currentPage.title || t('untitled')}}
+        </span>
+      </div>
+      <div class="fwiki-toolbar-right">
+        <button v-if="currentPage && !editing" class="fwiki-btn fwiki-btn-sm" @click="startEdit">✏️ {{t('edit')}}</button>
+        <button v-if="editing" class="fwiki-btn fwiki-btn-primary fwiki-btn-sm" @click="saveEdit">💾 {{t('save')}}</button>
+        <button v-if="editing" class="fwiki-btn fwiki-btn-sm" @click="cancelEdit">{{t('cancel')}}</button>
+        <button v-if="currentPage && !editing" class="fwiki-btn-icon" @click="togglePin(currentPage)" :title="currentPage.pinned?t('unpin'):t('pin')">
+          {{currentPage.pinned?'📌':'📍'}}
+        </button>
+        <button v-if="currentPage && !editing" class="fwiki-btn-icon" @click="showPageInfo=!showPageInfo" :title="t('info')">ℹ️</button>
+        <button v-if="currentPage && !editing" class="fwiki-btn-icon fwiki-btn-danger" @click="deletePage(currentPage.id)" :title="t('delete')">🗑️</button>
+        <button class="fwiki-btn-icon" @click="showSettings=!showSettings" :title="t('settings')">⚙️</button>
+      </div>
+    </div>
+
+    <!-- Welcome / Home -->
+    <div v-if="!currentPage && !showSettings" class="fwiki-home">
+      <div class="fwiki-home-header">
+        <span class="fwiki-home-logo">🪶</span>
+        <h1>{{wikiSettings.title || 'Feather Wiki'}}</h1>
+        <p class="fwiki-home-desc">{{wikiSettings.description || t('defaultDesc')}}</p>
+      </div>
+      <div class="fwiki-home-stats">
+        <div class="fwiki-stat"><span class="fwiki-stat-num">{{pages.length}}</span><span class="fwiki-stat-label">{{t('pages')}}</span></div>
+        <div class="fwiki-stat"><span class="fwiki-stat-num">{{allTags.length}}</span><span class="fwiki-stat-label">{{t('tags')}}</span></div>
+        <div class="fwiki-stat"><span class="fwiki-stat-num">{{totalLinks}}</span><span class="fwiki-stat-label">{{t('links')}}</span></div>
+      </div>
+      <div class="fwiki-home-recent" v-if="recentPages.length">
+        <h3>⏱️ {{t('recentlyEdited')}}</h3>
+        <div v-for="p in recentPages" :key="'home-rec-'+p.id" class="fwiki-home-item" @click="openPage(p.id)">
+          <span class="fwiki-home-item-title">{{p.title || t('untitled')}}</span>
+          <span class="fwiki-home-item-date">{{fmtDate(p.updatedAt)}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div v-if="showSettings" class="fwiki-settings-panel">
+      <h2>⚙️ {{t('wikiSettings')}}</h2>
+      <div class="fwiki-form-group">
+        <label>{{t('wikiTitle')}}</label>
+        <input class="fwiki-input" v-model="wikiSettings.title" maxlength="100" />
+      </div>
+      <div class="fwiki-form-group">
+        <label>{{t('wikiDesc')}}</label>
+        <textarea class="fwiki-input" v-model="wikiSettings.description" rows="3" maxlength="500"></textarea>
+      </div>
+      <div class="fwiki-form-group">
+        <label>{{t('customCSS')}}</label>
+        <textarea class="fwiki-input fwiki-mono" v-model="wikiSettings.customCss" rows="6" maxlength="5000" :placeholder="t('cssPlaceholder')"></textarea>
+      </div>
+      <div class="fwiki-form-actions">
+        <button class="fwiki-btn fwiki-btn-primary" @click="saveSettings">💾 {{t('saveSettings')}}</button>
+        <button class="fwiki-btn" @click="showSettings=false">{{t('close')}}</button>
+      </div>
+    </div>
+
+    <!-- Page Info Panel -->
+    <div v-if="showPageInfo && currentPage && !editing" class="fwiki-info-panel">
+      <div class="fwiki-info-row"><span>{{t('created')}}:</span> {{fmtDate(currentPage.createdAt)}}</div>
+      <div class="fwiki-info-row"><span>{{t('updated')}}:</span> {{fmtDate(currentPage.updatedAt)}}</div>
+      <div class="fwiki-info-row"><span>{{t('parent')}}:</span>
+        <select class="fwiki-input fwiki-input-sm" v-model="currentPage.parent" @change="debouncedSave()">
+          <option value="">— {{t('none')}} —</option>
+          <option v-for="p in pages.filter(p2=>p2.id!==currentPage.id)" :key="p.id" :value="p.id">{{p.title}}</option>
+        </select>
+      </div>
+      <div class="fwiki-info-row">
+        <span>{{t('tags')}}:</span>
+        <div class="fwiki-tag-edit">
+          <span v-for="(tg,i) in currentPage.tags" :key="i" class="fwiki-tag-chip removable">
+            {{tg}} <span class="fwiki-tag-remove" @click="removeTag(i)">×</span>
+          </span>
+          <input class="fwiki-input fwiki-input-sm fwiki-tag-input" v-model="newTag"
+                 @keydown.enter.prevent="addTag" :placeholder="t('addTag')" maxlength="30" />
+        </div>
+      </div>
+      <div class="fwiki-info-row" v-if="backlinks.length">
+        <span>{{t('backlinks')}}:</span>
+        <div>
+          <a v-for="bl in backlinks" :key="bl.id" class="fwiki-backlink" @click.prevent="openPage(bl.id)">{{bl.title}}</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page View -->
+    <div v-if="currentPage && !editing && !showSettings" class="fwiki-page-view">
+      <h1 class="fwiki-page-title">{{currentPage.title}}</h1>
+      <div class="fwiki-page-tags" v-if="currentPage.tags && currentPage.tags.length">
+        <span v-for="tg in currentPage.tags" :key="tg" class="fwiki-tag-chip" @click="filterTag=tg;showSettings=false">{{tg}}</span>
+      </div>
+      <div class="fwiki-page-content" v-html="renderedContent" @click="handleContentClick"></div>
+      <div class="fwiki-child-pages" v-if="childPages.length">
+        <h3>{{t('subPages')}}</h3>
+        <div v-for="ch in childPages" :key="ch.id" class="fwiki-child-item" @click="openPage(ch.id)">
+          📄 {{ch.title || t('untitled')}}
+        </div>
+      </div>
+    </div>
+
+    <!-- Editor -->
+    <div v-if="editing" class="fwiki-editor">
+      <div class="fwiki-editor-toolbar">
+        <input class="fwiki-input fwiki-editor-title" v-model="editTitle" :placeholder="t('pageTitle')" maxlength="200" />
+        <div class="fwiki-editor-btns">
+          <button class="fwiki-btn-icon" @click="insertMd('**','**')" title="Bold">𝐁</button>
+          <button class="fwiki-btn-icon" @click="insertMd('*','*')" title="Italic">𝐼</button>
+          <button class="fwiki-btn-icon" @click="insertMd('# ','')" title="H1">H1</button>
+          <button class="fwiki-btn-icon" @click="insertMd('## ','')" title="H2">H2</button>
+          <button class="fwiki-btn-icon" @click="insertMd('### ','')" title="H3">H3</button>
+          <button class="fwiki-btn-icon" @click="insertMd('- ','')" title="List">☰</button>
+          <button class="fwiki-btn-icon" @click="insertMd('`','`')" title="Code">&lt;/&gt;</button>
+          <button class="fwiki-btn-icon" @click="insertMd('```\\n','\\n```')" title="Code Block">▣</button>
+          <button class="fwiki-btn-icon" @click="insertLink" :title="t('insertLink')">🔗</button>
+          <button class="fwiki-btn-icon" @click="insertWikiLink" :title="t('insertWikiLink')">📎</button>
+          <button class="fwiki-btn-icon" @click="insertImage" :title="t('insertImage')">🖼️</button>
+          <button class="fwiki-btn-icon" @click="showPreview=!showPreview" :title="t('preview')">👁️</button>
+        </div>
+      </div>
+      <div class="fwiki-editor-body" :class="{'split':showPreview}">
+        <textarea ref="editorArea" class="fwiki-editor-textarea" v-model="editContent"
+                  :placeholder="t('writeContent')" @keydown.ctrl.s.prevent="saveEdit" @keydown.meta.s.prevent="saveEdit"></textarea>
+        <div v-if="showPreview" class="fwiki-editor-preview" v-html="previewContent"></div>
+      </div>
+    </div>
+  </main>
+</div>
