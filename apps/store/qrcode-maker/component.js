@@ -12,7 +12,10 @@
       ssid:'Ağ Adı (SSID)', wifiPass:'Şifre', encryption:'Şifreleme', none:'Yok',
       emailAddr:'E-posta Adresi', subject:'Konu', body:'Mesaj',
       phoneNum:'Telefon Numarası', generate:'Oluştur', noContent:'İçerik girin',
-      hidden:'Gizli Ağ', margin:'Kenar Boşluğu'
+      hidden:'Gizli Ağ', margin:'Kenar Boşluğu',
+      save:'Kaydet', saved:'Kaydedildi!', savedCodes:'Kayıtlı QR Kodlar',
+      noSaved:'Henüz kayıtlı QR kod yok', deleteSaved:'Sil', labelPlaceholder:'Etiket (isteğe bağlı)',
+      generating:'Oluşturuluyor...'
     },
     en: {
       title:'QR Code Maker', inputLabel:'Content', placeholder:'Enter text or URL...',
@@ -23,7 +26,10 @@
       ssid:'Network Name (SSID)', wifiPass:'Password', encryption:'Encryption', none:'None',
       emailAddr:'Email Address', subject:'Subject', body:'Message',
       phoneNum:'Phone Number', generate:'Generate', noContent:'Enter content',
-      hidden:'Hidden Network', margin:'Margin'
+      hidden:'Hidden Network', margin:'Margin',
+      save:'Save', saved:'Saved!', savedCodes:'Saved QR Codes',
+      noSaved:'No saved QR codes yet', deleteSaved:'Delete', labelPlaceholder:'Label (optional)',
+      generating:'Generating...'
     },
     de: {
       title:'QR-Code Ersteller', inputLabel:'Inhalt', placeholder:'Text oder URL eingeben...',
@@ -34,7 +40,10 @@
       ssid:'Netzwerkname (SSID)', wifiPass:'Passwort', encryption:'Verschlüsselung', none:'Keine',
       emailAddr:'E-Mail-Adresse', subject:'Betreff', body:'Nachricht',
       phoneNum:'Telefonnummer', generate:'Erstellen', noContent:'Inhalt eingeben',
-      hidden:'Verstecktes Netzwerk', margin:'Rand'
+      hidden:'Verstecktes Netzwerk', margin:'Rand',
+      save:'Speichern', saved:'Gespeichert!', savedCodes:'Gespeicherte QR-Codes',
+      noSaved:'Keine gespeicherten QR-Codes', deleteSaved:'Löschen', labelPlaceholder:'Bezeichnung (optional)',
+      generating:'Erstelle...'
     },
     fr: {
       title:'Générateur QR Code', inputLabel:'Contenu', placeholder:'Entrez du texte ou une URL...',
@@ -45,7 +54,10 @@
       ssid:'Nom du réseau (SSID)', wifiPass:'Mot de passe', encryption:'Chiffrement', none:'Aucun',
       emailAddr:'Adresse e-mail', subject:'Objet', body:'Message',
       phoneNum:'Numéro de téléphone', generate:'Générer', noContent:'Entrez du contenu',
-      hidden:'Réseau caché', margin:'Marge'
+      hidden:'Réseau caché', margin:'Marge',
+      save:'Enregistrer', saved:'Enregistré !', savedCodes:'QR Codes enregistrés',
+      noSaved:'Aucun QR code enregistré', deleteSaved:'Supprimer', labelPlaceholder:'Libellé (facultatif)',
+      generating:'Génération...'
     },
     es: {
       title:'Generador de QR', inputLabel:'Contenido', placeholder:'Ingrese texto o URL...',
@@ -56,7 +68,10 @@
       ssid:'Nombre de red (SSID)', wifiPass:'Contraseña', encryption:'Cifrado', none:'Ninguno',
       emailAddr:'Dirección de correo', subject:'Asunto', body:'Mensaje',
       phoneNum:'Número de teléfono', generate:'Generar', noContent:'Ingrese contenido',
-      hidden:'Red oculta', margin:'Margen'
+      hidden:'Red oculta', margin:'Margen',
+      save:'Guardar', saved:'¡Guardado!', savedCodes:'Códigos QR guardados',
+      noSaved:'No hay códigos QR guardados', deleteSaved:'Eliminar', labelPlaceholder:'Etiqueta (opcional)',
+      generating:'Generando...'
     },
     ru: {
       title:'Генератор QR-кодов', inputLabel:'Содержимое', placeholder:'Введите текст или URL...',
@@ -67,7 +82,10 @@
       ssid:'Имя сети (SSID)', wifiPass:'Пароль', encryption:'Шифрование', none:'Нет',
       emailAddr:'Адрес эл. почты', subject:'Тема', body:'Сообщение',
       phoneNum:'Номер телефона', generate:'Создать', noContent:'Введите содержимое',
-      hidden:'Скрытая сеть', margin:'Отступ'
+      hidden:'Скрытая сеть', margin:'Отступ',
+      save:'Сохранить', saved:'Сохранено!', savedCodes:'Сохранённые QR-коды',
+      noSaved:'Нет сохранённых QR-кодов', deleteSaved:'Удалить', labelPlaceholder:'Метка (необязательно)',
+      generating:'Создание...'
     },
     zh: {
       title:'二维码生成器', inputLabel:'内容', placeholder:'输入文本或网址...',
@@ -78,7 +96,10 @@
       ssid:'网络名称 (SSID)', wifiPass:'密码', encryption:'加密', none:'无',
       emailAddr:'邮箱地址', subject:'主题', body:'正文',
       phoneNum:'电话号码', generate:'生成', noContent:'请输入内容',
-      hidden:'隐藏网络', margin:'边距'
+      hidden:'隐藏网络', margin:'边距',
+      save:'保存', saved:'已保存！', savedCodes:'已保存的二维码',
+      noSaved:'暂无保存的二维码', deleteSaved:'删除', labelPlaceholder:'标签（可选）',
+      generating:'生成中...'
     },
     ja: {
       title:'QRコードメーカー', inputLabel:'内容', placeholder:'テキストまたはURLを入力...',
@@ -89,7 +110,10 @@
       ssid:'ネットワーク名 (SSID)', wifiPass:'パスワード', encryption:'暗号化', none:'なし',
       emailAddr:'メールアドレス', subject:'件名', body:'本文',
       phoneNum:'電話番号', generate:'生成', noContent:'内容を入力してください',
-      hidden:'非公開ネットワーク', margin:'余白'
+      hidden:'非公開ネットワーク', margin:'余白',
+      save:'保存', saved:'保存しました！', savedCodes:'保存済みQRコード',
+      noSaved:'保存済みのQRコードはありません', deleteSaved:'削除', labelPlaceholder:'ラベル（任意）',
+      generating:'生成中...'
     },
     it: {
       title:'Generatore QR Code', inputLabel:'Contenuto', placeholder:'Inserisci testo o URL...',
@@ -100,7 +124,10 @@
       ssid:'Nome rete (SSID)', wifiPass:'Password', encryption:'Crittografia', none:'Nessuna',
       emailAddr:'Indirizzo email', subject:'Oggetto', body:'Messaggio',
       phoneNum:'Numero di telefono', generate:'Genera', noContent:'Inserisci contenuto',
-      hidden:'Rete nascosta', margin:'Margine'
+      hidden:'Rete nascosta', margin:'Margine',
+      save:'Salva', saved:'Salvato!', savedCodes:'Codici QR salvati',
+      noSaved:'Nessun codice QR salvato', deleteSaved:'Elimina', labelPlaceholder:'Etichetta (opzionale)',
+      generating:'Generazione...'
     },
     ar: {
       title:'صانع رمز QR', inputLabel:'المحتوى', placeholder:'أدخل نصاً أو رابطاً...',
@@ -111,7 +138,10 @@
       ssid:'اسم الشبكة (SSID)', wifiPass:'كلمة المرور', encryption:'التشفير', none:'بدون',
       emailAddr:'عنوان البريد', subject:'الموضوع', body:'الرسالة',
       phoneNum:'رقم الهاتف', generate:'إنشاء', noContent:'أدخل المحتوى',
-      hidden:'شبكة مخفية', margin:'الهامش'
+      hidden:'شبكة مخفية', margin:'الهامش',
+      save:'حفظ', saved:'تم الحفظ!', savedCodes:'رموز QR المحفوظة',
+      noSaved:'لا توجد رموز QR محفوظة', deleteSaved:'حذف', labelPlaceholder:'تسمية (اختياري)',
+      generating:'جاري الإنشاء...'
     },
     ko: {
       title:'QR 코드 생성기', inputLabel:'내용', placeholder:'텍스트 또는 URL을 입력하세요...',
@@ -122,7 +152,10 @@
       ssid:'네트워크 이름 (SSID)', wifiPass:'비밀번호', encryption:'암호화', none:'없음',
       emailAddr:'이메일 주소', subject:'제목', body:'메시지',
       phoneNum:'전화번호', generate:'생성', noContent:'내용을 입력하세요',
-      hidden:'숨겨진 네트워크', margin:'여백'
+      hidden:'숨겨진 네트워크', margin:'여백',
+      save:'저장', saved:'저장됨!', savedCodes:'저장된 QR 코드',
+      noSaved:'저장된 QR 코드가 없습니다', deleteSaved:'삭제', labelPlaceholder:'라벨 (선택)',
+      generating:'생성 중...'
     },
     hi: {
       title:'QR कोड मेकर', inputLabel:'सामग्री', placeholder:'टेक्स्ट या URL दर्ज करें...',
@@ -133,7 +166,10 @@
       ssid:'नेटवर्क नाम (SSID)', wifiPass:'पासवर्ड', encryption:'एन्क्रिप्शन', none:'कोई नहीं',
       emailAddr:'ईमेल पता', subject:'विषय', body:'संदेश',
       phoneNum:'फ़ोन नंबर', generate:'बनाएं', noContent:'सामग्री दर्ज करें',
-      hidden:'छिपा नेटवर्क', margin:'हाशिया'
+      hidden:'छिपा नेटवर्क', margin:'हाशिया',
+      save:'सहेजें', saved:'सहेजा गया!', savedCodes:'सहेजे गए QR कोड',
+      noSaved:'कोई सहेजा गया QR कोड नहीं', deleteSaved:'हटाएं', labelPlaceholder:'लेबल (वैकल्पिक)',
+      generating:'बना रहा है...'
     },
     pt: {
       title:'Gerador de QR Code', inputLabel:'Conteúdo', placeholder:'Digite texto ou URL...',
@@ -144,7 +180,10 @@
       ssid:'Nome da rede (SSID)', wifiPass:'Senha', encryption:'Criptografia', none:'Nenhum',
       emailAddr:'Endereço de e-mail', subject:'Assunto', body:'Mensagem',
       phoneNum:'Número de telefone', generate:'Gerar', noContent:'Digite o conteúdo',
-      hidden:'Rede oculta', margin:'Margem'
+      hidden:'Rede oculta', margin:'Margem',
+      save:'Salvar', saved:'Salvo!', savedCodes:'QR Codes salvos',
+      noSaved:'Nenhum QR code salvo', deleteSaved:'Excluir', labelPlaceholder:'Rótulo (opcional)',
+      generating:'Gerando...'
     }
   };
 
@@ -152,64 +191,8 @@
     try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; }
   }
 
-  /* ── QR Code generator (pure JS, no dependencies) ── */
-  // Minimal QR code encoder based on qrcode-generator by Kazuhiko Arase (MIT)
-  var QR_LIB_LOADED = false;
-  var QR_LIB_LOADING = false;
-  var QR_LIB_CALLBACKS = [];
-
-  function loadQRLib(cb) {
-    if (QR_LIB_LOADED && window.qrcode) { cb(); return; }
-    QR_LIB_CALLBACKS.push(cb);
-    if (QR_LIB_LOADING) return;
-    QR_LIB_LOADING = true;
-    var s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
-    s.onload = function() {
-      QR_LIB_LOADED = true;
-      QR_LIB_CALLBACKS.forEach(function(fn) { fn(); });
-      QR_LIB_CALLBACKS = [];
-    };
-    s.onerror = function() {
-      QR_LIB_LOADING = false;
-      QR_LIB_CALLBACKS = [];
-    };
-    document.head.appendChild(s);
-  }
-
-  var ERR_LEVELS = { L: 1, M: 0, Q: 3, H: 2 };
-
-  function generateQR(text, errLevel) {
-    if (!window.qrcode) return null;
-    var ecl = ERR_LEVELS[errLevel] !== undefined ? ERR_LEVELS[errLevel] : 0;
-    var qr = window.qrcode(0, ecl);
-    qr.addData(text);
-    qr.make();
-    return qr;
-  }
-
-  function renderQRToCanvas(canvas, qr, size, fg, bg, margin) {
-    var ctx = canvas.getContext('2d');
-    var moduleCount = qr.getModuleCount();
-    var totalModules = moduleCount + margin * 2;
-    var cellSize = size / totalModules;
-    canvas.width = size;
-    canvas.height = size;
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, size, size);
-    ctx.fillStyle = fg;
-    for (var r = 0; r < moduleCount; r++) {
-      for (var c = 0; c < moduleCount; c++) {
-        if (qr.isDark(r, c)) {
-          ctx.fillRect(
-            (c + margin) * cellSize,
-            (r + margin) * cellSize,
-            cellSize + 0.5,
-            cellSize + 0.5
-          );
-        }
-      }
-    }
+  function getToken() {
+    try { return localStorage.getItem('auth_token') || ''; } catch { return ''; }
   }
 
   return {
@@ -236,7 +219,12 @@
       var errLevel = ref('M');
       var margin = ref(2);
       var copiedMsg = ref(false);
-      var libReady = ref(false);
+      var savedMsg = ref(false);
+      var qrImageUrl = ref('');
+      var generating = ref(false);
+      var saveLabel = ref('');
+      var savedCodes = ref([]);
+      var showSaved = ref(false);
 
       var TYPES = [
         { key: 'text', icon: '📝' },
@@ -273,51 +261,127 @@
 
       var hasContent = computed(function() { return qrContent.value.length > 0; });
 
-      function drawQR() {
-        if (!libReady.value || !hasContent.value) return;
-        nextTick(function() {
-          var canvas = document.getElementById('qr-canvas');
-          if (!canvas) return;
+      var _debounceTimer = null;
+      function generateQR() {
+        clearTimeout(_debounceTimer);
+        if (!hasContent.value) { qrImageUrl.value = ''; return; }
+        _debounceTimer = setTimeout(async function() {
+          if (!hasContent.value) return;
+          generating.value = true;
           try {
-            var qr = generateQR(qrContent.value, errLevel.value);
-            if (qr) renderQRToCanvas(canvas, qr, qrSize.value, fgColor.value, bgColor.value, margin.value);
-          } catch(e) {
-            /* content too long or invalid */
-          }
-        });
+            var res = await fetch('/api/qrcode/generate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+              body: JSON.stringify({
+                content: qrContent.value,
+                size: qrSize.value,
+                fgColor: fgColor.value,
+                bgColor: bgColor.value,
+                errLevel: errLevel.value,
+                margin: margin.value
+              })
+            });
+            if (res.ok) {
+              var data = await res.json();
+              qrImageUrl.value = data.dataUrl;
+            }
+          } catch(e) { /* ignore */ }
+          generating.value = false;
+        }, 300);
       }
 
-      watch([qrContent, qrSize, fgColor, bgColor, errLevel, margin], drawQR);
+      watch([qrContent, qrSize, fgColor, bgColor, errLevel, margin], generateQR);
 
       function downloadPNG() {
-        var canvas = document.getElementById('qr-canvas');
-        if (!canvas) return;
+        if (!qrImageUrl.value) return;
         var link = document.createElement('a');
         link.download = 'qrcode.png';
-        link.href = canvas.toDataURL('image/png');
+        link.href = qrImageUrl.value;
         link.click();
       }
 
-      function copyToClipboard() {
-        var canvas = document.getElementById('qr-canvas');
-        if (!canvas) return;
-        canvas.toBlob(function(blob) {
-          if (!blob) return;
-          navigator.clipboard.write([
-            new ClipboardItem({ 'image/png': blob })
-          ]).then(function() {
-            copiedMsg.value = true;
-            setTimeout(function() { copiedMsg.value = false; }, 2000);
-          }).catch(function() {});
-        }, 'image/png');
+      async function copyToClipboard() {
+        if (!qrImageUrl.value) return;
+        try {
+          var resp = await fetch(qrImageUrl.value);
+          var blob = await resp.blob();
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+          copiedMsg.value = true;
+          setTimeout(function() { copiedMsg.value = false; }, 2000);
+        } catch(e) { /* ignore */ }
+      }
+
+      async function saveQRCode() {
+        if (!qrImageUrl.value || !qrContent.value) return;
+        try {
+          var res = await fetch('/api/qrcode/saved', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+            body: JSON.stringify({
+              label: saveLabel.value,
+              content: qrContent.value,
+              dataUrl: qrImageUrl.value,
+              options: { type: qrType.value, size: qrSize.value, fgColor: fgColor.value, bgColor: bgColor.value, errLevel: errLevel.value, margin: margin.value }
+            })
+          });
+          if (res.ok) {
+            var data = await res.json();
+            savedCodes.value.unshift(data.code);
+            savedMsg.value = true;
+            saveLabel.value = '';
+            setTimeout(function() { savedMsg.value = false; }, 2000);
+          }
+        } catch(e) { /* ignore */ }
+      }
+
+      async function loadSavedCodes() {
+        try {
+          var res = await fetch('/api/qrcode/saved', {
+            headers: { 'Authorization': 'Bearer ' + getToken() }
+          });
+          if (res.ok) {
+            var data = await res.json();
+            savedCodes.value = data.codes || [];
+          }
+        } catch(e) { /* ignore */ }
+      }
+
+      async function deleteSavedCode(id) {
+        try {
+          var res = await fetch('/api/qrcode/saved/' + encodeURIComponent(id), {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + getToken() }
+          });
+          if (res.ok) {
+            savedCodes.value = savedCodes.value.filter(function(c) { return c.id !== id; });
+          }
+        } catch(e) { /* ignore */ }
+      }
+
+      function loadSavedToEditor(code) {
+        if (code.options) {
+          qrType.value = code.options.type || 'text';
+          qrSize.value = code.options.size || 256;
+          fgColor.value = code.options.fgColor || '#000000';
+          bgColor.value = code.options.bgColor || '#ffffff';
+          errLevel.value = code.options.errLevel || 'M';
+          margin.value = code.options.margin ?? 2;
+        }
+        nextTick(function() {
+          switch (qrType.value) {
+            case 'url': urlInput.value = code.content; break;
+            case 'phone': phoneNum.value = code.content.replace('tel:', ''); break;
+            default: textInput.value = code.content; break;
+          }
+          qrImageUrl.value = code.dataUrl;
+          showSaved.value = false;
+        });
       }
 
       onMounted(function() {
         window.addEventListener('locale-changed', onLocaleChanged);
-        loadQRLib(function() {
-          libReady.value = true;
-          drawQR();
-        });
+        loadSavedCodes();
+        generateQR();
       });
 
       onUnmounted(function() {
@@ -333,8 +397,11 @@
         qrSize: qrSize, fgColor: fgColor, bgColor: bgColor,
         errLevel: errLevel, ERR_OPTIONS: ERR_OPTIONS, ERR_LABEL_KEYS: ERR_LABEL_KEYS,
         margin: margin,
-        hasContent: hasContent, copiedMsg: copiedMsg, libReady: libReady,
-        drawQR: drawQR, downloadPNG: downloadPNG, copyToClipboard: copyToClipboard
+        hasContent: hasContent, copiedMsg: copiedMsg, savedMsg: savedMsg,
+        qrImageUrl: qrImageUrl, generating: generating,
+        saveLabel: saveLabel, savedCodes: savedCodes, showSaved: showSaved,
+        generateQR: generateQR, downloadPNG: downloadPNG, copyToClipboard: copyToClipboard,
+        saveQRCode: saveQRCode, deleteSavedCode: deleteSavedCode, loadSavedToEditor: loadSavedToEditor
       };
     }
   };

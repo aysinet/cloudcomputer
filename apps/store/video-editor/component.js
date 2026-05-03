@@ -13,6 +13,8 @@
         speed:'Hız', volume:'Ses', timeline:'Zaman Çizelgesi', clips:'klip',
         emptyTimeline:'Medya eklemek için tıklayın', addMediaHint:'Video eklemek için tıklayın',
         videos:'Videolar', browse:'Gözat', noFiles:'Dosya bulunamadı',
+        uploadDevice:'Cihazdan Yükle', uploading:'Yükleniyor...', uploadSuccess:'Video yüklendi',
+        uploadFail:'Yükleme başarısız', uploadHint:'Bilgisayarınızdan video seçin',
         exportTitle:'Video Dışa Aktar', filename:'Dosya Adı', resolution:'Çözünürlük',
         saveLocation:'Kayıt Yeri', videoFolder:'Video Klasörü', downloadLocal:'Bilgisayara İndir',
         cancel:'İptal', enterText:'Metin girin', position:'Konum', fontSize:'Yazı Boyutu',
@@ -30,6 +32,8 @@
         speed:'Speed', volume:'Volume', timeline:'Timeline', clips:'clips',
         emptyTimeline:'Click to add media', addMediaHint:'Click to add a video',
         videos:'Videos', browse:'Browse', noFiles:'No files found',
+        uploadDevice:'Upload from Device', uploading:'Uploading...', uploadSuccess:'Video uploaded',
+        uploadFail:'Upload failed', uploadHint:'Select a video from your computer',
         exportTitle:'Export Video', filename:'File Name', resolution:'Resolution',
         saveLocation:'Save Location', videoFolder:'Video Folder', downloadLocal:'Download to Computer',
         cancel:'Cancel', enterText:'Enter text', position:'Position', fontSize:'Font Size',
@@ -47,6 +51,8 @@
         speed:'Geschwindigkeit', volume:'Lautstärke', timeline:'Zeitachse', clips:'Clips',
         emptyTimeline:'Klicken um Medien hinzuzufügen', addMediaHint:'Klicken um Video hinzuzufügen',
         videos:'Videos', browse:'Durchsuchen', noFiles:'Keine Dateien',
+        uploadDevice:'Vom Gerät hochladen', uploading:'Wird hochgeladen...', uploadSuccess:'Video hochgeladen',
+        uploadFail:'Upload fehlgeschlagen', uploadHint:'Video von Ihrem Computer auswählen',
         exportTitle:'Video exportieren', filename:'Dateiname', resolution:'Auflösung',
         saveLocation:'Speicherort', videoFolder:'Videoordner', downloadLocal:'Herunterladen',
         cancel:'Abbrechen', enterText:'Text eingeben', position:'Position', fontSize:'Schriftgröße',
@@ -64,6 +70,8 @@
         speed:'Vitesse', volume:'Volume', timeline:'Chronologie', clips:'clips',
         emptyTimeline:'Cliquez pour ajouter un média', addMediaHint:'Cliquez pour ajouter une vidéo',
         videos:'Vidéos', browse:'Parcourir', noFiles:'Aucun fichier',
+        uploadDevice:'Depuis l\'appareil', uploading:'Envoi en cours...', uploadSuccess:'Vidéo envoyée',
+        uploadFail:'Échec de l\'envoi', uploadHint:'Sélectionner une vidéo depuis votre ordinateur',
         exportTitle:'Exporter la vidéo', filename:'Nom du fichier', resolution:'Résolution',
         saveLocation:'Emplacement', videoFolder:'Dossier vidéo', downloadLocal:'Télécharger',
         cancel:'Annuler', enterText:'Entrez le texte', position:'Position', fontSize:'Taille de police',
@@ -81,6 +89,8 @@
         speed:'Velocidad', volume:'Volumen', timeline:'Línea de tiempo', clips:'clips',
         emptyTimeline:'Clic para agregar media', addMediaHint:'Clic para agregar un video',
         videos:'Videos', browse:'Explorar', noFiles:'No se encontraron archivos',
+        uploadDevice:'Desde el dispositivo', uploading:'Subiendo...', uploadSuccess:'Video subido',
+        uploadFail:'Error al subir', uploadHint:'Seleccione un video de su computadora',
         exportTitle:'Exportar video', filename:'Nombre del archivo', resolution:'Resolución',
         saveLocation:'Ubicación', videoFolder:'Carpeta de video', downloadLocal:'Descargar',
         cancel:'Cancelar', enterText:'Ingrese texto', position:'Posición', fontSize:'Tamaño de fuente',
@@ -98,6 +108,8 @@
         speed:'Скорость', volume:'Громкость', timeline:'Таймлайн', clips:'клипов',
         emptyTimeline:'Нажмите для добавления медиа', addMediaHint:'Нажмите для добавления видео',
         videos:'Видео', browse:'Обзор', noFiles:'Файлы не найдены',
+        uploadDevice:'С устройства', uploading:'Загрузка...', uploadSuccess:'Видео загружено',
+        uploadFail:'Ошибка загрузки', uploadHint:'Выберите видео с компьютера',
         exportTitle:'Экспорт видео', filename:'Имя файла', resolution:'Разрешение',
         saveLocation:'Место сохранения', videoFolder:'Папка видео', downloadLocal:'Скачать',
         cancel:'Отмена', enterText:'Введите текст', position:'Позиция', fontSize:'Размер шрифта',
@@ -108,9 +120,9 @@
         deleteConfirm:'Вы уверены, что хотите удалить этот клип?',
         undone:'Отменено', redone:'Повторено'
       },
-    zh: { title:'视频编辑器', addMedia:'添加媒体', export:'导出', split:'分割', delete:'删除', addText:'添加文本', properties:'属性', clipName:'片段名称', trimStart:'起始裁剪', trimEnd:'结束裁剪', speed:'速度', volume:'音量', timeline:'时间线', clips:'片段', emptyTimeline:'时间线为空', addMediaHint:'添加媒体开始编辑', videos:'视频', browse:'浏览', noFiles:'没有文件', exportTitle:'导出视频', filename:'文件名', resolution:'分辨率', saveLocation:'保存位置', videoFolder:'视频文件夹', downloadLocal:'下载到本地', cancel:'取消', enterText:'输入文本', position:'位置', fontSize:'字体大小', textColor:'文字颜色', add:'添加', textOverlays:'文字叠层', posTop:'顶部', posCenter:'中间', posBottom:'底部', success:'成功', error:'错误', exported:'已导出', exporting:'导出中', loading:'加载中', deleteConfirm:'确认删除？', undone:'已撤销', redone:'已重做' },
-    ja: { title:'動画エディタ', addMedia:'メディア追加', export:'エクスポート', split:'分割', delete:'削除', addText:'テキスト追加', properties:'プロパティ', clipName:'クリップ名', trimStart:'開始トリム', trimEnd:'終了トリム', speed:'速度', volume:'音量', timeline:'タイムライン', clips:'クリップ', emptyTimeline:'タイムラインが空です', addMediaHint:'メディアを追加して編集開始', videos:'動画', browse:'参照', noFiles:'ファイルなし', exportTitle:'動画をエクスポート', filename:'ファイル名', resolution:'解像度', saveLocation:'保存先', videoFolder:'動画フォルダ', downloadLocal:'ローカルにダウンロード', cancel:'キャンセル', enterText:'テキストを入力', position:'位置', fontSize:'文字サイズ', textColor:'文字色', add:'追加', textOverlays:'テキストオーバーレイ', posTop:'上', posCenter:'中央', posBottom:'下', success:'成功', error:'エラー', exported:'エクスポート完了', exporting:'エクスポート中', loading:'読込中', deleteConfirm:'削除しますか？', undone:'元に戻しました', redone:'やり直しました' },
-    it: { title:'Editor Video', addMedia:'Aggiungi media', export:'Esporta', split:'Dividi', delete:'Elimina', addText:'Aggiungi testo', properties:'Proprietà', clipName:'Nome clip', trimStart:'Inizio taglio', trimEnd:'Fine taglio', speed:'Velocità', volume:'Volume', timeline:'Timeline', clips:'Clip', emptyTimeline:'Timeline vuota', addMediaHint:'Aggiungi media per iniziare', videos:'Video', browse:'Sfoglia', noFiles:'Nessun file', exportTitle:'Esporta video', filename:'Nome file', resolution:'Risoluzione', saveLocation:'Posizione', videoFolder:'Cartella video', downloadLocal:'Scarica in locale', cancel:'Annulla', enterText:'Inserisci testo', position:'Posizione', fontSize:'Dimensione testo', textColor:'Colore testo', add:'Aggiungi', textOverlays:'Sovrapposizioni testo', posTop:'Alto', posCenter:'Centro', posBottom:'Basso', success:'Successo', error:'Errore', exported:'Esportato', exporting:'Esportazione', loading:'Caricamento', deleteConfirm:'Confermi eliminazione?', undone:'Annullato', redone:'Ripristinato' }
+    zh: { title:'视频编辑器', addMedia:'添加媒体', export:'导出', split:'分割', delete:'删除', addText:'添加文本', properties:'属性', clipName:'片段名称', trimStart:'起始裁剪', trimEnd:'结束裁剪', speed:'速度', volume:'音量', timeline:'时间线', clips:'片段', emptyTimeline:'时间线为空', addMediaHint:'添加媒体开始编辑', videos:'视频', browse:'浏览', noFiles:'没有文件', uploadDevice:'从设备上传', uploading:'上传中...', uploadSuccess:'视频已上传', uploadFail:'上传失败', uploadHint:'从您的电脑中选择视频', exportTitle:'导出视频', filename:'文件名', resolution:'分辨率', saveLocation:'保存位置', videoFolder:'视频文件夹', downloadLocal:'下载到本地', cancel:'取消', enterText:'输入文本', position:'位置', fontSize:'字体大小', textColor:'文字颜色', add:'添加', textOverlays:'文字叠层', posTop:'顶部', posCenter:'中间', posBottom:'底部', success:'成功', error:'错误', exported:'已导出', exporting:'导出中', loading:'加载中', deleteConfirm:'确认删除？', undone:'已撤销', redone:'已重做' },
+    ja: { title:'動画エディタ', addMedia:'メディア追加', export:'エクスポート', split:'分割', delete:'削除', addText:'テキスト追加', properties:'プロパティ', clipName:'クリップ名', trimStart:'開始トリム', trimEnd:'終了トリム', speed:'速度', volume:'音量', timeline:'タイムライン', clips:'クリップ', emptyTimeline:'タイムラインが空です', addMediaHint:'メディアを追加して編集開始', videos:'動画', browse:'参照', noFiles:'ファイルなし', uploadDevice:'デバイスからアップロード', uploading:'アップロード中...', uploadSuccess:'動画がアップロードされました', uploadFail:'アップロード失敗', uploadHint:'コンピュータから動画を選択', exportTitle:'動画をエクスポート', filename:'ファイル名', resolution:'解像度', saveLocation:'保存先', videoFolder:'動画フォルダ', downloadLocal:'ローカルにダウンロード', cancel:'キャンセル', enterText:'テキストを入力', position:'位置', fontSize:'文字サイズ', textColor:'文字色', add:'追加', textOverlays:'テキストオーバーレイ', posTop:'上', posCenter:'中央', posBottom:'下', success:'成功', error:'エラー', exported:'エクスポート完了', exporting:'エクスポート中', loading:'読込中', deleteConfirm:'削除しますか？', undone:'元に戻しました', redone:'やり直しました' },
+    it: { title:'Editor Video', addMedia:'Aggiungi media', export:'Esporta', split:'Dividi', delete:'Elimina', addText:'Aggiungi testo', properties:'Proprietà', clipName:'Nome clip', trimStart:'Inizio taglio', trimEnd:'Fine taglio', speed:'Velocità', volume:'Volume', timeline:'Timeline', clips:'Clip', emptyTimeline:'Timeline vuota', addMediaHint:'Aggiungi media per iniziare', videos:'Video', browse:'Sfoglia', noFiles:'Nessun file', uploadDevice:'Carica dal dispositivo', uploading:'Caricamento...', uploadSuccess:'Video caricato', uploadFail:'Caricamento fallito', uploadHint:'Seleziona un video dal tuo computer', exportTitle:'Esporta video', filename:'Nome file', resolution:'Risoluzione', saveLocation:'Posizione', videoFolder:'Cartella video', downloadLocal:'Scarica in locale', cancel:'Annulla', enterText:'Inserisci testo', position:'Posizione', fontSize:'Dimensione testo', textColor:'Colore testo', add:'Aggiungi', textOverlays:'Sovrapposizioni testo', posTop:'Alto', posCenter:'Centro', posBottom:'Basso', success:'Successo', error:'Errore', exported:'Esportato', exporting:'Esportazione', loading:'Caricamento', deleteConfirm:'Confermi eliminazione?', undone:'Annullato', redone:'Ripristinato' }
   };
 
     function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
@@ -147,6 +159,8 @@
     const showFilePicker = ref(false);
     const fpTab = ref('videos');
     const fpFiles = ref([]);
+    const uploading = ref(false);
+    const uploadFileInput = ref(null);
 
     // Export
     const showExportDialog = ref(false);
@@ -352,6 +366,66 @@
         v.onerror = () => { reject(new Error('Cannot load video')); v.remove(); };
         v.src = url;
       });
+    }
+
+    // ── Upload from device ──
+    function triggerUpload() {
+      if (uploadFileInput.value) uploadFileInput.value.click();
+    }
+
+    async function onUploadFileChange(e) {
+      const files = e.target.files;
+      if (!files || !files.length) return;
+      const videoExts = ['.mp4','.webm','.mkv','.avi','.mov','.ogv'];
+
+      uploading.value = true;
+      busy.value = true;
+      busyText.value = L('uploading');
+
+      try {
+        for (const file of files) {
+          const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+          if (!videoExts.includes(ext)) continue;
+
+          const formData = new FormData();
+          formData.append('files', file);
+
+          const r = await fetch('/api/video/upload', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + getToken() },
+            body: formData
+          });
+          if (!r.ok) throw new Error(L('uploadFail'));
+          const data = await r.json();
+          if (data.ok && data.files && data.files.length) {
+            const uploaded = data.files[0];
+            // Probe duration and add to timeline
+            const dur = await probeDuration(uploaded.url);
+            pushUndo();
+            clips.value.push({
+              id: genId(),
+              name: uploaded.name || file.name.replace(/\.[^.]+$/, ''),
+              url: uploaded.url,
+              originalDuration: dur,
+              trimStart: 0,
+              trimEnd: dur,
+              speed: 1,
+              volume: 100,
+              texts: []
+            });
+            activeClipIndex.value = clips.value.length - 1;
+            loadClipToPreview(clips.value.length - 1);
+          }
+        }
+        showFilePicker.value = false;
+        showStatus(L('uploadSuccess'), 'success');
+      } catch (err) {
+        showStatus(err.message || L('uploadFail'), 'error');
+      } finally {
+        uploading.value = false;
+        busy.value = false;
+        if (uploadFileInput.value) uploadFileInput.value.value = '';
+      }
     }
 
     // ── Preview ──
@@ -708,15 +782,16 @@
     });
 
     return {
-      previewVideo, previewContainer, rulerEl, trackEl,
+      previewVideo, previewContainer, rulerEl, trackEl, uploadFileInput,
       busy, busyText, statusMsg, statusType, exportProgress,
       isPlaying, currentTime, clips, activeClipIndex, activeClip,
-      canUndo, canRedo, showFilePicker, fpTab, fpFiles,
+      canUndo, canRedo, showFilePicker, fpTab, fpFiles, uploading,
       showExportDialog, exportFilename, exportResolution, exportLocation,
       showTextDialog, newTextOverlay,
       totalDuration, playheadPercent, rulerMarks, activeTextOverlays,
       L, formatTime, formatSize, clipDuration, clipWidth,
       openFilePicker, loadVideoFiles, loadFsBrowse, addClipFromFile,
+      triggerUpload, onUploadFileChange,
       selectClip, togglePlay, skipToStart, skipToEnd, seekOnRuler,
       onPreviewMeta, onPreviewTime, onPreviewEnded, onTrimChange,
       splitClip, deleteClip, addTextOverlay, confirmAddText, removeText,

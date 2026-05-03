@@ -1,0 +1,453 @@
+.solw-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #1a1033 0%, #0d0a18 100%);
+  color: #e1e4ea;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  overflow: hidden;
+}
+
+/* Center screens (loading, setup, unlock, show-key) */
+.solw-center, .solw-setup, .solw-unlock, .solw-phrase-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 28px;
+}
+
+.solw-logo {
+  font-size: 52px;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 0 18px rgba(153,69,255,.5));
+  animation: solwPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes solwPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.solw-setup h2, .solw-unlock h3, .solw-phrase-screen h3 {
+  color: #fff;
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.solw-hint {
+  color: #8b8fa3;
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+
+.solw-setup-btns {
+  width: 100%;
+  max-width: 280px;
+  margin-top: 20px;
+}
+
+/* Secret key display (backup screen) */
+.solw-key-box {
+  background: rgba(153,69,255,.08);
+  border: 1px solid rgba(153,69,255,.25);
+  border-radius: 10px;
+  padding: 14px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  word-break: break-all;
+  color: #c5cde8;
+  margin-bottom: 10px;
+  width: 100%;
+  user-select: all;
+}
+
+.solw-key-pubinfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 12px;
+  word-break: break-all;
+  text-align: center;
+}
+
+/* MAIN SCREEN */
+.solw-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header */
+.solw-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(255,255,255,.04);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.solw-header-left { flex: 0 0 auto; }
+.solw-header-center { flex: 1; text-align: center; }
+.solw-header-right { flex: 0 0 auto; }
+
+.solw-network-badge {
+  font-size: 11px;
+  background: rgba(153,69,255,.18);
+  color: #c4a0ff;
+  padding: 3px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.solw-account-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e1e4ea;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Balance card */
+.solw-balance-card {
+  text-align: center;
+  padding: 20px 14px 16px;
+  background: linear-gradient(135deg, rgba(153,69,255,.12) 0%, rgba(20,241,149,.06) 100%);
+}
+
+.solw-addr {
+  font-size: 13px;
+  color: #c4a0ff;
+  cursor: pointer;
+  margin-bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity .2s;
+}
+
+.solw-addr:hover { opacity: .7; }
+
+.solw-copy-icon {
+  font-size: 12px;
+  opacity: .6;
+}
+
+.solw-balance {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.solw-balance.solw-loading { opacity: .4; }
+
+.solw-symbol {
+  font-size: 14px;
+  font-weight: 400;
+  color: #8b8fa3;
+  margin-left: 4px;
+}
+
+.solw-actions-row {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.solw-actions-row .el-button.is-circle {
+  width: 40px;
+  height: 40px;
+}
+
+/* Tabs */
+.solw-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.02);
+}
+
+.solw-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 16px;
+  cursor: pointer;
+  opacity: .4;
+  transition: all .2s;
+  border-bottom: 2px solid transparent;
+}
+
+.solw-tab:hover { opacity: .7; }
+
+.solw-tab.active {
+  opacity: 1;
+  border-bottom-color: #9945FF;
+}
+
+/* Content area */
+.solw-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+}
+
+.solw-empty {
+  text-align: center;
+  color: #5a5e72;
+  padding: 30px 0;
+  font-size: 13px;
+}
+
+/* Send form */
+.solw-send-form h4, .solw-receive h4 {
+  color: #fff;
+  margin: 0 0 14px;
+  font-size: 15px;
+}
+
+/* Receive */
+.solw-receive {
+  text-align: center;
+}
+
+.solw-receive-addr {
+  background: rgba(153,69,255,.1);
+  border: 1px solid rgba(153,69,255,.2);
+  border-radius: 10px;
+  padding: 14px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  word-break: break-all;
+  color: #c5cde8;
+  margin-top: 10px;
+  user-select: all;
+}
+
+/* Overview */
+.solw-overview-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.solw-overview-item:hover {
+  background: rgba(255,255,255,.04);
+}
+
+.solw-overview-label {
+  flex: 1;
+  font-size: 13px;
+  color: #8b8fa3;
+}
+
+.solw-overview-val {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e1e4ea;
+}
+
+.solw-mono {
+  font-family: 'Courier New', monospace;
+}
+
+/* TX History */
+.solw-tx-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .2s;
+  margin-bottom: 4px;
+}
+
+.solw-tx-item:hover {
+  background: rgba(255,255,255,.04);
+}
+
+.solw-tx-dir span {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.solw-ok { color: #14F195; }
+.solw-err { color: #f56c6c; }
+
+.solw-tx-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.solw-tx-sig {
+  font-size: 12px;
+  color: #aab0c6;
+  font-family: 'Courier New', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.solw-tx-time {
+  font-size: 11px;
+  color: #5a5e72;
+  margin-top: 2px;
+}
+
+.solw-tx-slot {
+  font-size: 11px;
+  color: #5a5e72;
+  white-space: nowrap;
+}
+
+/* Token items */
+.solw-token-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .2s;
+  margin-bottom: 4px;
+}
+
+.solw-token-item:hover {
+  background: rgba(255,255,255,.04);
+}
+
+.solw-token-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(153,69,255,.1);
+  border-radius: 8px;
+}
+
+.solw-token-info { flex: 1; min-width: 0; }
+
+.solw-token-mint {
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+  color: #c5cde8;
+}
+
+.solw-token-dec {
+  font-size: 11px;
+  color: #5a5e72;
+}
+
+.solw-token-amount {
+  font-size: 13px;
+  font-weight: 600;
+  color: #14F195;
+  white-space: nowrap;
+}
+
+/* Settings */
+.solw-settings {
+  padding-top: 4px;
+}
+
+.solw-setting-item {
+  padding: 12px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .2s;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.solw-setting-item:hover {
+  background: rgba(255,255,255,.05);
+}
+
+.solw-setting-item.solw-danger {
+  color: #f56c6c;
+}
+
+.solw-setting-item.solw-danger:hover {
+  background: rgba(245,108,108,.08);
+}
+
+.solw-setting-panel {
+  padding: 10px 14px 14px;
+  margin-bottom: 4px;
+}
+
+.solw-key-display {
+  background: rgba(153,69,255,.06);
+  border: 1px solid rgba(153,69,255,.15);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 4px 0 8px;
+  word-break: break-all;
+}
+
+.solw-key-display code {
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  color: #c5cde8;
+}
+
+/* Scrollbar */
+.solw-content::-webkit-scrollbar { width: 4px; }
+.solw-content::-webkit-scrollbar-track { background: transparent; }
+.solw-content::-webkit-scrollbar-thumb { background: rgba(153,69,255,.25); border-radius: 4px; }
+
+/* Dialog overrides */
+.solw-root .el-dialog {
+  background: #1a1033;
+  border: 1px solid rgba(255,255,255,.1);
+}
+
+.solw-root .el-dialog__header .el-dialog__title { color: #e1e4ea; }
+.solw-root .el-dialog__body { color: #c5cde8; }
+
+/* Input dark theme fixes */
+.solw-root .el-input__inner,
+.solw-root .el-textarea__inner {
+  background: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.1);
+  color: #e1e4ea;
+}
+
+.solw-root .el-input__inner:focus,
+.solw-root .el-textarea__inner:focus {
+  border-color: #9945FF;
+}
+
+.solw-root .el-input-group__append {
+  background: rgba(153,69,255,.1);
+  border-color: rgba(255,255,255,.1);
+  color: #c4a0ff;
+}
+
+/* Alert dark fixes */
+.solw-root .el-alert--error {
+  background: rgba(245,108,108,.1);
+  border-color: rgba(245,108,108,.2);
+}
+
+.solw-root .el-alert--warning {
+  background: rgba(230,162,60,.1);
+  border-color: rgba(230,162,60,.2);
+}
+
+.solw-root .el-alert--success {
+  background: rgba(20,241,149,.1);
+  border-color: rgba(20,241,149,.2);
+}

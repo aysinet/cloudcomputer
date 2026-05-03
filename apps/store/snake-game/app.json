@@ -2,7 +2,7 @@
   "id": "snake-game",
   "name": "Snake",
   "icon": "🐍",
-  "color": "linear-gradient(135deg,#27ae60,#2ecc71)",
+  "color": "linear-gradient(135deg,#1a5e2a,#145a32)",
   "type": "internal",
   "size": {
     "w": 480,

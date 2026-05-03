@@ -1,0 +1,56 @@
+{
+  "id": "requestly",
+  "name": "Requestly",
+  "icon": "🚀",
+  "color": "linear-gradient(135deg,#6366f1,#8b5cf6)",
+  "type": "internal",
+  "size": {
+    "w": 1100,
+    "h": 700
+  },
+  "global": false,
+  "description": "Postman benzeri API test aracı — istek gönder, koleksiyonlar, Postman import",
+  "category": "development",
+  "lang": {
+    "tr": {
+      "name": "Requestly",
+      "description": "Postman benzeri API test aracı — istek gönder, koleksiyonlar, Postman import"
+    },
+    "en": {
+      "name": "Requestly",
+      "description": "Postman-like API testing tool — send requests, collections, Postman import"
+    },
+    "de": {
+      "name": "Requestly",
+      "description": "Postman-ähnliches API-Testtool — Anfragen senden, Sammlungen, Postman-Import"
+    },
+    "fr": {
+      "name": "Requestly",
+      "description": "Outil de test API type Postman — envoyer des requêtes, collections, import Postman"
+    },
+    "es": {
+      "name": "Requestly",
+      "description": "Herramienta de pruebas API tipo Postman — enviar solicitudes, colecciones, importar Postman"
+    },
+    "ru": {
+      "name": "Requestly",
+      "description": "Инструмент тестирования API а-ля Postman — отправка запросов, коллекции, импорт Postman"
+    },
+    "zh": {
+      "name": "Requestly",
+      "description": "类Postman API测试工具 — 发送请求、集合管理、Postman导入"
+    },
+    "ja": {
+      "name": "Requestly",
+      "description": "Postman風APIテストツール — リクエスト送信、コレクション、Postmanインポート"
+    },
+    "it": {
+      "name": "Requestly",
+      "description": "Strumento di test API tipo Postman — invio richieste, collezioni, importazione Postman"
+    },
+    "ar": {
+      "name": "Requestly",
+      "description": "أداة اختبار API مثل Postman — إرسال الطلبات، المجموعات، استيراد Postman"
+    }
+  }
+}

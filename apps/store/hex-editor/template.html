@@ -70,14 +70,14 @@
 
   <!-- Hex grid -->
   <div v-else class="hex-grid-container" ref="gridContainer" @scroll="onScroll">
+    <div class="hex-row hex-header-row">
+      <span class="hex-offset-cell hex-header-cell">{{t('offset')}}</span>
+      <span class="hex-byte-cell hex-header-cell" v-for="c in columns" :key="'h'+c">{{hexByte(c-1)}}</span>
+      <span class="hex-ascii-sep"></span>
+      <span class="hex-ascii-header hex-header-cell">ASCII</span>
+    </div>
     <div class="hex-grid-spacer" :style="{height: totalHeight + 'px'}"></div>
     <div class="hex-grid" :style="{transform: 'translateY(' + offsetY + 'px)'}">
-      <div class="hex-row hex-header-row">
-        <span class="hex-offset-cell hex-header-cell">{{t('offset')}}</span>
-        <span class="hex-byte-cell hex-header-cell" v-for="c in columns" :key="'h'+c">{{hexByte(c-1)}}</span>
-        <span class="hex-ascii-sep"></span>
-        <span class="hex-ascii-header hex-header-cell">ASCII</span>
-      </div>
       <div class="hex-row" v-for="(row, ri) in visibleRows" :key="row.offset"
            :class="{'hex-row-alt': (startRow + ri) % 2 === 1}">
         <span class="hex-offset-cell">{{hexOffset(row.offset)}}</span>

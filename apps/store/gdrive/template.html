@@ -1,0 +1,175 @@
+<div class="gdrive-app">
+  <!-- Settings Dialog -->
+  <el-dialog v-model="showSettings" :title="t('settings')" width="480px" append-to-body>
+    <div class="gd-settings">
+      <div class="gd-settings-section">
+        <label class="gd-label">{{ t('clientId') }}</label>
+        <el-input v-model="settingsForm.clientId" :placeholder="t('clientIdPlaceholder')" size="small" />
+      </div>
+      <div class="gd-settings-section">
+        <label class="gd-label">{{ t('clientSecret') }}</label>
+        <el-input v-model="settingsForm.clientSecret" :placeholder="t('clientSecretPlaceholder')" size="small" type="password" show-password />
+      </div>
+      <div class="gd-settings-section">
+        <label class="gd-label">{{ t('redirectUri') }}</label>
+        <el-input v-model="settingsForm.redirectUri" size="small" :placeholder="'http://localhost:8080/api/gdrive/oauth-callback'" />
+      </div>
+      <div class="gd-settings-help">{{ t('settingsHelp') }}</div>
+      <div class="gd-settings-actions">
+        <el-button size="small" @click="showSettings = false">{{ t('cancel') }}</el-button>
+        <el-button type="primary" size="small" @click="saveSettings" :loading="settingsSaving">{{ t('save') }}</el-button>
+      </div>
+    </div>
+  </el-dialog>
+
+  <!-- Rename Dialog -->
+  <el-dialog v-model="showRename" :title="t('rename')" width="380px" append-to-body>
+    <el-input v-model="renameValue" size="small" @keyup.enter="doRename" />
+    <template #footer>
+      <el-button size="small" @click="showRename = false">{{ t('cancel') }}</el-button>
+      <el-button type="primary" size="small" @click="doRename">{{ t('ok') }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- Not Connected View -->
+  <div v-if="!isConnected" class="gd-connect-screen">
+    <div class="gd-connect-card">
+      <div class="gd-connect-icon">☁️</div>
+      <h2>Google Drive</h2>
+      <p v-if="!hasConfig" class="gd-connect-desc">{{ t('configRequired') }}</p>
+      <p v-else class="gd-connect-desc">{{ t('authRequired') }}</p>
+      <div class="gd-connect-actions">
+        <el-button type="primary" @click="showSettings = true" v-if="!hasConfig">⚙️ {{ t('settings') }}</el-button>
+        <template v-else>
+          <el-button type="primary" @click="startAuth" :loading="authLoading">🔑 {{ t('connectDrive') }}</el-button>
+          <el-button @click="showSettings = true">⚙️ {{ t('settings') }}</el-button>
+        </template>
+      </div>
+      <!-- Auth Code Input -->
+      <div v-if="showAuthInput" class="gd-auth-input">
+        <p>{{ t('pasteCode') }}</p>
+        <el-input v-model="authCode" :placeholder="t('authCodePlaceholder')" size="small" />
+        <el-button type="success" size="small" @click="submitAuthCode" :loading="authLoading" style="margin-top:8px">{{ t('authorize') }}</el-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connected View -->
+  <template v-else>
+    <!-- Toolbar -->
+    <div class="gd-toolbar">
+      <div class="gd-toolbar-left">
+        <el-button size="small" text @click="goBack" :disabled="!canGoBack" title="←">←</el-button>
+        <el-button size="small" text @click="goForward" :disabled="!canGoForward" title="→">→</el-button>
+        <el-button size="small" text @click="goUp" :disabled="!currentFolderId" :title="t('parentDir')">⬆️</el-button>
+        <el-button size="small" text @click="loadFiles()" :title="t('refresh')">🔄</el-button>
+      </div>
+      <div class="gd-breadcrumb">
+        <span class="gd-bread-item" @click="navigateTo('root')">🏠 {{ t('myDrive') }}</span>
+        <template v-for="bc in breadcrumbs" :key="bc.id">
+          <span class="gd-bread-sep">›</span>
+          <span class="gd-bread-item" @click="navigateTo(bc.id)">{{ bc.name }}</span>
+        </template>
+      </div>
+      <div class="gd-toolbar-right">
+        <el-input v-model="searchQuery" :placeholder="t('search')" size="small" class="gd-search" clearable @keyup.enter="doSearch" @clear="clearSearch">
+          <template #prefix>🔍</template>
+        </el-input>
+        <el-button size="small" text @click="viewMode = viewMode === 'grid' ? 'list' : 'grid'" :title="viewMode === 'grid' ? t('listView') : t('gridView')">
+          {{ viewMode === 'grid' ? '☰' : '▦' }}
+        </el-button>
+        <el-button size="small" text @click="showSettings = true" title="⚙️">⚙️</el-button>
+      </div>
+    </div>
+
+    <div class="gd-body">
+      <!-- Sidebar -->
+      <div class="gd-sidebar">
+        <div class="gd-side-item" :class="{ active: currentView === 'myDrive' }" @click="switchView('myDrive')">📁 {{ t('myDrive') }}</div>
+        <div class="gd-side-item" :class="{ active: currentView === 'shared' }" @click="switchView('shared')">👥 {{ t('sharedWithMe') }}</div>
+        <div class="gd-side-item" :class="{ active: currentView === 'starred' }" @click="switchView('starred')">⭐ {{ t('starred') }}</div>
+        <div class="gd-side-item" :class="{ active: currentView === 'trash' }" @click="switchView('trash')">🗑️ {{ t('trash') }}</div>
+        <div class="gd-side-divider"></div>
+        <div class="gd-side-item gd-side-action" @click="triggerUpload">⬆️ {{ t('upload') }}</div>
+        <div class="gd-side-item gd-side-action" @click="createFolder">📁+ {{ t('newFolder') }}</div>
+        <div class="gd-side-divider"></div>
+        <div class="gd-quota" v-if="quota.limit">
+          <div class="gd-quota-label">{{ t('storage') }}</div>
+          <div class="gd-quota-bar">
+            <div class="gd-quota-fill" :style="{ width: quotaPercent + '%' }"></div>
+          </div>
+          <div class="gd-quota-text">{{ formatSize(quota.usage) }} / {{ formatSize(quota.limit) }}</div>
+        </div>
+        <div class="gd-side-divider"></div>
+        <div class="gd-side-item gd-side-disconnect" @click="disconnect">🔌 {{ t('disconnect') }}</div>
+      </div>
+
+      <!-- File Area -->
+      <div class="gd-files-area" @dragover.prevent="onDragOver" @dragleave="onDragLeave" @drop.prevent="onDrop" :class="{ 'drag-over': isDragOver }">
+        <div v-if="isDragOver" class="gd-drop-overlay">
+          <div class="gd-drop-text">📤 {{ t('dropFiles') }}</div>
+        </div>
+
+        <div v-if="loading" class="gd-loading" v-loading="true" element-loading-background="transparent"></div>
+
+        <div v-else-if="!files.length" class="gd-empty">
+          <div class="gd-empty-icon">📂</div>
+          <p>{{ isSearching ? t('noResults') : t('emptyFolder') }}</p>
+        </div>
+
+        <!-- Grid View -->
+        <div v-else-if="viewMode === 'grid'" class="gd-grid">
+          <div v-for="f in files" :key="f.id"
+            class="gd-grid-item"
+            :class="{ selected: isSelected(f.id) }"
+            @click.exact="selectFile(f)"
+            @click.ctrl="toggleSelect(f)"
+            @dblclick="openItem(f)"
+            @contextmenu.prevent="onContextMenu($event, f)">
+            <div class="gd-grid-icon">{{ getFileIcon(f) }}</div>
+            <div class="gd-grid-name" :title="f.name">{{ f.name }}</div>
+          </div>
+        </div>
+
+        <!-- List View -->
+        <div v-else class="gd-list">
+          <div class="gd-list-header">
+            <span class="gd-col-name" @click="sortBy('name')">{{ t('name') }} {{ sortField === 'name' ? (sortAsc ? '▲' : '▼') : '' }}</span>
+            <span class="gd-col-owner">{{ t('owner') }}</span>
+            <span class="gd-col-modified" @click="sortBy('modifiedTime')">{{ t('modified') }} {{ sortField === 'modifiedTime' ? (sortAsc ? '▲' : '▼') : '' }}</span>
+            <span class="gd-col-size" @click="sortBy('size')">{{ t('size') }} {{ sortField === 'size' ? (sortAsc ? '▲' : '▼') : '' }}</span>
+          </div>
+          <div v-for="f in files" :key="f.id"
+            class="gd-list-row"
+            :class="{ selected: isSelected(f.id) }"
+            @click.exact="selectFile(f)"
+            @click.ctrl="toggleSelect(f)"
+            @dblclick="openItem(f)"
+            @contextmenu.prevent="onContextMenu($event, f)">
+            <span class="gd-col-name"><span class="gd-file-icon">{{ getFileIcon(f) }}</span> {{ f.name }}</span>
+            <span class="gd-col-owner">{{ f.owners && f.owners[0] ? f.owners[0].displayName : '—' }}</span>
+            <span class="gd-col-modified">{{ f.modifiedTime ? new Date(f.modifiedTime).toLocaleDateString() : '' }}</span>
+            <span class="gd-col-size">{{ f.mimeType === 'application/vnd.google-apps.folder' ? '' : formatSize(Number(f.size) || 0) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div v-if="ctxMenu.show" class="gd-ctx-menu" :style="{ left: ctxMenu.x + 'px', top: ctxMenu.y + 'px' }">
+      <div class="gd-ctx-item" @click="downloadCtx">⬇️ {{ t('download') }}</div>
+      <div class="gd-ctx-item" @click="renameCtx">✏️ {{ t('rename') }}</div>
+      <div class="gd-ctx-item" @click="copyLinkCtx">🔗 {{ t('copyLink') }}</div>
+      <div class="gd-ctx-item" @click="starCtx">⭐ {{ t('star') }}</div>
+      <div class="gd-ctx-divider"></div>
+      <div class="gd-ctx-item gd-ctx-danger" @click="deleteCtx">🗑️ {{ t('delete') }}</div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="gd-statusbar">
+      <span v-if="selectedFiles.length">{{ selectedFiles.length }} {{ t('selected') }}</span>
+      <span v-else>{{ files.length }} {{ t('items') }}</span>
+      <span v-if="uploadProgress > 0" class="gd-upload-status">⬆️ {{ uploadProgress }}%</span>
+    </div>
+  </template>
+</div>

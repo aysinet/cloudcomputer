@@ -3,6 +3,7 @@
   <div class="ved-toolbar">
     <div class="ved-toolbar-group">
       <el-button size="small" @click="openFilePicker">📂 {{L('addMedia')}}</el-button>
+      <el-button size="small" @click="triggerUpload" :loading="uploading" type="warning">📤 {{L('uploadDevice')}}</el-button>
       <el-button size="small" @click="exportVideo" :disabled="!clips.length || busy" type="success">💾 {{L('export')}}</el-button>
     </div>
     <div class="ved-toolbar-group">
@@ -134,7 +135,9 @@
       <div class="ved-fp-tabs">
         <el-button :type="fpTab==='videos'?'primary':''" size="small" @click="fpTab='videos'; loadVideoFiles()">🎬 {{L('videos')}}</el-button>
         <el-button :type="fpTab==='browse'?'primary':''" size="small" @click="fpTab='browse'; loadFsBrowse()">📁 {{L('browse')}}</el-button>
+        <el-button size="small" type="success" @click="triggerUpload" :loading="uploading">📤 {{L('uploadDevice')}}</el-button>
       </div>
+      <div class="ved-upload-hint">{{L('uploadHint')}}</div>
       <div class="ved-fp-list">
         <div v-for="f in fpFiles" :key="f.url" class="ved-fp-item" @click="addClipFromFile(f)">
           <span class="ved-fp-icon">{{f.icon||'🎬'}}</span>
@@ -145,6 +148,9 @@
       </div>
     </div>
   </el-dialog>
+
+  <!-- Hidden file input for upload -->
+  <input ref="uploadFileInput" type="file" accept="video/*" multiple style="display:none" @change="onUploadFileChange" />
 
   <!-- EXPORT DIALOG -->
   <el-dialog v-model="showExportDialog" :title="L('exportTitle')" width="420px" append-to-body>

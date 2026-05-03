@@ -1,0 +1,134 @@
+<div class="cg-root">
+  <!-- SIDEBAR -->
+  <div class="cg-sidebar" :class="{ collapsed: sidebarCollapsed }">
+    <div class="cg-sidebar-header">
+      <button class="cg-new-chat-btn" @click="newConversation" :title="L('newChat')">
+        <span class="cg-icon">＋</span>
+        <span v-if="!sidebarCollapsed" class="cg-new-label">{{ L('newChat') }}</span>
+      </button>
+      <button class="cg-collapse-btn" @click="sidebarCollapsed = !sidebarCollapsed" :title="sidebarCollapsed ? '▶' : '◀'">
+        {{ sidebarCollapsed ? '▶' : '◀' }}
+      </button>
+    </div>
+    <div v-if="!sidebarCollapsed" class="cg-conv-list">
+      <div v-for="c in sortedConversations" :key="c.id"
+           class="cg-conv-item" :class="{ active: currentConvId === c.id }"
+           @click="selectConversation(c.id)">
+        <div class="cg-conv-title">{{ c.title || L('untitled') }}</div>
+        <div class="cg-conv-meta">
+          <span class="cg-conv-date">{{ formatDate(c.updatedAt) }}</span>
+          <button class="cg-conv-del" @click.stop="deleteConversation(c.id)" :title="L('delete')">✕</button>
+        </div>
+      </div>
+      <div v-if="!conversations.length" class="cg-no-conv">{{ L('noConversations') }}</div>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="cg-main">
+    <!-- HEADER -->
+    <div class="cg-header">
+      <div class="cg-header-left">
+        <span class="cg-logo">💬</span>
+        <span class="cg-title">ChatGPT</span>
+      </div>
+      <div class="cg-header-center">
+        <select v-model="selectedProvider" class="cg-provider-select" @change="onProviderChange">
+          <option value="" disabled>{{ L('selectProvider') }}</option>
+          <option v-for="p in providers" :key="p.id" :value="p.id">{{ p.icon }} {{ p.name }} ({{ p.model }})</option>
+        </select>
+      </div>
+      <div class="cg-header-right">
+        <button class="cg-settings-btn" :class="{ active: showSettings }" @click="showSettings = !showSettings" :title="L('settings')">⚙️</button>
+      </div>
+    </div>
+
+    <!-- NO PROVIDER WARNING -->
+    <div v-if="!providers.length && !showSettings" class="cg-no-provider">
+      <div class="cg-np-icon">🔑</div>
+      <div class="cg-np-title">{{ L('noProviderTitle') }}</div>
+      <div class="cg-np-desc">{{ L('noProviderDesc') }}</div>
+      <div class="cg-np-steps">
+        <div class="cg-np-step">1. {{ L('step1') }}</div>
+        <div class="cg-np-step">2. {{ L('step2') }}</div>
+        <div class="cg-np-step">3. {{ L('step3') }}</div>
+      </div>
+      <button class="cg-np-btn" @click="showSettings = true">⚙️ {{ L('openSettings') }}</button>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div v-if="showSettings" class="cg-settings-panel">
+      <h3>{{ L('settings') }}</h3>
+      <div class="cg-set-section">
+        <div class="cg-set-label">{{ L('systemPrompt') }}</div>
+        <div class="cg-set-help">{{ L('systemPromptHelp') }}</div>
+        <textarea v-model="systemPrompt" class="cg-set-textarea" rows="3" :placeholder="L('systemPromptPlaceholder')"></textarea>
+      </div>
+      <div class="cg-set-section">
+        <div class="cg-set-label">{{ L('quickApiSetup') }}</div>
+        <div class="cg-set-help">{{ L('quickApiSetupHelp') }}</div>
+        <div class="cg-quick-providers">
+          <div v-for="qp in quickProviders" :key="qp.id" class="cg-qp-row">
+            <span class="cg-qp-icon">{{ qp.icon }}</span>
+            <span class="cg-qp-name">{{ qp.name }}</span>
+            <input :type="qp.showKey ? 'text' : 'password'" v-model="qp.apiKey" :placeholder="L('apiKeyPlaceholder')" class="cg-qp-input" />
+            <button class="cg-qp-eye" @click="qp.showKey = !qp.showKey">{{ qp.showKey ? '🙈' : '👁' }}</button>
+          </div>
+        </div>
+        <button class="cg-save-btn" @click="saveQuickProviders" :disabled="savingProviders">
+          {{ savingProviders ? L('saving') : L('saveAndActivate') }}
+        </button>
+        <div v-if="saveMsg" class="cg-save-msg" :class="saveMsgType">{{ saveMsg }}</div>
+      </div>
+      <button class="cg-close-settings" @click="showSettings = false">{{ L('close') }}</button>
+    </div>
+
+    <!-- CHAT AREA -->
+    <div v-show="!showSettings && providers.length" class="cg-chat-area">
+      <div class="cg-messages" ref="messagesRef">
+        <!-- Empty state -->
+        <div v-if="!currentMessages.length" class="cg-empty">
+          <div class="cg-empty-icon">💬</div>
+          <div class="cg-empty-title">{{ L('emptyTitle') }}</div>
+          <div class="cg-empty-sub">{{ L('emptySub') }}</div>
+          <div class="cg-suggestions">
+            <button v-for="s in suggestions" :key="s" class="cg-sug" @click="prompt = s; sendMessage()">{{ s }}</button>
+          </div>
+        </div>
+        <!-- Messages -->
+        <div v-for="(m, i) in currentMessages" :key="i" class="cg-msg" :class="'cg-msg-' + m.role">
+          <div class="cg-msg-avatar">{{ m.role === 'user' ? '🧑' : '✨' }}</div>
+          <div class="cg-msg-body">
+            <div class="cg-msg-role">{{ m.role === 'user' ? L('you') : 'ChatGPT' }}</div>
+            <div v-if="m.role === 'user'" class="cg-msg-content cg-msg-user-text">{{ m.content }}</div>
+            <div v-else class="cg-msg-content cg-msg-ai-text" v-html="renderMarkdown(m.content || (m._streaming ? L('thinking') : ''))"></div>
+            <div class="cg-msg-actions" v-if="m.role === 'assistant' && m.content && !m._streaming">
+              <button class="cg-msg-copy" @click="copyText(m.content)" :title="L('copy')">📋</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INPUT -->
+      <div class="cg-input-area">
+        <div class="cg-input-row">
+          <textarea
+            v-model="prompt"
+            :placeholder="L('promptPlaceholder')"
+            class="cg-prompt-input"
+            rows="1"
+            @keydown.enter.exact.prevent="sendMessage"
+            @keydown.shift.enter.exact="void 0"
+            @input="autoResize"
+            ref="promptRef"
+            :disabled="busy"></textarea>
+          <button class="cg-send-btn" @click="sendMessage" :disabled="busy || !prompt.trim() || !selectedProvider">
+            {{ busy ? '⏳' : '➤' }}
+          </button>
+          <button v-if="busy" class="cg-stop-btn" @click="abortStream" :title="L('stop')">⏹</button>
+        </div>
+        <div class="cg-input-hint">Enter {{ L('toSend') }} · Shift+Enter {{ L('newLine') }}</div>
+      </div>
+    </div>
+  </div>
+</div>

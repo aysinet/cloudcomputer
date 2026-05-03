@@ -374,6 +374,12 @@
   padding: 30px;
   color: #666;
 }
+.ved-upload-hint {
+  font-size: 11px;
+  color: #666;
+  padding: 0 0 6px;
+  text-align: center;
+}
 
 /* ── Element Plus dark overrides ── */
 .ved-app .el-dialog {

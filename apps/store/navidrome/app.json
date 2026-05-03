@@ -4,6 +4,7 @@
   "icon": "🎵",
   "color": "linear-gradient(135deg,#0a1628,#1a237e)",
   "type": "internal",
+  "proxyMode": "pathprefix",
   "size": {
     "w": 1000,
     "h": 700

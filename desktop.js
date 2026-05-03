@@ -16,6 +16,7 @@ const { execFile } = require('child_process');
 const nodemailer = require('nodemailer');
 const Pop3Command = require('node-pop3');
 const { simpleParser } = require('mailparser');
+const QRCode = require('qrcode');
 
 const app = express();
 const server = http.createServer(app);
@@ -978,6 +979,140 @@ app.post('/api/fs/rename', authMiddleware, (req, res) => {
     fs.renameSync(src, dest);
     res.json({ ok: true, path: path.relative(root, dest).replace(/\\/g, '/') });
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Save Wikipedia page as PDF
+app.post('/api/wikipedia/save-pdf', authMiddleware, async (req, res) => {
+  const { url, title, savePath } = req.body;
+  if (!url || !savePath) return res.status(400).json({ error: 'url and savePath required' });
+  try {
+    const parsed = new URL(url);
+    if (!parsed.hostname.endsWith('wikipedia.org')) {
+      return res.status(400).json({ error: 'Only wikipedia.org URLs are allowed' });
+    }
+  } catch { return res.status(400).json({ error: 'Invalid URL' }); }
+
+  try {
+    const PDFDocument = require('pdfkit');
+    const https = require('https');
+
+    // Extract language and article title from URL
+    const parsed = new URL(url);
+    const lang = parsed.hostname.split('.')[0];
+    const pathParts = parsed.pathname.split('/wiki/');
+    const articleName = pathParts.length > 1 ? decodeURIComponent(pathParts[1]) : '';
+
+    // Use Wikipedia REST API to get clean article content
+    const apiUrl = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(articleName)}`;
+
+    const fetchWikiData = (fetchUrl) => new Promise((resolve, reject) => {
+      const lib = fetchUrl.startsWith('https') ? require('https') : require('http');
+      lib.get(fetchUrl, { headers: { 'User-Agent': 'CloudComputer/1.0' } }, (resp) => {
+        let data = '';
+        resp.on('data', chunk => data += chunk);
+        resp.on('end', () => {
+          try { resolve(JSON.parse(data)); } catch (e) { reject(new Error('Failed to parse API response')); }
+        });
+      }).on('error', reject);
+    });
+
+    // Try summary first, then fall back to extract
+    let summary;
+    try {
+      summary = await fetchWikiData(apiUrl);
+    } catch (e) {
+      summary = { title: articleName || title || 'Wikipedia', extract: '', description: '' };
+    }
+
+    // Also get extended extract
+    const extractUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(articleName)}&prop=extracts&explaintext=1&format=json`;
+    let fullText = '';
+    try {
+      const extractData = await fetchWikiData(extractUrl);
+      const pages = extractData.query && extractData.query.pages;
+      if (pages) {
+        const pageId = Object.keys(pages)[0];
+        fullText = pages[pageId].extract || '';
+      }
+    } catch { fullText = summary.extract || ''; }
+
+    if (!fullText) fullText = summary.extract || 'Content could not be retrieved.';
+
+    // Generate PDF with pdfkit
+    const doc = new PDFDocument({ size: 'A4', margin: 50, bufferPages: true });
+    const chunks = [];
+    doc.on('data', chunk => chunks.push(chunk));
+
+    const pdfReady = new Promise((resolve, reject) => {
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+    });
+
+    // Title
+    doc.fontSize(22).font('Helvetica-Bold').text(summary.title || title || 'Wikipedia Article', { align: 'center' });
+    doc.moveDown(0.5);
+
+    // Description
+    if (summary.description) {
+      doc.fontSize(11).font('Helvetica-Oblique').fillColor('#666666').text(summary.description, { align: 'center' });
+      doc.fillColor('#000000');
+      doc.moveDown(0.5);
+    }
+
+    // URL
+    doc.fontSize(9).font('Helvetica').fillColor('#3366cc').text(url, { align: 'center', link: url });
+    doc.fillColor('#000000');
+    doc.moveDown(0.3);
+
+    // Separator
+    doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#cccccc').stroke();
+    doc.moveDown(0.8);
+
+    // Body text - split into paragraphs by sections
+    const sections = fullText.split(/\n{2,}/);
+    for (const section of sections) {
+      const lines = section.split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        // Section headers (lines that are short and followed by content, or == markers)
+        if (trimmed.startsWith('==') && trimmed.endsWith('==')) {
+          const heading = trimmed.replace(/^=+\s*/, '').replace(/\s*=+$/, '');
+          doc.moveDown(0.5);
+          doc.fontSize(14).font('Helvetica-Bold').text(heading);
+          doc.moveDown(0.3);
+        } else if (trimmed.length < 80 && !trimmed.includes('. ') && lines.indexOf(line) === 0 && lines.length > 1) {
+          doc.moveDown(0.4);
+          doc.fontSize(13).font('Helvetica-Bold').text(trimmed);
+          doc.moveDown(0.2);
+        } else {
+          doc.fontSize(10).font('Helvetica').text(trimmed, { align: 'justify', lineGap: 2 });
+        }
+      }
+      doc.moveDown(0.3);
+    }
+
+    // Footer
+    doc.moveDown(1);
+    doc.fontSize(8).font('Helvetica').fillColor('#999999').text('Generated from Wikipedia — ' + new Date().toLocaleDateString(), { align: 'center' });
+
+    doc.end();
+    const pdfBuffer = await pdfReady;
+
+    // Save to user's files
+    const root = getUserFilesRoot(req.user.username);
+    const resolved = safePath(root, savePath);
+    if (!resolved) return res.status(403).json({ error: 'Invalid path' });
+
+    const dir = path.dirname(resolved);
+    ensureDir(dir);
+    fs.writeFileSync(resolved, pdfBuffer);
+
+    const stat = fs.statSync(resolved);
+    res.json({ ok: true, name: path.basename(resolved), path: path.relative(root, resolved).replace(/\\/g, '/'), size: stat.size });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // #endregion
@@ -1992,6 +2127,326 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
     res.status(500).json({ error: e.message || 'Internal error' });
   }
 });
+
+// #endregion
+// #region ChatGPT App — Conversations + Streaming
+
+function getChatGPTPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'chatgpt-conversations.json');
+}
+
+function getChatGPTData(username) {
+  const fp = getChatGPTPath(username);
+  if (!fs.existsSync(fp)) return { conversations: [] };
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return { conversations: [] }; }
+}
+
+function saveChatGPTData(username, data) {
+  fs.writeFileSync(getChatGPTPath(username), JSON.stringify(data, null, 2));
+}
+
+// GET conversations list
+app.get('/api/chatgpt/conversations', authMiddleware, (req, res) => {
+  const data = getChatGPTData(req.user.username);
+  res.json(data);
+});
+
+// POST save conversations
+app.post('/api/chatgpt/conversations', authMiddleware, (req, res) => {
+  const { conversations } = req.body;
+  if (!Array.isArray(conversations)) {
+    return res.status(400).json({ error: 'conversations array required' });
+  }
+  const sanitized = conversations.slice(0, 200).map(c => ({
+    id: String(c.id || '').slice(0, 50),
+    title: String(c.title || '').slice(0, 200),
+    model: String(c.model || '').slice(0, 100),
+    provider: String(c.provider || '').slice(0, 50),
+    systemPrompt: String(c.systemPrompt || '').slice(0, 2000),
+    messages: Array.isArray(c.messages) ? c.messages.slice(0, 500).map(m => ({
+      role: String(m.role || 'user').slice(0, 20),
+      content: String(m.content || '').slice(0, 30000)
+    })) : [],
+    createdAt: c.createdAt || new Date().toISOString(),
+    updatedAt: c.updatedAt || new Date().toISOString()
+  }));
+  saveChatGPTData(req.user.username, { conversations: sanitized });
+  res.json({ ok: true });
+});
+
+// GET available providers (with key status)
+app.get('/api/chatgpt/providers', authMiddleware, (req, res) => {
+  const data = getUserAISettings(req.user.username);
+  const available = (data.providers || [])
+    .filter(p => p.enabled && p.apiKey)
+    .map(p => ({ id: p.id, name: p.name, icon: p.icon, model: p.model || p.defaultModel }));
+  res.json({ providers: available });
+});
+
+// POST streaming chat
+app.post('/api/chatgpt/stream', authMiddleware, async (req, res) => {
+  const { provider: providerId, messages } = req.body;
+  if (!providerId || !Array.isArray(messages) || !messages.length) {
+    return res.status(400).json({ error: 'provider and messages required' });
+  }
+  if (messages.length > 200) {
+    return res.status(400).json({ error: 'Too many messages' });
+  }
+
+  const settings = getUserAISettings(req.user.username);
+  const provider = (settings.providers || []).find(p => p.id === providerId && p.enabled);
+  if (!provider || !provider.apiKey) {
+    return res.status(400).json({ error: 'Provider not configured or no API key' });
+  }
+
+  const model = provider.model || provider.defaultModel;
+  const sanitizedMessages = messages.slice(-80).map(m => ({
+    role: String(m.role || 'user').slice(0, 20),
+    content: String(m.content || '').slice(0, 30000)
+  }));
+
+  const endpointConfig = AI_PROVIDER_ENDPOINTS[providerId];
+  if (!endpointConfig && !provider.custom) {
+    return res.status(400).json({ error: 'Unknown provider' });
+  }
+
+  // SSE headers
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+
+  function sse(event, data) {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  }
+
+  let aborted = false;
+  req.on('close', () => { aborted = true; });
+
+  try {
+    // Anthropic — streaming
+    if (providerId === 'anthropic') {
+      const systemMsg = sanitizedMessages.find(m => m.role === 'system');
+      const chatMsgs = sanitizedMessages.filter(m => m.role !== 'system');
+      const body = { model, max_tokens: 4096, stream: true, messages: chatMsgs };
+      if (systemMsg) body.system = systemMsg.content;
+      const headers = { 'x-api-key': provider.apiKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' };
+
+      const parsedUrl = new URL(endpointConfig.url);
+      const lib = parsedUrl.protocol === 'https:' ? require('https') : require('http');
+      const postData = JSON.stringify(body);
+      const apiReq = lib.request({
+        hostname: parsedUrl.hostname, port: parsedUrl.port,
+        path: parsedUrl.pathname + parsedUrl.search, method: 'POST',
+        headers: { ...headers, 'Content-Length': Buffer.byteLength(postData) }
+      }, (apiRes) => {
+        if (apiRes.statusCode !== 200) {
+          let errData = '';
+          apiRes.on('data', d => { errData += d; });
+          apiRes.on('end', () => { sse('error', { message: errData || 'Anthropic error' }); res.end(); });
+          return;
+        }
+        let buf = '';
+        apiRes.on('data', chunk => {
+          if (aborted) return;
+          buf += chunk.toString();
+          const lines = buf.split('\n');
+          buf = lines.pop() || '';
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const d = JSON.parse(line.slice(6));
+                if (d.type === 'content_block_delta' && d.delta?.text) {
+                  sse('chunk', { text: d.delta.text });
+                }
+              } catch {}
+            }
+          }
+        });
+        apiRes.on('end', () => { sse('done', {}); res.end(); });
+      });
+      apiReq.on('error', e => { sse('error', { message: e.message }); res.end(); });
+      apiReq.setTimeout(120000, () => { apiReq.destroy(); sse('error', { message: 'Timeout' }); res.end(); });
+      apiReq.write(postData);
+      apiReq.end();
+
+    } else if (providerId === 'google') {
+      // Google Gemini — streamGenerateContent
+      const url = endpointConfig.url.replace('{model}', encodeURIComponent(model)).replace(':generateContent', ':streamGenerateContent') + '?key=' + encodeURIComponent(provider.apiKey) + '&alt=sse';
+      const geminiContents = sanitizedMessages.filter(m => m.role !== 'system').map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+      const bodyObj = { contents: geminiContents };
+      const sysMsg = sanitizedMessages.find(m => m.role === 'system');
+      if (sysMsg) bodyObj.systemInstruction = { parts: [{ text: sysMsg.content }] };
+
+      const parsedUrl = new URL(url);
+      const lib = parsedUrl.protocol === 'https:' ? require('https') : require('http');
+      const postData = JSON.stringify(bodyObj);
+      const apiReq = lib.request({
+        hostname: parsedUrl.hostname, port: parsedUrl.port,
+        path: parsedUrl.pathname + parsedUrl.search, method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) }
+      }, (apiRes) => {
+        if (apiRes.statusCode !== 200) {
+          let errData = '';
+          apiRes.on('data', d => { errData += d; });
+          apiRes.on('end', () => { sse('error', { message: errData || 'Google error' }); res.end(); });
+          return;
+        }
+        let buf = '';
+        apiRes.on('data', chunk => {
+          if (aborted) return;
+          buf += chunk.toString();
+          const lines = buf.split('\n');
+          buf = lines.pop() || '';
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const d = JSON.parse(line.slice(6));
+                const text = d.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) sse('chunk', { text });
+              } catch {}
+            }
+          }
+        });
+        apiRes.on('end', () => { sse('done', {}); res.end(); });
+      });
+      apiReq.on('error', e => { sse('error', { message: e.message }); res.end(); });
+      apiReq.setTimeout(120000, () => { apiReq.destroy(); sse('error', { message: 'Timeout' }); res.end(); });
+      apiReq.write(postData);
+      apiReq.end();
+
+    } else {
+      // OpenAI-compatible streaming (openai, mistral, deepseek, groq, xai, github, openrouter, perplexity, cohere, custom)
+      const url = provider.custom ? (provider.apiEndpoint || endpointConfig?.url || '') : endpointConfig.url;
+      if (!url) { sse('error', { message: 'No endpoint' }); res.end(); return; }
+      const body = { model, messages: sanitizedMessages, max_tokens: 4096, stream: true };
+      const hdrs = { 'Authorization': 'Bearer ' + provider.apiKey, 'Content-Type': 'application/json' };
+
+      const parsedUrl = new URL(url);
+      const lib = parsedUrl.protocol === 'https:' ? require('https') : require('http');
+      const postData = JSON.stringify(body);
+      const apiReq = lib.request({
+        hostname: parsedUrl.hostname, port: parsedUrl.port,
+        path: parsedUrl.pathname + parsedUrl.search, method: 'POST',
+        headers: { ...hdrs, 'Content-Length': Buffer.byteLength(postData) }
+      }, (apiRes) => {
+        if (apiRes.statusCode !== 200) {
+          let errData = '';
+          apiRes.on('data', d => { errData += d; });
+          apiRes.on('end', () => { sse('error', { message: errData || 'API error' }); res.end(); });
+          return;
+        }
+        let buf = '';
+        apiRes.on('data', chunk => {
+          if (aborted) return;
+          buf += chunk.toString();
+          const lines = buf.split('\n');
+          buf = lines.pop() || '';
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const payload = line.slice(6).trim();
+              if (payload === '[DONE]') continue;
+              try {
+                const d = JSON.parse(payload);
+                const text = d.choices?.[0]?.delta?.content;
+                if (text) sse('chunk', { text });
+              } catch {}
+            }
+          }
+        });
+        apiRes.on('end', () => { sse('done', {}); res.end(); });
+      });
+      apiReq.on('error', e => { sse('error', { message: e.message }); res.end(); });
+      apiReq.setTimeout(120000, () => { apiReq.destroy(); sse('error', { message: 'Timeout' }); res.end(); });
+      apiReq.write(postData);
+      apiReq.end();
+    }
+  } catch (e) {
+    sse('error', { message: e.message || 'Internal error' });
+    res.end();
+  }
+});
+
+// #region QR Code API
+function getQRCodePath(username) {
+  return path.join(__dirname, 'data', 'users', username, 'qrcodes.json');
+}
+function getQRCodeData(username) {
+  const fp = getQRCodePath(username);
+  if (!fs.existsSync(fp)) return { codes: [] };
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return { codes: [] }; }
+}
+function saveQRCodeData(username, data) {
+  fs.writeFileSync(getQRCodePath(username), JSON.stringify(data, null, 2));
+}
+
+// Generate QR code (returns base64 PNG data URL)
+app.post('/api/qrcode/generate', authMiddleware, async (req, res) => {
+  try {
+    const { content, size, fgColor, bgColor, errLevel, margin } = req.body;
+    if (!content || typeof content !== 'string' || content.length > 4000) {
+      return res.status(400).json({ error: 'Invalid content' });
+    }
+    const qrSize = Math.min(Math.max(Number(size) || 256, 64), 1024);
+    const fg = /^#[0-9a-fA-F]{6}$/.test(fgColor) ? fgColor : '#000000';
+    const bg = /^#[0-9a-fA-F]{6}$/.test(bgColor) ? bgColor : '#ffffff';
+    const ecl = ['L','M','Q','H'].includes(errLevel) ? errLevel : 'M';
+    const m = Math.min(Math.max(Number(margin) ?? 2, 0), 10);
+
+    const dataUrl = await QRCode.toDataURL(content, {
+      width: qrSize,
+      margin: m,
+      color: { dark: fg, light: bg },
+      errorCorrectionLevel: ecl
+    });
+    res.json({ dataUrl });
+  } catch (e) {
+    res.status(500).json({ error: 'QR generation failed' });
+  }
+});
+
+// Get saved QR codes
+app.get('/api/qrcode/saved', authMiddleware, (req, res) => {
+  const data = getQRCodeData(req.user.username);
+  res.json(data);
+});
+
+// Save a QR code
+app.post('/api/qrcode/saved', authMiddleware, (req, res) => {
+  const { id, label, content, dataUrl, options } = req.body;
+  if (!content || typeof content !== 'string') return res.status(400).json({ error: 'content required' });
+  if (!dataUrl || typeof dataUrl !== 'string') return res.status(400).json({ error: 'dataUrl required' });
+  const data = getQRCodeData(req.user.username);
+  if (data.codes.length >= 200) return res.status(400).json({ error: 'Max 200 saved codes' });
+  const entry = {
+    id: id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+    label: String(label || '').slice(0, 100),
+    content: String(content).slice(0, 4000),
+    dataUrl: String(dataUrl).slice(0, 200000),
+    options: options || {},
+    createdAt: new Date().toISOString()
+  };
+  data.codes.unshift(entry);
+  saveQRCodeData(req.user.username, data);
+  res.json({ ok: true, code: entry });
+});
+
+// Delete a saved QR code
+app.delete('/api/qrcode/saved/:id', authMiddleware, (req, res) => {
+  const codeId = req.params.id;
+  const data = getQRCodeData(req.user.username);
+  data.codes = data.codes.filter(c => c.id !== codeId);
+  saveQRCodeData(req.user.username, data);
+  res.json({ ok: true });
+});
+// #endregion
 
 // #endregion
 // #region AppData SQLite (per-user)
@@ -3590,6 +4045,10 @@ server.on('upgrade', (req, socket, head) => {
   } else if (pathname === '/ws') {
     wss.handleUpgrade(req, socket, head, (ws) => {
       wss.emit('connection', ws, req);
+    });
+  } else if (pathname === '/api/sync/ws') {
+    syncWss.handleUpgrade(req, socket, head, (ws) => {
+      syncWss.emit('connection', ws, req);
     });
   } else if (pathname.startsWith('/proxy/')) {
     // Forward WebSocket upgrades to HPM proxy middleware
@@ -5488,6 +5947,88 @@ app.post('/api/ethwallet/save', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
+// #endregion
+// #region Solana Wallet (AES-256-GCM encrypted)
+function getSolWalletPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'solwallet.enc');
+}
+function loadSolWallet(username) {
+  const fp = getSolWalletPath(username);
+  if (!fs.existsSync(fp)) return null;
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return null; }
+}
+function saveSolWallet(username, data) {
+  fs.writeFileSync(getSolWalletPath(username), JSON.stringify(data));
+}
+
+app.get('/api/solwallet/exists', authMiddleware, (req, res) => {
+  res.json({ exists: !!loadSolWallet(req.user.username) });
+});
+
+app.post('/api/solwallet/unlock', authMiddleware, (req, res) => {
+  const { walletPassword } = req.body;
+  if (!walletPassword || typeof walletPassword !== 'string') return res.status(400).json({ error: 'walletPassword required' });
+  const walletObj = loadSolWallet(req.user.username);
+  if (!walletObj) return res.json({ wallets: [], activeIndex: 0 });
+  try {
+    const data = decryptVault(walletObj, walletPassword);
+    res.json(data);
+  } catch {
+    res.status(403).json({ error: 'wrong_password' });
+  }
+});
+
+app.post('/api/solwallet/save', authMiddleware, (req, res) => {
+  const { walletPassword, wallets, activeIndex } = req.body;
+  if (!walletPassword || typeof walletPassword !== 'string') return res.status(400).json({ error: 'walletPassword required' });
+  if (!Array.isArray(wallets)) return res.status(400).json({ error: 'wallets must be an array' });
+  // Sanitize wallet data - only allow expected fields, limit counts
+  const sanitizedWallets = wallets.slice(0, 20).map(w => ({
+    publicKey: typeof w.publicKey === 'string' ? w.publicKey.slice(0, 100) : '',
+    secretKey: typeof w.secretKey === 'string' ? w.secretKey.slice(0, 200) : '',
+    name: typeof w.name === 'string' ? w.name.slice(0, 50) : '',
+    imported: !!w.imported
+  }));
+  const data = { wallets: sanitizedWallets, activeIndex: typeof activeIndex === 'number' ? activeIndex : 0 };
+  const encrypted = encryptVault(data, walletPassword);
+  saveSolWallet(req.user.username, encrypted);
+  res.json({ ok: true });
+});
+
+app.post('/api/solwallet/change-password', authMiddleware, (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword || typeof currentPassword !== 'string' || typeof newPassword !== 'string')
+    return res.status(400).json({ error: 'currentPassword and newPassword required' });
+  if (newPassword.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  const walletObj = loadSolWallet(req.user.username);
+  if (!walletObj) return res.status(404).json({ error: 'Wallet not found' });
+  try {
+    const data = decryptVault(walletObj, currentPassword);
+    const encrypted = encryptVault(data, newPassword);
+    saveSolWallet(req.user.username, encrypted);
+    res.json({ ok: true });
+  } catch {
+    res.status(403).json({ error: 'wrong_password' });
+  }
+});
+
+app.post('/api/solwallet/delete', authMiddleware, (req, res) => {
+  const { walletPassword } = req.body;
+  if (!walletPassword || typeof walletPassword !== 'string') return res.status(400).json({ error: 'walletPassword required' });
+  const walletObj = loadSolWallet(req.user.username);
+  if (!walletObj) return res.json({ ok: true });
+  try {
+    decryptVault(walletObj, walletPassword);
+    const fp = getSolWalletPath(req.user.username);
+    if (fs.existsSync(fp)) fs.unlinkSync(fp);
+    res.json({ ok: true });
+  } catch {
+    res.status(403).json({ error: 'wrong_password' });
+  }
+});
 // #endregion
 // #region Copilot CLI App
 const { spawn } = require('child_process');
@@ -8562,6 +9103,1015 @@ app.post('/api/featherwiki/data', authMiddleware, (req, res) => {
 });
 // #endregion
 
+// #region Requestly API
+// ============================================================
+// Requestly — Postman-like API testing tool
+// Data persistence + HTTP proxy for cross-origin requests
+// ============================================================
+
+function getUserRequestlyData(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const fp = path.join(DATA_DIR, safe, 'requestly.json');
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return { collections: [], history: [], environments: [], activeEnvId: null }; }
+}
+
+function saveUserRequestlyData(username, data) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  fs.writeFileSync(path.join(dir, 'requestly.json'), JSON.stringify(data));
+}
+
+app.get('/api/requestly/data', authMiddleware, (req, res) => {
+  res.json(getUserRequestlyData(req.user.username));
+});
+
+app.post('/api/requestly/data', authMiddleware, (req, res) => {
+  const { collections, history: hist, environments, activeEnvId } = req.body;
+  if (!Array.isArray(collections) || !Array.isArray(hist) || !Array.isArray(environments)) {
+    return res.status(400).json({ error: 'Invalid data format' });
+  }
+  const sanitized = {
+    collections: collections.slice(0, 200),
+    history: hist.slice(0, 500),
+    environments: environments.slice(0, 50),
+    activeEnvId: activeEnvId ? String(activeEnvId).slice(0, 50) : null
+  };
+  saveUserRequestlyData(req.user.username, sanitized);
+  res.json({ ok: true });
+});
+
+// HTTP proxy endpoint — sends request from server side to bypass CORS
+app.post('/api/requestly/send', authMiddleware, async (req, res) => {
+  const { method, url, headers: hdrs, params, body: reqBody, bodyType } = req.body;
+  if (!url || typeof url !== 'string') return res.status(400).json({ error: 'URL required' });
+
+  // Validate URL scheme
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+  if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+    return res.status(400).json({ error: 'Only HTTP/HTTPS protocols allowed' });
+  }
+
+  // Append query params
+  if (params && typeof params === 'object') {
+    Object.entries(params).forEach(([k, v]) => { if (k) parsedUrl.searchParams.append(k, v); });
+  }
+
+  const fetchMethod = String(method || 'GET').toUpperCase();
+  const fetchHeaders = {};
+  if (hdrs && typeof hdrs === 'object') {
+    Object.entries(hdrs).forEach(([k, v]) => { if (k) fetchHeaders[k] = String(v); });
+  }
+
+  const fetchOptions = { method: fetchMethod, headers: fetchHeaders };
+
+  // Body (skip for GET/HEAD/OPTIONS)
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(fetchMethod) && reqBody) {
+    fetchOptions.body = typeof reqBody === 'string' ? reqBody : JSON.stringify(reqBody);
+  }
+
+  try {
+    const startTime = Date.now();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    fetchOptions.signal = controller.signal;
+
+    const response = await fetch(parsedUrl.toString(), fetchOptions);
+    clearTimeout(timeout);
+
+    const elapsed = Date.now() - startTime;
+    const respBody = await response.text();
+    const respHeaders = {};
+    response.headers.forEach((v, k) => { respHeaders[k] = v; });
+
+    res.json({
+      status: response.status,
+      statusText: response.statusText,
+      headers: respHeaders,
+      body: respBody,
+      time: elapsed,
+      size: Buffer.byteLength(respBody, 'utf-8')
+    });
+  } catch (e) {
+    res.json({
+      status: 0,
+      statusText: e.name === 'AbortError' ? 'Timeout' : 'Network Error',
+      headers: {},
+      body: e.message,
+      time: 0,
+      size: 0
+    });
+  }
+});
+// #endregion
+
+// #region Synchronizer Engine
+// ============================================================
+// Server-to-Server Sync Engine
+// Lokal instance sunucuya WebSocket ile bağlanır (pull model)
+// Tüm kullanıcı verileri (JSON + dosyalar) senkronize edilir
+// ============================================================
+
+const syncWss = new WebSocketServer({ noServer: true });
+const activeSyncPeers = new Map(); // username -> { ws, role }
+let outboundSyncConnection = null;
+let syncReconnectTimer = null;
+
+function getSyncConfigPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'sync-config.json');
+}
+
+function getSyncLogPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'sync-log.json');
+}
+
+function loadSyncConfig(username) {
+  const fp = getSyncConfigPath(username);
+  if (fs.existsSync(fp)) {
+    try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { }
+  }
+  return {
+    enabled: false,
+    peerUrl: '',
+    syncToken: '',
+    deviceId: '',
+    deviceName: '',
+    pairedDevices: [],
+    syncFolders: ['files', 'photos', 'music', 'videos', 'recordings'],
+    syncAppData: true,
+    excludePatterns: ['*.tmp', '*.log', 'Thumbs.db', '.DS_Store'],
+    maxFileSize: 104857600,
+    intervalSeconds: 60,
+    conflictStrategy: 'last-write-wins',
+    lastSyncTime: null
+  };
+}
+
+function saveSyncConfig(username, cfg) {
+  fs.writeFileSync(getSyncConfigPath(username), JSON.stringify(cfg, null, 2), 'utf-8');
+}
+
+function loadSyncLog(username) {
+  const fp = getSyncLogPath(username);
+  if (fs.existsSync(fp)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(fp, 'utf-8'));
+      return Array.isArray(data) ? data.slice(-500) : [];
+    } catch { }
+  }
+  return [];
+}
+
+function addSyncLog(username, entry) {
+  const logs = loadSyncLog(username);
+  logs.push({ ...entry, time: new Date().toISOString() });
+  if (logs.length > 500) logs.splice(0, logs.length - 500);
+  fs.writeFileSync(getSyncLogPath(username), JSON.stringify(logs), 'utf-8');
+}
+
+// Generate file manifest with hashes for a user's entire data directory
+function generateManifest(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const userDir = path.join(DATA_DIR, safe);
+  if (!fs.existsSync(userDir)) return {};
+
+  const cfg = loadSyncConfig(username);
+  const manifest = {};
+  const excludeRe = cfg.excludePatterns.map(p =>
+    new RegExp('^' + p.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$', 'i')
+  );
+
+  function walkDir(dir, relBase) {
+    if (!fs.existsSync(dir)) return;
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      const relPath = (relBase ? relBase + '/' : '') + entry.name;
+
+      // Skip sync-config itself and sync-log
+      if (relPath === 'sync-config.json' || relPath === 'sync-log.json') continue;
+      // Skip excluded patterns
+      if (excludeRe.some(re => re.test(entry.name))) continue;
+
+      if (entry.isDirectory()) {
+        // Only walk syncFolders + app data JSON files
+        const topLevel = relBase === '' || relBase === undefined;
+        if (topLevel) {
+          const isSyncFolder = cfg.syncFolders.includes(entry.name);
+          const isAppDataFolder = ['copilot', 'github', 'trello', 'loopstudio', 'code-tmp', 'wallpapers'].includes(entry.name);
+          if (isSyncFolder || (cfg.syncAppData && isAppDataFolder)) {
+            walkDir(fullPath, relPath);
+          }
+        } else {
+          walkDir(fullPath, relPath);
+        }
+      } else {
+        try {
+          const stat = fs.statSync(fullPath);
+          if (stat.size > cfg.maxFileSize) continue;
+
+          // For top-level: only sync JSON files (app data) if syncAppData enabled
+          const topLevel = !relBase;
+          if (topLevel && !cfg.syncAppData) continue;
+
+          const hash = crypto.createHash('sha256')
+            .update(fs.readFileSync(fullPath))
+            .digest('hex');
+          manifest[relPath] = {
+            hash,
+            size: stat.size,
+            mtime: stat.mtime.toISOString()
+          };
+        } catch { }
+      }
+    }
+  }
+
+  walkDir(userDir, '');
+  return manifest;
+}
+
+// Compare two manifests and return diff
+function diffManifests(local, remote) {
+  const toDownload = []; // files remote has that we don't or are different
+  const toUpload = []; // files we have that remote doesn't or are different
+  const toDeleteLocal = []; // files remote deleted
+  const toDeleteRemote = []; // files we deleted
+
+  const allPaths = new Set([...Object.keys(local), ...Object.keys(remote)]);
+  for (const p of allPaths) {
+    const l = local[p];
+    const r = remote[p];
+    if (l && r) {
+      if (l.hash !== r.hash) {
+        // Conflict — compare mtime
+        const lTime = new Date(l.mtime).getTime();
+        const rTime = new Date(r.mtime).getTime();
+        if (rTime > lTime) toDownload.push(p);
+        else if (lTime > rTime) toUpload.push(p);
+        // If equal mtime, skip (already same age)
+      }
+    } else if (r && !l) {
+      toDownload.push(p);
+    } else if (l && !r) {
+      toUpload.push(p);
+    }
+  }
+  return { toDownload, toUpload, toDeleteLocal, toDeleteRemote };
+}
+
+// Pairing token system
+const pairingTokens = new Map(); // token -> { username, expiresAt, deviceName }
+
+function generatePairingToken(username) {
+  const code = 'SYNC-' + crypto.randomBytes(4).toString('hex').toUpperCase().match(/.{4}/g).join('-');
+  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+  pairingTokens.set(code, { username, expiresAt });
+  // Cleanup expired
+  for (const [k, v] of pairingTokens) {
+    if (v.expiresAt < Date.now()) pairingTokens.delete(k);
+  }
+  return { code, expiresAt: new Date(expiresAt).toISOString() };
+}
+
+function validatePairingToken(code) {
+  const entry = pairingTokens.get(code);
+  if (!entry) return null;
+  if (entry.expiresAt < Date.now()) {
+    pairingTokens.delete(code);
+    return null;
+  }
+  pairingTokens.delete(code);
+  return entry;
+}
+
+// Sync API — Config
+app.get('/api/sync/config', authMiddleware, (req, res) => {
+  const cfg = loadSyncConfig(req.user.username);
+  res.json(cfg);
+});
+
+app.post('/api/sync/config', authMiddleware, (req, res) => {
+  const current = loadSyncConfig(req.user.username);
+  const allowed = ['enabled', 'peerUrl', 'syncFolders', 'syncAppData', 'excludePatterns', 'maxFileSize', 'intervalSeconds', 'conflictStrategy', 'deviceName'];
+  for (const key of allowed) {
+    if (req.body[key] !== undefined) current[key] = req.body[key];
+  }
+  // Ensure deviceId exists
+  if (!current.deviceId) current.deviceId = crypto.randomUUID();
+  // Validate
+  current.peerUrl = String(current.peerUrl || '').slice(0, 500);
+  current.deviceName = String(current.deviceName || os.hostname()).slice(0, 100);
+  current.intervalSeconds = Math.max(30, Math.min(3600, parseInt(current.intervalSeconds) || 60));
+  current.maxFileSize = Math.max(0, Math.min(1073741824, parseInt(current.maxFileSize) || 104857600));
+  if (!Array.isArray(current.syncFolders)) current.syncFolders = ['files'];
+  current.syncFolders = current.syncFolders.slice(0, 20).map(f => String(f).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 50));
+  if (!Array.isArray(current.excludePatterns)) current.excludePatterns = [];
+  current.excludePatterns = current.excludePatterns.slice(0, 50).map(p => String(p).slice(0, 100));
+  saveSyncConfig(req.user.username, current);
+  res.json({ ok: true, config: current });
+});
+
+// Sync API — Pairing
+app.post('/api/sync/pair/generate', authMiddleware, (req, res) => {
+  const result = generatePairingToken(req.user.username);
+  res.json(result);
+});
+
+app.post('/api/sync/pair/connect', authMiddleware, (req, res) => {
+  const { peerUrl, pairingCode } = req.body;
+  if (!peerUrl || !pairingCode) return res.status(400).json({ error: 'peerUrl and pairingCode required' });
+
+  const sanitizedUrl = String(peerUrl).slice(0, 500).replace(/\/+$/, '');
+  // Validate URL format
+  try { new URL(sanitizedUrl); } catch { return res.status(400).json({ error: 'Invalid URL format' }); }
+
+  const cfg = loadSyncConfig(req.user.username);
+  if (!cfg.deviceId) cfg.deviceId = crypto.randomUUID();
+  if (!cfg.deviceName) cfg.deviceName = os.hostname();
+  cfg.peerUrl = sanitizedUrl;
+  cfg.syncToken = String(pairingCode).slice(0, 50);
+  cfg.enabled = true;
+  saveSyncConfig(req.user.username, cfg);
+
+  // Attempt to pair with remote
+  connectToSyncPeer(req.user.username, cfg);
+  res.json({ ok: true, status: 'connecting' });
+});
+
+// Sync API — Pair validation (remote side receives this)
+app.post('/api/sync/pair/validate', (req, res) => {
+  const { pairingCode, deviceId, deviceName } = req.body;
+  if (!pairingCode || !deviceId) return res.status(400).json({ error: 'pairingCode and deviceId required' });
+
+  const entry = validatePairingToken(String(pairingCode).slice(0, 50));
+  if (!entry) return res.status(403).json({ error: 'Invalid or expired pairing code' });
+
+  // Generate sync secret for this pair
+  const syncSecret = crypto.randomBytes(32).toString('hex');
+  const cfg = loadSyncConfig(entry.username);
+  if (!cfg.deviceId) cfg.deviceId = crypto.randomUUID();
+  const newDevice = {
+    deviceId: String(deviceId).slice(0, 100),
+    deviceName: String(deviceName || 'Unknown').slice(0, 100),
+    syncSecret,
+    pairedAt: new Date().toISOString()
+  };
+  if (!Array.isArray(cfg.pairedDevices)) cfg.pairedDevices = [];
+  // Remove existing if same deviceId
+  cfg.pairedDevices = cfg.pairedDevices.filter(d => d.deviceId !== newDevice.deviceId);
+  cfg.pairedDevices.push(newDevice);
+  saveSyncConfig(entry.username, cfg);
+
+  // Return sync credentials
+  const syncJwt = jwt.sign(
+    { username: entry.username, deviceId, syncRole: 'peer' },
+    config.auth.jwtSecret,
+    { expiresIn: '365d' }
+  );
+  res.json({ ok: true, syncJwt, username: entry.username, serverDeviceId: cfg.deviceId });
+});
+
+// Sync API — Manifest
+app.get('/api/sync/manifest', authMiddleware, (req, res) => {
+  const manifest = generateManifest(req.user.username);
+  res.json({ manifest, deviceId: loadSyncConfig(req.user.username).deviceId });
+});
+
+// Sync API — Download file
+app.get('/api/sync/file', authMiddleware, (req, res) => {
+  const relPath = req.query.path;
+  if (!relPath) return res.status(400).json({ error: 'path required' });
+  const safe = req.user.username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const userDir = path.join(DATA_DIR, safe);
+  const resolved = path.resolve(userDir, relPath);
+  if (!resolved.startsWith(userDir)) return res.status(403).json({ error: 'Invalid path' });
+  if (!fs.existsSync(resolved) || fs.statSync(resolved).isDirectory()) return res.status(404).json({ error: 'File not found' });
+  try {
+    const content = fs.readFileSync(resolved).toString('base64');
+    const stat = fs.statSync(resolved);
+    res.json({ content, size: stat.size, mtime: stat.mtime.toISOString() });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Sync API — Upload file
+app.post('/api/sync/file', authMiddleware, (req, res) => {
+  const { filePath: relPath, content, mtime } = req.body;
+  if (!relPath || content === undefined) return res.status(400).json({ error: 'filePath and content required' });
+  const safe = req.user.username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const userDir = path.join(DATA_DIR, safe);
+  const resolved = path.resolve(userDir, relPath);
+  if (!resolved.startsWith(userDir)) return res.status(403).json({ error: 'Invalid path' });
+  try {
+    ensureDir(path.dirname(resolved));
+    fs.writeFileSync(resolved, Buffer.from(content, 'base64'));
+    if (mtime) {
+      try { fs.utimesSync(resolved, new Date(), new Date(mtime)); } catch { }
+    }
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Sync API — Log
+app.get('/api/sync/log', authMiddleware, (req, res) => {
+  res.json(loadSyncLog(req.user.username));
+});
+
+app.delete('/api/sync/log', authMiddleware, (req, res) => {
+  fs.writeFileSync(getSyncLogPath(req.user.username), '[]', 'utf-8');
+  res.json({ ok: true });
+});
+
+// Sync API — Trigger manual sync
+app.post('/api/sync/trigger', authMiddleware, async (req, res) => {
+  try {
+    const result = await performSync(req.user.username);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Sync API — Unpair device
+app.post('/api/sync/unpair', authMiddleware, (req, res) => {
+  const { deviceId } = req.body;
+  const cfg = loadSyncConfig(req.user.username);
+  if (deviceId) {
+    cfg.pairedDevices = (cfg.pairedDevices || []).filter(d => d.deviceId !== deviceId);
+  } else {
+    cfg.pairedDevices = [];
+    cfg.peerUrl = '';
+    cfg.syncToken = '';
+    cfg.enabled = false;
+  }
+  saveSyncConfig(req.user.username, cfg);
+  if (outboundSyncConnection) {
+    try { outboundSyncConnection.close(); } catch { }
+    outboundSyncConnection = null;
+  }
+  res.json({ ok: true });
+});
+
+// Sync API — Status
+app.get('/api/sync/status', authMiddleware, (req, res) => {
+  const cfg = loadSyncConfig(req.user.username);
+  const peer = activeSyncPeers.get(req.user.username);
+  res.json({
+    enabled: cfg.enabled,
+    connected: !!peer && peer.ws && peer.ws.readyState === 1,
+    peerUrl: cfg.peerUrl,
+    deviceId: cfg.deviceId,
+    deviceName: cfg.deviceName,
+    pairedDevices: cfg.pairedDevices || [],
+    lastSyncTime: cfg.lastSyncTime
+  });
+});
+
+// Perform sync between this instance and peer
+async function performSync(username) {
+  const cfg = loadSyncConfig(username);
+  if (!cfg.enabled || !cfg.peerUrl) {
+    return { error: 'Sync not configured', synced: 0, skipped: 0 };
+  }
+
+  const token = extractSyncToken(username);
+  if (!token) return { error: 'No sync credentials', synced: 0, skipped: 0 };
+
+  try {
+    // 1. Get remote manifest
+    const manifestRes = await fetch(cfg.peerUrl + '/api/sync/manifest', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!manifestRes.ok) throw new Error('Remote manifest failed: ' + manifestRes.status);
+    const { manifest: remoteManifest } = await manifestRes.json();
+
+    // 2. Get local manifest
+    const localManifest = generateManifest(username);
+
+    // 3. Diff
+    const diff = diffManifests(localManifest, remoteManifest);
+    let synced = 0, errors = 0;
+
+    // 4. Download files from remote
+    for (const filePath of diff.toDownload) {
+      try {
+        const fileRes = await fetch(cfg.peerUrl + '/api/sync/file?path=' + encodeURIComponent(filePath), {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!fileRes.ok) { errors++; continue; }
+        const { content, mtime } = await fileRes.json();
+        const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+        const resolved = path.resolve(path.join(DATA_DIR, safe), filePath);
+        if (!resolved.startsWith(path.join(DATA_DIR, safe))) { errors++; continue; }
+        ensureDir(path.dirname(resolved));
+        fs.writeFileSync(resolved, Buffer.from(content, 'base64'));
+        if (mtime) try { fs.utimesSync(resolved, new Date(), new Date(mtime)); } catch { }
+        synced++;
+      } catch { errors++; }
+    }
+
+    // 5. Upload files to remote
+    for (const filePath of diff.toUpload) {
+      try {
+        const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+        const resolved = path.resolve(path.join(DATA_DIR, safe), filePath);
+        if (!resolved.startsWith(path.join(DATA_DIR, safe))) { errors++; continue; }
+        if (!fs.existsSync(resolved)) { errors++; continue; }
+        const content = fs.readFileSync(resolved).toString('base64');
+        const stat = fs.statSync(resolved);
+        const uploadRes = await fetch(cfg.peerUrl + '/api/sync/file', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filePath, content, mtime: stat.mtime.toISOString() })
+        });
+        if (!uploadRes.ok) { errors++; continue; }
+        synced++;
+      } catch { errors++; }
+    }
+
+    const skipped = Object.keys(localManifest).length + Object.keys(remoteManifest).length - diff.toDownload.length - diff.toUpload.length;
+
+    // Update last sync time
+    cfg.lastSyncTime = new Date().toISOString();
+    saveSyncConfig(username, cfg);
+
+    const logEntry = {
+      type: 'sync',
+      downloaded: diff.toDownload.length,
+      uploaded: diff.toUpload.length,
+      synced,
+      errors,
+      skipped
+    };
+    addSyncLog(username, logEntry);
+
+    // Notify connected clients
+    broadcastWS({ type: 'sync-complete', data: logEntry });
+
+    return logEntry;
+  } catch (e) {
+    const logEntry = { type: 'error', message: e.message };
+    addSyncLog(username, logEntry);
+    return { error: e.message, synced: 0, skipped: 0, errors: 1 };
+  }
+}
+
+function extractSyncToken(username) {
+  const cfg = loadSyncConfig(username);
+  if (cfg.syncToken && cfg.syncToken.startsWith('eyJ')) return cfg.syncToken;
+  // Try to find paired device JWT
+  if (cfg.pairedDevices && cfg.pairedDevices.length > 0) {
+    return cfg.syncToken || null;
+  }
+  return null;
+}
+
+// Outbound sync connection (lokal -> sunucu)
+function connectToSyncPeer(username, cfg) {
+  if (outboundSyncConnection) {
+    try { outboundSyncConnection.close(); } catch { }
+  }
+  if (syncReconnectTimer) {
+    clearTimeout(syncReconnectTimer);
+    syncReconnectTimer = null;
+  }
+  if (!cfg || !cfg.enabled || !cfg.peerUrl) return;
+
+  const wsUrl = cfg.peerUrl.replace(/^http/, 'ws') + '/api/sync/ws?token=' + encodeURIComponent(cfg.syncToken || '');
+
+  try {
+    const WebSocket = require('ws');
+    const ws = new WebSocket(wsUrl);
+    let retryDelay = 5000;
+
+    ws.on('open', () => {
+      console.log('[Sync] Connected to peer:', cfg.peerUrl);
+      outboundSyncConnection = ws;
+      activeSyncPeers.set(username, { ws, role: 'client' });
+      retryDelay = 5000;
+      addSyncLog(username, { type: 'connected', peer: cfg.peerUrl });
+      broadcastWS({ type: 'sync-status', data: { connected: true, peer: cfg.peerUrl } });
+
+      // If this is pairing, send pair validation
+      if (cfg.syncToken && !cfg.syncToken.startsWith('eyJ')) {
+        ws.send(JSON.stringify({
+          type: 'pair-validate',
+          data: { pairingCode: cfg.syncToken, deviceId: cfg.deviceId, deviceName: cfg.deviceName }
+        }));
+      }
+
+      // Trigger initial sync
+      performSync(username).catch(() => {});
+    });
+
+    ws.on('message', (raw) => {
+      try {
+        const msg = JSON.parse(raw.toString());
+        handleSyncMessage(username, ws, msg);
+      } catch { }
+    });
+
+    ws.on('close', () => {
+      console.log('[Sync] Disconnected from peer');
+      outboundSyncConnection = null;
+      activeSyncPeers.delete(username);
+      broadcastWS({ type: 'sync-status', data: { connected: false } });
+
+      // Reconnect with exponential backoff
+      const currentCfg = loadSyncConfig(username);
+      if (currentCfg.enabled && currentCfg.peerUrl) {
+        syncReconnectTimer = setTimeout(() => {
+          connectToSyncPeer(username, loadSyncConfig(username));
+        }, retryDelay);
+        retryDelay = Math.min(retryDelay * 2, 300000);
+      }
+    });
+
+    ws.on('error', (err) => {
+      console.log('[Sync] Connection error:', err.message);
+      addSyncLog(username, { type: 'error', message: 'Connection error: ' + err.message });
+    });
+  } catch (e) {
+    console.log('[Sync] Failed to connect:', e.message);
+  }
+}
+
+function handleSyncMessage(username, ws, msg) {
+  switch (msg.type) {
+    case 'pair-result': {
+      if (msg.data && msg.data.syncJwt) {
+        const cfg = loadSyncConfig(username);
+        cfg.syncToken = msg.data.syncJwt;
+        if (msg.data.serverDeviceId) {
+          if (!Array.isArray(cfg.pairedDevices)) cfg.pairedDevices = [];
+          cfg.pairedDevices = cfg.pairedDevices.filter(d => d.deviceId !== msg.data.serverDeviceId);
+          cfg.pairedDevices.push({
+            deviceId: msg.data.serverDeviceId,
+            deviceName: 'Remote Server',
+            pairedAt: new Date().toISOString()
+          });
+        }
+        saveSyncConfig(username, cfg);
+        addSyncLog(username, { type: 'paired', peer: cfg.peerUrl });
+        broadcastWS({ type: 'sync-paired', data: { peer: cfg.peerUrl } });
+        // Now do initial sync with valid JWT
+        performSync(username).catch(() => {});
+      } else {
+        addSyncLog(username, { type: 'error', message: 'Pairing failed: ' + (msg.data && msg.data.error || 'Unknown') });
+        broadcastWS({ type: 'sync-error', data: { message: 'Pairing failed' } });
+      }
+      break;
+    }
+    case 'sync-request': {
+      performSync(username).catch(() => {});
+      break;
+    }
+    case 'pong':
+      break;
+  }
+}
+
+// Sync WebSocket handler (server side — receives incoming connections)
+syncWss.on('connection', (ws, req) => {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const token = url.searchParams.get('token') || '';
+  const decoded = verifyToken(token);
+  if (!decoded) {
+    ws.close(4001, 'Unauthorized');
+    return;
+  }
+
+  const username = decoded.username;
+  console.log('[Sync] Incoming peer connection for user:', username);
+  activeSyncPeers.set(username, { ws, role: 'server' });
+  addSyncLog(username, { type: 'peer-connected', direction: 'inbound' });
+  broadcastWS({ type: 'sync-status', data: { connected: true, direction: 'inbound' } });
+
+  ws.on('message', (raw) => {
+    try {
+      const msg = JSON.parse(raw.toString());
+      if (msg.type === 'pair-validate') {
+        // Handle pair validation via WebSocket
+        const { pairingCode, deviceId, deviceName } = msg.data || {};
+        const entry = validatePairingToken(String(pairingCode || ''));
+        if (!entry) {
+          ws.send(JSON.stringify({ type: 'pair-result', data: { error: 'Invalid or expired code' } }));
+          return;
+        }
+        const syncSecret = crypto.randomBytes(32).toString('hex');
+        const cfg = loadSyncConfig(entry.username);
+        if (!cfg.deviceId) cfg.deviceId = crypto.randomUUID();
+        const newDevice = {
+          deviceId: String(deviceId || '').slice(0, 100),
+          deviceName: String(deviceName || 'Unknown').slice(0, 100),
+          syncSecret,
+          pairedAt: new Date().toISOString()
+        };
+        if (!Array.isArray(cfg.pairedDevices)) cfg.pairedDevices = [];
+        cfg.pairedDevices = cfg.pairedDevices.filter(d => d.deviceId !== newDevice.deviceId);
+        cfg.pairedDevices.push(newDevice);
+        saveSyncConfig(entry.username, cfg);
+
+        const syncJwt = jwt.sign(
+          { username: entry.username, deviceId, syncRole: 'peer' },
+          config.auth.jwtSecret,
+          { expiresIn: '365d' }
+        );
+        ws.send(JSON.stringify({ type: 'pair-result', data: { syncJwt, serverDeviceId: cfg.deviceId } }));
+        addSyncLog(entry.username, { type: 'device-paired', deviceName: newDevice.deviceName });
+      } else if (msg.type === 'sync-request') {
+        // Remote wants to trigger sync — notify our clients
+        broadcastWS({ type: 'sync-request-received', data: {} });
+      } else if (msg.type === 'ping') {
+        ws.send(JSON.stringify({ type: 'pong' }));
+      }
+    } catch { }
+  });
+
+  ws.on('close', () => {
+    activeSyncPeers.delete(username);
+    broadcastWS({ type: 'sync-status', data: { connected: false } });
+    addSyncLog(username, { type: 'peer-disconnected' });
+  });
+});
+
+// Background sync interval
+let syncIntervalTimer = null;
+function startSyncChecker() {
+  if (syncIntervalTimer) clearInterval(syncIntervalTimer);
+  syncIntervalTimer = setInterval(() => {
+    // Check all users with sync enabled
+    if (!fs.existsSync(DATA_DIR)) return;
+    const users = fs.readdirSync(DATA_DIR, { withFileTypes: true });
+    for (const u of users) {
+      if (!u.isDirectory()) continue;
+      try {
+        const cfg = loadSyncConfig(u.name);
+        if (cfg.enabled && cfg.peerUrl && cfg.syncToken) {
+          // Check if connected, if not reconnect
+          const peer = activeSyncPeers.get(u.name);
+          if (!peer || !peer.ws || peer.ws.readyState !== 1) {
+            if (!outboundSyncConnection) {
+              connectToSyncPeer(u.name, cfg);
+            }
+          } else {
+            // Connected — perform periodic sync
+            performSync(u.name).catch(() => {});
+          }
+        }
+      } catch { }
+    }
+  }, 60000); // Check every minute
+}
+
+// #endregion
+
+// #region Google Drive App
+const { google } = require('googleapis');
+
+function getGdriveSettingsPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe, 'gdrive');
+  ensureDir(dir);
+  return path.join(dir, 'settings.json');
+}
+function loadGdriveSettings(username) {
+  const fp = getGdriveSettingsPath(username);
+  if (!fs.existsSync(fp)) return {};
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return {}; }
+}
+function saveGdriveSettings(username, settings) {
+  fs.writeFileSync(getGdriveSettingsPath(username), JSON.stringify(settings, null, 2));
+}
+
+function createGdriveOAuthClient(settings) {
+  return new google.auth.OAuth2(
+    settings.clientId,
+    settings.clientSecret,
+    settings.redirectUri || 'urn:ietf:wg:oauth:2.0:oob'
+  );
+}
+
+function getAuthenticatedDrive(username) {
+  const settings = loadGdriveSettings(username);
+  if (!settings.clientId || !settings.tokens) return null;
+  const oauth2 = createGdriveOAuthClient(settings);
+  oauth2.setCredentials(settings.tokens);
+  oauth2.on('tokens', (newTokens) => {
+    const s = loadGdriveSettings(username);
+    s.tokens = Object.assign({}, s.tokens, newTokens);
+    saveGdriveSettings(username, s);
+  });
+  return google.drive({ version: 'v3', auth: oauth2 });
+}
+
+// GET /api/gdrive/config
+app.get('/api/gdrive/config', authMiddleware, (req, res) => {
+  const s = loadGdriveSettings(req.user.username);
+  res.json({
+    clientId: s.clientId || '',
+    clientSecret: s.clientSecret ? '••••' : '',
+    redirectUri: s.redirectUri || '',
+    authenticated: !!(s.tokens && s.tokens.access_token)
+  });
+});
+
+// POST /api/gdrive/config
+app.post('/api/gdrive/config', authMiddleware, (req, res) => {
+  const { clientId, clientSecret, redirectUri } = req.body;
+  const s = loadGdriveSettings(req.user.username);
+  if (clientId !== undefined) s.clientId = String(clientId).substring(0, 200);
+  if (clientSecret !== undefined) s.clientSecret = String(clientSecret).substring(0, 200);
+  if (redirectUri !== undefined) s.redirectUri = String(redirectUri).substring(0, 500);
+  saveGdriveSettings(req.user.username, s);
+  res.json({ ok: true });
+});
+
+// GET /api/gdrive/auth-url
+app.get('/api/gdrive/auth-url', authMiddleware, (req, res) => {
+  const s = loadGdriveSettings(req.user.username);
+  if (!s.clientId || !s.clientSecret) return res.status(400).json({ error: 'No OAuth credentials configured' });
+  const oauth2 = createGdriveOAuthClient(s);
+  const url = oauth2.generateAuthUrl({
+    access_type: 'offline',
+    prompt: 'consent',
+    scope: [
+      'https://www.googleapis.com/auth/drive',
+      'https://www.googleapis.com/auth/drive.file',
+      'https://www.googleapis.com/auth/drive.metadata.readonly'
+    ]
+  });
+  res.json({ url });
+});
+
+// POST /api/gdrive/auth-callback
+app.post('/api/gdrive/auth-callback', authMiddleware, async (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'No authorization code' });
+  const s = loadGdriveSettings(req.user.username);
+  if (!s.clientId || !s.clientSecret) return res.status(400).json({ error: 'No OAuth credentials' });
+  try {
+    const oauth2 = createGdriveOAuthClient(s);
+    const { tokens } = await oauth2.getToken(String(code).substring(0, 500));
+    s.tokens = tokens;
+    saveGdriveSettings(req.user.username, s);
+    res.json({ ok: true });
+  } catch (e) { res.status(400).json({ error: e.message }); }
+});
+
+// POST /api/gdrive/disconnect
+app.post('/api/gdrive/disconnect', authMiddleware, (req, res) => {
+  const s = loadGdriveSettings(req.user.username);
+  delete s.tokens;
+  saveGdriveSettings(req.user.username, s);
+  res.json({ ok: true });
+});
+
+// GET /api/gdrive/quota
+app.get('/api/gdrive/quota', authMiddleware, async (req, res) => {
+  const drive = getAuthenticatedDrive(req.user.username);
+  if (!drive) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const about = await drive.about.get({ fields: 'storageQuota' });
+    const q = about.data.storageQuota || {};
+    res.json({ usage: q.usage || '0', limit: q.limit || '0' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/gdrive/files
+app.get('/api/gdrive/files', authMiddleware, async (req, res) => {
+  const drive = getAuthenticatedDrive(req.user.username);
+  if (!drive) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const { folderId, q, shared, starred, trash, pageToken } = req.query;
+    let query = '';
+    if (trash === '1') {
+      query = 'trashed = true';
+    } else if (shared === '1') {
+      query = "sharedWithMe = true and trashed = false";
+    } else if (starred === '1') {
+      query = "starred = true and trashed = false";
+    } else if (q) {
+      query = `name contains '${String(q).replace(/'/g, "\\'")}' and trashed = false`;
+    } else {
+      query = `'${folderId || 'root'}' in parents and trashed = false`;
+    }
+    const params = {
+      q: query,
+      fields: 'nextPageToken, files(id,name,mimeType,size,modifiedTime,owners,webViewLink,starred,thumbnailLink,parents)',
+      pageSize: 100,
+      orderBy: 'folder,name'
+    };
+    if (pageToken) params.pageToken = String(pageToken).substring(0, 500);
+    const result = await drive.files.list(params);
+    res.json({ files: result.data.files || [], nextPageToken: result.data.nextPageToken || null });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/gdrive/folder
+app.post('/api/gdrive/folder', authMiddleware, async (req, res) => {
+  const drive = getAuthenticatedDrive(req.user.username);
+  if (!drive) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const { name, parentId } = req.body;
+    if (!name) return res.status(400).json({ error: 'Name required' });
+    const metadata = { name: String(name).substring(0, 300), mimeType: 'application/vnd.google-apps.folder' };
+    if (parentId) metadata.parents = [String(parentId)];
+    const file = await drive.files.create({ requestBody: metadata, fields: 'id,name' });
+    res.json(file.data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// PATCH /api/gdrive/files/:fileId — rename, star, move
+app.patch('/api/gdrive/files/:fileId', authMiddleware, async (req, res) => {
+  const drive = getAuthenticatedDrive(req.user.username);
+  if (!drive) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const fileId = req.params.fileId;
+    const body = {};
+    if (req.body.name !== undefined) body.name = String(req.body.name).substring(0, 300);
+    if (req.body.starred !== undefined) body.starred = !!req.body.starred;
+    const params = { fileId, requestBody: body, fields: 'id,name,starred' };
+    // Move: addParents / removeParents
+    if (req.body.addParents) params.addParents = String(req.body.addParents);
+    if (req.body.removeParents) params.removeParents = String(req.body.removeParents);
+    const result = await drive.files.update(params);
+    res.json(result.data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// DELETE /api/gdrive/files/:fileId
+app.delete('/api/gdrive/files/:fileId', authMiddleware, async (req, res) => {
+  const drive = getAuthenticatedDrive(req.user.username);
+  if (!drive) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    await drive.files.update({ fileId: req.params.fileId, requestBody: { trashed: true } });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/gdrive/upload
+const gdriveUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
+app.post('/api/gdrive/upload', authMiddleware, gdriveUpload.single('file'), async (req, res) => {
+  const drive = getAuthenticatedDrive(req.user.username);
+  if (!drive) return res.status(401).json({ error: 'Not authenticated' });
+  if (!req.file) return res.status(400).json({ error: 'No file provided' });
+  try {
+    const { Readable } = require('stream');
+    const metadata = { name: Buffer.from(req.file.originalname, 'latin1').toString('utf8') };
+    if (req.body.parentId) metadata.parents = [String(req.body.parentId)];
+    const media = { mimeType: req.file.mimetype, body: Readable.from(req.file.buffer) };
+    const file = await drive.files.create({ requestBody: metadata, media, fields: 'id,name,size' });
+    res.json(file.data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/gdrive/download/:fileId
+app.get('/api/gdrive/download/:fileId', async (req, res) => {
+  // Token from query param for download links
+  const token = req.query.token;
+  if (!token) return res.status(401).json({ error: 'No token' });
+  try {
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(token, config.auth.jwtSecret);
+    const drive = getAuthenticatedDrive(decoded.username);
+    if (!drive) return res.status(401).json({ error: 'Not authenticated' });
+    // Get file metadata first for name
+    const meta = await drive.files.get({ fileId: req.params.fileId, fields: 'name,mimeType,size' });
+    const fileName = meta.data.name || 'download';
+    const mimeType = meta.data.mimeType || 'application/octet-stream';
+    // Google Docs native types need export
+    if (mimeType.startsWith('application/vnd.google-apps.')) {
+      let exportMime = 'application/pdf';
+      if (mimeType.includes('spreadsheet')) exportMime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      else if (mimeType.includes('document')) exportMime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      else if (mimeType.includes('presentation')) exportMime = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+      const exp = await drive.files.export({ fileId: req.params.fileId, mimeType: exportMime }, { responseType: 'stream' });
+      res.setHeader('Content-Disposition', 'attachment; filename="' + encodeURIComponent(fileName) + '"');
+      res.setHeader('Content-Type', exportMime);
+      exp.data.pipe(res);
+    } else {
+      const dl = await drive.files.get({ fileId: req.params.fileId, alt: 'media' }, { responseType: 'stream' });
+      res.setHeader('Content-Disposition', 'attachment; filename="' + encodeURIComponent(fileName) + '"');
+      res.setHeader('Content-Type', mimeType);
+      if (meta.data.size) res.setHeader('Content-Length', meta.data.size);
+      dl.data.pipe(res);
+    }
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+// #endregion
+
 server.listen(config.server.port, config.server.host, () => {
   console.log(`Desktop Server running at http://${config.server.host}:${config.server.port}`);
   console.log(`WebSocket endpoint: ws://${config.server.host}:${config.server.port}/ws`);
@@ -8569,6 +10119,7 @@ server.listen(config.server.port, config.server.host, () => {
   startReminderChecker();
   startSchedulerChecker();
   startMailChecker();
+  startSyncChecker();
 });
 
 // #endregion

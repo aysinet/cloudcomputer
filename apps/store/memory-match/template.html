@@ -35,7 +35,7 @@
         <span class="mm-stat-val">{{ formatTime(elapsedTime) }}</span>
       </div>
       <div class="mm-stat mm-player-stat" :class="{ 'mm-active-player': currentPlayer === 2 }">
-        <span class="mm-stat-label">{{ L('player2') }}</span>
+        <span class="mm-stat-label">{{ vsComputer ? '🤖 ' + L('computer') : L('player2') }}</span>
         <span class="mm-stat-val mm-p2-color">{{ p2Score }}</span>
       </div>
     </template>
@@ -45,7 +45,8 @@
   <div class="mm-difficulty">
     <div class="mm-mode-toggle">
       <el-button size="small" :type="gameMode === 'single' ? 'primary' : ''" @click="setGameMode('single')">{{ L('singlePlayer') }}</el-button>
-      <el-button size="small" :type="gameMode === 'two' ? 'primary' : ''" @click="setGameMode('two')">{{ L('twoPlayer') }}</el-button>
+      <el-button size="small" :type="gameMode === 'two' && !vsComputer ? 'primary' : ''" @click="setGameMode('two')">{{ L('twoPlayer') }}</el-button>
+      <el-button size="small" :type="vsComputer ? 'warning' : ''" @click="toggleVsComputer">🤖 {{ L('vsComputer') }}</el-button>
     </div>
     <div class="mm-diff-btns">
       <el-button size="small" :type="difficulty === 'easy' ? 'success' : ''" @click="changeDifficulty('easy')">{{ L('easy') }}</el-button>
@@ -59,7 +60,7 @@
     <div class="mm-board" :style="{ 'grid-template-columns': 'repeat(' + gridConfig.cols + ', 1fr)' }">
       <div v-for="(card, idx) in cards" :key="card.id"
            class="mm-card" :class="{ 'mm-flipped': card.flipped || card.matched, 'mm-matched': card.matched }"
-           @click="state === 'playing' ? flipCard(idx) : null">
+           @click="state === 'playing' && !(vsComputer && currentPlayer === 2) ? flipCard(idx) : null">
         <div class="mm-card-inner">
           <div class="mm-card-front">
             <span class="mm-card-icon">❓</span>
@@ -83,7 +84,7 @@
     <div class="mm-overlay mm-turn-overlay" v-if="state === 'turnSwitch'">
       <div class="mm-overlay-content">
         <div class="mm-turn-banner" :class="turnBannerPlayer === 1 ? 'mm-p1-banner' : 'mm-p2-banner'">
-          {{ turnBannerPlayer === 1 ? L('player1') : L('player2') }}
+          {{ turnBannerPlayer === 1 ? L('player1') : (vsComputer ? '🤖 ' + L('computer') : L('player2')) }}
         </div>
       </div>
     </div>
@@ -106,7 +107,7 @@
           <div class="mm-final-scores">
             <span class="mm-p1-color">{{ L('player1') }}: {{ p1Score }}</span>
             <span class="mm-score-divider">—</span>
-            <span class="mm-p2-color">{{ L('player2') }}: {{ p2Score }}</span>
+            <span class="mm-p2-color">{{ vsComputer ? '🤖 ' + L('computer') : L('player2') }}: {{ p2Score }}</span>
           </div>
         </template>
         <el-button type="primary" size="large" @click="startGame">{{ L('restart') }}</el-button>

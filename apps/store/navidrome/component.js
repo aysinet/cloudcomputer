@@ -38,7 +38,7 @@
         return [
           'ND_SCANSCHEDULE=1h',
           'ND_LOGLEVEL=info',
-          'ND_BASEURL=',
+          'ND_BASEURL=/proxy/navidrome',
           'ND_MUSICFOLDER=/appdata/music'
         ];
       }

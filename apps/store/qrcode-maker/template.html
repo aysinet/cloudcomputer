@@ -2,9 +2,28 @@
   <!-- Header -->
   <div class="qr-header">
     <span class="qr-title">📱 {{ t('title') }}</span>
+    <button class="qr-saved-toggle" @click="showSaved = !showSaved">
+      {{ showSaved ? '✏️' : '💾' }} {{ showSaved ? t('generate') : t('savedCodes') }}
+      <span v-if="savedCodes.length" class="qr-saved-badge">{{ savedCodes.length }}</span>
+    </button>
   </div>
 
-  <div class="qr-body">
+  <!-- Saved QR Codes View -->
+  <div v-if="showSaved" class="qr-saved-view">
+    <div v-if="!savedCodes.length" class="qr-saved-empty">{{ t('noSaved') }}</div>
+    <div v-else class="qr-saved-grid">
+      <div v-for="code in savedCodes" :key="code.id" class="qr-saved-card" @click="loadSavedToEditor(code)">
+        <img :src="code.dataUrl" class="qr-saved-img" />
+        <div class="qr-saved-info">
+          <div class="qr-saved-label">{{ code.label || code.content.slice(0, 30) }}</div>
+          <div class="qr-saved-date">{{ new Date(code.createdAt).toLocaleDateString() }}</div>
+        </div>
+        <button class="qr-saved-del" @click.stop="deleteSavedCode(code.id)" :title="t('deleteSaved')">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-show="!showSaved" class="qr-body">
     <!-- Left: Input Panel -->
     <div class="qr-input-panel">
       <!-- Type selector -->
@@ -120,17 +139,27 @@
     <!-- Right: Preview Panel -->
     <div class="qr-preview-panel">
       <div class="qr-canvas-wrap">
-        <canvas v-show="hasContent && libReady" id="qr-canvas" width="256" height="256"></canvas>
-        <div v-if="!hasContent" class="qr-placeholder">
+        <img v-if="qrImageUrl && hasContent" :src="qrImageUrl" class="qr-preview-img" />
+        <div v-else-if="generating" class="qr-placeholder">
+          <span class="qr-placeholder-icon">⏳</span>
+          <span class="qr-placeholder-text">{{ t('generating') }}</span>
+        </div>
+        <div v-else class="qr-placeholder">
           <span class="qr-placeholder-icon">📱</span>
           <span class="qr-placeholder-text">{{ t('noContent') }}</span>
         </div>
       </div>
-      <div class="qr-actions" v-if="hasContent && libReady">
+      <div class="qr-actions" v-if="qrImageUrl && hasContent">
         <button class="qr-btn qr-btn-download" @click="downloadPNG">⬇️ {{ t('download') }}</button>
         <button class="qr-btn qr-btn-copy" @click="copyToClipboard">
           {{ copiedMsg ? ('✅ ' + t('copied')) : ('📋 ' + t('copy')) }}
         </button>
+        <div class="qr-save-row">
+          <input v-model="saveLabel" type="text" class="qr-input qr-save-label" :placeholder="t('labelPlaceholder')" />
+          <button class="qr-btn qr-btn-save" @click="saveQRCode">
+            {{ savedMsg ? ('✅ ' + t('saved')) : ('💾 ' + t('save')) }}
+          </button>
+        </div>
       </div>
     </div>
   </div>

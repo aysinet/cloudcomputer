@@ -1,0 +1,56 @@
+{
+  "id": "synchronizer",
+  "name": "Senkronizasyon",
+  "icon": "🔄",
+  "color": "linear-gradient(135deg,#667eea,#764ba2)",
+  "type": "internal",
+  "size": {
+    "w": 720,
+    "h": 560
+  },
+  "global": false,
+  "description": "İki CloudComputer instance arasında kullanıcı verilerini ve dosyalarını senkronize edin",
+  "category": "system",
+  "lang": {
+    "tr": {
+      "name": "Senkronizasyon",
+      "description": "İki CloudComputer instance arasında kullanıcı verilerini ve dosyalarını senkronize edin"
+    },
+    "en": {
+      "name": "Synchronizer",
+      "description": "Sync user data and files between two CloudComputer instances"
+    },
+    "de": {
+      "name": "Synchronisierung",
+      "description": "Benutzerdaten und Dateien zwischen zwei CloudComputer-Instanzen synchronisieren"
+    },
+    "fr": {
+      "name": "Synchronisation",
+      "description": "Synchroniser les données et fichiers entre deux instances CloudComputer"
+    },
+    "es": {
+      "name": "Sincronización",
+      "description": "Sincronizar datos y archivos entre dos instancias de CloudComputer"
+    },
+    "ru": {
+      "name": "Синхронизация",
+      "description": "Синхронизация данных и файлов между двумя экземплярами CloudComputer"
+    },
+    "zh": {
+      "name": "同步",
+      "description": "在两个CloudComputer实例之间同步用户数据和文件"
+    },
+    "ja": {
+      "name": "同期",
+      "description": "2つのCloudComputerインスタンス間でデータとファイルを同期"
+    },
+    "it": {
+      "name": "Sincronizzazione",
+      "description": "Sincronizza dati e file tra due istanze CloudComputer"
+    },
+    "ar": {
+      "name": "مزامنة",
+      "description": "مزامنة البيانات والملفات بين نسختين من CloudComputer"
+    }
+  }
+}

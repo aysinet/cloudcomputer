@@ -1,0 +1,68 @@
+{
+  "id": "wikipedia",
+  "name": "Wikipedia",
+  "icon": "📖",
+  "color": "linear-gradient(135deg,#336699,#1a1a2e)",
+  "type": "internal",
+  "size": {
+    "w": 900,
+    "h": 600
+  },
+  "global": false,
+  "description": "Wikipedia özgür ansiklopediye hızlı erişim",
+  "lang": {
+    "tr": {
+      "name": "Wikipedia",
+      "description": "Wikipedia özgür ansiklopediye hızlı erişim"
+    },
+    "en": {
+      "name": "Wikipedia",
+      "description": "Quick access to Wikipedia free encyclopedia"
+    },
+    "de": {
+      "name": "Wikipedia",
+      "description": "Schneller Zugriff auf die freie Enzyklopädie Wikipedia"
+    },
+    "fr": {
+      "name": "Wikipédia",
+      "description": "Accès rapide à l'encyclopédie libre Wikipédia"
+    },
+    "es": {
+      "name": "Wikipedia",
+      "description": "Acceso rápido a la enciclopedia libre Wikipedia"
+    },
+    "ru": {
+      "name": "Википедия",
+      "description": "Быстрый доступ к свободной энциклопедии Википедия"
+    },
+    "zh": {
+      "name": "维基百科",
+      "description": "快速访问维基百科自由百科全书"
+    },
+    "ja": {
+      "name": "ウィキペディア",
+      "description": "ウィキペディア無料百科事典へのクイックアクセス"
+    },
+    "it": {
+      "name": "Wikipedia",
+      "description": "Accesso rapido all'enciclopedia libera Wikipedia"
+    },
+    "ar": {
+      "name": "ويكيبيديا",
+      "description": "وصول سريع إلى موسوعة ويكيبيديا الحرة"
+    },
+    "ko": {
+      "name": "위키백과",
+      "description": "위키백과 무료 백과사전 빠른 접속"
+    },
+    "hi": {
+      "name": "विकिपीडिया",
+      "description": "विकिपीडिया मुक्त विश्वकोश पर त्वरित पहुँच"
+    },
+    "pt": {
+      "name": "Wikipédia",
+      "description": "Acesso rápido à enciclopédia livre Wikipédia"
+    }
+  },
+  "category": "education"
+}

@@ -1,0 +1,56 @@
+{
+  "id": "chatgpt",
+  "name": "ChatGPT",
+  "icon": "💬",
+  "color": "linear-gradient(135deg, #10a37f, #1a7f64)",
+  "type": "internal",
+  "size": {
+    "w": 860,
+    "h": 640
+  },
+  "global": false,
+  "description": "ChatGPT — yapay zeka sohbet asistanı",
+  "category": "productivity",
+  "lang": {
+    "tr": {
+      "name": "ChatGPT",
+      "description": "ChatGPT — yapay zeka sohbet asistanı"
+    },
+    "en": {
+      "name": "ChatGPT",
+      "description": "ChatGPT — AI chat assistant"
+    },
+    "de": {
+      "name": "ChatGPT",
+      "description": "ChatGPT — KI-Chat-Assistent"
+    },
+    "fr": {
+      "name": "ChatGPT",
+      "description": "ChatGPT — assistant de chat IA"
+    },
+    "es": {
+      "name": "ChatGPT",
+      "description": "ChatGPT — asistente de chat con IA"
+    },
+    "ru": {
+      "name": "ChatGPT",
+      "description": "ChatGPT — ИИ-чат-ассистент"
+    },
+    "zh": {
+      "name": "ChatGPT",
+      "description": "ChatGPT — AI聊天助手"
+    },
+    "ja": {
+      "name": "ChatGPT",
+      "description": "ChatGPT — AIチャットアシスタント"
+    },
+    "it": {
+      "name": "ChatGPT",
+      "description": "ChatGPT — assistente chat AI"
+    },
+    "ar": {
+      "name": "ChatGPT",
+      "description": "ChatGPT — مساعد دردشة بالذكاء الاصطناعي"
+    }
+  }
+}

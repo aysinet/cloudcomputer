@@ -82,7 +82,7 @@
 .hex-grid-container::-webkit-scrollbar-thumb:hover { background: #484f58; }
 
 .hex-grid-spacer { width: 1px; pointer-events: none; }
-.hex-grid { position: sticky; top: 0; }
+.hex-grid { position: absolute; top: 0; left: 0; right: 0; }
 
 /* Rows */
 .hex-row {

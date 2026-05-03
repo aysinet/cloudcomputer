@@ -1,0 +1,56 @@
+{
+  "id": "gdrive",
+  "name": "Google Drive",
+  "icon": "☁️",
+  "color": "linear-gradient(135deg,#4285F4,#0F9D58)",
+  "type": "internal",
+  "size": {
+    "w": 1000,
+    "h": 650
+  },
+  "global": false,
+  "description": "Google Drive dosya yöneticisi — dosya yükleme, indirme, klasör yönetimi ve paylaşım",
+  "category": "cloud",
+  "lang": {
+    "tr": {
+      "name": "Google Drive",
+      "description": "Google Drive dosya yöneticisi — dosya yükleme, indirme, klasör yönetimi ve paylaşım"
+    },
+    "en": {
+      "name": "Google Drive",
+      "description": "Google Drive file manager — upload, download, folder management and sharing"
+    },
+    "de": {
+      "name": "Google Drive",
+      "description": "Google Drive Dateimanager — Hochladen, Herunterladen, Ordnerverwaltung und Freigabe"
+    },
+    "fr": {
+      "name": "Google Drive",
+      "description": "Gestionnaire Google Drive — téléchargement, dossiers et partage"
+    },
+    "es": {
+      "name": "Google Drive",
+      "description": "Gestor de Google Drive — subir, descargar, carpetas y compartir"
+    },
+    "ru": {
+      "name": "Google Drive",
+      "description": "Менеджер Google Drive — загрузка, скачивание, папки и общий доступ"
+    },
+    "zh": {
+      "name": "Google Drive",
+      "description": "Google Drive 文件管理器 — 上传、下载、文件夹管理和共享"
+    },
+    "ja": {
+      "name": "Google Drive",
+      "description": "Google Drive ファイルマネージャー — アップロード、ダウンロード、フォルダ管理、共有"
+    },
+    "it": {
+      "name": "Google Drive",
+      "description": "Gestore Google Drive — caricamento, download, cartelle e condivisione"
+    },
+    "ar": {
+      "name": "Google Drive",
+      "description": "مدير Google Drive — رفع وتنزيل الملفات وإدارة المجلدات والمشاركة"
+    }
+  }
+}

@@ -1,0 +1,56 @@
+<div class="wikipedia-app">
+  <!-- Toolbar -->
+  <div class="wiki-toolbar">
+    <span class="wiki-toolbar-title">📖 Wikipedia</span>
+    <div class="wiki-toolbar-actions">
+      <select class="wiki-lang-select" v-model="wikiLang" @change="navigateHome">
+        <option v-for="l in languages" :key="l.code" :value="l.code">{{ l.label }}</option>
+      </select>
+      <button class="wiki-btn" @click="navigateHome" :title="t.home">🏠</button>
+      <button class="wiki-btn" @click="openRandom" :title="t.random">🎲</button>
+      <div class="wiki-separator"></div>
+      <button class="wiki-btn" :class="{ 'wiki-btn-active': isFavorite() }" @click="toggleFavorite" :title="isFavorite() ? t.removeFav : t.addFav">
+        {{ isFavorite() ? '★' : '☆' }}
+      </button>
+      <button class="wiki-btn" @click="showFavPanel = !showFavPanel" :title="t.favorites">
+        📑 <span class="wiki-badge" v-if="favorites.length">{{ favorites.length }}</span>
+      </button>
+      <div class="wiki-separator"></div>
+      <button class="wiki-btn" @click="savePdf" :disabled="pdfStatus === 'saving'" :title="t.savePdf">
+        <span v-if="pdfStatus === 'saving'" class="wiki-spin">⏳</span>
+        <span v-else>📄</span>
+      </button>
+      <button class="wiki-btn" @click="shareLink" :title="t.share">📤</button>
+      <button class="wiki-btn" @click="openExternal" :title="t.openTab">🔗</button>
+    </div>
+  </div>
+
+  <!-- Favorites Panel -->
+  <div class="wiki-fav-panel" v-if="showFavPanel">
+    <div class="wiki-fav-header">
+      <span>★ {{ t.favorites }}</span>
+      <button class="wiki-btn wiki-btn-sm" @click="showFavPanel = false">✕</button>
+    </div>
+    <div class="wiki-fav-list" v-if="favorites.length">
+      <div class="wiki-fav-item" v-for="(fav, idx) in favorites" :key="fav.url">
+        <div class="wiki-fav-info" @click="openFavorite(fav)">
+          <span class="wiki-fav-title">{{ fav.title || fav.url }}</span>
+        </div>
+        <button class="wiki-fav-del" @click="deleteFavorite(idx)" :title="t.delete">🗑</button>
+      </div>
+    </div>
+    <div class="wiki-fav-empty" v-else>{{ t.noFavs }}</div>
+  </div>
+
+  <!-- Toast -->
+  <div class="wiki-toast" v-if="toast">{{ toast }}</div>
+
+  <!-- Wikipedia iframe -->
+  <iframe
+    :src="iframeSrc"
+    class="wiki-iframe"
+    frameborder="0"
+    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+    referrerpolicy="no-referrer"
+  ></iframe>
+</div>

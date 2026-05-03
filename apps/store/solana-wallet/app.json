@@ -1,0 +1,56 @@
+{
+  "id": "solana-wallet",
+  "name": "Solana Cüzdan",
+  "icon": "◎",
+  "color": "linear-gradient(135deg,#9945FF,#14F195)",
+  "type": "internal",
+  "size": {
+    "w": 440,
+    "h": 620
+  },
+  "global": false,
+  "description": "Solana cüzdanı — bakiye, gönder, işlem geçmişi",
+  "category": "finance",
+  "lang": {
+    "tr": {
+      "name": "Solana Cüzdan",
+      "description": "Solana cüzdanı — bakiye, transfer, işlem geçmişi"
+    },
+    "en": {
+      "name": "Solana Wallet",
+      "description": "Solana wallet — balance, transfer, transaction history"
+    },
+    "de": {
+      "name": "Solana-Wallet",
+      "description": "Solana-Wallet — Kontostand, Senden, Transaktionshistorie"
+    },
+    "fr": {
+      "name": "Portefeuille Solana",
+      "description": "Portefeuille Solana — solde, envoyer, historique des transactions"
+    },
+    "es": {
+      "name": "Cartera Solana",
+      "description": "Cartera Solana — saldo, enviar, historial de transacciones"
+    },
+    "ru": {
+      "name": "Кошелёк Solana",
+      "description": "Кошелёк Solana — баланс, отправка, история транзакций"
+    },
+    "zh": {
+      "name": "Solana钱包",
+      "description": "管理Solana资产 — 余额、转账、交易历史"
+    },
+    "ja": {
+      "name": "Solanaウォレット",
+      "description": "Solanaウォレット — 残高、送金、取引履歴"
+    },
+    "it": {
+      "name": "Portafoglio Solana",
+      "description": "Portafoglio Solana — saldo, invio, cronologia transazioni"
+    },
+    "ar": {
+      "name": "محفظة سولانا",
+      "description": "محفظة سولانا — الرصيد، الإرسال، سجل المعاملات"
+    }
+  }
+}

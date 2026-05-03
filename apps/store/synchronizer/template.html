@@ -1,0 +1,253 @@
+<div class="sync-root">
+  <div class="sync-toast" v-if="toast">{{ toast }}</div>
+
+  <div class="sync-layout">
+    <!-- Sidebar -->
+    <div class="sync-sidebar">
+      <div class="sync-sb-item" :class="{ active: tab === 'status' }" @click="tab = 'status'">
+        <span class="sync-sb-icon">📡</span><span class="sync-sb-text">{{ L('status') }}</span>
+      </div>
+      <div class="sync-sb-item" :class="{ active: tab === 'pairing' }" @click="tab = 'pairing'">
+        <span class="sync-sb-icon">🔗</span><span class="sync-sb-text">{{ L('pairing') }}</span>
+      </div>
+      <div class="sync-sb-item" :class="{ active: tab === 'settings' }" @click="tab = 'settings'">
+        <span class="sync-sb-icon">⚙️</span><span class="sync-sb-text">{{ L('settings') }}</span>
+      </div>
+      <div class="sync-sb-item" :class="{ active: tab === 'log' }" @click="tab = 'log'">
+        <span class="sync-sb-icon">📋</span><span class="sync-sb-text">{{ L('log') }}</span>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="sync-main">
+
+      <!-- STATUS TAB -->
+      <div v-if="tab === 'status'" class="sync-panel">
+        <h2 class="sync-title">{{ L('status') }}</h2>
+
+        <div class="sync-status-card">
+          <div class="sync-status-row">
+            <span class="sync-label">{{ L('status') }}</span>
+            <span class="sync-badge" :class="status.connected ? 'badge-green' : 'badge-red'">
+              {{ status.connected ? L('connected') : L('disconnected') }}
+            </span>
+          </div>
+          <div class="sync-status-row">
+            <span class="sync-label">{{ L('enabled') }}</span>
+            <span class="sync-badge" :class="status.enabled ? 'badge-green' : 'badge-gray'">
+              {{ status.enabled ? L('enabled') : L('disabled') }}
+            </span>
+          </div>
+          <div class="sync-status-row" v-if="status.peerUrl">
+            <span class="sync-label">{{ L('peerUrl') }}</span>
+            <span class="sync-value">{{ status.peerUrl }}</span>
+          </div>
+          <div class="sync-status-row">
+            <span class="sync-label">{{ L('deviceName') }}</span>
+            <span class="sync-value">{{ status.deviceName || '—' }}</span>
+          </div>
+          <div class="sync-status-row">
+            <span class="sync-label">{{ L('lastSync') }}</span>
+            <span class="sync-value">{{ formatTime(status.lastSyncTime) }}</span>
+          </div>
+        </div>
+
+        <!-- Sync button -->
+        <div class="sync-actions">
+          <button class="sync-btn sync-btn-primary" @click="syncNow" :disabled="syncing || !status.enabled">
+            <span v-if="syncing" class="sync-spinner"></span>
+            {{ syncing ? L('syncing') : L('syncNow') }}
+          </button>
+        </div>
+
+        <!-- Sync result -->
+        <div v-if="syncResult" class="sync-result-card">
+          <div v-if="syncResult.error" class="sync-result-error">❌ {{ syncResult.error }}</div>
+          <div v-else class="sync-result-grid">
+            <div class="sync-result-item">
+              <span class="sync-result-num">{{ syncResult.downloaded || 0 }}</span>
+              <span class="sync-result-label">{{ L('downloaded') }}</span>
+            </div>
+            <div class="sync-result-item">
+              <span class="sync-result-num">{{ syncResult.uploaded || 0 }}</span>
+              <span class="sync-result-label">{{ L('uploaded') }}</span>
+            </div>
+            <div class="sync-result-item">
+              <span class="sync-result-num">{{ syncResult.synced || 0 }}</span>
+              <span class="sync-result-label">Total</span>
+            </div>
+            <div class="sync-result-item" v-if="syncResult.errors">
+              <span class="sync-result-num sync-result-err">{{ syncResult.errors }}</span>
+              <span class="sync-result-label">{{ L('errors') }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paired devices -->
+        <div class="sync-section" v-if="status.pairedDevices && status.pairedDevices.length">
+          <h3 class="sync-subtitle">{{ L('pairedDevices') }}</h3>
+          <div class="sync-device-list">
+            <div v-for="d in status.pairedDevices" :key="d.deviceId" class="sync-device-item">
+              <span class="sync-device-icon">💻</span>
+              <div class="sync-device-info">
+                <span class="sync-device-name">{{ d.deviceName }}</span>
+                <span class="sync-device-date">{{ formatTime(d.pairedAt) }}</span>
+              </div>
+              <button class="sync-btn sync-btn-sm sync-btn-danger" @click="unpairDevice(d.deviceId)">{{ L('unpair') }}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAIRING TAB -->
+      <div v-if="tab === 'pairing'" class="sync-panel">
+        <h2 class="sync-title">{{ L('pairing') }}</h2>
+
+        <div v-if="!pairMode" class="sync-pair-choose">
+          <p class="sync-hint">{{ L('pairMode') }}</p>
+          <div class="sync-pair-buttons">
+            <button class="sync-btn sync-btn-outline" @click="pairMode = 'server'">
+              <span class="sync-pair-icon">🖥️</span>
+              <span>{{ L('asServer') }}</span>
+            </button>
+            <button class="sync-btn sync-btn-outline" @click="pairMode = 'client'">
+              <span class="sync-pair-icon">💻</span>
+              <span>{{ L('asClient') }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Server mode — generate code -->
+        <div v-if="pairMode === 'server'" class="sync-pair-panel">
+          <button class="sync-btn sync-btn-primary" @click="generateCode" v-if="!pairingCode">{{ L('generateCode') }}</button>
+
+          <div v-if="pairingCode" class="sync-code-display">
+            <p class="sync-hint">{{ L('waitingPair') }}</p>
+            <div class="sync-code-box">{{ pairingCode }}</div>
+            <p class="sync-countdown" v-if="pairingCountdown > 0">
+              {{ L('codeExpires') }} <strong>{{ Math.floor(pairingCountdown / 60) }}:{{ String(pairingCountdown % 60).padStart(2, '0') }}</strong>
+            </p>
+          </div>
+
+          <button class="sync-btn sync-btn-sm sync-btn-ghost" @click="pairMode = ''">← {{ L('status') }}</button>
+        </div>
+
+        <!-- Client mode — enter URL + code -->
+        <div v-if="pairMode === 'client'" class="sync-pair-panel">
+          <p class="sync-hint">{{ L('enterPeerInfo') }}</p>
+
+          <div class="sync-field">
+            <label class="sync-field-label">{{ L('peerUrl') }}</label>
+            <input class="sync-input" v-model="clientPeerUrl" :placeholder="L('peerUrlHint')" />
+          </div>
+
+          <div class="sync-field">
+            <label class="sync-field-label">{{ L('pairingCode') }}</label>
+            <input class="sync-input sync-input-code" v-model="clientPairingCode" placeholder="SYNC-XXXX-XXXX" />
+          </div>
+
+          <div class="sync-pair-actions">
+            <button class="sync-btn sync-btn-primary" @click="connectToPeer" :disabled="loading || !clientPeerUrl || !clientPairingCode">
+              <span v-if="loading" class="sync-spinner"></span>
+              {{ L('connect') }}
+            </button>
+            <button class="sync-btn sync-btn-sm sync-btn-ghost" @click="pairMode = ''">← {{ L('status') }}</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS TAB -->
+      <div v-if="tab === 'settings'" class="sync-panel">
+        <h2 class="sync-title">{{ L('settings') }}</h2>
+
+        <div class="sync-settings-card">
+          <div class="sync-field">
+            <label class="sync-field-label">{{ L('deviceName') }}</label>
+            <input class="sync-input" v-model="config.deviceName" />
+          </div>
+
+          <div class="sync-field">
+            <label class="sync-field-label">{{ L('syncFolders') }}</label>
+            <div class="sync-folder-grid">
+              <label v-for="f in allFolders" :key="f" class="sync-folder-check">
+                <input type="checkbox" :checked="config.syncFolders.includes(f)" @change="toggleFolder(f)" />
+                <span>{{ L(f) || f }}</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="sync-field">
+            <label class="sync-field-label">
+              <input type="checkbox" v-model="config.syncAppData" />
+              {{ L('syncAppData') }}
+            </label>
+          </div>
+
+          <div class="sync-field">
+            <label class="sync-field-label">{{ L('conflictStrategy') }}</label>
+            <select class="sync-select" v-model="config.conflictStrategy">
+              <option value="last-write-wins">{{ L('lww') }}</option>
+              <option value="keep-both">{{ L('keepBoth') }}</option>
+            </select>
+          </div>
+
+          <div class="sync-field-row">
+            <div class="sync-field">
+              <label class="sync-field-label">{{ L('interval') }}</label>
+              <input class="sync-input sync-input-sm" type="number" v-model.number="config.intervalSeconds" min="30" max="3600" />
+            </div>
+            <div class="sync-field">
+              <label class="sync-field-label">{{ L('maxFileSize') }}</label>
+              <input class="sync-input sync-input-sm" type="number" :value="Math.round(config.maxFileSize / 1048576)" @input="config.maxFileSize = $event.target.value * 1048576" min="1" max="1024" />
+            </div>
+          </div>
+
+          <div class="sync-field">
+            <label class="sync-field-label">{{ L('excludePatterns') }}</label>
+            <div class="sync-tag-list">
+              <span v-for="(p, i) in config.excludePatterns" :key="i" class="sync-tag">
+                {{ p }} <span class="sync-tag-x" @click="removeExclude(i)">×</span>
+              </span>
+            </div>
+            <div class="sync-tag-input-row">
+              <input class="sync-input sync-input-sm" v-model="excludeInput" @keydown.enter="addExclude" placeholder="*.tmp" />
+              <button class="sync-btn sync-btn-sm" @click="addExclude">+</button>
+            </div>
+          </div>
+
+          <div class="sync-actions">
+            <button class="sync-btn sync-btn-primary" @click="saveConfig">
+              {{ configSaved ? '✓ ' + L('saved') : L('save') }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOG TAB -->
+      <div v-if="tab === 'log'" class="sync-panel">
+        <div class="sync-log-header">
+          <h2 class="sync-title">{{ L('log') }}</h2>
+          <button class="sync-btn sync-btn-sm sync-btn-ghost" @click="clearLogs" v-if="logs.length">{{ L('clearLog') }}</button>
+        </div>
+
+        <div v-if="!logs.length" class="sync-empty">{{ L('noLogs') }}</div>
+
+        <div class="sync-log-list" v-else>
+          <div v-for="(entry, i) in logs" :key="i" class="sync-log-item">
+            <span class="sync-log-icon">{{ logIcon(entry.type) }}</span>
+            <div class="sync-log-body">
+              <div class="sync-log-type">{{ entry.type }}</div>
+              <div class="sync-log-detail" v-if="entry.downloaded !== undefined">
+                ↓{{ entry.downloaded }} ↑{{ entry.uploaded }} | {{ L('errors') }}: {{ entry.errors || 0 }}
+              </div>
+              <div class="sync-log-detail" v-else-if="entry.message">{{ entry.message }}</div>
+              <div class="sync-log-detail" v-else-if="entry.peer">{{ entry.peer }}</div>
+            </div>
+            <span class="sync-log-time">{{ formatTime(entry.time) }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

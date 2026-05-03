@@ -1,0 +1,366 @@
+<div class="rq-app">
+  <!-- Sidebar -->
+  <div class="rq-sidebar">
+    <!-- Search -->
+    <div class="rq-sidebar-search">
+      <el-input v-model="searchQuery" :placeholder="t('searchRequests')" size="small" prefix-icon="Search" clearable />
+    </div>
+
+    <!-- Sidebar tabs -->
+    <div class="rq-sidebar-tabs">
+      <button :class="['rq-stab', sidebarTab==='collections' && 'active']" @click="sidebarTab='collections'">{{ t('collections') }}</button>
+      <button :class="['rq-stab', sidebarTab==='history' && 'active']" @click="sidebarTab='history'">{{ t('history') }}</button>
+      <button :class="['rq-stab', sidebarTab==='environments' && 'active']" @click="sidebarTab='environments'">{{ t('environments') }}</button>
+    </div>
+
+    <!-- Collections -->
+    <div v-if="sidebarTab==='collections'" class="rq-sidebar-body">
+      <div class="rq-sidebar-actions">
+        <el-button size="small" @click="addCollection" type="primary" plain>+ {{ t('newCollection') }}</el-button>
+        <el-button size="small" @click="showImportDialog=true" plain>📥 {{ t('importPostman') }}</el-button>
+      </div>
+      <div v-if="!filteredCollections.length" class="rq-empty">{{ t('noCollections') }}</div>
+      <div v-for="(col, ci) in filteredCollections" :key="col.id" class="rq-collection">
+        <div class="rq-collection-header" @contextmenu.prevent>
+          <span class="rq-coll-icon">📁</span>
+          <span class="rq-coll-name" @dblclick="renameItem(col)">{{ col.name }}</span>
+          <div class="rq-coll-actions">
+            <el-dropdown trigger="click" size="small">
+              <span class="rq-coll-menu">⋯</span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="addRequestToCollection(col)">{{ t('newRequest') }}</el-dropdown-item>
+                  <el-dropdown-item @click="addFolder(col)">{{ t('newFolder') }}</el-dropdown-item>
+                  <el-dropdown-item divided @click="exportCollection(col)">{{ t('exportCollection') }}</el-dropdown-item>
+                  <el-dropdown-item @click="renameItem(col)">{{ t('rename') }}</el-dropdown-item>
+                  <el-dropdown-item @click="deleteItem(collections, ci)" style="color:#f87171">{{ t('delete') }}</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+        </div>
+        <!-- Items (folders + requests) -->
+        <div class="rq-coll-items">
+          <template v-for="(item, ii) in col.items" :key="item.id">
+            <!-- Folder -->
+            <div v-if="item.type==='folder'" class="rq-folder">
+              <div class="rq-folder-header">
+                <span class="rq-folder-icon">📂</span>
+                <span class="rq-folder-name" @dblclick="renameItem(item)">{{ item.name }}</span>
+                <div class="rq-coll-actions">
+                  <el-dropdown trigger="click" size="small">
+                    <span class="rq-coll-menu">⋯</span>
+                    <template #dropdown>
+                      <el-dropdown-menu>
+                        <el-dropdown-item @click="addRequestToCollection(item)">{{ t('newRequest') }}</el-dropdown-item>
+                        <el-dropdown-item @click="renameItem(item)">{{ t('rename') }}</el-dropdown-item>
+                        <el-dropdown-item @click="deleteItem(col.items, ii)" style="color:#f87171">{{ t('delete') }}</el-dropdown-item>
+                      </el-dropdown-menu>
+                    </template>
+                  </el-dropdown>
+                </div>
+              </div>
+              <div class="rq-folder-items">
+                <div v-for="(sub, si) in item.items" :key="sub.id" class="rq-request-item" @click="openRequestInTab(sub)">
+                  <span class="rq-method-badge" :style="{ color: METHOD_COLORS[sub.method] || '#ccc' }">{{ sub.method }}</span>
+                  <span class="rq-req-name">{{ sub.name }}</span>
+                  <div class="rq-coll-actions">
+                    <el-dropdown trigger="click" size="small" @click.stop>
+                      <span class="rq-coll-menu">⋯</span>
+                      <template #dropdown>
+                        <el-dropdown-menu>
+                          <el-dropdown-item @click="duplicateRequest(item.items, si)">{{ t('duplicate') }}</el-dropdown-item>
+                          <el-dropdown-item @click="renameItem(sub)">{{ t('rename') }}</el-dropdown-item>
+                          <el-dropdown-item @click="deleteItem(item.items, si)" style="color:#f87171">{{ t('delete') }}</el-dropdown-item>
+                        </el-dropdown-menu>
+                      </template>
+                    </el-dropdown>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Request -->
+            <div v-else class="rq-request-item" @click="openRequestInTab(item)">
+              <span class="rq-method-badge" :style="{ color: METHOD_COLORS[item.method] || '#ccc' }">{{ item.method }}</span>
+              <span class="rq-req-name">{{ item.name }}</span>
+              <div class="rq-coll-actions">
+                <el-dropdown trigger="click" size="small" @click.stop>
+                  <span class="rq-coll-menu">⋯</span>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item @click="duplicateRequest(col.items, ii)">{{ t('duplicate') }}</el-dropdown-item>
+                      <el-dropdown-item @click="renameItem(item)">{{ t('rename') }}</el-dropdown-item>
+                      <el-dropdown-item @click="deleteItem(col.items, ii)" style="color:#f87171">{{ t('delete') }}</el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div v-if="sidebarTab==='history'" class="rq-sidebar-body">
+      <div class="rq-sidebar-actions" v-if="history.length">
+        <el-button size="small" @click="clearHistory" type="danger" plain>{{ t('clearHistory') }}</el-button>
+      </div>
+      <div v-if="!filteredHistory.length" class="rq-empty">{{ t('noHistory') }}</div>
+      <div v-for="h in filteredHistory" :key="h.id" class="rq-history-item" @click="openFromHistory(h)">
+        <span class="rq-method-badge" :style="{ color: METHOD_COLORS[h.method] || '#ccc' }">{{ h.method }}</span>
+        <div class="rq-hist-info">
+          <span class="rq-hist-url">{{ h.url }}</span>
+          <span class="rq-hist-meta">{{ h.status }} · {{ h.time }}{{ t('ms') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Environments -->
+    <div v-if="sidebarTab==='environments'" class="rq-sidebar-body">
+      <div class="rq-sidebar-actions">
+        <el-button size="small" @click="addEnvironment" type="primary" plain>+ {{ t('addEnv') }}</el-button>
+      </div>
+      <div class="rq-env-select">
+        <el-select v-model="activeEnvId" :placeholder="t('noEnv')" size="small" clearable style="width:100%">
+          <el-option v-for="env in environments" :key="env.id" :label="env.name" :value="env.id" />
+        </el-select>
+      </div>
+      <div v-for="(env, ei) in environments" :key="env.id" class="rq-env-card">
+        <div class="rq-env-header">
+          <el-input v-model="env.name" size="small" style="flex:1" />
+          <el-button size="small" type="danger" plain @click="deleteEnvironment(ei)">{{ t('delete') }}</el-button>
+        </div>
+        <div v-for="(v, vi) in env.variables" :key="vi" class="rq-env-row">
+          <el-checkbox v-model="v.enabled" size="small" />
+          <el-input v-model="v.key" :placeholder="t('variable')" size="small" style="flex:1" />
+          <el-input v-model="v.value" :placeholder="t('value')" size="small" style="flex:1" />
+          <button class="rq-row-del" @click="removeEnvVariable(env, vi)">✕</button>
+        </div>
+        <el-button size="small" @click="addEnvVariable(env)" plain style="margin-top:4px">+ {{ t('addVariable') }}</el-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main area -->
+  <div class="rq-main">
+    <!-- Tabs bar -->
+    <div class="rq-tabs-bar">
+      <div class="rq-tabs-scroll">
+        <div v-for="tab in tabs" :key="tab.id"
+             :class="['rq-tab', activeTabId===tab.id && 'active']"
+             @click="activeTabId=tab.id">
+          <span class="rq-tab-method" :style="{ color: METHOD_COLORS[tab.method] || '#ccc' }">{{ tab.method }}</span>
+          <span class="rq-tab-name">{{ tab.name || t('untitled') }}</span>
+          <span class="rq-tab-close" @click.stop="closeTab(tab.id)">✕</span>
+        </div>
+      </div>
+      <button class="rq-tab-add" @click="openNewTab()" title="+">+</button>
+    </div>
+
+    <!-- Request area -->
+    <div v-if="activeTab" class="rq-request-area">
+      <!-- URL bar -->
+      <div class="rq-url-bar">
+        <el-select v-model="activeTab.method" style="width:120px" size="large">
+          <el-option v-for="m in HTTP_METHODS" :key="m" :label="m" :value="m">
+            <span :style="{ color: METHOD_COLORS[m], fontWeight: 600 }">{{ m }}</span>
+          </el-option>
+        </el-select>
+        <el-input v-model="activeTab.url" :placeholder="t('url')" size="large" style="flex:1"
+                  @keydown.enter="sendRequest" clearable />
+        <el-button type="primary" size="large" @click="sendRequest" :loading="loading"
+                   style="min-width:100px;font-weight:600">
+          {{ loading ? t('sending') : t('send') }}
+        </el-button>
+      </div>
+
+      <!-- Request config tabs -->
+      <div class="rq-config-area">
+        <el-tabs v-model="activeTab.requestTab" type="border-card" class="rq-config-tabs">
+          <!-- Params -->
+          <el-tab-pane :label="t('params')" name="params">
+            <div class="rq-kv-table">
+              <div class="rq-kv-header">
+                <span style="width:32px"></span>
+                <span style="flex:1">{{ t('key') }}</span>
+                <span style="flex:1">{{ t('value') }}</span>
+                <span style="flex:1">{{ t('description') }}</span>
+                <span style="width:32px"></span>
+              </div>
+              <div v-for="(p, pi) in activeTab.params" :key="pi" class="rq-kv-row">
+                <el-checkbox v-model="p.enabled" size="small" />
+                <el-input v-model="p.key" :placeholder="t('key')" size="small" />
+                <el-input v-model="p.value" :placeholder="t('value')" size="small" />
+                <el-input v-model="p.description" :placeholder="t('description')" size="small" />
+                <button class="rq-row-del" @click="removeRow(activeTab.params, pi)">✕</button>
+              </div>
+              <el-button size="small" @click="addRow(activeTab.params)" plain class="rq-add-row">+ {{ t('addParam') }}</el-button>
+            </div>
+          </el-tab-pane>
+
+          <!-- Headers -->
+          <el-tab-pane :label="t('headers')" name="headers">
+            <div class="rq-kv-table">
+              <div class="rq-kv-header">
+                <span style="width:32px"></span>
+                <span style="flex:1">{{ t('key') }}</span>
+                <span style="flex:1">{{ t('value') }}</span>
+                <span style="flex:1">{{ t('description') }}</span>
+                <span style="width:32px"></span>
+              </div>
+              <div v-for="(h, hi) in activeTab.headers" :key="hi" class="rq-kv-row">
+                <el-checkbox v-model="h.enabled" size="small" />
+                <el-input v-model="h.key" :placeholder="t('key')" size="small" />
+                <el-input v-model="h.value" :placeholder="t('value')" size="small" />
+                <el-input v-model="h.description" :placeholder="t('description')" size="small" />
+                <button class="rq-row-del" @click="removeRow(activeTab.headers, hi)">✕</button>
+              </div>
+              <el-button size="small" @click="addRow(activeTab.headers)" plain class="rq-add-row">+ {{ t('addHeader') }}</el-button>
+            </div>
+          </el-tab-pane>
+
+          <!-- Body -->
+          <el-tab-pane :label="t('body')" name="body">
+            <div class="rq-body-config">
+              <el-radio-group v-model="activeTab.bodyType" size="small">
+                <el-radio-button value="none">{{ t('none') }}</el-radio-button>
+                <el-radio-button value="raw">{{ t('rawBody') }}</el-radio-button>
+                <el-radio-button value="form-data">{{ t('formData') }}</el-radio-button>
+                <el-radio-button value="x-www-form-urlencoded">{{ t('xWwwForm') }}</el-radio-button>
+              </el-radio-group>
+              <template v-if="activeTab.bodyType==='raw'">
+                <el-select v-model="activeTab.bodyRawType" size="small" style="width:180px;margin-left:12px">
+                  <el-option label="JSON" value="application/json" />
+                  <el-option label="XML" value="application/xml" />
+                  <el-option label="Text" value="text/plain" />
+                  <el-option label="HTML" value="text/html" />
+                  <el-option label="JavaScript" value="application/javascript" />
+                </el-select>
+                <el-button size="small" @click="beautifyBody" plain style="margin-left:8px">{{ t('beautify') }}</el-button>
+              </template>
+            </div>
+            <!-- Raw body editor -->
+            <div v-if="activeTab.bodyType==='raw'" class="rq-raw-body">
+              <textarea v-model="activeTab.bodyRaw" class="rq-body-editor" spellcheck="false"
+                        :placeholder="activeTab.bodyRawType === 'application/json' ? '{\n  \n}' : ''"></textarea>
+            </div>
+            <!-- Form data -->
+            <div v-else-if="activeTab.bodyType==='form-data'" class="rq-kv-table">
+              <div v-for="(f, fi) in activeTab.bodyFormData" :key="fi" class="rq-kv-row">
+                <el-checkbox v-model="f.enabled" size="small" />
+                <el-input v-model="f.key" :placeholder="t('key')" size="small" />
+                <el-input v-model="f.value" :placeholder="t('value')" size="small" />
+                <button class="rq-row-del" @click="removeRow(activeTab.bodyFormData, fi)">✕</button>
+              </div>
+              <el-button size="small" @click="addRow(activeTab.bodyFormData)" plain class="rq-add-row">+ {{ t('addParam') }}</el-button>
+            </div>
+            <!-- URL Encoded -->
+            <div v-else-if="activeTab.bodyType==='x-www-form-urlencoded'" class="rq-kv-table">
+              <div v-for="(f, fi) in activeTab.bodyUrlEncoded" :key="fi" class="rq-kv-row">
+                <el-checkbox v-model="f.enabled" size="small" />
+                <el-input v-model="f.key" :placeholder="t('key')" size="small" />
+                <el-input v-model="f.value" :placeholder="t('value')" size="small" />
+                <button class="rq-row-del" @click="removeRow(activeTab.bodyUrlEncoded, fi)">✕</button>
+              </div>
+              <el-button size="small" @click="addRow(activeTab.bodyUrlEncoded)" plain class="rq-add-row">+ {{ t('addParam') }}</el-button>
+            </div>
+            <!-- No body -->
+            <div v-else class="rq-no-body">{{ t('noBody') }}</div>
+          </el-tab-pane>
+
+          <!-- Auth -->
+          <el-tab-pane :label="t('auth')" name="auth">
+            <div class="rq-auth-config">
+              <el-select v-model="activeTab.authType" size="small" style="width:200px;margin-bottom:12px">
+                <el-option :label="t('none')" value="none" />
+                <el-option :label="t('bearerToken')" value="bearer" />
+                <el-option :label="t('basicAuth')" value="basic" />
+                <el-option :label="t('apiKey')" value="apikey" />
+              </el-select>
+              <div v-if="activeTab.authType==='bearer'" class="rq-auth-fields">
+                <el-input v-model="activeTab.authBearer" :placeholder="t('token')" size="small" type="textarea" :rows="2" />
+              </div>
+              <div v-else-if="activeTab.authType==='basic'" class="rq-auth-fields">
+                <el-input v-model="activeTab.authBasicUser" :placeholder="t('username')" size="small" style="margin-bottom:8px" />
+                <el-input v-model="activeTab.authBasicPass" :placeholder="t('password')" size="small" type="password" show-password />
+              </div>
+              <div v-else-if="activeTab.authType==='apikey'" class="rq-auth-fields">
+                <el-input v-model="activeTab.authApiKey" :placeholder="t('key')" size="small" style="margin-bottom:8px" />
+                <el-input v-model="activeTab.authApiValue" :placeholder="t('value')" size="small" style="margin-bottom:8px" />
+                <el-select v-model="activeTab.authApiIn" size="small" style="width:160px">
+                  <el-option label="Header" value="header" />
+                  <el-option label="Query Param" value="query" />
+                </el-select>
+              </div>
+            </div>
+          </el-tab-pane>
+        </el-tabs>
+      </div>
+
+      <!-- Response area -->
+      <div class="rq-response-area">
+        <div class="rq-response-header">
+          <span class="rq-response-title">{{ t('response') }}</span>
+          <template v-if="activeTab.response">
+            <span :class="['rq-status-badge', statusClass(activeTab.response.status)]">
+              {{ activeTab.response.status }} {{ activeTab.response.statusText }}
+            </span>
+            <span class="rq-resp-meta">{{ activeTab.response.time }} {{ t('ms') }}</span>
+            <span class="rq-resp-meta">{{ formatSize(activeTab.response.size) }}</span>
+            <el-button size="small" @click="copyResponse" plain>{{ t('copyResponse') }}</el-button>
+          </template>
+        </div>
+        <div v-if="activeTab.response" class="rq-response-body-area">
+          <el-tabs v-model="activeTab.responseTab" type="border-card" class="rq-resp-tabs">
+            <el-tab-pane :label="t('pretty')" name="pretty">
+              <pre class="rq-resp-pre">{{ prettyBody(activeTab.response) }}</pre>
+            </el-tab-pane>
+            <el-tab-pane :label="t('raw')" name="raw">
+              <pre class="rq-resp-pre">{{ activeTab.response.body }}</pre>
+            </el-tab-pane>
+            <el-tab-pane :label="t('responseHeaders')" name="headers">
+              <div class="rq-resp-headers">
+                <div v-for="(val, key) in activeTab.response.headers" :key="key" class="rq-resp-header-row">
+                  <span class="rq-resp-hkey">{{ key }}</span>
+                  <span class="rq-resp-hval">{{ val }}</span>
+                </div>
+              </div>
+            </el-tab-pane>
+            <el-tab-pane :label="t('preview')" name="preview">
+              <iframe v-if="activeTab.response.body" class="rq-preview-frame"
+                      :srcdoc="activeTab.response.body" sandbox="allow-same-origin"></iframe>
+            </el-tab-pane>
+          </el-tabs>
+        </div>
+        <div v-else class="rq-no-response">
+          <div class="rq-no-resp-icon">🚀</div>
+          <p>{{ t('noResponse') }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- No tab -->
+    <div v-else class="rq-no-tab">
+      <div class="rq-no-resp-icon">🚀</div>
+      <h3>Requestly</h3>
+      <el-button @click="openNewTab()" type="primary">+ {{ t('newRequest') }}</el-button>
+    </div>
+  </div>
+
+  <!-- Import Dialog -->
+  <el-dialog v-model="showImportDialog" :title="t('importPostman')" width="480px" append-to-body>
+    <div class="rq-import-area"
+         :class="{ 'rq-drag-over': importDragOver }"
+         @dragover.prevent="importDragOver=true"
+         @dragleave="importDragOver=false"
+         @drop="handleImportDrop">
+      <div class="rq-import-icon">📥</div>
+      <p>{{ t('importDrop') }}</p>
+      <label class="rq-import-btn">
+        {{ t('importFile') }}
+        <input type="file" accept=".json" @change="handleImportFile" style="display:none" />
+      </label>
+    </div>
+  </el-dialog>
+</div>

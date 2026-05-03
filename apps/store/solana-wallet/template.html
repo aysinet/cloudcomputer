@@ -1,0 +1,302 @@
+<div class="solw-root">
+  <!-- LOADING -->
+  <div v-if="screen==='loading'" class="solw-center">
+    <i class="el-icon-loading" style="font-size:32px"></i>
+  </div>
+
+  <!-- SETUP SCREEN -->
+  <div v-else-if="screen==='setup'" class="solw-setup">
+    <div class="solw-logo">◎</div>
+    <h2>{{ L('title') }}</h2>
+    <div class="solw-setup-btns">
+      <el-button type="primary" size="large" @click="startCreate" style="width:100%">
+        <span style="margin-right:6px">➕</span> {{ L('create') }}
+      </el-button>
+      <el-button size="large" @click="startImport" style="width:100%;margin-left:0;margin-top:10px">
+        <span style="margin-right:6px">📥</span> {{ L('import') }}
+      </el-button>
+    </div>
+  </div>
+
+  <!-- UNLOCK SCREEN -->
+  <div v-else-if="screen==='unlock'" class="solw-unlock">
+    <div class="solw-logo">🔒</div>
+    <h3>{{ L('walletPassword') }}</h3>
+    <p class="solw-hint">{{ L('enterPassword') }}</p>
+    <el-input v-model="walletPassword" type="password" show-password
+      :placeholder="L('password')" @keyup.enter="unlockWallet"
+      style="margin-bottom:12px" size="large" />
+    <el-alert v-if="pwError" :title="pwError" type="error" :closable="false" show-icon
+      style="margin-bottom:12px" />
+    <el-button type="primary" size="large" @click="unlockWallet" style="width:100%">
+      {{ L('unlock') }}
+    </el-button>
+  </div>
+
+  <!-- CREATE PASSWORD -->
+  <div v-else-if="screen==='create-password'" class="solw-unlock">
+    <div class="solw-logo">🔑</div>
+    <h3>{{ L('setPassword') }}</h3>
+    <el-input v-model="walletPassword" type="password" show-password
+      :placeholder="L('password')" style="margin-bottom:10px" size="large" />
+    <el-input v-model="confirmPw" type="password" show-password
+      :placeholder="L('confirmPassword')" @keyup.enter="confirmPassword"
+      style="margin-bottom:10px" size="large" />
+    <el-alert v-if="pwError" :title="pwError" type="error" :closable="false" show-icon
+      style="margin-bottom:10px" />
+    <el-button type="primary" size="large" @click="confirmPassword" style="width:100%">
+      {{ L('create') }}
+    </el-button>
+    <el-button text @click="screen='setup'" style="width:100%;margin-top:6px;margin-left:0">
+      {{ L('back') }}
+    </el-button>
+  </div>
+
+  <!-- IMPORT WALLET -->
+  <div v-else-if="screen==='import'" class="solw-unlock">
+    <div class="solw-logo">📥</div>
+    <h3>{{ L('import') }}</h3>
+    <el-input v-model="walletPassword" type="password" show-password
+      :placeholder="L('password')" style="margin-bottom:10px" size="large" />
+    <el-input v-model="confirmPw" type="password" show-password
+      :placeholder="L('confirmPassword')" style="margin-bottom:10px" size="large" />
+    <el-input v-model="importKey" type="textarea" :rows="3"
+      :placeholder="L('enterSecretKey')" style="margin-bottom:10px" />
+    <el-alert v-if="importError" :title="importError" type="error" :closable="false" show-icon
+      style="margin-bottom:10px" />
+    <el-alert v-if="pwError" :title="pwError" type="error" :closable="false" show-icon
+      style="margin-bottom:10px" />
+    <el-button type="primary" size="large" @click="confirmPassword" style="width:100%">
+      {{ L('import') }}
+    </el-button>
+    <el-button text @click="screen='setup'" style="width:100%;margin-top:6px;margin-left:0">
+      {{ L('back') }}
+    </el-button>
+  </div>
+
+  <!-- SHOW SECRET KEY (Backup) -->
+  <div v-else-if="screen==='show-key'" class="solw-phrase-screen">
+    <h3>{{ L('secretKey') }}</h3>
+    <el-alert type="warning" title="Bu gizli anahtarı güvenli bir yere kaydedin! Bir daha gösterilmeyecek."
+      :closable="false" show-icon style="margin-bottom:14px" />
+    <div class="solw-key-box">
+      <code>{{ wallets[0] ? wallets[0].secretKey : '' }}</code>
+    </div>
+    <div class="solw-key-pubinfo">
+      <span style="color:#8b8fa3;font-size:12px">{{ L('address') }}:</span>
+      <span style="font-size:12px;color:#14F195">{{ wallets[0] ? wallets[0].publicKey : '' }}</span>
+    </div>
+    <el-button text @click="copyNewKey" style="margin-bottom:10px">
+      📋 {{ L('copy') }}
+    </el-button>
+    <el-button type="primary" size="large" @click="keyConfirmed" style="width:100%">
+      ✅ {{ L('iSaved') }}
+    </el-button>
+  </div>
+
+  <!-- MAIN WALLET -->
+  <div v-else-if="screen==='main'" class="solw-main">
+    <!-- Header -->
+    <div class="solw-header">
+      <div class="solw-header-left">
+        <el-dropdown trigger="click" @command="selectNetwork">
+          <span class="solw-network-badge">🌐 {{ net.name }}</span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item v-for="(n,k) in NETWORKS" :key="k" :command="k"
+                :class="{ 'is-active': k===activeNetwork }">
+                {{ n.name }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+      <div class="solw-header-center">
+        <el-dropdown trigger="click" @command="selectAccount">
+          <span class="solw-account-name">{{ activeWallet ? activeWallet.name : '' }} ▾</span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item v-for="(w,i) in wallets" :key="i" :command="i">
+                <span :style="{ fontWeight: i===activeIndex ? 700 : 400 }">{{ w.name }}</span>
+                <span style="margin-left:8px;font-size:11px;color:#8b8fa3">{{ w.publicKey.slice(0,6) }}...</span>
+              </el-dropdown-item>
+              <el-dropdown-item divided :command="'add'">
+                ➕ {{ L('addAccount') }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+      <div class="solw-header-right">
+        <el-button text @click="lockWallet" style="font-size:16px;padding:4px">🔒</el-button>
+      </div>
+    </div>
+
+    <!-- Balance card -->
+    <div class="solw-balance-card">
+      <div class="solw-addr" @click="copyAddress" :title="activeAddr">
+        {{ shortAddr }} <span class="solw-copy-icon">📋</span>
+      </div>
+      <div :class="['solw-balance', { 'solw-loading': balanceLoading }]">
+        {{ balance }}<span class="solw-symbol"> SOL</span>
+      </div>
+      <div class="solw-actions-row">
+        <el-button type="primary" circle @click="tab='send'" title="Send">
+          <span style="font-size:16px">↑</span>
+        </el-button>
+        <el-button type="success" circle @click="tab='receive'" title="Receive">
+          <span style="font-size:16px">↓</span>
+        </el-button>
+        <el-button circle @click="refreshBalance" title="Refresh">
+          <span style="font-size:16px">🔄</span>
+        </el-button>
+        <el-button v-if="activeNetwork!=='mainnet'" circle @click="requestAirdrop" title="Airdrop"
+          style="background:rgba(20,241,149,.15);border-color:rgba(20,241,149,.3)">
+          <span style="font-size:16px">🪂</span>
+        </el-button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="solw-tabs">
+      <div :class="['solw-tab', { active: tab==='balance' || tab==='send' || tab==='receive' }]"
+        @click="tab='balance'">💰</div>
+      <div :class="['solw-tab', { active: tab==='history' }]" @click="tab='history'">📜</div>
+      <div :class="['solw-tab', { active: tab==='tokens' }]" @click="tab='tokens'">🪙</div>
+      <div :class="['solw-tab', { active: tab==='settings' }]" @click="tab='settings'">⚙️</div>
+    </div>
+
+    <!-- Content -->
+    <div class="solw-content">
+
+      <!-- SEND -->
+      <div v-if="tab==='send'" class="solw-send-form">
+        <h4>{{ L('sendSOL') }}</h4>
+        <el-input v-model="sendForm.to" :placeholder="L('toAddress')" style="margin-bottom:10px" size="large"
+          clearable />
+        <el-input v-model="sendForm.amount" :placeholder="L('amount') + ' (SOL)'" type="number"
+          style="margin-bottom:10px" size="large" min="0" step="0.001">
+          <template #append>SOL</template>
+        </el-input>
+        <el-alert v-if="sendError" :title="sendError" type="error" :closable="false" show-icon
+          style="margin-bottom:10px" />
+        <el-alert v-if="sendSuccess" :title="sendSuccess" type="success" :closable="false" show-icon
+          style="margin-bottom:10px" />
+        <el-button type="primary" size="large" @click="sendSOL" :loading="sendForm.sending"
+          :disabled="sendForm.sending" style="width:100%">
+          {{ sendForm.sending ? L('sending') : L('sendSOL') }}
+        </el-button>
+        <el-button text @click="tab='balance'" style="width:100%;margin-top:6px;margin-left:0">
+          {{ L('back') }}
+        </el-button>
+      </div>
+
+      <!-- RECEIVE -->
+      <div v-else-if="tab==='receive'" class="solw-receive">
+        <h4>{{ L('receive') }} SOL</h4>
+        <div class="solw-receive-addr" @click="copyAddress">{{ activeAddr }}</div>
+        <el-button text @click="copyAddress" style="margin-top:10px">
+          📋 {{ L('copy') }}
+        </el-button>
+        <el-button text @click="tab='balance'" style="margin-top:6px;margin-left:0">
+          {{ L('back') }}
+        </el-button>
+      </div>
+
+      <!-- BALANCE (default) -->
+      <div v-else-if="tab==='balance'" class="solw-overview">
+        <div class="solw-overview-item" @click="openExplorer('address', activeAddr)">
+          <span class="solw-overview-label">{{ L('address') }}</span>
+          <span class="solw-overview-val solw-mono">{{ shortAddr }}</span>
+          <span style="font-size:12px;opacity:.4;margin-left:4px">🔗</span>
+        </div>
+        <div class="solw-overview-item">
+          <span class="solw-overview-label">{{ L('network') }}</span>
+          <span class="solw-overview-val">{{ net.name }}</span>
+        </div>
+        <div class="solw-overview-item">
+          <span class="solw-overview-label">{{ L('balance') }}</span>
+          <span class="solw-overview-val">{{ balance }} SOL</span>
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div v-else-if="tab==='history'">
+        <div v-if="txs.length===0" class="solw-empty">{{ L('noTx') }}</div>
+        <div v-for="tx in txs" :key="tx.signature" class="solw-tx-item"
+          @click="openExplorer('tx', tx.signature)">
+          <div class="solw-tx-dir">
+            <span :class="tx.err ? 'solw-err' : 'solw-ok'">{{ tx.err ? '✗' : '✓' }}</span>
+          </div>
+          <div class="solw-tx-info">
+            <div class="solw-tx-sig">{{ tx.signature.slice(0,16) }}...</div>
+            <div class="solw-tx-time" v-if="tx.blockTime">
+              {{ new Date(tx.blockTime * 1000).toLocaleString() }}
+            </div>
+          </div>
+          <div class="solw-tx-slot">Slot {{ tx.slot }}</div>
+        </div>
+      </div>
+
+      <!-- TOKENS -->
+      <div v-else-if="tab==='tokens'">
+        <div v-if="tokensLoading" class="solw-empty"><i class="el-icon-loading"></i> Loading...</div>
+        <div v-else-if="tokens.length===0" class="solw-empty">{{ L('noTokens') }}</div>
+        <div v-for="t in tokens" :key="t.mint" class="solw-token-item"
+          @click="openExplorer('address', t.mint)">
+          <div class="solw-token-icon">🪙</div>
+          <div class="solw-token-info">
+            <div class="solw-token-mint">{{ t.mint.slice(0,8) }}...{{ t.mint.slice(-4) }}</div>
+            <div class="solw-token-dec">Decimals: {{ t.decimals }}</div>
+          </div>
+          <div class="solw-token-amount">{{ t.amount }}</div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div v-else-if="tab==='settings'" class="solw-settings">
+        <!-- View secret key -->
+        <div class="solw-setting-item" @click="showSecretKey = !showSecretKey">
+          <span>🔑 {{ showSecretKey ? L('hideSecretKey') : L('viewSecretKey') }}</span>
+        </div>
+        <div v-if="showSecretKey" class="solw-key-display">
+          <code>{{ activeWallet ? activeWallet.secretKey : '' }}</code>
+          <el-button text size="small" @click="copySecretKey" style="margin-top:6px">📋 {{ L('copy') }}</el-button>
+        </div>
+
+        <!-- Change password -->
+        <div class="solw-setting-item" @click="showChangePw = !showChangePw">
+          <span>🔐 {{ L('changePw') }}</span>
+        </div>
+        <div v-if="showChangePw" class="solw-setting-panel">
+          <el-input v-model="changePwForm.current" type="password" show-password
+            :placeholder="L('currentPw')" size="default" style="margin-bottom:8px" />
+          <el-input v-model="changePwForm.newPw" type="password" show-password
+            :placeholder="L('newPw')" size="default" style="margin-bottom:8px" />
+          <el-input v-model="changePwForm.confirm" type="password" show-password
+            :placeholder="L('confirmNewPw')" size="default" style="margin-bottom:8px" />
+          <el-alert v-if="changePwError" :title="changePwError" type="error" :closable="false" show-icon
+            style="margin-bottom:8px" />
+          <el-button type="primary" size="small" @click="changePassword" style="width:100%">
+            {{ L('changePw') }}
+          </el-button>
+        </div>
+
+        <!-- Add account -->
+        <div class="solw-setting-item" @click="addAccount">
+          <span>➕ {{ L('addAccount') }}</span>
+        </div>
+
+        <!-- Delete current account -->
+        <div v-if="wallets.length > 1" class="solw-setting-item solw-danger" @click="deleteAccount(activeIndex)">
+          <span>🗑️ {{ L('deleteAccount') }}</span>
+        </div>
+
+        <!-- Delete wallet -->
+        <div class="solw-setting-item solw-danger" @click="deleteWallet">
+          <span>⚠️ {{ L('deleteWallet') }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
