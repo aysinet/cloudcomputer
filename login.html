@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Giriş — Vue Desktop</title>
+  <title>Login — Aysi Cloud Computer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { margin: 0; min-height: 100vh; }
@@ -24,14 +24,14 @@
       <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl shadow-lg mb-4">
         🖥️
       </div>
-      <h1 class="text-white text-xl font-semibold tracking-wide">Vue Desktop</h1>
-      <p class="text-white/40 text-sm mt-1">Devam etmek için giriş yapın</p>
+      <h1 class="text-white text-xl font-semibold tracking-wide">Aysi Cloud Computer</h1>
+      <p id="subtitle" class="text-white/40 text-sm mt-1"></p>
     </div>
 
     <!-- Form -->
     <form id="loginForm" onsubmit="return handleLogin(event)">
       <div class="mb-4">
-        <label class="block text-white/50 text-xs font-medium mb-1.5 uppercase tracking-wider">Kullanıcı Adı</label>
+        <label id="lblUsername" class="block text-white/50 text-xs font-medium mb-1.5 uppercase tracking-wider"></label>
         <div class="relative">
           <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">👤</span>
           <input id="username" type="text" required autocomplete="username"
@@ -41,7 +41,7 @@
       </div>
 
       <div class="mb-6">
-        <label class="block text-white/50 text-xs font-medium mb-1.5 uppercase tracking-wider">Şifre</label>
+        <label id="lblPassword" class="block text-white/50 text-xs font-medium mb-1.5 uppercase tracking-wider"></label>
         <div class="relative">
           <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm">🔒</span>
           <input id="password" type="password" required autocomplete="current-password"
@@ -55,7 +55,7 @@
 
       <button type="submit" id="submitBtn"
         class="w-full h-11 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium text-sm cursor-pointer hover:from-indigo-500 hover:to-purple-500 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-        <span id="btnText">Giriş Yap</span>
+        <span id="btnText"></span>
         <svg id="btnSpinner" class="hidden animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"></circle>
           <path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="opacity-75"></path>
@@ -67,8 +67,8 @@
     <div id="twoFASection" class="hidden">
       <div class="flex flex-col items-center mb-4">
         <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-2xl shadow-lg mb-3">🔐</div>
-        <h2 class="text-white text-lg font-semibold">İki Faktörlü Doğrulama</h2>
-        <p class="text-white/40 text-sm mt-1">Authenticator uygulamanızdaki 6 haneli kodu girin</p>
+        <h2 id="twoFATitle" class="text-white text-lg font-semibold"></h2>
+        <p id="twoFASubtitle" class="text-white/40 text-sm mt-1"></p>
       </div>
 
       <div class="mb-4">
@@ -81,22 +81,128 @@
 
       <button id="twoFASubmitBtn" onclick="verify2FA()"
         class="w-full h-11 rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 text-white font-medium text-sm cursor-pointer hover:from-amber-500 hover:to-orange-500 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-        <span id="twoFABtnText">Doğrula</span>
+        <span id="twoFABtnText"></span>
         <svg id="twoFASpinner" class="hidden animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"></circle>
           <path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="3" stroke-linecap="round" class="opacity-75"></path>
         </svg>
       </button>
 
-      <button onclick="back2FA()" class="w-full h-9 mt-2 rounded-lg bg-white/5 text-white/50 text-sm cursor-pointer hover:bg-white/10 transition border-none">
-        ← Geri Dön
+      <button id="backBtn" onclick="back2FA()" class="w-full h-9 mt-2 rounded-lg bg-white/5 text-white/50 text-sm cursor-pointer hover:bg-white/10 transition border-none">
       </button>
     </div>
 
-    <p class="text-center text-white/20 text-xs mt-6">Vue Desktop OS &copy; 2026</p>
+    <p class="text-center text-white/20 text-xs mt-6">Aysi Cloud Computer OS &copy; 2026</p>
   </div>
 
   <script>
+    const LOGIN_I18N = {
+      tr: { subtitle:'Devam etmek için giriş yapın', username:'Kullanıcı Adı', password:'Şifre',
+        login:'Giriş Yap', loggingIn:'Giriş yapılıyor...', loginFailed:'Giriş başarısız',
+        serverError:'Sunucu bağlantı hatası', twoFATitle:'İki Faktörlü Doğrulama',
+        twoFASubtitle:'Authenticator uygulamanızdaki 6 haneli kodu girin',
+        verify:'Doğrula', verifying:'Doğrulanıyor...', verifyFailed:'Doğrulama başarısız',
+        enter6Digit:'6 haneli kodu girin', back:'← Geri Dön' },
+      en: { subtitle:'Sign in to continue', username:'Username', password:'Password',
+        login:'Sign In', loggingIn:'Signing in...', loginFailed:'Login failed',
+        serverError:'Server connection error', twoFATitle:'Two-Factor Authentication',
+        twoFASubtitle:'Enter the 6-digit code from your authenticator app',
+        verify:'Verify', verifying:'Verifying...', verifyFailed:'Verification failed',
+        enter6Digit:'Enter 6-digit code', back:'← Go Back' },
+      de: { subtitle:'Melden Sie sich an, um fortzufahren', username:'Benutzername', password:'Passwort',
+        login:'Anmelden', loggingIn:'Anmeldung...', loginFailed:'Anmeldung fehlgeschlagen',
+        serverError:'Serververbindungsfehler', twoFATitle:'Zwei-Faktor-Authentifizierung',
+        twoFASubtitle:'Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein',
+        verify:'Bestätigen', verifying:'Überprüfung...', verifyFailed:'Überprüfung fehlgeschlagen',
+        enter6Digit:'6-stelligen Code eingeben', back:'← Zurück' },
+      fr: { subtitle:'Connectez-vous pour continuer', username:"Nom d'utilisateur", password:'Mot de passe',
+        login:'Se connecter', loggingIn:'Connexion...', loginFailed:'Échec de connexion',
+        serverError:'Erreur de connexion au serveur', twoFATitle:'Authentification à deux facteurs',
+        twoFASubtitle:"Entrez le code à 6 chiffres de votre application d'authentification",
+        verify:'Vérifier', verifying:'Vérification...', verifyFailed:'Échec de vérification',
+        enter6Digit:'Entrez le code à 6 chiffres', back:'← Retour' },
+      es: { subtitle:'Inicie sesión para continuar', username:'Nombre de usuario', password:'Contraseña',
+        login:'Iniciar sesión', loggingIn:'Iniciando sesión...', loginFailed:'Error de inicio de sesión',
+        serverError:'Error de conexión al servidor', twoFATitle:'Autenticación de dos factores',
+        twoFASubtitle:'Ingrese el código de 6 dígitos de su aplicación de autenticación',
+        verify:'Verificar', verifying:'Verificando...', verifyFailed:'Verificación fallida',
+        enter6Digit:'Ingrese el código de 6 dígitos', back:'← Volver' },
+      ru: { subtitle:'Войдите, чтобы продолжить', username:'Имя пользователя', password:'Пароль',
+        login:'Войти', loggingIn:'Вход...', loginFailed:'Ошибка входа',
+        serverError:'Ошибка подключения к серверу', twoFATitle:'Двухфакторная аутентификация',
+        twoFASubtitle:'Введите 6-значный код из приложения аутентификации',
+        verify:'Подтвердить', verifying:'Проверка...', verifyFailed:'Ошибка проверки',
+        enter6Digit:'Введите 6-значный код', back:'← Назад' },
+      zh: { subtitle:'登录以继续', username:'用户名', password:'密码',
+        login:'登录', loggingIn:'登录中...', loginFailed:'登录失败',
+        serverError:'服务器连接错误', twoFATitle:'双因素认证',
+        twoFASubtitle:'输入您身份验证器应用中的6位数代码',
+        verify:'验证', verifying:'验证中...', verifyFailed:'验证失败',
+        enter6Digit:'输入6位数代码', back:'← 返回' },
+      ja: { subtitle:'続行するにはログインしてください', username:'ユーザー名', password:'パスワード',
+        login:'ログイン', loggingIn:'ログイン中...', loginFailed:'ログイン失敗',
+        serverError:'サーバー接続エラー', twoFATitle:'二要素認証',
+        twoFASubtitle:'認証アプリの6桁のコードを入力してください',
+        verify:'確認', verifying:'確認中...', verifyFailed:'確認失敗',
+        enter6Digit:'6桁のコードを入力', back:'← 戻る' },
+      it: { subtitle:'Accedi per continuare', username:'Nome utente', password:'Password',
+        login:'Accedi', loggingIn:'Accesso...', loginFailed:'Accesso fallito',
+        serverError:'Errore di connessione al server', twoFATitle:'Autenticazione a due fattori',
+        twoFASubtitle:"Inserisci il codice a 6 cifre dalla tua app di autenticazione",
+        verify:'Verifica', verifying:'Verifica...', verifyFailed:'Verifica fallita',
+        enter6Digit:'Inserisci il codice a 6 cifre', back:'← Indietro' },
+      ar: { subtitle:'سجّل الدخول للمتابعة', username:'اسم المستخدم', password:'كلمة المرور',
+        login:'تسجيل الدخول', loggingIn:'جارٍ تسجيل الدخول...', loginFailed:'فشل تسجيل الدخول',
+        serverError:'خطأ في الاتصال بالخادم', twoFATitle:'المصادقة الثنائية',
+        twoFASubtitle:'أدخل الرمز المكون من 6 أرقام من تطبيق المصادقة',
+        verify:'تحقق', verifying:'جارٍ التحقق...', verifyFailed:'فشل التحقق',
+        enter6Digit:'أدخل الرمز المكون من 6 أرقام', back:'← رجوع' },
+      ko: { subtitle:'계속하려면 로그인하세요', username:'사용자 이름', password:'비밀번호',
+        login:'로그인', loggingIn:'로그인 중...', loginFailed:'로그인 실패',
+        serverError:'서버 연결 오류', twoFATitle:'2단계 인증',
+        twoFASubtitle:'인증 앱의 6자리 코드를 입력하세요',
+        verify:'확인', verifying:'확인 중...', verifyFailed:'확인 실패',
+        enter6Digit:'6자리 코드 입력', back:'← 뒤로' },
+      hi: { subtitle:'जारी रखने के लिए लॉगिन करें', username:'उपयोगकर्ता नाम', password:'पासवर्ड',
+        login:'लॉगिन', loggingIn:'लॉगिन हो रहा है...', loginFailed:'लॉगिन विफल',
+        serverError:'सर्वर कनेक्शन त्रुटि', twoFATitle:'दो-कारक प्रमाणीकरण',
+        twoFASubtitle:'अपने प्रमाणक ऐप से 6 अंकों का कोड दर्ज करें',
+        verify:'सत्यापित करें', verifying:'सत्यापित हो रहा है...', verifyFailed:'सत्यापन विफल',
+        enter6Digit:'6 अंकों का कोड दर्ज करें', back:'← वापस' },
+      pt: { subtitle:'Faça login para continuar', username:'Nome de usuário', password:'Senha',
+        login:'Entrar', loggingIn:'Entrando...', loginFailed:'Falha no login',
+        serverError:'Erro de conexão com o servidor', twoFATitle:'Autenticação de dois fatores',
+        twoFASubtitle:'Digite o código de 6 dígitos do seu aplicativo autenticador',
+        verify:'Verificar', verifying:'Verificando...', verifyFailed:'Falha na verificação',
+        enter6Digit:'Digite o código de 6 dígitos', back:'← Voltar' }
+    };
+
+    // Detect language from browser or localStorage
+    function detectLang() {
+      const stored = localStorage.getItem('login_locale');
+      if (stored && LOGIN_I18N[stored]) return stored;
+      const nav = (navigator.language || navigator.userLanguage || 'en').split('-')[0].toLowerCase();
+      return LOGIN_I18N[nav] ? nav : 'en';
+    }
+
+    let currentLang = detectLang();
+    function t(key) { return (LOGIN_I18N[currentLang] || LOGIN_I18N.en)[key] || LOGIN_I18N.en[key] || key; }
+
+    function applyI18n() {
+      document.documentElement.lang = currentLang;
+      document.title = t('login') + ' — Aysi Cloud Computer';
+      document.getElementById('subtitle').textContent = t('subtitle');
+      document.getElementById('lblUsername').textContent = t('username');
+      document.getElementById('lblPassword').textContent = t('password');
+      document.getElementById('btnText').textContent = t('login');
+      document.getElementById('twoFATitle').textContent = t('twoFATitle');
+      document.getElementById('twoFASubtitle').textContent = t('twoFASubtitle');
+      document.getElementById('twoFABtnText').textContent = t('verify');
+      document.getElementById('backBtn').textContent = t('back');
+    }
+
+    applyI18n();
+
     // If already has token cookie, the server will serve index.html
     // Check localStorage token and verify with server
     (async () => {
@@ -124,7 +230,7 @@
 
       errorMsg.classList.add('hidden');
       submitBtn.disabled = true;
-      btnText.textContent = 'Giriş yapılıyor...';
+      btnText.textContent = t('loggingIn');
       btnSpinner.classList.remove('hidden');
 
       try {
@@ -145,15 +251,15 @@
           localStorage.setItem('auth_token', data.token);
           window.location.href = '/';
         } else {
-          errorMsg.textContent = data.error || 'Giriş başarısız';
+          errorMsg.textContent = data.error || t('loginFailed');
           errorMsg.classList.remove('hidden');
         }
       } catch (err) {
-        errorMsg.textContent = 'Sunucu bağlantı hatası';
+        errorMsg.textContent = t('serverError');
         errorMsg.classList.remove('hidden');
       } finally {
         submitBtn.disabled = false;
-        btnText.textContent = 'Giriş Yap';
+        btnText.textContent = t('login');
         btnSpinner.classList.add('hidden');
       }
       return false;
@@ -167,14 +273,14 @@
       const spinner = document.getElementById('twoFASpinner');
 
       if (!code || code.length !== 6) {
-        errorEl.textContent = '6 haneli kodu girin';
+        errorEl.textContent = t('enter6Digit');
         errorEl.classList.remove('hidden');
         return;
       }
 
       errorEl.classList.add('hidden');
       btn.disabled = true;
-      btnText.textContent = 'Doğrulanıyor...';
+      btnText.textContent = t('verifying');
       spinner.classList.remove('hidden');
 
       try {
@@ -189,15 +295,15 @@
           localStorage.setItem('auth_token', data.token);
           window.location.href = '/';
         } else {
-          errorEl.textContent = data.error || 'Doğrulama başarısız';
+          errorEl.textContent = data.error || t('verifyFailed');
           errorEl.classList.remove('hidden');
         }
       } catch {
-        errorEl.textContent = 'Sunucu bağlantı hatası';
+        errorEl.textContent = t('serverError');
         errorEl.classList.remove('hidden');
       } finally {
         btn.disabled = false;
-        btnText.textContent = 'Doğrula';
+        btnText.textContent = t('verify');
         spinner.classList.add('hidden');
       }
     }

@@ -1,0 +1,80 @@
+{
+  "id": "playwright",
+  "name": "Playwright",
+  "icon": "🎭",
+  "color": "linear-gradient(135deg,#2EAD33,#1D8348)",
+  "type": "service",
+  "size": {
+    "w": 520,
+    "h": 420
+  },
+  "global": false,
+  "description": "Playwright tarayıcı otomasyon servisi — diğer uygulamalar için headless browser API'si",
+  "lang": {
+    "tr": {
+      "name": "Playwright",
+      "description": "Playwright tarayıcı otomasyon servisi — diğer uygulamalar için headless browser API'si"
+    },
+    "en": {
+      "name": "Playwright",
+      "description": "Playwright browser automation service — headless browser API for other apps"
+    },
+    "de": {
+      "name": "Playwright",
+      "description": "Playwright Browser-Automatisierungsdienst — Headless-Browser-API für andere Apps"
+    },
+    "fr": {
+      "name": "Playwright",
+      "description": "Service d'automatisation Playwright — API navigateur headless pour les autres apps"
+    },
+    "es": {
+      "name": "Playwright",
+      "description": "Servicio de automatización Playwright — API de navegador headless para otras apps"
+    },
+    "ru": {
+      "name": "Playwright",
+      "description": "Сервис автоматизации Playwright — headless-браузер API для других приложений"
+    },
+    "zh": {
+      "name": "Playwright",
+      "description": "Playwright 浏览器自动化服务 — 为其他应用提供无头浏览器 API"
+    },
+    "ja": {
+      "name": "Playwright",
+      "description": "Playwrightブラウザ自動化サービス — 他アプリ向けヘッドレスブラウザAPI"
+    },
+    "it": {
+      "name": "Playwright",
+      "description": "Servizio di automazione Playwright — API browser headless per altre app"
+    },
+    "ar": {
+      "name": "Playwright",
+      "description": "خدمة أتمتة المتصفح Playwright — واجهة برمجة تطبيقات المتصفح بدون واجهة"
+    },
+    "ko": {
+      "name": "Playwright",
+      "description": "Playwright 브라우저 자동화 서비스 — 다른 앱을 위한 헤드리스 브라우저 API"
+    },
+    "hi": {
+      "name": "Playwright",
+      "description": "Playwright ब्राउज़र ऑटोमेशन सेवा — अन्य ऐप्स के लिए हेडलेस ब्राउज़र API"
+    },
+    "pt": {
+      "name": "Playwright",
+      "description": "Serviço de automação Playwright — API de navegador headless para outros apps"
+    }
+  },
+  "category": "development",
+  "docker": {
+    "build": {
+      "context": "./apps/store/playwright"
+    },
+    "image": "cloudpc-playwright:latest",
+    "containerPort": 3000,
+    "env": [
+      "MAX_PAGES=10",
+      "PAGE_TIMEOUT=30000"
+    ],
+    "restart": "always"
+  }
+}

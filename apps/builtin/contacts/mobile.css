@@ -1,4 +1,13 @@
 .contacts-root{font-size:13px}
-.contacts-header{padding:10px 12px 8px}
-.contacts-header h2{font-size:16px}
-.contact-item{padding:8px 12px}
+.contacts-header{padding:12px;flex-direction:column;align-items:stretch;gap:10px}
+.contacts-header h2{font-size:17px;text-align:center}
+.contacts-actions{flex-direction:column;gap:8px}
+.contacts-actions .el-input{width:100% !important}
+.contacts-actions .el-button{width:100%}
+.contact-item{padding:10px 12px}
+.contact-avatar{width:36px;height:36px;font-size:13px}
+.contact-avatar-lg{width:60px;height:60px;font-size:22px}
+.contacts-detail-card h3{font-size:18px}
+.cdf-row{padding:10px 12px}
+.contacts-form-body{padding:12px}
+.contacts-detail-top{padding:8px 12px}

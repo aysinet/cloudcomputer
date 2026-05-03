@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vue Desktop OS</title>
+<title>Aysi Cloud Computer</title>
 <script type="importmap">
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.min.js","three/":"https://cdn.jsdelivr.net/npm/three@0.164.1/"}}
 </script>
@@ -775,16 +775,16 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       </template>
       <template v-else-if="active==='wallpaper'">
         <div class="settings-row">
-          <div><div class="lbl">{{t('wpMode') || 'Mod'}}</div><div class="sub">{{t('wpModeDesc') || 'Tüm masaüstlerine aynı veya ayrı duvar kağıdı'}}</div></div>
+          <div><div class="lbl">{{t('wpMode')}}</div><div class="sub">{{t('wpModeDesc')}}</div></div>
           <div class="ctrl">
             <select :value="wpMode" @change="setWpMode($event.target.value)" style="background:#3c3c3c;color:#d4d4d4;border:1px solid #555;border-radius:4px;padding:4px 8px;font-size:12px">
-              <option value="all">{{t('wpAll') || 'Tümüne Aynı'}}</option>
-              <option value="per">{{t('wpPer') || 'Ayrı Ayrı'}}</option>
+              <option value="all">{{t('wpAll')}}</option>
+              <option value="per">{{t('wpPer')}}</option>
             </select>
           </div>
         </div>
         <div class="settings-row" v-if="wpMode==='per'">
-          <div><div class="lbl">{{t('wpDesktopSelect') || 'Masaüstü Seç'}}</div></div>
+          <div><div class="lbl">{{t('wpDesktopSelect')}}</div></div>
           <div class="ctrl" style="display:flex;gap:12px;align-items:flex-end">
             <div v-for="d in 4" :key="d" @click="wpDesktop=d"
               style="cursor:pointer;display:flex;flex-direction:column;align-items:center;transition:.15s"
@@ -796,39 +796,39 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
           </div>
         </div>
         <div class="settings-row">
-          <div><div class="lbl">{{t('wpUpload') || 'Resim Yükle'}}</div><div class="sub">JPG, PNG, WebP, GIF</div></div>
+          <div><div class="lbl">{{t('wpUpload')}}</div><div class="sub">JPG, PNG, WebP, GIF</div></div>
           <div class="ctrl">
             <input type="file" ref="wpFileInput" accept="image/*" style="display:none" @change="uploadWallpaper" />
-            <button @click="$refs.wpFileInput.click()" style="background:#533483;color:#fff;border:none;border-radius:6px;padding:6px 16px;cursor:pointer;font-size:12px">📤 {{t('wpUploadBtn') || 'Yükle'}}</button>
+            <button @click="$refs.wpFileInput.click()" style="background:#533483;color:#fff;border:none;border-radius:6px;padding:6px 16px;cursor:pointer;font-size:12px">📤 {{t('wpUploadBtn')}}</button>
           </div>
         </div>
         <div style="margin-top:12px">
-          <div class="lbl" style="margin-bottom:8px">{{t('wpGallery') || 'Duvar Kağıtları'}}</div>
-          <div class="sub" style="margin-bottom:8px" v-if="wpUploading">{{t('wpUploading') || 'Yükleniyor...'}}</div>
+          <div class="lbl" style="margin-bottom:8px">{{t('wpGallery')}}</div>
+          <div class="sub" style="margin-bottom:8px" v-if="wpUploading">{{t('wpUploading')}}</div>
           <div style="display:flex;flex-wrap:wrap;gap:10px">
             <div @click="setWallpaper('')"
               style="width:120px;height:75px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:#aaa;border:2px solid;transition:.15s"
               :style="{borderColor:currentWpUrl===''?'#6c5ce7':'#444',background:'linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)'}">
-              {{t('wpDefault') || 'Varsayılan'}}
+              {{t('wpDefault')}}
             </div>
             <div v-for="wp in wpList" :key="wp.name" style="position:relative;width:120px;height:75px" @click="setWallpaper(wp.url)">
               <img :src="wpAuthUrl(wp.url)" style="width:120px;height:75px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid;transition:.15s"
                 :style="{borderColor:currentWpUrl===wp.url?'#6c5ce7':'#444'}" />
-              <button @click.stop="deleteWallpaper(wp.name)" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#e74c3c;color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1" title="Sil">×</button>
+              <button @click.stop="deleteWallpaper(wp.name)" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#e74c3c;color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1" :title="t('usersDelete')">×</button>
             </div>
           </div>
         </div>
         <div v-if="currentWpUrl" style="margin-top:16px">
-          <div class="lbl" style="margin-bottom:8px">{{t('wpPreview') || 'Önizleme'}}</div>
+          <div class="lbl" style="margin-bottom:8px">{{t('wpPreview')}}</div>
           <img :src="wpAuthUrl(currentWpUrl)" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #555" />
         </div>
       </template>
       <template v-else-if="active==='fonts'">
         <!-- User's Selected Fonts -->
         <div style="margin-bottom:12px">
-          <div class="lbl" style="margin-bottom:4px">{{t('fontsMyFonts') || 'Fontlarım'}}</div>
-          <div class="sub" style="margin-bottom:8px">{{t('fontsMyFontsDesc') || 'Font Dialogda görüntülenecek fontlar'}}</div>
-          <div v-if="userFonts.length === 0" style="color:#666;font-size:12px;padding:12px 0">{{t('fontsEmpty') || 'Henüz font eklenmedi. Aşağıdan Google Fontstan font ekleyin.'}}</div>
+          <div class="lbl" style="margin-bottom:4px">{{t('fontsMyFonts')}}</div>
+          <div class="sub" style="margin-bottom:8px">{{t('fontsMyFontsDesc')}}</div>
+          <div v-if="userFonts.length === 0" style="color:#666;font-size:12px;padding:12px 0">{{t('fontsEmpty')}}</div>
           <div v-else style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
             <div v-for="f in userFonts" :key="f.family" style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;font-size:12px">
               <span :style="{fontFamily: f.family + `, sans-serif`}">{{f.family}}</span>
@@ -839,7 +839,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         </div>
         <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:12px">
           <div class="lbl" style="margin-bottom:4px">{{t('fontsBrowse') || 'Google Fonts'}}</div>
-          <div class="sub" style="margin-bottom:8px">{{t('fontsBrowseDesc') || 'Font arayın ve kullanmak istediklerinizi ekleyin'}}</div>
+          <div class="sub" style="margin-bottom:8px">{{t('fontsBrowseDesc')}}</div>
           <button @click="showGoogleFontsDialog" style="padding:8px 20px;border-radius:6px;border:1px solid rgba(74,144,217,.4);background:rgba(74,144,217,.15);color:#6aabf7;cursor:pointer;font-size:13px;font-weight:500;transition:.15s;display:inline-flex;align-items:center;gap:8px" onmouseenter="this.style.background='rgba(74,144,217,.25)'" onmouseleave="this.style.background='rgba(74,144,217,.15)'">🔤 Google Fonts</button>
         </div>
       </template>
@@ -866,11 +866,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
               </div>
               <div class="ai-field">
                 <label class="ai-field-label">{{t('aiModel')}} <span class="ai-field-hint">({{t('aiDefault')}}: {{p.defaultModel}})</span></label>
-                <select v-if="aiGetModels(p.id).length" class="ai-key-input" v-model="p.model" @focus="aiLoadModels(p.id)">
-                  <option value="">{{p.defaultModel}} ({{t('aiDefault')}})</option>
-                  <option v-for="m in aiGetModels(p.id)" :key="m.id" :value="m.id">{{m.name}}</option>
-                </select>
-                <input v-else type="text" class="ai-key-input" v-model="p.model" :placeholder="p.defaultModel" @focus="aiLoadModels(p.id)" />
+                <el-select v-model="p.model" filterable clearable :placeholder="p.defaultModel + ' (' + t('aiDefault') + ')'" style="width:100%" @focus="aiLoadModels(p.id)">
+                  <el-option v-for="m in aiGetModels(p.id)" :key="m.id" :label="m.name" :value="m.id" />
+                </el-select>
               </div>
             </div>
           </div>
@@ -891,13 +889,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
             <div class="ai-agent-body">
               <div class="ai-field">
                 <label class="ai-field-label">{{t('aiAgentProvider')}}</label>
-                <select class="ai-select" v-model="a.provider">
-                  <option v-for="p in aiProviders" :key="p.id" :value="p.id">{{p.icon}} {{p.name}}</option>
-                </select>
+                <el-select v-model="a.provider" filterable style="width:100%">
+                  <el-option v-for="p in aiProviders" :key="p.id" :label="p.icon + ' ' + p.name" :value="p.id" />
+                </el-select>
               </div>
               <div class="ai-field">
                 <label class="ai-field-label">{{t('aiAgentModel')}}</label>
-                <input type="text" class="ai-key-input" v-model="a.model" placeholder="e.g. gpt-4o, claude-sonnet-4-20250514" />
+                <el-select v-model="a.model" filterable clearable :placeholder="t('aiDefault')" style="width:100%" @focus="aiLoadModels(a.provider)">
+                  <el-option v-for="m in aiGetModels(a.provider)" :key="m.id" :label="m.name" :value="m.id" />
+                </el-select>
               </div>
               <div class="ai-field">
                 <label class="ai-field-label">{{t('aiAgentPrompt')}}</label>
@@ -1042,8 +1042,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
               <div class="um-created" v-if="u.createdAt">{{t('usersCreated') || 'Created'}}: {{new Date(u.createdAt).toLocaleDateString()}}</div>
             </div>
             <div style="margin-left:auto;display:flex;gap:6px">
-              <button v-if="editingUser!==u.username" @click="startEditUser(u)" class="um-btn-sm">✏️ {{t('usersEdit') || 'Edit'}}</button>
-              <button v-if="u.username!==currentUsername" @click="deleteUser(u.username)" class="um-btn-sm um-btn-danger">🗑️ {{t('usersDelete') || 'Delete'}}</button>
+              <button v-if="editingUser!==u.username" @click="startEditUser(u)" class="um-btn-sm">✏️ {{t('usersEdit')}}</button>
+              <button v-if="u.username!==currentUsername" @click="deleteUser(u.username)" class="um-btn-sm um-btn-danger">🗑️ {{t('usersDelete')}}</button>
             </div>
           </div>
           <!-- Edit form -->
@@ -2209,6 +2209,7 @@ const I18N = {
     aiSave: 'Kaydet', aiSaved: 'AI ayarları kaydedildi', aiRemove: 'Kaldır',
     aiKeyHidden: 'Anahtar gizleniyor', aiKeyPlaceholder: 'API anahtarını girin...', aiDefault: 'Varsayılan',
     aiChat: 'AI Asistan', aiNewChat: 'Yeni Sohbet', aiClear: 'Temizle', aiNoProvider: 'Henüz bir AI sağlayıcı yapılandırılmadı. Ayarlardan bir sağlayıcı ekleyin.', aiGoSettings: 'Ayarlara Git', aiWelcome: 'Merhaba! Ben AI Asistanınızım', aiWelcomeDesc: 'Size yardımcı olmak için buradayım. Bir soru sorun veya açık uygulamalarınızla ilgili yardım isteyin.', aiPlaceholder: 'Mesajınızı yazın...', aiMicStart: 'Sesli yazma', aiMicStop: 'Dinlemeyi durdur', aiMicListening: 'Dinleniyor...', aiChip1: 'Bu uygulamada ne yapabilirim?', aiChip2: 'Bana bir metin yaz', aiChip3: 'Bir sorunumu çöz',
+    aiSpeechNotSupported: 'Tarayıcınız ses tanımayı desteklemiyor.', aiSpeechNotResponding: 'Ses tanıma servisi yanıt vermiyor. Lütfen tekrar deneyin.', aiMicDenied: 'Mikrofon erişimi reddedildi. Tarayıcı ayarlarından mikrofon iznini kontrol edin.', aiMicNotFound: 'Mikrofon bulunamadı veya kullanılamıyor.', aiSpeechNetErr: 'Ses tanıma servisi bağlantı hatası. İnternet bağlantınızı kontrol edin.', aiSpeechStartErr: 'Ses tanıma başlatılamadı',
     settingsUsers: 'Kullanıcılar', usersAdd: 'Yeni Kullanıcı', usersNewUser: 'Yeni Kullanıcı Oluştur', usersUsername: 'Kullanıcı Adı', usersDisplayName: 'Görünen Ad', usersDisplayNamePlaceholder: 'Ahmet Yılmaz', usersPassword: 'Şifre', usersPasswordConfirm: 'Şifre Tekrar', usersNewPassword: 'Yeni Şifre', usersPasswordLeaveEmpty: 'Değiştirmemek için boş bırakın', usersAvatar: 'Avatar', usersNoAvatar: 'Yok', usersEdit: 'Düzenle', usersDelete: 'Sil', usersSave: 'Kaydet', usersCancel: 'İptal', usersActive: 'Aktif', usersCreated: 'Oluşturulma', usersDeleted: 'Kullanıcı silindi', usersSaved: 'Kaydedildi', usersFieldsRequired: 'Kullanıcı adı ve şifre gerekli', usersPasswordMismatch: 'Şifreler eşleşmiyor', usersDeleteConfirm: 'Kullanıcıyı sil', usersUsernameNoChange: 'Kullanıcı adı değiştirilemez (dizin yollarında kullanılıyor)', usersChangeAvatar: 'Avatarı değiştir'
   },
   en: {
@@ -2260,6 +2261,7 @@ const I18N = {
     aiSave: 'Save', aiSaved: 'AI settings saved', aiRemove: 'Remove',
     aiKeyHidden: 'Key is hidden', aiKeyPlaceholder: 'Enter API key...', aiDefault: 'Default',
     aiChat: 'AI Assistant', aiNewChat: 'New Chat', aiClear: 'Clear', aiNoProvider: 'No AI provider configured yet. Add a provider from Settings.', aiGoSettings: 'Go to Settings', aiWelcome: 'Hello! I\'m your AI Assistant', aiWelcomeDesc: 'I\'m here to help you. Ask a question or get help with your open apps.', aiPlaceholder: 'Type your message...', aiMicStart: 'Voice input', aiMicStop: 'Stop listening', aiMicListening: 'Listening...', aiChip1: 'What can I do in this app?', aiChip2: 'Write me a text', aiChip3: 'Help me solve a problem',
+    aiSpeechNotSupported: 'Browser does not support speech recognition.', aiSpeechNotResponding: 'Speech recognition service not responding. Please try again.', aiMicDenied: 'Microphone access denied. Check microphone permission in browser settings.', aiMicNotFound: 'Microphone not found or unavailable.', aiSpeechNetErr: 'Speech recognition network error. Check your internet connection.', aiSpeechStartErr: 'Could not start speech recognition',
     settingsUsers: 'Users', usersAdd: 'New User', usersNewUser: 'Create New User', usersUsername: 'Username', usersDisplayName: 'Display Name', usersDisplayNamePlaceholder: 'John Doe', usersPassword: 'Password', usersPasswordConfirm: 'Confirm', usersNewPassword: 'New Password', usersPasswordLeaveEmpty: 'Leave empty to keep current', usersAvatar: 'Avatar', usersNoAvatar: 'None', usersEdit: 'Edit', usersDelete: 'Delete', usersSave: 'Save', usersCancel: 'Cancel', usersActive: 'Active', usersCreated: 'Created', usersDeleted: 'User deleted', usersSaved: 'Saved', usersFieldsRequired: 'Username and password required', usersPasswordMismatch: 'Passwords do not match', usersDeleteConfirm: 'Delete user', usersUsernameNoChange: 'Username cannot be changed (used in directory paths)', usersChangeAvatar: 'Change avatar'
   },
   de: {
@@ -2817,7 +2819,7 @@ Object.assign(I18N.tr, {
   calBlue:'Mavi', calGreen:'Yeşil', calOrange:'Turuncu', calRed:'Kırmızı', calPurple:'Mor',
   calStartTime:'Başlangıç', calEndTime:'Bitiş', calOptional:'opsiyonel',
   calHolidays:'Tatiller', calDays:'gün', calAddHoliday:'Ekle', calClearHolidays:'Tüm tatilleri temizle', calHolidaysAdded:'tatil eklendi',
-  termBarTitle:'bash - kullanıcı@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Komutlar: help, ls, date, clear, echo [metin]',
+  termBarTitle:'bash - kullanıcı@vuedesktop', termWelcome:'Aysi Cloud Computer Terminal v1.0 — Komutlar: help, ls, date, clear, echo [metin]',
   termHelpText:'Komutlar: help, ls, date, clear, echo [metin], whoami, pwd', termNotFound:'Komut bulunamadı', termHelpHint:'"help" yazın.',
   termPlaceholder:'komut girin...', termUser:'kullanıcı', termPwd:'/home/kullanıcı',
   notifNow:'Şimdi', notifLabel:'Bildirim',
@@ -2846,7 +2848,7 @@ Object.assign(I18N.en, {
   calBlue:'Blue', calGreen:'Green', calOrange:'Orange', calRed:'Red', calPurple:'Purple',
   calStartTime:'Start', calEndTime:'End', calOptional:'optional',
   calHolidays:'Holidays', calDays:'days', calAddHoliday:'Add', calClearHolidays:'Clear all holidays', calHolidaysAdded:'holidays added',
-  termBarTitle:'bash - user@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Commands: help, ls, date, clear, echo [text]',
+  termBarTitle:'bash - user@vuedesktop', termWelcome:'Aysi Cloud Computer Terminal v1.0 — Commands: help, ls, date, clear, echo [text]',
   termHelpText:'Commands: help, ls, date, clear, echo [text], whoami, pwd', termNotFound:'Command not found', termHelpHint:'Type "help".',
   termPlaceholder:'enter command...', termUser:'user', termPwd:'/home/user',
   notifNow:'Now', notifLabel:'Notification',
@@ -2873,7 +2875,7 @@ Object.assign(I18N.de, {
   calBlue:'Blau', calGreen:'Grün', calOrange:'Orange', calRed:'Rot', calPurple:'Lila',
   calStartTime:'Beginn', calEndTime:'Ende', calOptional:'optional',
   calHolidays:'Feiertage', calDays:'Tage', calAddHoliday:'Hinzufügen', calClearHolidays:'Alle Feiertage löschen', calHolidaysAdded:'Feiertage hinzugefügt',
-  termBarTitle:'bash - benutzer@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Befehle: help, ls, date, clear, echo [text]',
+  termBarTitle:'bash - benutzer@vuedesktop', termWelcome:'Aysi Cloud Computer Terminal v1.0 — Befehle: help, ls, date, clear, echo [text]',
   termHelpText:'Befehle: help, ls, date, clear, echo [text], whoami, pwd', termNotFound:'Befehl nicht gefunden', termHelpHint:'"help" eingeben.',
   termPlaceholder:'Befehl eingeben...', termUser:'benutzer', termPwd:'/home/benutzer',
   notifNow:'Jetzt', notifLabel:'Benachrichtigung',
@@ -2900,7 +2902,7 @@ Object.assign(I18N.fr, {
   calBlue:'Bleu', calGreen:'Vert', calOrange:'Orange', calRed:'Rouge', calPurple:'Violet',
   calStartTime:'Début', calEndTime:'Fin', calOptional:'optionnel',
   calHolidays:'Jours fériés', calDays:'jours', calAddHoliday:'Ajouter', calClearHolidays:'Effacer tous les jours fériés', calHolidaysAdded:'jours fériés ajoutés',
-  termBarTitle:'bash - utilisateur@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Commandes: help, ls, date, clear, echo [texte]',
+  termBarTitle:'bash - utilisateur@vuedesktop', termWelcome:'Aysi Cloud Computer Terminal v1.0 — Commandes: help, ls, date, clear, echo [texte]',
   termHelpText:'Commandes: help, ls, date, clear, echo [texte], whoami, pwd', termNotFound:'Commande introuvable', termHelpHint:'Tapez "help".',
   termPlaceholder:'entrer commande...', termUser:'utilisateur', termPwd:'/home/utilisateur',
   notifNow:'Maintenant', notifLabel:'Notification',
@@ -2927,7 +2929,7 @@ Object.assign(I18N.es, {
   calBlue:'Azul', calGreen:'Verde', calOrange:'Naranja', calRed:'Rojo', calPurple:'Morado',
   calStartTime:'Inicio', calEndTime:'Fin', calOptional:'opcional',
   calHolidays:'Festivos', calDays:'días', calAddHoliday:'Agregar', calClearHolidays:'Borrar todos los festivos', calHolidaysAdded:'festivos añadidos',
-  termBarTitle:'bash - usuario@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Comandos: help, ls, date, clear, echo [texto]',
+  termBarTitle:'bash - usuario@vuedesktop', termWelcome:'Aysi Cloud Computer Terminal v1.0 — Comandos: help, ls, date, clear, echo [texto]',
   termHelpText:'Comandos: help, ls, date, clear, echo [texto], whoami, pwd', termNotFound:'Comando no encontrado', termHelpHint:'Escriba "help".',
   termPlaceholder:'ingrese comando...', termUser:'usuario', termPwd:'/home/usuario',
   notifNow:'Ahora', notifLabel:'Notificación',
@@ -2954,7 +2956,7 @@ Object.assign(I18N.ru, {
   calBlue:'Синий', calGreen:'Зелёный', calOrange:'Оранжевый', calRed:'Красный', calPurple:'Фиолетовый',
   calStartTime:'Начало', calEndTime:'Конец', calOptional:'необязательно',
   calHolidays:'Праздники', calDays:'дней', calAddHoliday:'Добавить', calClearHolidays:'Удалить все праздники', calHolidaysAdded:'праздников добавлено',
-  termBarTitle:'bash - пользователь@vuedesktop', termWelcome:'Vue Desktop Terminal v1.0 — Команды: help, ls, date, clear, echo [текст]',
+  termBarTitle:'bash - пользователь@vuedesktop', termWelcome:'Aysi Cloud Computer Terminal v1.0 — Команды: help, ls, date, clear, echo [текст]',
   termHelpText:'Команды: help, ls, date, clear, echo [текст], whoami, pwd', termNotFound:'Команда не найдена', termHelpHint:'Введите "help".',
   termPlaceholder:'введите команду...', termUser:'пользователь', termPwd:'/home/пользователь',
   notifNow:'Сейчас', notifLabel:'Уведомление',
@@ -2981,7 +2983,7 @@ Object.assign(I18N.zh, {
   calBlue:'蓝色', calGreen:'绿色', calOrange:'橙色', calRed:'红色', calPurple:'紫色',
   calStartTime:'开始', calEndTime:'结束', calOptional:'可选',
   calHolidays:'节假日', calDays:'天', calAddHoliday:'添加', calClearHolidays:'清除所有节假日', calHolidaysAdded:'个节假日已添加',
-  termBarTitle:'bash - 用户@vuedesktop', termWelcome:'Vue Desktop 终端 v1.0 — 命令: help, ls, date, clear, echo [文本]',
+  termBarTitle:'bash - 用户@vuedesktop', termWelcome:'Aysi Cloud Computer 终端 v1.0 — 命令: help, ls, date, clear, echo [文本]',
   termHelpText:'命令: help, ls, date, clear, echo [文本], whoami, pwd', termNotFound:'未找到命令', termHelpHint:'输入 "help"。',
   termPlaceholder:'输入命令...', termUser:'用户', termPwd:'/home/用户',
   notifNow:'现在', notifLabel:'通知',
@@ -3008,7 +3010,7 @@ Object.assign(I18N.ja, {
   calBlue:'青', calGreen:'緑', calOrange:'オレンジ', calRed:'赤', calPurple:'紫',
   calStartTime:'開始', calEndTime:'終了', calOptional:'任意',
   calHolidays:'祝日', calDays:'日', calAddHoliday:'追加', calClearHolidays:'すべての祝日を削除', calHolidaysAdded:'件の祝日を追加',
-  termBarTitle:'bash - ユーザー@vuedesktop', termWelcome:'Vue Desktop ターミナル v1.0 — コマンド: help, ls, date, clear, echo [テキスト]',
+  termBarTitle:'bash - ユーザー@vuedesktop', termWelcome:'Aysi Cloud Computer ターミナル v1.0 — コマンド: help, ls, date, clear, echo [テキスト]',
   termHelpText:'コマンド: help, ls, date, clear, echo [テキスト], whoami, pwd', termNotFound:'コマンドが見つかりません', termHelpHint:'"help"と入力してください。',
   termPlaceholder:'コマンドを入力...', termUser:'ユーザー', termPwd:'/home/ユーザー',
   notifNow:'今', notifLabel:'通知',
@@ -3035,7 +3037,7 @@ Object.assign(I18N.it, {
   calBlue:'Blu', calGreen:'Verde', calOrange:'Arancione', calRed:'Rosso', calPurple:'Viola',
   calStartTime:'Inizio', calEndTime:'Fine', calOptional:'opzionale',
   calHolidays:'Festività', calDays:'giorni', calAddHoliday:'Aggiungi', calClearHolidays:'Cancella tutte le festività', calHolidaysAdded:'festività aggiunte',
-  termBarTitle:'bash - utente@vuedesktop', termWelcome:'Vue Desktop Terminale v1.0 — Comandi: help, ls, date, clear, echo [testo]',
+  termBarTitle:'bash - utente@vuedesktop', termWelcome:'Aysi Cloud Computer Terminale v1.0 — Comandi: help, ls, date, clear, echo [testo]',
   termHelpText:'Comandi: help, ls, date, clear, echo [testo], whoami, pwd', termNotFound:'Comando non trovato', termHelpHint:'Digita "help".',
   termPlaceholder:'inserisci comando...', termUser:'utente', termPwd:'/home/utente',
   notifNow:'Ora', notifLabel:'Notifica',
@@ -3083,14 +3085,14 @@ const EP_LOCALES = {
 
 function t(key) {
   const store = useSettingsStore();
-  return (I18N[store.locale] || I18N.tr)[key] || (I18N.tr)[key] || key;
+  return (I18N[store.locale] || I18N.en)[key] || (I18N.en)[key] || key;
 }
 
 function tApp(app) {
   const store = useSettingsStore();
-  const lang = store.locale || 'tr';
+  const lang = store.locale || 'en';
   if (app.lang && app.lang[lang]) return app.lang[lang];
-  if (app.lang && app.lang.tr) return app.lang.tr;
+  if (app.lang && app.lang.en) return app.lang.en;
   return { name: app.name, description: app.description || '' };
 }
 
@@ -3427,7 +3429,7 @@ const WeatherApp = {
     function getIcon(code) { return WMO_ICONS[code] || '🌡️'; }
     function getDesc(code) {
       const loc = useSettingsStore().locale;
-      const descs = WMO_DESC_I18N[loc] || WMO_DESC_I18N.tr;
+      const descs = WMO_DESC_I18N[loc] || WMO_DESC_I18N.en;
       return descs[code] || t('weatherUnknown');
     }
 
@@ -3498,15 +3500,15 @@ const SettingsApp = {
     const active = ref('display');
     const tabs = computed(() => [
       { id: 'display', icon: '🖥️', name: t('settingsDisplay') },
-      { id: 'wallpaper', icon: '🖼️', name: t('settingsWallpaper') || 'Duvar Kağıdı' },
-      { id: 'fonts', icon: '🔤', name: t('settingsFonts') || 'Fonts' },
+      { id: 'wallpaper', icon: '🖼️', name: t('settingsWallpaper') },
+      { id: 'fonts', icon: '🔤', name: t('settingsFonts') },
       { id: 'location', icon: '📍', name: t('settingsLocation') },
       { id: 'language', icon: '🌐', name: t('settingsLanguage') },
       { id: 'sound', icon: '🔊', name: t('settingsSound') },
-      { id: 'session', icon: '🔄', name: t('settingsSession') || 'Oturum' },
-      { id: 'security', icon: '🔐', name: t('settingsSecurity') || 'Güvenlik' },
-      { id: 'users', icon: '👥', name: t('settingsUsers') || 'Users' },
-      { id: 'ai', icon: '🤖', name: t('settingsAI') || 'AI' },
+      { id: 'session', icon: '🔄', name: t('settingsSession') },
+      { id: 'security', icon: '🔐', name: t('settingsSecurity') },
+      { id: 'users', icon: '👥', name: t('settingsUsers') },
+      { id: 'ai', icon: '🤖', name: t('settingsAI') },
       { id: 'network', icon: '📶', name: t('settingsNetwork') },
       { id: 'about', icon: 'ℹ️', name: t('settingsAbout') }
     ]);
@@ -3529,14 +3531,14 @@ const SettingsApp = {
       ],
       network: [],
       about: [
-        { label: t('version'), type: 'select', options: ['Vue Desktop 1.0'], val: ref('Vue Desktop 1.0') },
+        { label: t('version'), type: 'select', options: ['Aysi Cloud Computer 1.0'], val: ref('Aysi Cloud Computer 1.0') },
         { label: t('checkUpdates'), type: 'toggle', val: ref(true) }
       ]
     }));
     const currentRows = computed(() => allRows.value[active.value] || []);
 
     // ── Language ──
-    const selectedLocale = ref(settingsStore.locale || 'tr');
+    const selectedLocale = ref(settingsStore.locale || 'en');
 
     function changeLocale(code) {
       selectedLocale.value = code;
@@ -3810,19 +3812,19 @@ const SettingsApp = {
             <div class="fsd-header">
               <h3>🔤 Google Fonts</h3>
               <div style="display:flex;align-items:center;gap:10px">
-                <span style="font-size:12px;color:#6aabf7">${selected.size > 0 ? selected.size + ' ' + (t('fontsSelected') || 'seçili') : ''}</span>
+                <span style="font-size:12px;color:#6aabf7">${selected.size > 0 ? selected.size + ' ' + t('fontsSelected') : ''}</span>
                 <button class="fsd-close" data-action="cancel">✕</button>
               </div>
             </div>
             <div class="fsd-toolbar">
-              <input class="fsd-search" type="text" placeholder="${t('fontsSearchPlaceholder') || 'Font ara...'}" value="${search.replace(/"/g,'&quot;')}" />
+              <input class="fsd-search" type="text" placeholder="${t('fontsSearchPlaceholder')}" value="${search.replace(/"/g,'&quot;')}" />
               <select class="fsd-category">
                 ${CATS.map(c => '<option value="'+c+'"'+(c===cat?' selected':'')+'>'+CAT_LABELS[c]+'</option>').join('')}
               </select>
             </div>
             <div class="fsd-body" style="min-height:350px">
-              ${loading ? '<div class="fsd-loading"><div class="fsd-spinner"></div>'+(t('fontsLoading') || 'Google Fonts yükleniyor...')+'</div>' :
-                filtered.length === 0 ? '<div class="fsd-empty">'+(t('fontsNoResults') || 'Font bulunamadı')+'</div>' :
+              ${loading ? '<div class="fsd-loading"><div class="fsd-spinner"></div>'+t('fontsLoading')+'</div>' :
+                filtered.length === 0 ? '<div class="fsd-empty">'+t('fontsNoResults')+'</div>' :
                 visible.map((f, i) => {
                   const isAdded = isFontAdded(f.family);
                   const isSel = selected.has(f.family);
@@ -3833,7 +3835,7 @@ const SettingsApp = {
                         '<div style="display:flex;align-items:baseline;gap:8px">'+
                           '<span style="font-size:13px;font-weight:500;color:#e1e4ea">'+f.family+'</span>'+
                           '<span class="fsd-item-category">'+f.category+'</span>'+
-                          (isAdded?'<span style="font-size:10px;color:#67c23a">✓ '+(t('fontsAdded') || 'Eklendi')+'</span>':'')+
+                          (isAdded?'<span style="font-size:10px;color:#67c23a">✓ '+t('fontsAdded')+'</span>':'')+
                         '</div>'+
                         '<div class="fsd-item-sample" style="font-family:\''+f.family.replace(/'/g,"\\'")+'\','+( f.category||'sans-serif')+';font-size:18px;margin-top:4px">'+SAMPLE.substring(0,44)+'</div>'+
                       '</div>'+
@@ -3844,10 +3846,10 @@ const SettingsApp = {
               }
             </div>
             <div class="fsd-footer">
-              <span class="fsd-font-count">${loading ? (t('fontsLoading') || 'Yükleniyor...') : filtered.length + ' fonts'}</span>
+              <span class="fsd-font-count">${loading ? t('fontsLoading') : filtered.length + ' fonts'}</span>
               <div class="fsd-footer-actions">
-                <button class="fsd-btn fsd-btn-cancel" data-action="cancel">${t('cancel') || 'İptal'}</button>
-                <button class="fsd-btn fsd-btn-ok" data-action="add" ${selected.size===0?'disabled':''}>${(t('fontsAdd') || 'Ekle')} ${selected.size > 0 ? '('+selected.size+')' : ''}</button>
+                <button class="fsd-btn fsd-btn-cancel" data-action="cancel">${t('cancel')}</button>
+                <button class="fsd-btn fsd-btn-ok" data-action="add" ${selected.size===0?'disabled':''}>${t('fontsAdd')} ${selected.size > 0 ? '('+selected.size+')' : ''}</button>
               </div>
             </div>
           </div>
@@ -4029,20 +4031,33 @@ const SettingsApp = {
 
     // ── AI Settings ──
     const aiModelCache = reactive({});
+    const _aiModelsVersion = ref(0);
+    let _aiModelsPromise = null;
+    async function aiLoadAllModels() {
+      if (_aiModelsPromise) return _aiModelsPromise;
+      _aiModelsPromise = (async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch('/api/ai/models', { headers: { 'Authorization': 'Bearer ' + token } });
+          if (res.ok) {
+            const data = await res.json();
+            for (const [pid, info] of Object.entries(data)) {
+              aiModelCache[pid] = info.models || [];
+            }
+            _aiModelsVersion.value++;
+          }
+        } catch { _aiModelsPromise = null; }
+      })();
+      return _aiModelsPromise;
+    }
     async function aiLoadModels(providerId) {
-      if (!providerId || aiModelCache[providerId]) return;
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/ai/models?provider=' + encodeURIComponent(providerId), { headers: { 'Authorization': 'Bearer ' + token } });
-        if (res.ok) {
-          const data = await res.json();
-          aiModelCache[providerId] = data.models || [];
-        }
-      } catch {}
+      if (!providerId) return;
+      await aiLoadAllModels();
     }
     function aiGetModels(providerId) {
+      void _aiModelsVersion.value;
       if (!providerId) return [];
-      if (!aiModelCache[providerId]) { aiLoadModels(providerId); return []; }
+      if (!aiModelCache[providerId]) { aiLoadAllModels(); return []; }
       return aiModelCache[providerId];
     }
 
@@ -4124,8 +4139,8 @@ const SettingsApp = {
         if (data.agents && Array.isArray(data.agents)) {
           aiAgents.value = data.agents.map(a => ({ ...a, enabled: a.enabled !== false }));
         }
-        // Pre-load model lists for all providers
-        for (const p of aiProviders.value) { aiLoadModels(p.id); }
+        // Pre-load all model lists
+        aiLoadAllModels();
       } catch {}
     }
 
@@ -5126,7 +5141,7 @@ const ScreenKeyboardApp = {
       [{char:'\''},{char:'\"'},{char:';'},{char:':'},{char:'?'}]
     ];
 
-    const layout = ref(settingsStore.locale || 'tr');
+    const layout = ref(settingsStore.locale || 'en');
     const shifted = ref(false);
     const capsOn = ref(false);
     const numpad = ref(false);
@@ -5643,18 +5658,18 @@ createApp({
     function appName(app) {
       // Built-in apps: use i18n key matching app.id
       const key = app.id;
-      const translated = (I18N[settingsStore.locale] || I18N.tr)[key];
+      const translated = (I18N[settingsStore.locale] || I18N.en)[key];
       if (translated) return translated;
       // Dynamic/store apps: use lang object from manifest
       if (app.lang) {
-        const l = app.lang[settingsStore.locale] || app.lang.tr;
+        const l = app.lang[settingsStore.locale] || app.lang.en;
         if (l && l.name) return l.name;
       }
       return app.name;
     }
     function appDesc(app) {
       if (app.lang) {
-        const l = app.lang[settingsStore.locale] || app.lang.tr;
+        const l = app.lang[settingsStore.locale] || app.lang.en;
         if (l && l.description) return l.description;
       }
       return app.description || '';
@@ -5991,7 +6006,7 @@ createApp({
     function loadAppCss(appId) {
       if (!appId || _loadedAppCss.has(appId)) return;
       // Only load for built-in apps (those defined in componentMap statically)
-      const builtinIds = ['calc','notepad','todo','fileman','weather','settings','terminal','clock','calendar','notifications','appstore','browser','screenshot','screenkeyboard','aichat'];
+      const builtinIds = ['calc','notepad','todo','fileman','weather','settings','terminal','clock','calendar','notifications','appstore','browser','screenshot','screenkeyboard','aichat','contacts'];
       if (!builtinIds.includes(appId)) return;
       _loadedAppCss.add(appId);
       const link = document.createElement('link');
@@ -6739,20 +6754,33 @@ createApp({
 
     // ── AI Model Catalog ──
     const aiModelCache = reactive({});
+    const _aiModelsVersion = ref(0);
+    let _aiModelsPromise2 = null;
+    async function aiLoadAllModels() {
+      if (_aiModelsPromise2) return _aiModelsPromise2;
+      _aiModelsPromise2 = (async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch('/api/ai/models', { headers: { 'Authorization': 'Bearer ' + token } });
+          if (res.ok) {
+            const data = await res.json();
+            for (const [pid, info] of Object.entries(data)) {
+              aiModelCache[pid] = info.models || [];
+            }
+            _aiModelsVersion.value++;
+          }
+        } catch { _aiModelsPromise2 = null; }
+      })();
+      return _aiModelsPromise2;
+    }
     async function aiLoadModels(providerId) {
-      if (!providerId || aiModelCache[providerId]) return;
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/ai/models?provider=' + encodeURIComponent(providerId), { headers: { 'Authorization': 'Bearer ' + token } });
-        if (res.ok) {
-          const data = await res.json();
-          aiModelCache[providerId] = data.models || [];
-        }
-      } catch {}
+      if (!providerId) return;
+      await aiLoadAllModels();
     }
     function aiGetModels(providerId) {
+      void _aiModelsVersion.value;
       if (!providerId) return [];
-      if (!aiModelCache[providerId]) { aiLoadModels(providerId); return []; }
+      if (!aiModelCache[providerId]) { aiLoadAllModels(); return []; }
       return aiModelCache[providerId];
     }
 
@@ -6781,8 +6809,7 @@ createApp({
     function aiStartRecognition() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const rec = new SpeechRecognition();
-      const locale = settingsStore.locale || 'tr';
-      const isTr = locale === 'tr';
+      const locale = settingsStore.locale || 'en';
       rec.lang = aiSpeechLangMap[locale] || locale;
       rec.interimResults = true;
       rec.continuous = true;
@@ -6791,7 +6818,7 @@ createApp({
       rec.onend = () => {
         if (!aiMicStopping && aiListening.value) {
           if (aiRecErrorCount >= 3) {
-            aiStopVoice(isTr ? 'Ses tanıma servisi yanıt vermiyor. Lütfen tekrar deneyin.' : 'Speech recognition service not responding. Please try again.');
+            aiStopVoice(t('aiSpeechNotResponding'));
             return;
           }
           try { aiStartRecognition(); } catch(e) { aiStopVoice(null); }
@@ -6802,13 +6829,13 @@ createApp({
       };
       rec.onerror = (e) => {
         if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-          aiStopVoice(isTr ? 'Mikrofon erişimi reddedildi. Tarayıcı ayarlarından mikrofon iznini kontrol edin.' : 'Microphone access denied. Check microphone permission in browser settings.');
+          aiStopVoice(t('aiMicDenied'));
         } else if (e.error === 'audio-capture') {
-          aiStopVoice(isTr ? 'Mikrofon bulunamadı veya kullanılamıyor.' : 'Microphone not found or unavailable.');
+          aiStopVoice(t('aiMicNotFound'));
         } else if (e.error === 'network') {
           aiRecErrorCount++;
           if (aiRecErrorCount >= 3) {
-            aiStopVoice(isTr ? 'Ses tanıma servisi bağlantı hatası. İnternet bağlantınızı kontrol edin.' : 'Speech recognition network error. Check your internet connection.');
+            aiStopVoice(t('aiSpeechNetErr'));
           }
         } else if (e.error === 'no-speech') {
           aiRecErrorCount++;
@@ -6830,14 +6857,13 @@ createApp({
       try {
         rec.start();
       } catch(e) {
-        aiStopVoice(isTr ? 'Ses tanıma başlatılamadı: ' + e.message : 'Could not start speech recognition: ' + e.message);
+        aiStopVoice(t('aiSpeechStartErr') + ': ' + e.message);
       }
     }
 
     function aiToggleVoice() {
       if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        const isTr = (settingsStore.locale || 'tr') === 'tr';
-        aiError.value = isTr ? 'Tarayıcınız ses tanımayı desteklemiyor.' : 'Browser does not support speech recognition.';
+        aiError.value = t('aiSpeechNotSupported');
         return;
       }
       if (aiListening.value) {

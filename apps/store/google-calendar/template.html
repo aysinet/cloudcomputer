@@ -1,0 +1,283 @@
+<div class="gcal-app">
+  <!-- Settings Panel -->
+  <div v-if="view==='settings'" class="gcal-settings">
+    <div class="gcal-settings-header">
+      <span class="gcal-settings-title">⚙️ {{L('settingsTitle')}}</span>
+      <el-button size="small" text @click="view='calendar'" v-if="authenticated">✕</el-button>
+    </div>
+    <div class="gcal-settings-body">
+      <div class="gcal-field">
+        <label>Client ID</label>
+        <el-input v-model="clientId" size="small" placeholder="Google OAuth Client ID" />
+      </div>
+      <div class="gcal-field">
+        <label>Client Secret</label>
+        <el-input v-model="clientSecret" size="small" type="password" show-password placeholder="Client Secret" />
+      </div>
+      <div class="gcal-field">
+        <label>Redirect URI</label>
+        <el-input v-model="redirectUri" size="small" placeholder="urn:ietf:wg:oauth:2.0:oob" />
+      </div>
+      <div class="gcal-field-actions">
+        <el-button type="primary" size="small" @click="saveConfig" :loading="saving">{{L('save')}}</el-button>
+      </div>
+
+      <div v-if="!authenticated && clientId" class="gcal-auth-section">
+        <el-divider />
+        <el-button type="success" size="small" @click="startAuth" :loading="authLoading">{{L('connect')}}</el-button>
+        <div v-if="authUrl" class="gcal-auth-url">
+          <p>{{L('authInstructions')}}</p>
+          <el-input v-model="authUrl" size="small" readonly>
+            <template #append>
+              <el-button @click="copyUrl">📋</el-button>
+            </template>
+          </el-input>
+          <div class="gcal-auth-code">
+            <el-input v-model="authCode" size="small" :placeholder="L('pasteCode')" />
+            <el-button type="primary" size="small" @click="submitCode" :loading="codeLoading">{{L('authorize')}}</el-button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="authenticated" class="gcal-auth-section">
+        <el-divider />
+        <div class="gcal-connected">
+          <span>✅ {{L('connectedAs')}} <strong>{{email}}</strong></span>
+          <el-button type="danger" size="small" plain @click="disconnect">{{L('disconnect')}}</el-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar View -->
+  <div v-else-if="view==='calendar'" class="gcal-main">
+    <!-- Toolbar -->
+    <div class="gcal-toolbar">
+      <div class="gcal-toolbar-left">
+        <el-button size="small" @click="goToday" plain>{{L('today')}}</el-button>
+        <el-button size="small" text @click="goPrev">◀</el-button>
+        <el-button size="small" text @click="goNext">▶</el-button>
+        <span class="gcal-month-label">{{monthLabel}}</span>
+      </div>
+      <div class="gcal-toolbar-right">
+        <el-select v-model="selectedCalendarId" size="small" :placeholder="L('allCalendars')" clearable style="width:180px" @change="loadEvents">
+          <el-option v-for="c in calendars" :key="c.id" :label="c.summary" :value="c.id">
+            <span :style="{color: c.backgroundColor}">●</span> {{c.summary}}
+          </el-option>
+        </el-select>
+        <el-radio-group v-model="viewMode" size="small">
+          <el-radio-button value="month">{{L('month')}}</el-radio-button>
+          <el-radio-button value="week">{{L('week')}}</el-radio-button>
+          <el-radio-button value="day">{{L('day')}}</el-radio-button>
+        </el-radio-group>
+        <el-button size="small" text @click="view='settings'">⚙️</el-button>
+      </div>
+    </div>
+
+    <!-- Month View -->
+    <div v-if="viewMode==='month'" class="gcal-month-grid">
+      <div class="gcal-weekday-header">
+        <div v-for="d in weekDays" :key="d" class="gcal-weekday">{{d}}</div>
+      </div>
+      <div class="gcal-days-grid">
+        <div v-for="(day, i) in monthDays" :key="i"
+             class="gcal-day-cell"
+             :class="{'gcal-other-month': !day.current, 'gcal-today': day.isToday}"
+             @click="openDayDetail(day)"
+             @dblclick="openCreateDialog(day.date)">
+          <div class="gcal-day-num">{{day.day}}</div>
+          <div class="gcal-day-events">
+            <div v-for="ev in day.events.slice(0,3)" :key="ev.id"
+                 class="gcal-event-chip"
+                 :style="{background: ev.color || '#4285f4'}"
+                 @click.stop="openEventDetail(ev)">
+              <span class="gcal-event-time" v-if="!ev.allDay">{{ev.startTime}}</span>
+              {{ev.title}}
+            </div>
+            <div v-if="day.events.length > 3" class="gcal-more-events" @click.stop="openDayDetail(day)">
+              +{{day.events.length - 3}} {{L('more')}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Week View -->
+    <div v-if="viewMode==='week'" class="gcal-week-view">
+      <div class="gcal-week-header">
+        <div class="gcal-time-gutter"></div>
+        <div v-for="d in weekViewDays" :key="d.dateStr" class="gcal-week-day-col-header" :class="{'gcal-today': d.isToday}">
+          <div class="gcal-week-day-name">{{d.dayName}}</div>
+          <div class="gcal-week-day-num">{{d.day}}</div>
+        </div>
+      </div>
+      <div class="gcal-week-body" ref="weekBody">
+        <div class="gcal-time-gutter">
+          <div v-for="h in 24" :key="h" class="gcal-hour-label">{{String(h-1).padStart(2,'0')}}:00</div>
+        </div>
+        <div v-for="d in weekViewDays" :key="d.dateStr" class="gcal-week-day-col" @dblclick="openCreateDialog(d.dateStr)">
+          <div v-for="h in 24" :key="h" class="gcal-hour-slot"></div>
+          <div v-for="ev in d.events" :key="ev.id"
+               class="gcal-week-event"
+               :style="{top: ev.top + 'px', height: ev.height + 'px', background: ev.color || '#4285f4'}"
+               @click="openEventDetail(ev)">
+            <div class="gcal-week-event-title">{{ev.title}}</div>
+            <div class="gcal-week-event-time">{{ev.startTime}} - {{ev.endTime}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day View -->
+    <div v-if="viewMode==='day'" class="gcal-day-view">
+      <div class="gcal-day-view-header">
+        <span class="gcal-day-view-title">{{dayViewTitle}}</span>
+      </div>
+      <div class="gcal-day-view-body" ref="dayBody">
+        <div class="gcal-time-gutter">
+          <div v-for="h in 24" :key="h" class="gcal-hour-label">{{String(h-1).padStart(2,'0')}}:00</div>
+        </div>
+        <div class="gcal-day-view-col" @dblclick="openCreateDialog(currentDateStr)">
+          <div v-for="h in 24" :key="h" class="gcal-hour-slot"></div>
+          <div v-for="ev in dayViewEvents" :key="ev.id"
+               class="gcal-week-event"
+               :style="{top: ev.top + 'px', height: ev.height + 'px', background: ev.color || '#4285f4'}"
+               @click="openEventDetail(ev)">
+            <div class="gcal-week-event-title">{{ev.title}}</div>
+            <div class="gcal-week-event-time">{{ev.startTime}} - {{ev.endTime}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Create Button -->
+    <div class="gcal-fab" @click="openCreateDialog()">+</div>
+  </div>
+
+  <!-- Not Connected View -->
+  <div v-else class="gcal-not-connected">
+    <div class="gcal-nc-icon">📆</div>
+    <p>{{L('notConnected')}}</p>
+    <el-button type="primary" @click="view='settings'">{{L('setupAccount')}}</el-button>
+  </div>
+
+  <!-- Event Detail Dialog -->
+  <el-dialog v-model="eventDetailVisible" :title="selectedEvent?.title || ''" width="420" :append-to-body="true" class="gcal-dialog">
+    <div v-if="selectedEvent" class="gcal-event-detail">
+      <div class="gcal-detail-row">
+        <span class="gcal-detail-icon">🕐</span>
+        <span v-if="selectedEvent.allDay">{{L('allDay')}} — {{selectedEvent.dateLabel}}</span>
+        <span v-else>{{selectedEvent.dateLabel}} {{selectedEvent.startTime}} - {{selectedEvent.endTime}}</span>
+      </div>
+      <div v-if="selectedEvent.location" class="gcal-detail-row">
+        <span class="gcal-detail-icon">📍</span>
+        <span>{{selectedEvent.location}}</span>
+      </div>
+      <div v-if="selectedEvent.description" class="gcal-detail-row">
+        <span class="gcal-detail-icon">📝</span>
+        <span v-html="selectedEvent.description"></span>
+      </div>
+      <div v-if="selectedEvent.calendarName" class="gcal-detail-row">
+        <span class="gcal-detail-icon">📅</span>
+        <span>{{selectedEvent.calendarName}}</span>
+      </div>
+      <div v-if="selectedEvent.attendees && selectedEvent.attendees.length" class="gcal-detail-row">
+        <span class="gcal-detail-icon">👥</span>
+        <div>
+          <div v-for="a in selectedEvent.attendees" :key="a.email" class="gcal-attendee">
+            {{a.displayName || a.email}} <span v-if="a.responseStatus" class="gcal-attendee-status">({{a.responseStatus}})</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <template #footer>
+      <el-button size="small" @click="editEvent(selectedEvent)" type="primary">{{L('edit')}}</el-button>
+      <el-button size="small" @click="deleteEvent(selectedEvent)" type="danger">{{L('delete')}}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- Create/Edit Dialog -->
+  <el-dialog v-model="createDialogVisible" :title="editingEvent ? L('editEvent') : L('newEvent')" width="460" :append-to-body="true" class="gcal-dialog">
+    <div class="gcal-create-form">
+      <div class="gcal-field">
+        <label>{{L('eventTitle')}}</label>
+        <el-input v-model="form.title" size="small" :placeholder="L('eventTitlePlaceholder')" />
+      </div>
+      <div class="gcal-field-row">
+        <div class="gcal-field" style="flex:1">
+          <label>{{L('startDate')}}</label>
+          <el-date-picker v-model="form.startDate" type="datetime" size="small" format="YYYY-MM-DD HH:mm" value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" />
+        </div>
+        <div class="gcal-field" style="flex:1">
+          <label>{{L('endDate')}}</label>
+          <el-date-picker v-model="form.endDate" type="datetime" size="small" format="YYYY-MM-DD HH:mm" value-format="YYYY-MM-DDTHH:mm:ss" style="width:100%" />
+        </div>
+      </div>
+      <div class="gcal-field">
+        <el-checkbox v-model="form.allDay">{{L('allDay')}}</el-checkbox>
+      </div>
+      <div class="gcal-field">
+        <label>{{L('location')}}</label>
+        <el-input v-model="form.location" size="small" :placeholder="L('locationPlaceholder')" />
+      </div>
+      <div class="gcal-field">
+        <label>{{L('description')}}</label>
+        <el-input v-model="form.description" type="textarea" :rows="3" size="small" />
+      </div>
+      <div class="gcal-field">
+        <label>{{L('calendar')}}</label>
+        <el-select v-model="form.calendarId" size="small" style="width:100%">
+          <el-option v-for="c in writableCalendars" :key="c.id" :label="c.summary" :value="c.id" />
+        </el-select>
+      </div>
+      <div class="gcal-field">
+        <label>{{L('color')}}</label>
+        <el-select v-model="form.colorId" size="small" style="width:100%" clearable :placeholder="L('defaultColor')">
+          <el-option v-for="(c, idx) in eventColors" :key="idx" :label="c.label" :value="idx">
+            <span :style="{display:'inline-block',width:'12px',height:'12px',borderRadius:'50%',background:c.background,marginRight:'6px',verticalAlign:'middle'}"></span>
+            {{c.label}}
+          </el-option>
+        </el-select>
+      </div>
+      <div class="gcal-field">
+        <label>{{L('reminder')}} ({{L('minutes')}})</label>
+        <el-input-number v-model="form.reminderMinutes" size="small" :min="0" :max="40320" />
+      </div>
+      <div class="gcal-field">
+        <label>{{L('recurrence')}}</label>
+        <el-select v-model="form.recurrence" size="small" style="width:100%" clearable :placeholder="L('noRecurrence')">
+          <el-option value="RRULE:FREQ=DAILY" :label="L('daily')" />
+          <el-option value="RRULE:FREQ=WEEKLY" :label="L('weekly')" />
+          <el-option value="RRULE:FREQ=MONTHLY" :label="L('monthly')" />
+          <el-option value="RRULE:FREQ=YEARLY" :label="L('yearly')" />
+        </el-select>
+      </div>
+      <div class="gcal-field">
+        <label>{{L('attendees')}}</label>
+        <el-input v-model="form.attendeesStr" size="small" :placeholder="L('attendeesPlaceholder')" />
+      </div>
+    </div>
+    <template #footer>
+      <el-button size="small" @click="createDialogVisible=false">{{L('cancel')}}</el-button>
+      <el-button type="primary" size="small" @click="saveEvent" :loading="saving">{{editingEvent ? L('update') : L('create')}}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- Day Detail Dialog -->
+  <el-dialog v-model="dayDetailVisible" :title="dayDetailTitle" width="380" :append-to-body="true" class="gcal-dialog">
+    <div class="gcal-day-detail-list">
+      <div v-if="!dayDetailEvents.length" class="gcal-empty">{{L('noEvents')}}</div>
+      <div v-for="ev in dayDetailEvents" :key="ev.id" class="gcal-day-detail-item" @click="openEventDetail(ev)">
+        <div class="gcal-day-detail-dot" :style="{background: ev.color || '#4285f4'}"></div>
+        <div class="gcal-day-detail-info">
+          <div class="gcal-day-detail-title">{{ev.title}}</div>
+          <div class="gcal-day-detail-time" v-if="!ev.allDay">{{ev.startTime}} - {{ev.endTime}}</div>
+          <div class="gcal-day-detail-time" v-else>{{L('allDay')}}</div>
+        </div>
+      </div>
+    </div>
+    <template #footer>
+      <el-button type="primary" size="small" @click="openCreateDialog(dayDetailDate)">+ {{L('newEvent')}}</el-button>
+    </template>
+  </el-dialog>
+</div>

@@ -18,6 +18,238 @@ const Pop3Command = require('node-pop3');
 const { simpleParser } = require('mailparser');
 const QRCode = require('qrcode');
 
+// #region Server-side i18n for API messages
+const SERVER_I18N = {
+  en: {
+    invalidCredentials: 'Invalid username or password',
+    sessionExpired: 'Session expired, please sign in again',
+    twoFANotConfigured: 'Two-factor authentication not configured',
+    invalidVerificationCode: 'Invalid verification code',
+    verificationCodeRequired: 'Verification code required',
+    start2FASetupFirst: 'Start 2FA setup first',
+    invalidCodeTryAgain: 'Invalid code, try again',
+    twoFAAlreadyDisabled: '2FA is already disabled',
+    dockerManagerTimeout: 'Docker Manager timeout',
+    dockerManagerConnectionError: 'Docker Manager connection error',
+    newMailTitle: (count) => `📧 ${count} new email(s)`,
+    newMailText: (email, count) => `${count} new email(s) received at ${email}`,
+    budgetIncome: 'Income',
+    budgetExpense: 'Expense'
+  },
+  tr: {
+    invalidCredentials: 'Geçersiz kullanıcı adı veya şifre',
+    sessionExpired: 'Oturum süresi doldu, tekrar giriş yapın',
+    twoFANotConfigured: 'İki faktörlü doğrulama yapılandırılmamış',
+    invalidVerificationCode: 'Geçersiz doğrulama kodu',
+    verificationCodeRequired: 'Doğrulama kodu gerekli',
+    start2FASetupFirst: 'Önce 2FA kurulumu başlatın',
+    invalidCodeTryAgain: 'Geçersiz kod, tekrar deneyin',
+    twoFAAlreadyDisabled: '2FA zaten devre dışı',
+    dockerManagerTimeout: 'Docker Manager zaman aşımı',
+    dockerManagerConnectionError: 'Docker Manager bağlantı hatası',
+    newMailTitle: (count) => `📧 ${count} yeni mail`,
+    newMailText: (email, count) => `${email} hesabına ${count} yeni mail geldi`,
+    budgetIncome: 'Gelir',
+    budgetExpense: 'Gider'
+  },
+  de: {
+    invalidCredentials: 'Ungültiger Benutzername oder Passwort',
+    sessionExpired: 'Sitzung abgelaufen, bitte erneut anmelden',
+    twoFANotConfigured: 'Zwei-Faktor-Authentifizierung nicht konfiguriert',
+    invalidVerificationCode: 'Ungültiger Bestätigungscode',
+    verificationCodeRequired: 'Bestätigungscode erforderlich',
+    start2FASetupFirst: '2FA-Einrichtung zuerst starten',
+    invalidCodeTryAgain: 'Ungültiger Code, erneut versuchen',
+    twoFAAlreadyDisabled: '2FA ist bereits deaktiviert',
+    dockerManagerTimeout: 'Docker Manager Zeitüberschreitung',
+    dockerManagerConnectionError: 'Docker Manager Verbindungsfehler',
+    newMailTitle: (count) => `📧 ${count} neue E-Mail(s)`,
+    newMailText: (email, count) => `${count} neue E-Mail(s) bei ${email} empfangen`,
+    budgetIncome: 'Einkommen',
+    budgetExpense: 'Ausgabe'
+  },
+  fr: {
+    invalidCredentials: "Nom d'utilisateur ou mot de passe invalide",
+    sessionExpired: 'Session expirée, veuillez vous reconnecter',
+    twoFANotConfigured: "Authentification à deux facteurs non configurée",
+    invalidVerificationCode: 'Code de vérification invalide',
+    verificationCodeRequired: 'Code de vérification requis',
+    start2FASetupFirst: "Commencez d'abord la configuration 2FA",
+    invalidCodeTryAgain: 'Code invalide, réessayez',
+    twoFAAlreadyDisabled: '2FA est déjà désactivé',
+    dockerManagerTimeout: 'Délai Docker Manager dépassé',
+    dockerManagerConnectionError: 'Erreur de connexion Docker Manager',
+    newMailTitle: (count) => `📧 ${count} nouveau(x) email(s)`,
+    newMailText: (email, count) => `${count} nouveau(x) email(s) reçu(s) sur ${email}`,
+    budgetIncome: 'Revenu',
+    budgetExpense: 'Dépense'
+  },
+  es: {
+    invalidCredentials: 'Nombre de usuario o contraseña inválidos',
+    sessionExpired: 'Sesión expirada, inicie sesión de nuevo',
+    twoFANotConfigured: 'Autenticación de dos factores no configurada',
+    invalidVerificationCode: 'Código de verificación inválido',
+    verificationCodeRequired: 'Código de verificación requerido',
+    start2FASetupFirst: 'Primero inicie la configuración de 2FA',
+    invalidCodeTryAgain: 'Código inválido, intente de nuevo',
+    twoFAAlreadyDisabled: '2FA ya está desactivado',
+    dockerManagerTimeout: 'Tiempo de espera de Docker Manager',
+    dockerManagerConnectionError: 'Error de conexión de Docker Manager',
+    newMailTitle: (count) => `📧 ${count} correo(s) nuevo(s)`,
+    newMailText: (email, count) => `${count} correo(s) nuevo(s) recibido(s) en ${email}`,
+    budgetIncome: 'Ingreso',
+    budgetExpense: 'Gasto'
+  },
+  ru: {
+    invalidCredentials: 'Неверное имя пользователя или пароль',
+    sessionExpired: 'Сессия истекла, войдите снова',
+    twoFANotConfigured: 'Двухфакторная аутентификация не настроена',
+    invalidVerificationCode: 'Неверный код подтверждения',
+    verificationCodeRequired: 'Требуется код подтверждения',
+    start2FASetupFirst: 'Сначала начните настройку 2FA',
+    invalidCodeTryAgain: 'Неверный код, попробуйте снова',
+    twoFAAlreadyDisabled: '2FA уже отключена',
+    dockerManagerTimeout: 'Тайм-аут Docker Manager',
+    dockerManagerConnectionError: 'Ошибка подключения Docker Manager',
+    newMailTitle: (count) => `📧 ${count} новое письмо`,
+    newMailText: (email, count) => `${count} новых писем получено на ${email}`,
+    budgetIncome: 'Доход',
+    budgetExpense: 'Расход'
+  },
+  zh: {
+    invalidCredentials: '用户名或密码无效',
+    sessionExpired: '会话已过期，请重新登录',
+    twoFANotConfigured: '未配置双因素认证',
+    invalidVerificationCode: '验证码无效',
+    verificationCodeRequired: '需要验证码',
+    start2FASetupFirst: '请先开始2FA设置',
+    invalidCodeTryAgain: '无效代码，请重试',
+    twoFAAlreadyDisabled: '2FA已禁用',
+    dockerManagerTimeout: 'Docker Manager超时',
+    dockerManagerConnectionError: 'Docker Manager连接错误',
+    newMailTitle: (count) => `📧 ${count} 封新邮件`,
+    newMailText: (email, count) => `${email} 收到 ${count} 封新邮件`,
+    budgetIncome: '收入',
+    budgetExpense: '支出'
+  },
+  ja: {
+    invalidCredentials: 'ユーザー名またはパスワードが無効です',
+    sessionExpired: 'セッションが期限切れです。再度ログインしてください',
+    twoFANotConfigured: '二要素認証が設定されていません',
+    invalidVerificationCode: '確認コードが無効です',
+    verificationCodeRequired: '確認コードが必要です',
+    start2FASetupFirst: '最初に2FAセットアップを開始してください',
+    invalidCodeTryAgain: '無効なコード、もう一度お試しください',
+    twoFAAlreadyDisabled: '2FAは既に無効です',
+    dockerManagerTimeout: 'Docker Managerタイムアウト',
+    dockerManagerConnectionError: 'Docker Manager接続エラー',
+    newMailTitle: (count) => `📧 ${count} 件の新着メール`,
+    newMailText: (email, count) => `${email} に ${count} 件の新着メール`,
+    budgetIncome: '収入',
+    budgetExpense: '支出'
+  },
+  ko: {
+    invalidCredentials: '잘못된 사용자 이름 또는 비밀번호',
+    sessionExpired: '세션이 만료되었습니다. 다시 로그인하세요',
+    twoFANotConfigured: '이중 인증이 구성되지 않았습니다',
+    invalidVerificationCode: '잘못된 인증 코드',
+    verificationCodeRequired: '인증 코드가 필요합니다',
+    start2FASetupFirst: '먼저 2FA 설정을 시작하세요',
+    invalidCodeTryAgain: '잘못된 코드, 다시 시도하세요',
+    twoFAAlreadyDisabled: '2FA가 이미 비활성화되어 있습니다',
+    dockerManagerTimeout: 'Docker Manager 시간 초과',
+    dockerManagerConnectionError: 'Docker Manager 연결 오류',
+    newMailTitle: (count) => `📧 ${count}개의 새 메일`,
+    newMailText: (email, count) => `${email}에 ${count}개의 새 메일 수신`,
+    budgetIncome: '수입',
+    budgetExpense: '지출'
+  },
+  ar: {
+    invalidCredentials: 'اسم المستخدم أو كلمة المرور غير صالحة',
+    sessionExpired: 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى',
+    twoFANotConfigured: 'لم يتم تكوين المصادقة الثنائية',
+    invalidVerificationCode: 'رمز التحقق غير صالح',
+    verificationCodeRequired: 'رمز التحقق مطلوب',
+    start2FASetupFirst: 'ابدأ إعداد 2FA أولاً',
+    invalidCodeTryAgain: 'رمز غير صالح، حاول مرة أخرى',
+    twoFAAlreadyDisabled: '2FA معطل بالفعل',
+    dockerManagerTimeout: 'انتهت مهلة Docker Manager',
+    dockerManagerConnectionError: 'خطأ في اتصال Docker Manager',
+    newMailTitle: (count) => `📧 ${count} بريد جديد`,
+    newMailText: (email, count) => `تم استلام ${count} بريد جديد على ${email}`,
+    budgetIncome: 'دخل',
+    budgetExpense: 'مصروف'
+  },
+  pt: {
+    invalidCredentials: 'Nome de usuário ou senha inválidos',
+    sessionExpired: 'Sessão expirada, faça login novamente',
+    twoFANotConfigured: 'Autenticação de dois fatores não configurada',
+    invalidVerificationCode: 'Código de verificação inválido',
+    verificationCodeRequired: 'Código de verificação necessário',
+    start2FASetupFirst: 'Inicie a configuração 2FA primeiro',
+    invalidCodeTryAgain: 'Código inválido, tente novamente',
+    twoFAAlreadyDisabled: '2FA já está desativado',
+    dockerManagerTimeout: 'Tempo limite do Docker Manager',
+    dockerManagerConnectionError: 'Erro de conexão do Docker Manager',
+    newMailTitle: (count) => `📧 ${count} novo(s) email(s)`,
+    newMailText: (email, count) => `${count} novo(s) email(s) recebido(s) em ${email}`,
+    budgetIncome: 'Receita',
+    budgetExpense: 'Despesa'
+  },
+  hi: {
+    invalidCredentials: 'अमान्य उपयोगकर्ता नाम या पासवर्ड',
+    sessionExpired: 'सत्र समाप्त हो गया, कृपया फिर से लॉगिन करें',
+    twoFANotConfigured: 'दो-कारक प्रमाणीकरण कॉन्फ़िगर नहीं किया गया',
+    invalidVerificationCode: 'अमान्य सत्यापन कोड',
+    verificationCodeRequired: 'सत्यापन कोड आवश्यक',
+    start2FASetupFirst: 'पहले 2FA सेटअप शुरू करें',
+    invalidCodeTryAgain: 'अमान्य कोड, पुनः प्रयास करें',
+    twoFAAlreadyDisabled: '2FA पहले से अक्षम है',
+    dockerManagerTimeout: 'Docker Manager टाइमआउट',
+    dockerManagerConnectionError: 'Docker Manager कनेक्शन त्रुटि',
+    newMailTitle: (count) => `📧 ${count} नया ईमेल`,
+    newMailText: (email, count) => `${email} पर ${count} नया ईमेल प्राप्त`,
+    budgetIncome: 'आय',
+    budgetExpense: 'व्यय'
+  },
+  it: {
+    invalidCredentials: 'Nome utente o password non validi',
+    sessionExpired: 'Sessione scaduta, accedi di nuovo',
+    twoFANotConfigured: 'Autenticazione a due fattori non configurata',
+    invalidVerificationCode: 'Codice di verifica non valido',
+    verificationCodeRequired: 'Codice di verifica richiesto',
+    start2FASetupFirst: 'Avvia prima la configurazione 2FA',
+    invalidCodeTryAgain: 'Codice non valido, riprova',
+    twoFAAlreadyDisabled: '2FA è già disattivato',
+    dockerManagerTimeout: 'Timeout Docker Manager',
+    dockerManagerConnectionError: 'Errore di connessione Docker Manager',
+    newMailTitle: (count) => `📧 ${count} nuova/e email`,
+    newMailText: (email, count) => `${count} nuova/e email ricevuta/e su ${email}`,
+    budgetIncome: 'Entrata',
+    budgetExpense: 'Spesa'
+  }
+};
+
+function serverT(key, locale) {
+  const lang = (locale || 'en').split('-')[0].toLowerCase();
+  return (SERVER_I18N[lang] || SERVER_I18N.en)[key] || SERVER_I18N.en[key] || key;
+}
+
+function serverTFn(key, locale, ...args) {
+  const lang = (locale || 'en').split('-')[0].toLowerCase();
+  const val = (SERVER_I18N[lang] || SERVER_I18N.en)[key] || SERVER_I18N.en[key];
+  return typeof val === 'function' ? val(...args) : val || key;
+}
+
+// Get locale for a user (reads from settings, defaults to 'en')
+function getUserLocale(username) {
+  try {
+    const settings = getUserSettings(username);
+    return settings.locale || 'en';
+  } catch { return 'en'; }
+}
+// #endregion
+
 const app = express();
 const server = http.createServer(app);
 
@@ -107,8 +339,8 @@ async function dmFetch(dmPath, opts = {}) {
   try {
     res = await fetch(url, { ...fetchOpts, headers, signal: AbortSignal.timeout(timeoutMs) });
   } catch (e) {
-    if (e.name === 'TimeoutError') throw new Error('Docker Manager zaman aşımı (' + (timeoutMs / 1000) + 's)');
-    throw new Error('Docker Manager bağlantı hatası: ' + (e.cause?.code || e.message));
+    if (e.name === 'TimeoutError') throw new Error('Docker Manager timeout (' + (timeoutMs / 1000) + 's)');
+    throw new Error('Docker Manager connection error: ' + (e.cause?.code || e.message));
   }
   const contentType = res.headers.get('content-type') || '';
   if (!contentType.includes('application/json')) {
@@ -417,7 +649,7 @@ app.post('/api/login', (req, res) => {
   // Look up user from settings.json
   const settings = readUserSettings(username);
   if (!settings || !settings.passwordHash) {
-    return res.status(401).json({ error: 'Geçersiz kullanıcı adı veya şifre' });
+    return res.status(401).json({ error: 'Invalid username or password' });
   }
 
   // Support both plaintext (legacy) and SHA-256 hashed passwords
@@ -433,7 +665,7 @@ app.post('/api/login', (req, res) => {
     res.setHeader('Set-Cookie', `token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400`);
     res.json({ ok: true, token, user: { username } });
   } else {
-    res.status(401).json({ error: 'Geçersiz kullanıcı adı veya şifre' });
+    res.status(401).json({ error: 'Invalid username or password' });
   }
 });
 
@@ -444,17 +676,17 @@ app.post('/api/login/2fa', (req, res) => {
   const pending = pending2FATokens.get(tempToken);
   if (!pending || pending.expires < Date.now()) {
     pending2FATokens.delete(tempToken);
-    return res.status(401).json({ error: 'Oturum süresi doldu, tekrar giriş yapın' });
+    return res.status(401).json({ error: 'Session expired, please sign in again' });
   }
 
   const settings = readUserSettings(pending.username);
   if (!settings || !settings.twoFactorSecret) {
     pending2FATokens.delete(tempToken);
-    return res.status(401).json({ error: 'İki faktörlü doğrulama yapılandırılmamış' });
+    return res.status(401).json({ error: 'Two-factor authentication not configured' });
   }
 
   if (!verifyTOTP(settings.twoFactorSecret, String(code).trim())) {
-    return res.status(401).json({ error: 'Geçersiz doğrulama kodu' });
+    return res.status(401).json({ error: 'Invalid verification code' });
   }
 
   pending2FATokens.delete(tempToken);
@@ -2107,11 +2339,12 @@ app.post('/api/2fa/setup', authMiddleware, (req, res) => {
 
 app.post('/api/2fa/verify-setup', authMiddleware, (req, res) => {
   const { code } = req.body;
-  if (!code) return res.status(400).json({ error: 'Doğrulama kodu gerekli' });
+  const locale = getUserLocale(req.user.username);
+  if (!code) return res.status(400).json({ error: serverT('verificationCodeRequired', locale) });
   const current = getUserSettings(req.user.username);
-  if (!current._pending2FASecret) return res.status(400).json({ error: 'Önce 2FA kurulumu başlatın' });
+  if (!current._pending2FASecret) return res.status(400).json({ error: serverT('start2FASetupFirst', locale) });
   if (!verifyTOTP(current._pending2FASecret, String(code).trim())) {
-    return res.status(400).json({ error: 'Geçersiz kod, tekrar deneyin' });
+    return res.status(400).json({ error: serverT('invalidCodeTryAgain', locale) });
   }
   // Activate 2FA
   current.twoFactorSecret = current._pending2FASecret;
@@ -2122,11 +2355,12 @@ app.post('/api/2fa/verify-setup', authMiddleware, (req, res) => {
 
 app.post('/api/2fa/disable', authMiddleware, (req, res) => {
   const { code } = req.body;
-  if (!code) return res.status(400).json({ error: 'Doğrulama kodu gerekli' });
+  const locale = getUserLocale(req.user.username);
+  if (!code) return res.status(400).json({ error: serverT('verificationCodeRequired', locale) });
   const current = getUserSettings(req.user.username);
-  if (!current.twoFactorSecret) return res.status(400).json({ error: '2FA zaten devre dışı' });
+  if (!current.twoFactorSecret) return res.status(400).json({ error: serverT('twoFAAlreadyDisabled', locale) });
   if (!verifyTOTP(current.twoFactorSecret, String(code).trim())) {
-    return res.status(400).json({ error: 'Geçersiz doğrulama kodu' });
+    return res.status(400).json({ error: serverT('invalidVerificationCode', locale) });
   }
   delete current.twoFactorSecret;
   delete current._pending2FASecret;
@@ -2270,7 +2504,7 @@ app.get('/api/ai-settings/provider/:providerId', authMiddleware, (req, res) => {
 });
 
 // AI Models catalog
-const AI_MODELS_PATH = path.join(DATA_DIR, 'ai', 'models.json');
+const AI_MODELS_PATH = path.join(__dirname, 'data', 'ai', 'models.json');
 function getAIModels() {
   try { return JSON.parse(fs.readFileSync(AI_MODELS_PATH, 'utf-8')); } catch { return {}; }
 }
@@ -2288,10 +2522,11 @@ app.get('/api/ai/models', authMiddleware, (req, res) => {
 // #region AI Tool Registry & Executor
 const AI_TOOL_REGISTRY = {};
 
-function getAISystemPrompt() {
+function getAISystemPrompt(locale) {
   const now = new Date();
-  const dateStr = now.toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const timeStr = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  const localeTag = locale || 'en';
+  const dateStr = now.toLocaleDateString(localeTag, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = now.toLocaleTimeString(localeTag, { hour: '2-digit', minute: '2-digit' });
   const isoDate = now.toISOString().split('T')[0];
   return `You are Cloud Computer AI Assistant. You have access to tools that interact with the user's installed applications and system.
 
@@ -2704,7 +2939,7 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
   const enableTools = toolDefs.length > 0 && providerId !== 'cohere';
 
   if (enableTools && !conversationMsgs.find(m => m.role === 'system')) {
-    conversationMsgs.unshift({ role: 'system', content: getAISystemPrompt() });
+    conversationMsgs.unshift({ role: 'system', content: getAISystemPrompt(getUserLocale(req.user.username)) });
   }
 
   const authToken = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
@@ -3348,12 +3583,12 @@ function getUserDb(username) {
   const catCount = db.prepare('SELECT COUNT(*) as c FROM budget_categories').get().c;
   if (catCount === 0) {
     const cats = [
-      ['Maaş','💰','income','#67c23a',1],['Ek Gelir','💵','income','#409eff',2],
-      ['Kira','🏠','expense','#e6a23c',3],['Market','🛒','expense','#f56c6c',4],
-      ['Fatura','📄','expense','#909399',5],['Ulaşım','🚗','expense','#e91e63',6],
-      ['Sağlık','🏥','expense','#00bcd4',7],['Eğitim','📚','expense','#9c27b0',8],
-      ['Eğlence','🎬','expense','#ff9800',9],['Giyim','👕','expense','#795548',10],
-      ['Diğer','📌','expense','#607d8b',11]
+      ['Salary','💰','income','#67c23a',1],['Extra Income','💵','income','#409eff',2],
+      ['Rent','🏠','expense','#e6a23c',3],['Groceries','🛒','expense','#f56c6c',4],
+      ['Bills','📄','expense','#909399',5],['Transport','🚗','expense','#e91e63',6],
+      ['Health','🏥','expense','#00bcd4',7],['Education','📚','expense','#9c27b0',8],
+      ['Entertainment','🎬','expense','#ff9800',9],['Clothing','👕','expense','#795548',10],
+      ['Other','📌','expense','#607d8b',11]
     ];
     const ins = db.prepare('INSERT INTO budget_categories (name,icon,type,color,sort_order) VALUES (?,?,?,?,?)');
     const tr = db.transaction(() => cats.forEach(c => ins.run(...c)));
@@ -3768,7 +4003,7 @@ const WEATHER_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
 app.get('/api/weather', authMiddleware, async (req, res) => {
   const settings = getUserSettings(req.user.username);
-  const defaultW = config.weather || { city: 'İstanbul', country: 'Türkiye', latitude: 41.0082, longitude: 28.9784 };
+  const defaultW = config.weather || { city: 'London', country: 'United Kingdom', latitude: 51.5074, longitude: -0.1278 };
   const city = settings.city || defaultW.city;
   const country = settings.country || defaultW.country;
   const lat = settings.latitude || defaultW.latitude;
@@ -4575,7 +4810,8 @@ app.post('/api/budget/entries', authMiddleware, (req, res) => {
     category_id || null, type || 'expense', Number(amount), description || '', date, isPaid, recurring || '', isNotify, isCal
   );
   const entryId = info.lastInsertRowid;
-  const label = description || (type === 'income' ? 'Gelir' : 'Gider');
+  const locale = getUserLocale(req.user.username);
+  const label = description || (type === 'income' ? serverT('budgetIncome', locale) : serverT('budgetExpense', locale));
   if (isNotify) {
     const notif = { id: 'budget-' + entryId, icon: '💰', bg: '#fff3e0', title: label, text: Number(amount).toFixed(2) + ' — ' + date, time: new Date().toISOString(), read: false, createdAt: Date.now() };
     addNotificationToDb(req.user.username, notif);
@@ -4608,7 +4844,8 @@ app.put('/api/budget/entries/:id', authMiddleware, (req, res) => {
   /* Side-effects for notify/show_calendar on update */
   const row = db.prepare('SELECT * FROM budget_entries e LEFT JOIN budget_categories c ON e.category_id = c.id WHERE e.id=?').get(req.params.id);
   if (row) {
-    const label = row.description || (row.type === 'income' ? 'Gelir' : 'Gider');
+    const locale = getUserLocale(req.user.username);
+    const label = row.description || (row.type === 'income' ? serverT('budgetIncome', locale) : serverT('budgetExpense', locale));
     if (notify && !row.paid) {
       const existing = db.prepare('SELECT id FROM notifications WHERE id=?').get('budget-' + req.params.id);
       if (!existing) {
@@ -6609,7 +6846,7 @@ async function executeSchedulerTask(username, task, allTasks) {
             result = 'AI provider not configured or no API key: ' + providerId;
           } else {
             const model = promptModel || provider.model || provider.defaultModel;
-            const systemPrompt = getAISystemPrompt();
+            const systemPrompt = getAISystemPrompt(getUserLocale(username));
             const conversationMsgs = [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: String(promptText).slice(0, 8000) }
@@ -7868,12 +8105,13 @@ function startMailChecker() {
 
               // Send notification to the user
               const now = new Date();
+              const locale = getUserLocale(username);
               const notif = {
                 id: crypto.randomUUID(),
                 icon: '📧',
                 bg: '#e3f2fd',
-                title: '📧 ' + newMails.length + ' yeni mail',
-                text: acc.email + ' hesabına ' + newMails.length + ' yeni mail geldi',
+                title: serverTFn('newMailTitle', locale, newMails.length),
+                text: serverTFn('newMailText', locale, acc.email, newMails.length),
                 time: now.toISOString(),
                 read: false,
                 createdAt: now.getTime(),
@@ -11557,6 +11795,391 @@ function startGmailChecker() {
     } catch (e) { console.error('Gmail checker error:', e.message); }
   }, GMAIL_CHECK_INTERVAL);
 }
+// #endregion
+
+// #region Playwright Service Proxy API
+// Forward requests to the Playwright Docker container (cloudpc-playwright)
+async function playwrightFetch(apiPath, opts = {}) {
+  const appId = 'playwright';
+  const info = dockerContainers[appId] || proxyCache[appId];
+  if (!info) throw new Error('Playwright service is not running. Install and start it from the App Store.');
+  const target = typeof info.target === 'string' ? info.target : info.internalUrl || `http://localhost:${info.hostPort}`;
+  if (!target) throw new Error('Playwright service URL not available');
+  const url = target + apiPath;
+  const timeoutMs = opts.timeout || 60000;
+  const { timeout: _, ...fetchOpts } = opts;
+  const res = await fetch(url, {
+    ...fetchOpts,
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    signal: AbortSignal.timeout(timeoutMs)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `Playwright error: ${res.status}`);
+  return data;
+}
+
+// Relay all Playwright API calls: POST /api/playwright/:action
+app.post('/api/playwright/:action(*)', authMiddleware, async (req, res) => {
+  const action = req.params.action;
+  const allowed = [
+    'session/create', 'session/close',
+    'navigate', 'screenshot', 'content', 'text', 'evaluate',
+    'click', 'type', 'wait', 'select', 'querySelectorAll',
+    'pdf', 'back', 'forward'
+  ];
+  if (!allowed.includes(action)) {
+    return res.status(400).json({ error: 'Invalid action: ' + action });
+  }
+  try {
+    const data = await playwrightFetch('/' + action, {
+      method: 'POST',
+      body: JSON.stringify(req.body),
+      timeout: 60000
+    });
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: e.message });
+  }
+});
+
+// GET endpoints
+app.get('/api/playwright/health', authMiddleware, async (req, res) => {
+  try {
+    const data = await playwrightFetch('/health');
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: e.message });
+  }
+});
+
+app.get('/api/playwright/sessions', authMiddleware, async (req, res) => {
+  try {
+    const data = await playwrightFetch('/sessions');
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: e.message });
+  }
+});
+// #endregion
+
+// #region Google Calendar API
+function getGcalSettingsPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe, 'gcalendar');
+  ensureDir(dir);
+  return path.join(dir, 'settings.json');
+}
+function loadGcalSettings(username) {
+  const fp = getGcalSettingsPath(username);
+  if (!fs.existsSync(fp)) return {};
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return {}; }
+}
+function saveGcalSettings(username, settings) {
+  fs.writeFileSync(getGcalSettingsPath(username), JSON.stringify(settings, null, 2));
+}
+function createGcalOAuthClient(settings) {
+  return new google.auth.OAuth2(
+    settings.clientId,
+    settings.clientSecret,
+    settings.redirectUri || 'urn:ietf:wg:oauth:2.0:oob'
+  );
+}
+function getAuthenticatedGcal(username) {
+  const settings = loadGcalSettings(username);
+  if (!settings.clientId || !settings.tokens) return null;
+  const oauth2 = createGcalOAuthClient(settings);
+  oauth2.setCredentials(settings.tokens);
+  oauth2.on('tokens', (newTokens) => {
+    const s = loadGcalSettings(username);
+    s.tokens = Object.assign({}, s.tokens, newTokens);
+    saveGcalSettings(username, s);
+  });
+  return google.calendar({ version: 'v3', auth: oauth2 });
+}
+
+// Config
+app.get('/api/gcalendar/config', authMiddleware, (req, res) => {
+  const s = loadGcalSettings(req.user.username);
+  res.json({
+    clientId: s.clientId || '',
+    clientSecret: s.clientSecret ? '••••' : '',
+    redirectUri: s.redirectUri || '',
+    authenticated: !!(s.tokens && s.tokens.access_token),
+    email: s.email || ''
+  });
+});
+
+app.post('/api/gcalendar/config', authMiddleware, (req, res) => {
+  const { clientId, clientSecret, redirectUri } = req.body;
+  const s = loadGcalSettings(req.user.username);
+  if (clientId !== undefined) s.clientId = String(clientId).substring(0, 200);
+  if (clientSecret !== undefined && clientSecret !== '••••') s.clientSecret = String(clientSecret).substring(0, 200);
+  if (redirectUri !== undefined) s.redirectUri = String(redirectUri).substring(0, 500);
+  saveGcalSettings(req.user.username, s);
+  res.json({ ok: true });
+});
+
+// Auth URL
+app.get('/api/gcalendar/auth-url', authMiddleware, (req, res) => {
+  const s = loadGcalSettings(req.user.username);
+  if (!s.clientId || !s.clientSecret) return res.status(400).json({ error: 'No OAuth credentials configured' });
+  const oauth2 = createGcalOAuthClient(s);
+  const url = oauth2.generateAuthUrl({
+    access_type: 'offline',
+    prompt: 'consent',
+    scope: [
+      'https://www.googleapis.com/auth/calendar',
+      'https://www.googleapis.com/auth/calendar.events',
+      'https://www.googleapis.com/auth/calendar.readonly'
+    ]
+  });
+  res.json({ url });
+});
+
+// Auth callback
+app.post('/api/gcalendar/auth-callback', authMiddleware, async (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'No authorization code' });
+  const s = loadGcalSettings(req.user.username);
+  if (!s.clientId || !s.clientSecret) return res.status(400).json({ error: 'No OAuth credentials' });
+  try {
+    const oauth2 = createGcalOAuthClient(s);
+    const { tokens } = await oauth2.getToken(String(code).substring(0, 500));
+    s.tokens = tokens;
+    oauth2.setCredentials(tokens);
+    const cal = google.calendar({ version: 'v3', auth: oauth2 });
+    const profile = await cal.calendarList.get({ calendarId: 'primary' });
+    s.email = profile.data.summary || '';
+    saveGcalSettings(req.user.username, s);
+    res.json({ ok: true, email: s.email });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Disconnect
+app.post('/api/gcalendar/disconnect', authMiddleware, (req, res) => {
+  const s = loadGcalSettings(req.user.username);
+  delete s.tokens;
+  delete s.email;
+  saveGcalSettings(req.user.username, s);
+  res.json({ ok: true });
+});
+
+// List calendars
+app.get('/api/gcalendar/calendars', authMiddleware, async (req, res) => {
+  const cal = getAuthenticatedGcal(req.user.username);
+  if (!cal) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const r = await cal.calendarList.list({ maxResults: 100 });
+    res.json((r.data.items || []).map(c => ({
+      id: c.id, summary: c.summary, description: c.description || '',
+      primary: c.primary || false, backgroundColor: c.backgroundColor || '#4285f4',
+      foregroundColor: c.foregroundColor || '#fff', accessRole: c.accessRole || 'reader',
+      timeZone: c.timeZone || ''
+    })));
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// List events
+app.get('/api/gcalendar/events', authMiddleware, async (req, res) => {
+  const cal = getAuthenticatedGcal(req.user.username);
+  if (!cal) return res.status(401).json({ error: 'Not authenticated' });
+  const { timeMin, timeMax, calendarId, q, maxResults, pageToken } = req.query;
+  try {
+    const settings = loadGcalSettings(req.user.username);
+    const calendarsToFetch = calendarId ? [calendarId] : (settings.selectedCalendars || ['primary']);
+    if (!calendarId && calendarsToFetch.length === 1 && calendarsToFetch[0] === 'primary') {
+      const clist = await cal.calendarList.list({ maxResults: 100 });
+      calendarsToFetch.length = 0;
+      (clist.data.items || []).forEach(c => calendarsToFetch.push(c.id));
+    }
+    const allEvents = [];
+    for (const cid of calendarsToFetch) {
+      try {
+        const params = { calendarId: cid, singleEvents: true, orderBy: 'startTime' };
+        if (timeMin) params.timeMin = timeMin;
+        if (timeMax) params.timeMax = timeMax;
+        if (q) params.q = String(q).substring(0, 200);
+        if (maxResults) params.maxResults = Math.min(parseInt(maxResults) || 250, 2500);
+        if (pageToken) params.pageToken = pageToken;
+        const r = await cal.events.list(params);
+        (r.data.items || []).forEach(ev => {
+          ev.calendarId = cid;
+          allEvents.push(ev);
+        });
+      } catch {}
+    }
+    allEvents.sort((a, b) => {
+      const as = a.start?.dateTime || a.start?.date || '';
+      const bs = b.start?.dateTime || b.start?.date || '';
+      return as < bs ? -1 : as > bs ? 1 : 0;
+    });
+    res.json(allEvents);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Get single event
+app.get('/api/gcalendar/events/:calendarId/:eventId', authMiddleware, async (req, res) => {
+  const cal = getAuthenticatedGcal(req.user.username);
+  if (!cal) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const r = await cal.events.get({
+      calendarId: req.params.calendarId,
+      eventId: req.params.eventId
+    });
+    res.json(r.data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Create event
+app.post('/api/gcalendar/events', authMiddleware, async (req, res) => {
+  const cal = getAuthenticatedGcal(req.user.username);
+  if (!cal) return res.status(401).json({ error: 'Not authenticated' });
+  const { calendarId, summary, description, location, start, end, colorId, recurrence, reminders, attendees } = req.body;
+  if (!summary) return res.status(400).json({ error: 'Summary is required' });
+  try {
+    const event = { summary: String(summary).substring(0, 1000) };
+    if (description) event.description = String(description).substring(0, 8000);
+    if (location) event.location = String(location).substring(0, 500);
+    if (start) event.start = start;
+    if (end) event.end = end;
+    if (colorId) event.colorId = String(colorId);
+    if (recurrence && Array.isArray(recurrence)) event.recurrence = recurrence;
+    if (reminders) event.reminders = reminders;
+    if (attendees && Array.isArray(attendees)) event.attendees = attendees.slice(0, 100);
+    const r = await cal.events.insert({
+      calendarId: calendarId || 'primary',
+      requestBody: event,
+      sendUpdates: attendees?.length ? 'all' : 'none'
+    });
+    res.json(r.data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Update event
+app.put('/api/gcalendar/events/:calendarId/:eventId', authMiddleware, async (req, res) => {
+  const cal = getAuthenticatedGcal(req.user.username);
+  if (!cal) return res.status(401).json({ error: 'Not authenticated' });
+  const { summary, description, location, start, end, colorId, recurrence, reminders, attendees } = req.body;
+  try {
+    const existing = await cal.events.get({
+      calendarId: req.params.calendarId,
+      eventId: req.params.eventId
+    });
+    const event = existing.data;
+    if (summary !== undefined) event.summary = String(summary).substring(0, 1000);
+    if (description !== undefined) event.description = String(description).substring(0, 8000);
+    if (location !== undefined) event.location = String(location).substring(0, 500);
+    if (start) event.start = start;
+    if (end) event.end = end;
+    if (colorId !== undefined) event.colorId = colorId ? String(colorId) : undefined;
+    if (recurrence !== undefined) event.recurrence = Array.isArray(recurrence) ? recurrence : undefined;
+    if (reminders !== undefined) event.reminders = reminders;
+    if (attendees !== undefined) event.attendees = Array.isArray(attendees) ? attendees.slice(0, 100) : undefined;
+    const r = await cal.events.update({
+      calendarId: req.params.calendarId,
+      eventId: req.params.eventId,
+      requestBody: event,
+      sendUpdates: attendees?.length ? 'all' : 'none'
+    });
+    res.json(r.data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Delete event
+app.delete('/api/gcalendar/events/:calendarId/:eventId', authMiddleware, async (req, res) => {
+  const cal = getAuthenticatedGcal(req.user.username);
+  if (!cal) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    await cal.events.delete({
+      calendarId: req.params.calendarId,
+      eventId: req.params.eventId,
+      sendUpdates: 'none'
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Quick add (natural language)
+app.post('/api/gcalendar/quick-add', authMiddleware, async (req, res) => {
+  const cal = getAuthenticatedGcal(req.user.username);
+  if (!cal) return res.status(401).json({ error: 'Not authenticated' });
+  const { text, calendarId } = req.body;
+  if (!text) return res.status(400).json({ error: 'Text is required' });
+  try {
+    const r = await cal.events.quickAdd({
+      calendarId: calendarId || 'primary',
+      text: String(text).substring(0, 500)
+    });
+    res.json(r.data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Watch for changes (webhook setup)
+app.post('/api/gcalendar/watch', authMiddleware, async (req, res) => {
+  const cal = getAuthenticatedGcal(req.user.username);
+  if (!cal) return res.status(401).json({ error: 'Not authenticated' });
+  const { calendarId, webhookUrl } = req.body;
+  try {
+    const r = await cal.events.watch({
+      calendarId: calendarId || 'primary',
+      requestBody: {
+        id: require('crypto').randomUUID(),
+        type: 'web_hook',
+        address: webhookUrl
+      }
+    });
+    res.json(r.data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Get free/busy
+app.post('/api/gcalendar/freebusy', authMiddleware, async (req, res) => {
+  const cal = getAuthenticatedGcal(req.user.username);
+  if (!cal) return res.status(401).json({ error: 'Not authenticated' });
+  const { timeMin, timeMax, items } = req.body;
+  if (!timeMin || !timeMax) return res.status(400).json({ error: 'timeMin and timeMax required' });
+  try {
+    const r = await cal.freebusy.query({
+      requestBody: {
+        timeMin, timeMax,
+        items: items || [{ id: 'primary' }]
+      }
+    });
+    res.json(r.data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Get event colors
+app.get('/api/gcalendar/colors', authMiddleware, async (req, res) => {
+  const cal = getAuthenticatedGcal(req.user.username);
+  if (!cal) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const r = await cal.colors.get();
+    res.json(r.data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 // #endregion
 
 server.listen(config.server.port, config.server.host, () => {

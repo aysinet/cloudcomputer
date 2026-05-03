@@ -1,0 +1,64 @@
+{
+  "id": "google-calendar",
+  "name": "Google Calendar",
+  "icon": "📆",
+  "color": "linear-gradient(135deg,#4285f4,#0d47a1)",
+  "type": "internal",
+  "size": {
+    "w": 960,
+    "h": 680
+  },
+  "global": false,
+  "category": "tools",
+  "description": "Google Calendar — Etkinliklerinizi Google hesabınızla yönetin",
+  "lang": {
+    "tr": {
+      "name": "Google Takvim",
+      "description": "Google hesabınızla etkinliklerinizi yönetin, oluşturun ve senkronize edin"
+    },
+    "en": {
+      "name": "Google Calendar",
+      "description": "Manage, create and sync your events with your Google account"
+    },
+    "de": {
+      "name": "Google Kalender",
+      "description": "Verwalten, erstellen und synchronisieren Sie Ihre Termine mit Ihrem Google-Konto"
+    },
+    "fr": {
+      "name": "Google Agenda",
+      "description": "Gérez, créez et synchronisez vos événements avec votre compte Google"
+    },
+    "es": {
+      "name": "Google Calendar",
+      "description": "Gestione, cree y sincronice sus eventos con su cuenta de Google"
+    },
+    "pt": {
+      "name": "Google Agenda",
+      "description": "Gerencie, crie e sincronize seus eventos com sua conta Google"
+    },
+    "ru": {
+      "name": "Google Календарь",
+      "description": "Управляйте, создавайте и синхронизируйте события с вашей учетной записью Google"
+    },
+    "zh": {
+      "name": "Google 日历",
+      "description": "通过Google账户管理、创建和同步您的日程"
+    },
+    "ja": {
+      "name": "Google カレンダー",
+      "description": "Googleアカウントでイベントを管理・作成・同期"
+    },
+    "ko": {
+      "name": "Google 캘린더",
+      "description": "Google 계정으로 이벤트를 관리, 생성 및 동기화하세요"
+    },
+    "ar": {
+      "name": "تقويم Google",
+      "description": "إدارة وإنشاء ومزامنة الأحداث مع حساب Google الخاص بك"
+    },
+    "it": {
+      "name": "Google Calendar",
+      "description": "Gestisci, crea e sincronizza i tuoi eventi con il tuo account Google"
+    }
+  }
+}

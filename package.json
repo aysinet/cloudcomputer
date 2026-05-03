@@ -1,7 +1,7 @@
 {
   "name": "vue-desktop",
   "version": "1.0.0",
-  "description": "Vue Desktop OS",
+  "description": "Aysi Cloud Computer OS",
   "main": "desktop.js",
   "scripts": {
     "start": "node desktop.js"
