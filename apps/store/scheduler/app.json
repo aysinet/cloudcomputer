@@ -12,15 +12,15 @@
   },
   "hasStyle": true,
   "global": false,
-  "description": "Zamanlayıcı — uygulama çalıştırma, webhook gönderme, bildirim zamanlama",
+  "description": "Zamanlayıcı — uygulama çalıştırma, webhook gönderme, bildirim zamanlama, AI prompt çalıştırma",
   "lang": {
     "tr": {
       "name": "Zamanlayıcı",
-      "description": "Zamanlayıcı — uygulama çalıştırma, webhook gönderme, bildirim zamanlama"
+      "description": "Zamanlayıcı — uygulama çalıştırma, webhook gönderme, bildirim zamanlama, AI prompt çalıştırma"
     },
     "en": {
       "name": "Scheduler",
-      "description": "Scheduler — run apps, send webhooks, schedule notifications"
+      "description": "Scheduler — run apps, send webhooks, schedule notifications, run AI prompts"
     },
     "de": {
       "name": "Planer",

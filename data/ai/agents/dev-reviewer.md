@@ -1,5 +1,5 @@
 ---
-name: reviewer
+name: dev-reviewer
 description: Use PROACTIVELY immediately after builder produces code. Double-role agent that checks BOTH code quality AND security before commit. Blocks merge on CRITICAL issues.
 tools: Read, Grep, Glob, Bash
 model: sonnet

@@ -54,17 +54,30 @@
   border: 1px solid #0f3460;
   border-radius: 6px;
   padding: 8px;
-  min-width: 280px;
-  max-height: 200px;
+  min-width: 340px;
+  max-height: 300px;
   overflow-y: auto;
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+.ftp-saved-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #0f3460;
+}
+.ftp-saved-actions {
+  display: flex;
+  gap: 2px;
+  align-items: center;
 }
 .ftp-saved-title {
   font-weight: 600;
   color: #e94560;
-  margin-bottom: 6px;
   font-size: 12px;
 }
+.ftp-saved-title small { color: #8899aa; font-weight: 400; }
 .ftp-saved-empty { color: #666; font-style: italic; font-size: 12px; }
 .ftp-saved-item {
   display: flex;
@@ -77,6 +90,23 @@
 .ftp-saved-item:hover { background: rgba(233,69,96,0.1); }
 .ftp-saved-name { flex: 1; }
 .ftp-saved-name small { color: #888; margin-left: 4px; }
+
+/* Badge */
+.ftp-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e94560;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  padding: 0 4px;
+  margin-left: 2px;
+  line-height: 1;
+}
 
 /* ── Main Split View ── */
 .ftp-main {

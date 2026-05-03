@@ -148,3 +148,6 @@ package-lock.json
 package-lock.json
 package-lock.json
 yarn.lock
+data/appdata/admin.db-shm
+data/appdata/admin.db-wal
+/data/appdata

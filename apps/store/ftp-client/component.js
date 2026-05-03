@@ -18,6 +18,9 @@
         transferring:'Aktarılıyor...', transferred:'Aktarım tamamlandı', error:'Hata',
         savedConnections:'Kayıtlı Bağlantılar', save:'Kaydet', noSaved:'Kayıtlı bağlantı yok',
         connectionName:'Bağlantı adı', cancel:'İptal', ok:'Tamam', path:'Yol',
+        importXml:'FileZilla XML İçe Aktar', importSuccess:'sunucu başarıyla içe aktarıldı',
+        importError:'XML dosyası okunamadı', importNoServers:'XML dosyasında sunucu bulunamadı',
+        deleteAll:'Tümünü Sil', serverCount:'sunucu',
         log:'Günlük', clearLog:'Günlüğü Temizle', status:'Durum', idle:'Boşta',
         anonymous:'Anonim', passive:'Pasif mod', parentDir:'Üst dizin',
         selected:'seçili', totalSize:'Toplam boyut', items:'öğe',
@@ -35,6 +38,9 @@
         transferring:'Transferring...', transferred:'Transfer completed', error:'Error',
         savedConnections:'Saved Connections', save:'Save', noSaved:'No saved connections',
         connectionName:'Connection name', cancel:'Cancel', ok:'OK', path:'Path',
+        importXml:'Import FileZilla XML', importSuccess:'server(s) imported successfully',
+        importError:'Failed to read XML file', importNoServers:'No servers found in XML file',
+        deleteAll:'Delete All', serverCount:'server(s)',
         log:'Log', clearLog:'Clear Log', status:'Status', idle:'Idle',
         anonymous:'Anonymous', passive:'Passive mode', parentDir:'Parent directory',
         selected:'selected', totalSize:'Total size', items:'items',
@@ -52,6 +58,9 @@
         transferring:'Übertragung...', transferred:'Übertragung abgeschlossen', error:'Fehler',
         savedConnections:'Gespeicherte Verbindungen', save:'Speichern', noSaved:'Keine gespeicherten Verbindungen',
         connectionName:'Verbindungsname', cancel:'Abbrechen', ok:'OK', path:'Pfad',
+        importXml:'FileZilla XML Importieren', importSuccess:'Server erfolgreich importiert',
+        importError:'XML-Datei konnte nicht gelesen werden', importNoServers:'Keine Server in XML-Datei gefunden',
+        deleteAll:'Alle Löschen', serverCount:'Server',
         log:'Protokoll', clearLog:'Protokoll löschen', status:'Status', idle:'Bereit',
         anonymous:'Anonym', passive:'Passivmodus', parentDir:'Übergeordnetes Verzeichnis',
         selected:'ausgewählt', totalSize:'Gesamtgröße', items:'Elemente',
@@ -69,6 +78,9 @@
         transferring:'Transfert en cours...', transferred:'Transfert terminé', error:'Erreur',
         savedConnections:'Connexions enregistrées', save:'Enregistrer', noSaved:'Aucune connexion enregistrée',
         connectionName:'Nom de la connexion', cancel:'Annuler', ok:'OK', path:'Chemin',
+        importXml:'Importer XML FileZilla', importSuccess:'serveur(s) importé(s) avec succès',
+        importError:'Impossible de lire le fichier XML', importNoServers:'Aucun serveur trouvé dans le fichier XML',
+        deleteAll:'Tout Supprimer', serverCount:'serveur(s)',
         log:'Journal', clearLog:'Effacer le journal', status:'Statut', idle:'Inactif',
         anonymous:'Anonyme', passive:'Mode passif', parentDir:'Dossier parent',
         selected:'sélectionné(s)', totalSize:'Taille totale', items:'éléments',
@@ -86,6 +98,9 @@
         transferring:'Transfiriendo...', transferred:'Transferencia completada', error:'Error',
         savedConnections:'Conexiones guardadas', save:'Guardar', noSaved:'No hay conexiones guardadas',
         connectionName:'Nombre de conexión', cancel:'Cancelar', ok:'OK', path:'Ruta',
+        importXml:'Importar XML FileZilla', importSuccess:'servidor(es) importado(s) exitosamente',
+        importError:'No se pudo leer el archivo XML', importNoServers:'No se encontraron servidores en el archivo XML',
+        deleteAll:'Eliminar Todo', serverCount:'servidor(es)',
         log:'Registro', clearLog:'Limpiar registro', status:'Estado', idle:'Inactivo',
         anonymous:'Anónimo', passive:'Modo pasivo', parentDir:'Directorio superior',
         selected:'seleccionados', totalSize:'Tamaño total', items:'elementos',
@@ -103,6 +118,9 @@
         transferring:'Передача...', transferred:'Передача завершена', error:'Ошибка',
         savedConnections:'Сохранённые подключения', save:'Сохранить', noSaved:'Нет сохранённых подключений',
         connectionName:'Имя подключения', cancel:'Отмена', ok:'ОК', path:'Путь',
+        importXml:'Импорт XML FileZilla', importSuccess:'сервер(ов) успешно импортировано',
+        importError:'Не удалось прочитать XML-файл', importNoServers:'Серверы не найдены в XML-файле',
+        deleteAll:'Удалить Все', serverCount:'сервер(ов)',
         log:'Журнал', clearLog:'Очистить журнал', status:'Статус', idle:'Ожидание',
         anonymous:'Аноним', passive:'Пассивный режим', parentDir:'Родительский каталог',
         selected:'выбрано', totalSize:'Общий размер', items:'элементов',
@@ -120,6 +138,9 @@
         transferring:'传输中...', transferred:'传输完成', error:'错误',
         savedConnections:'已保存的连接', save:'保存', noSaved:'没有保存的连接',
         connectionName:'连接名称', cancel:'取消', ok:'确定', path:'路径',
+        importXml:'导入FileZilla XML', importSuccess:'个服务器导入成功',
+        importError:'无法读取XML文件', importNoServers:'XML文件中未找到服务器',
+        deleteAll:'全部删除', serverCount:'个服务器',
         log:'日志', clearLog:'清除日志', status:'状态', idle:'空闲',
         anonymous:'匿名', passive:'被动模式', parentDir:'上级目录',
         selected:'已选', totalSize:'总大小', items:'项',
@@ -137,6 +158,9 @@
         transferring:'転送中...', transferred:'転送完了', error:'エラー',
         savedConnections:'保存済の接続', save:'保存', noSaved:'保存済の接続なし',
         connectionName:'接続名', cancel:'キャンセル', ok:'OK', path:'パス',
+        importXml:'FileZilla XMLインポート', importSuccess:'サーバーが正常にインポートされました',
+        importError:'XMLファイルの読み取りに失敗しました', importNoServers:'XMLファイルにサーバーが見つかりません',
+        deleteAll:'すべて削除', serverCount:'サーバー',
         log:'ログ', clearLog:'ログクリア', status:'状態', idle:'待機中',
         anonymous:'匿名', passive:'パッシブモード', parentDir:'親ディレクトリ',
         selected:'選択中', totalSize:'合計サイズ', items:'件',
@@ -154,6 +178,9 @@
         transferring:'Trasferimento...', transferred:'Trasferimento completato', error:'Errore',
         savedConnections:'Connessioni salvate', save:'Salva', noSaved:'Nessuna connessione salvata',
         connectionName:'Nome connessione', cancel:'Annulla', ok:'OK', path:'Percorso',
+        importXml:'Importa XML FileZilla', importSuccess:'server importati con successo',
+        importError:'Impossibile leggere il file XML', importNoServers:'Nessun server trovato nel file XML',
+        deleteAll:'Elimina Tutto', serverCount:'server',
         log:'Registro', clearLog:'Cancella registro', status:'Stato', idle:'Inattivo',
         anonymous:'Anonimo', passive:'Modalità passiva', parentDir:'Directory superiore',
         selected:'selezionati', totalSize:'Dimensione totale', items:'elementi',
@@ -253,6 +280,65 @@
     function deleteConn(idx) {
       savedConns.value.splice(idx, 1);
       localStorage.setItem('ftp_connections', JSON.stringify(savedConns.value));
+    }
+
+    function deleteAllConns() {
+      savedConns.value = [];
+      localStorage.setItem('ftp_connections', '[]');
+    }
+
+    function importFileZillaXml() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.xml';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(ev.target.result, 'text/xml');
+            const parseErr = doc.querySelector('parsererror');
+            if (parseErr) { ElMessage.error(t('importError')); return; }
+            const servers = doc.querySelectorAll('Server');
+            if (!servers.length) { ElMessage.warning(t('importNoServers')); return; }
+            let imported = 0;
+            servers.forEach(srv => {
+              const host = (srv.querySelector('Host') || {}).textContent || '';
+              if (!host) return;
+              const port = parseInt((srv.querySelector('Port') || {}).textContent) || 21;
+              const user = (srv.querySelector('User') || {}).textContent || 'anonymous';
+              let pass = '';
+              const passEl = srv.querySelector('Pass');
+              if (passEl) {
+                pass = passEl.getAttribute('encoding') === 'base64' ? atob(passEl.textContent || '') : (passEl.textContent || '');
+              }
+              const name = (srv.querySelector('Name') || {}).textContent || (host + ':' + port);
+              const protocol = parseInt((srv.querySelector('Protocol') || {}).textContent) || 0;
+              const secure = protocol === 6;
+              const entry = { name, host, port, username: user, password: pass, secure };
+              const existing = savedConns.value.findIndex(c => c.name === name);
+              if (existing >= 0) savedConns.value[existing] = entry;
+              else savedConns.value.push(entry);
+              imported++;
+            });
+            localStorage.setItem('ftp_connections', JSON.stringify(savedConns.value));
+            if (imported > 0) {
+              ElMessage.success(imported + ' ' + t('importSuccess'));
+              addLog('FileZilla XML: ' + imported + ' ' + t('importSuccess'), 'success');
+            } else {
+              ElMessage.warning(t('importNoServers'));
+            }
+          } catch (err) {
+            ElMessage.error(t('importError'));
+            addLog(t('importError') + ': ' + err.message, 'error');
+          }
+        };
+        reader.onerror = () => ElMessage.error(t('importError'));
+        reader.readAsText(file);
+      };
+      input.click();
     }
 
     /* ── API calls ── */
@@ -508,7 +594,8 @@
 
     return {
       t, connForm, isConnected, isConnecting, sessionId,
-      savedConns, showSavedPanel, saveConn, loadConn, deleteConn,
+      savedConns, showSavedPanel, saveConn, loadConn, deleteConn, deleteAllConns,
+      importFileZillaXml,
       localPath, localFiles, localSelected, localLoading,
       remotePath, remoteFiles, remoteSelected, remoteLoading,
       transferring, transferText, logMessages, showLog,

@@ -6,8 +6,9 @@
       title:'Zamanlayıcı', add:'Yeni Görev', edit:'Düzenle', save:'Kaydet', cancel:'İptal', delete:'Sil',
       nameLabel:'Görev Adı', dateTimeLabel:'Tarih & Saat', repeatLabel:'Tekrar', actionLabel:'Eylem Türü',
       noRepeat:'Tekrar Yok', hourly:'Saatlik', daily:'Günlük', weekly:'Haftalık', monthly:'Aylık',
-      actionNotify:'Bildirim Gönder', actionApp:'Uygulama Çalıştır', actionWebhook:'Webhook Gönder',
+      actionNotify:'Bildirim Gönder', actionApp:'Uygulama Çalıştır', actionWebhook:'Webhook Gönder', actionPrompt:'AI Prompt Çalıştır',
       notifyTitle:'Bildirim Başlığı', notifyText:'Bildirim Metni', appSelect:'Uygulama Seç',
+      promptText:'Prompt Metni', promptProvider:'AI Sağlayıcı', promptModel:'Model', promptTextRequired:'Prompt metni gerekli', promptProviderRequired:'AI sağlayıcı seçimi gerekli',
       webhookUrl:'Webhook URL', webhookMethod:'HTTP Metodu', webhookBody:'İstek Gövdesi (JSON)',
       webhookHeaders:'Başlıklar (JSON)', enabled:'Aktif', disabled:'Pasif',
       noTasks:'Henüz zamanlanmış görev yok', deleteConfirm:'Bu görevi silmek istediğinize emin misiniz?',
@@ -22,8 +23,9 @@
       title:'Scheduler', add:'New Task', edit:'Edit', save:'Save', cancel:'Cancel', delete:'Delete',
       nameLabel:'Task Name', dateTimeLabel:'Date & Time', repeatLabel:'Repeat', actionLabel:'Action Type',
       noRepeat:'No Repeat', hourly:'Hourly', daily:'Daily', weekly:'Weekly', monthly:'Monthly',
-      actionNotify:'Send Notification', actionApp:'Run App', actionWebhook:'Send Webhook',
+      actionNotify:'Send Notification', actionApp:'Run App', actionWebhook:'Send Webhook', actionPrompt:'Run AI Prompt',
       notifyTitle:'Notification Title', notifyText:'Notification Text', appSelect:'Select App',
+      promptText:'Prompt Text', promptProvider:'AI Provider', promptModel:'Model', promptTextRequired:'Prompt text is required', promptProviderRequired:'AI provider is required',
       webhookUrl:'Webhook URL', webhookMethod:'HTTP Method', webhookBody:'Request Body (JSON)',
       webhookHeaders:'Headers (JSON)', enabled:'Enabled', disabled:'Disabled',
       noTasks:'No scheduled tasks yet', deleteConfirm:'Are you sure you want to delete this task?',
@@ -38,8 +40,9 @@
       title:'Planer', add:'Neue Aufgabe', edit:'Bearbeiten', save:'Speichern', cancel:'Abbrechen', delete:'Löschen',
       nameLabel:'Aufgabenname', dateTimeLabel:'Datum & Zeit', repeatLabel:'Wiederholung', actionLabel:'Aktionstyp',
       noRepeat:'Keine Wiederholung', hourly:'Stündlich', daily:'Täglich', weekly:'Wöchentlich', monthly:'Monatlich',
-      actionNotify:'Benachrichtigung senden', actionApp:'App ausführen', actionWebhook:'Webhook senden',
+      actionNotify:'Benachrichtigung senden', actionApp:'App ausführen', actionWebhook:'Webhook senden', actionPrompt:'AI-Prompt ausführen',
       notifyTitle:'Benachrichtigungstitel', notifyText:'Benachrichtigungstext', appSelect:'App auswählen',
+      promptText:'Prompt-Text', promptProvider:'AI-Anbieter', promptModel:'Modell', promptTextRequired:'Prompt-Text erforderlich', promptProviderRequired:'AI-Anbieter erforderlich',
       webhookUrl:'Webhook-URL', webhookMethod:'HTTP-Methode', webhookBody:'Anfragekörper (JSON)',
       webhookHeaders:'Header (JSON)', enabled:'Aktiviert', disabled:'Deaktiviert',
       noTasks:'Noch keine geplanten Aufgaben', deleteConfirm:'Möchten Sie diese Aufgabe wirklich löschen?',
@@ -54,8 +57,9 @@
       title:'Planificateur', add:'Nouvelle tâche', edit:'Modifier', save:'Enregistrer', cancel:'Annuler', delete:'Supprimer',
       nameLabel:'Nom de la tâche', dateTimeLabel:'Date & Heure', repeatLabel:'Répétition', actionLabel:"Type d'action",
       noRepeat:'Pas de répétition', hourly:'Toutes les heures', daily:'Quotidien', weekly:'Hebdomadaire', monthly:'Mensuel',
-      actionNotify:'Envoyer une notification', actionApp:'Lancer une app', actionWebhook:'Envoyer un webhook',
+      actionNotify:'Envoyer une notification', actionApp:'Lancer une app', actionWebhook:'Envoyer un webhook', actionPrompt:'Exécuter un prompt IA',
       notifyTitle:'Titre de notification', notifyText:'Texte de notification', appSelect:'Sélectionner une app',
+      promptText:'Texte du prompt', promptProvider:'Fournisseur IA', promptModel:'Modèle', promptTextRequired:'Texte du prompt requis', promptProviderRequired:'Fournisseur IA requis',
       webhookUrl:'URL du webhook', webhookMethod:'Méthode HTTP', webhookBody:'Corps de la requête (JSON)',
       webhookHeaders:'En-têtes (JSON)', enabled:'Activé', disabled:'Désactivé',
       noTasks:'Aucune tâche planifiée', deleteConfirm:'Êtes-vous sûr de vouloir supprimer cette tâche ?',
@@ -70,8 +74,9 @@
       title:'Programador', add:'Nueva tarea', edit:'Editar', save:'Guardar', cancel:'Cancelar', delete:'Eliminar',
       nameLabel:'Nombre de tarea', dateTimeLabel:'Fecha y hora', repeatLabel:'Repetir', actionLabel:'Tipo de acción',
       noRepeat:'Sin repetición', hourly:'Cada hora', daily:'Diario', weekly:'Semanal', monthly:'Mensual',
-      actionNotify:'Enviar notificación', actionApp:'Ejecutar app', actionWebhook:'Enviar webhook',
+      actionNotify:'Enviar notificación', actionApp:'Ejecutar app', actionWebhook:'Enviar webhook', actionPrompt:'Ejecutar prompt IA',
       notifyTitle:'Título de notificación', notifyText:'Texto de notificación', appSelect:'Seleccionar app',
+      promptText:'Texto del prompt', promptProvider:'Proveedor IA', promptModel:'Modelo', promptTextRequired:'Texto del prompt requerido', promptProviderRequired:'Proveedor IA requerido',
       webhookUrl:'URL del webhook', webhookMethod:'Método HTTP', webhookBody:'Cuerpo de solicitud (JSON)',
       webhookHeaders:'Encabezados (JSON)', enabled:'Activado', disabled:'Desactivado',
       noTasks:'Aún no hay tareas programadas', deleteConfirm:'¿Está seguro de que desea eliminar esta tarea?',
@@ -86,8 +91,9 @@
       title:'Планировщик', add:'Новая задача', edit:'Редактировать', save:'Сохранить', cancel:'Отмена', delete:'Удалить',
       nameLabel:'Имя задачи', dateTimeLabel:'Дата и время', repeatLabel:'Повтор', actionLabel:'Тип действия',
       noRepeat:'Без повтора', hourly:'Ежечасно', daily:'Ежедневно', weekly:'Еженедельно', monthly:'Ежемесячно',
-      actionNotify:'Отправить уведомление', actionApp:'Запустить приложение', actionWebhook:'Отправить вебхук',
+      actionNotify:'Отправить уведомление', actionApp:'Запустить приложение', actionWebhook:'Отправить вебхук', actionPrompt:'Выполнить AI промпт',
       notifyTitle:'Заголовок уведомления', notifyText:'Текст уведомления', appSelect:'Выбрать приложение',
+      promptText:'Текст промпта', promptProvider:'AI провайдер', promptModel:'Модель', promptTextRequired:'Текст промпта обязателен', promptProviderRequired:'AI провайдер обязателен',
       webhookUrl:'URL вебхука', webhookMethod:'HTTP метод', webhookBody:'Тело запроса (JSON)',
       webhookHeaders:'Заголовки (JSON)', enabled:'Включено', disabled:'Отключено',
       noTasks:'Пока нет запланированных задач', deleteConfirm:'Вы уверены, что хотите удалить эту задачу?',
@@ -102,8 +108,9 @@
       title:'调度器', add:'新任务', edit:'编辑', save:'保存', cancel:'取消', delete:'删除',
       nameLabel:'任务名称', dateTimeLabel:'日期和时间', repeatLabel:'重复', actionLabel:'操作类型',
       noRepeat:'不重复', hourly:'每小时', daily:'每天', weekly:'每周', monthly:'每月',
-      actionNotify:'发送通知', actionApp:'运行应用', actionWebhook:'发送Webhook',
+      actionNotify:'发送通知', actionApp:'运行应用', actionWebhook:'发送Webhook', actionPrompt:'执行AI提示',
       notifyTitle:'通知标题', notifyText:'通知内容', appSelect:'选择应用',
+      promptText:'提示文本', promptProvider:'AI提供商', promptModel:'模型', promptTextRequired:'提示文本必填', promptProviderRequired:'AI提供商必填',
       webhookUrl:'Webhook URL', webhookMethod:'HTTP方法', webhookBody:'请求体 (JSON)',
       webhookHeaders:'请求头 (JSON)', enabled:'启用', disabled:'禁用',
       noTasks:'暂无计划任务', deleteConfirm:'确定要删除此任务吗？',
@@ -118,8 +125,9 @@
       title:'スケジューラ', add:'新しいタスク', edit:'編集', save:'保存', cancel:'キャンセル', delete:'削除',
       nameLabel:'タスク名', dateTimeLabel:'日時', repeatLabel:'繰り返し', actionLabel:'アクションタイプ',
       noRepeat:'繰り返しなし', hourly:'毎時', daily:'毎日', weekly:'毎週', monthly:'毎月',
-      actionNotify:'通知を送信', actionApp:'アプリを実行', actionWebhook:'Webhookを送信',
+      actionNotify:'通知を送信', actionApp:'アプリを実行', actionWebhook:'Webhookを送信', actionPrompt:'AIプロンプトを実行',
       notifyTitle:'通知タイトル', notifyText:'通知テキスト', appSelect:'アプリを選択',
+      promptText:'プロンプトテキスト', promptProvider:'AIプロバイダー', promptModel:'モデル', promptTextRequired:'プロンプトテキストは必須です', promptProviderRequired:'AIプロバイダーは必須です',
       webhookUrl:'Webhook URL', webhookMethod:'HTTPメソッド', webhookBody:'リクエストボディ (JSON)',
       webhookHeaders:'ヘッダー (JSON)', enabled:'有効', disabled:'無効',
       noTasks:'予定タスクはありません', deleteConfirm:'このタスクを削除してもよいですか？',
@@ -134,8 +142,9 @@
       title:'Pianificatore', add:'Nuova attività', edit:'Modifica', save:'Salva', cancel:'Annulla', delete:'Elimina',
       nameLabel:'Nome attività', dateTimeLabel:'Data e ora', repeatLabel:'Ripetizione', actionLabel:"Tipo di azione",
       noRepeat:'Nessuna ripetizione', hourly:'Ogni ora', daily:'Giornaliero', weekly:'Settimanale', monthly:'Mensile',
-      actionNotify:'Invia notifica', actionApp:'Avvia app', actionWebhook:'Invia webhook',
+      actionNotify:'Invia notifica', actionApp:'Avvia app', actionWebhook:'Invia webhook', actionPrompt:'Esegui prompt AI',
       notifyTitle:'Titolo notifica', notifyText:'Testo notifica', appSelect:'Seleziona app',
+      promptText:'Testo del prompt', promptProvider:'Provider AI', promptModel:'Modello', promptTextRequired:'Testo del prompt obbligatorio', promptProviderRequired:'Provider AI obbligatorio',
       webhookUrl:'URL webhook', webhookMethod:'Metodo HTTP', webhookBody:'Corpo richiesta (JSON)',
       webhookHeaders:'Intestazioni (JSON)', enabled:'Attivato', disabled:'Disattivato',
       noTasks:'Nessuna attività pianificata', deleteConfirm:'Sei sicuro di voler eliminare questa attività?',
@@ -150,8 +159,9 @@
       title:'المجدول', add:'مهمة جديدة', edit:'تعديل', save:'حفظ', cancel:'إلغاء', delete:'حذف',
       nameLabel:'اسم المهمة', dateTimeLabel:'التاريخ والوقت', repeatLabel:'تكرار', actionLabel:'نوع الإجراء',
       noRepeat:'بدون تكرار', hourly:'كل ساعة', daily:'يومي', weekly:'أسبوعي', monthly:'شهري',
-      actionNotify:'إرسال إشعار', actionApp:'تشغيل تطبيق', actionWebhook:'إرسال Webhook',
+      actionNotify:'إرسال إشعار', actionApp:'تشغيل تطبيق', actionWebhook:'إرسال Webhook', actionPrompt:'تنفيذ موجه AI',
       notifyTitle:'عنوان الإشعار', notifyText:'نص الإشعار', appSelect:'اختر تطبيق',
+      promptText:'نص الموجه', promptProvider:'مزود AI', promptModel:'النموذج', promptTextRequired:'نص الموجه مطلوب', promptProviderRequired:'مزود AI مطلوب',
       webhookUrl:'رابط Webhook', webhookMethod:'طريقة HTTP', webhookBody:'جسم الطلب (JSON)',
       webhookHeaders:'الرؤوس (JSON)', enabled:'مفعل', disabled:'معطل',
       noTasks:'لا توجد مهام مجدولة', deleteConfirm:'هل أنت متأكد من حذف هذه المهمة؟',
@@ -166,8 +176,9 @@
       title:'스케줄러', add:'새 작업', edit:'편집', save:'저장', cancel:'취소', delete:'삭제',
       nameLabel:'작업 이름', dateTimeLabel:'날짜 및 시간', repeatLabel:'반복', actionLabel:'액션 유형',
       noRepeat:'반복 없음', hourly:'매시간', daily:'매일', weekly:'매주', monthly:'매월',
-      actionNotify:'알림 보내기', actionApp:'앱 실행', actionWebhook:'Webhook 보내기',
+      actionNotify:'알림 보내기', actionApp:'앱 실행', actionWebhook:'Webhook 보내기', actionPrompt:'AI 프롬프트 실행',
       notifyTitle:'알림 제목', notifyText:'알림 텍스트', appSelect:'앱 선택',
+      promptText:'프롬프트 텍스트', promptProvider:'AI 제공자', promptModel:'모델', promptTextRequired:'프롬프트 텍스트 필수', promptProviderRequired:'AI 제공자 필수',
       webhookUrl:'Webhook URL', webhookMethod:'HTTP 메서드', webhookBody:'요청 본문 (JSON)',
       webhookHeaders:'헤더 (JSON)', enabled:'활성화', disabled:'비활성화',
       noTasks:'예약된 작업 없음', deleteConfirm:'이 작업을 삭제하시겠습니까?',
@@ -182,8 +193,9 @@
       title:'शेड्यूलर', add:'नया कार्य', edit:'संपादन', save:'सहेजें', cancel:'रद्द करें', delete:'हटाएं',
       nameLabel:'कार्य का नाम', dateTimeLabel:'दिनांक और समय', repeatLabel:'दोहराव', actionLabel:'क्रिया प्रकार',
       noRepeat:'कोई दोहराव नहीं', hourly:'प्रति घंटा', daily:'दैनिक', weekly:'साप्ताहिक', monthly:'मासिक',
-      actionNotify:'अधिसूचना भेजें', actionApp:'ऐप चलाएं', actionWebhook:'Webhook भेजें',
+      actionNotify:'अधिसूचना भेजें', actionApp:'ऐप चलाएं', actionWebhook:'Webhook भेजें', actionPrompt:'AI प्रॉम्प्ट चलाएं',
       notifyTitle:'अधिसूचना शीर्षक', notifyText:'अधिसूचना पाठ', appSelect:'ऐप चुनें',
+      promptText:'प्रॉम्प्ट पाठ', promptProvider:'AI प्रदाता', promptModel:'मॉडल', promptTextRequired:'प्रॉम्प्ट पाठ आवश्यक', promptProviderRequired:'AI प्रदाता आवश्यक',
       webhookUrl:'Webhook URL', webhookMethod:'HTTP विधि', webhookBody:'अनुरोध बॉडी (JSON)',
       webhookHeaders:'हेडर (JSON)', enabled:'सक्षम', disabled:'अक्षम',
       noTasks:'कोई निर्धारित कार्य नहीं', deleteConfirm:'क्या आप इस कार्य को हटाना चाहते हैं?',
@@ -198,8 +210,9 @@
       title:'Agendador', add:'Nova tarefa', edit:'Editar', save:'Salvar', cancel:'Cancelar', delete:'Excluir',
       nameLabel:'Nome da tarefa', dateTimeLabel:'Data e hora', repeatLabel:'Repetir', actionLabel:'Tipo de ação',
       noRepeat:'Sem repetição', hourly:'A cada hora', daily:'Diário', weekly:'Semanal', monthly:'Mensal',
-      actionNotify:'Enviar notificação', actionApp:'Executar app', actionWebhook:'Enviar webhook',
+      actionNotify:'Enviar notificação', actionApp:'Executar app', actionWebhook:'Enviar webhook', actionPrompt:'Executar prompt IA',
       notifyTitle:'Título da notificação', notifyText:'Texto da notificação', appSelect:'Selecionar app',
+      promptText:'Texto do prompt', promptProvider:'Provedor AI', promptModel:'Modelo', promptTextRequired:'Texto do prompt obrigatório', promptProviderRequired:'Provedor AI obrigatório',
       webhookUrl:'URL do webhook', webhookMethod:'Método HTTP', webhookBody:'Corpo da requisição (JSON)',
       webhookHeaders:'Cabeçalhos (JSON)', enabled:'Ativado', disabled:'Desativado',
       noTasks:'Nenhuma tarefa agendada', deleteConfirm:'Tem certeza de que deseja excluir esta tarefa?',
@@ -239,11 +252,16 @@
         notifyTitle: '',
         notifyText: '',
         appId: '',
+        promptText: '',
+        promptProvider: '',
+        promptModel: '',
         webhookUrl: '',
         webhookMethod: 'POST',
         webhookBody: '',
         webhookHeaders: ''
       });
+
+      const aiProviders = ref([]);
 
       const repeatOptions = computed(function() {
         return [
@@ -259,6 +277,7 @@
         return [
           { value: 'notify', label: '🔔 ' + L('actionNotify') },
           { value: 'app', label: '📂 ' + L('actionApp') },
+          { value: 'prompt', label: '🤖 ' + L('actionPrompt') },
           { value: 'webhook', label: '🌐 ' + L('actionWebhook') }
         ];
       });
@@ -297,6 +316,18 @@
         } catch (e) { console.error('Load apps error', e); }
       }
 
+      async function loadAIProviders() {
+        try {
+          var r = await fetch('/api/ai-settings', { headers: authHeaders() });
+          if (r.ok) {
+            var data = await r.json();
+            aiProviders.value = (data.providers || []).filter(function(p) { return p.enabled; }).map(function(p) {
+              return { id: p.id, name: p.name || p.id, icon: p.icon || '🤖', model: p.model || p.defaultModel || '' };
+            });
+          }
+        } catch (e) { console.error('Load AI providers error', e); }
+      }
+
       function openNew() {
         editingId.value = null;
         form.name = '';
@@ -306,6 +337,9 @@
         form.notifyTitle = '';
         form.notifyText = '';
         form.appId = '';
+        form.promptText = '';
+        form.promptProvider = '';
+        form.promptModel = '';
         form.webhookUrl = '';
         form.webhookMethod = 'POST';
         form.webhookBody = '';
@@ -323,6 +357,9 @@
         form.notifyTitle = (task.actionData && task.actionData.title) || '';
         form.notifyText = (task.actionData && task.actionData.text) || '';
         form.appId = (task.actionData && task.actionData.appId) || '';
+        form.promptText = (task.actionData && task.actionData.prompt) || '';
+        form.promptProvider = (task.actionData && task.actionData.provider) || '';
+        form.promptModel = (task.actionData && task.actionData.model) || '';
         form.webhookUrl = (task.actionData && task.actionData.url) || '';
         form.webhookMethod = (task.actionData && task.actionData.method) || 'POST';
         form.webhookBody = (task.actionData && task.actionData.body) || '';
@@ -346,6 +383,14 @@
           actionData = { title: form.notifyTitle || form.name, text: form.notifyText || form.name };
         } else if (form.actionType === 'app') {
           actionData = { appId: form.appId };
+        } else if (form.actionType === 'prompt') {
+          if (!form.promptText.trim()) { formError.value = L('promptTextRequired'); return; }
+          if (!form.promptProvider) { formError.value = L('promptProviderRequired'); return; }
+          actionData = {
+            prompt: form.promptText.trim(),
+            provider: form.promptProvider,
+            model: form.promptModel || ''
+          };
         } else if (form.actionType === 'webhook') {
           if (!form.webhookUrl.trim()) { formError.value = L('webhookUrlRequired'); return; }
           actionData = {
@@ -434,6 +479,7 @@
       function actionIcon(type) {
         if (type === 'notify') return '🔔';
         if (type === 'app') return '📂';
+        if (type === 'prompt') return '🤖';
         if (type === 'webhook') return '🌐';
         return '❓';
       }
@@ -444,6 +490,11 @@
           var app = installedApps.value.find(function(a) { return a.id === (task.actionData && task.actionData.appId); });
           return app ? (app.icon + ' ' + app.name) : (task.actionData && task.actionData.appId) || '';
         }
+        if (task.actionType === 'prompt') {
+          var prov = (task.actionData && task.actionData.provider) || '';
+          var promptPreview = ((task.actionData && task.actionData.prompt) || '').slice(0, 50);
+          return '🤖 ' + prov + (promptPreview ? ': ' + promptPreview : '');
+        }
         if (task.actionType === 'webhook') return (task.actionData && task.actionData.method || 'POST') + ' ' + ((task.actionData && task.actionData.url) || '').slice(0, 40);
         return '';
       }
@@ -453,6 +504,7 @@
         window.addEventListener('locale-changed', onLocaleChanged);
         await loadTasks();
         await loadApps();
+        await loadAIProviders();
         refreshTimer = setInterval(loadTasks, 30000);
       });
       onUnmounted(function() {
@@ -463,7 +515,7 @@
       return {
         L: L, tasks: tasks, filter: filter, editingId: editingId, showForm: showForm,
         form: form, formError: formError, repeatOptions: repeatOptions, actionOptions: actionOptions,
-        counts: counts, filteredTasks: filteredTasks, installedApps: installedApps,
+        counts: counts, filteredTasks: filteredTasks, installedApps: installedApps, aiProviders: aiProviders,
         showLog: showLog, logTask: logTask, logEntries: logEntries,
         openNew: openNew, openEdit: openEdit, resetForm: resetForm, saveTask: saveTask,
         deleteTask: deleteTask, toggleEnabled: toggleEnabled, runNow: runNow,

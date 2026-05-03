@@ -1,5 +1,5 @@
 ---
-name: builder
+name: dev-builder
 description: Use after planner and ui-agent have produced their briefs. Writes the actual application code, follows TDD (test-first). Handles implementation — not planning or design.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet

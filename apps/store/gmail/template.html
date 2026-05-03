@@ -1,0 +1,220 @@
+<div class="gmail-root">
+  <!-- NOT CONNECTED -->
+  <div v-if="!gmailConfig.authenticated && view!=='settings'" class="gmail-no-account">
+    <div class="gmail-no-icon">📬</div>
+    <h3>Gmail</h3>
+    <p style="color:#8b8fa3;font-size:13px">{{ L('setupDesc') }}</p>
+    <el-button type="primary" size="large" @click="view='settings'">⚙️ {{ L('setup') }}</el-button>
+  </div>
+
+  <!-- SETTINGS -->
+  <div v-else-if="view==='settings'" class="gmail-settings-view">
+    <div class="gmail-content-header">
+      <el-button v-if="gmailConfig.authenticated" text @click="view='list'">← {{ L('back') }}</el-button>
+      <h3>⚙️ {{ L('settings') }}</h3>
+    </div>
+    <div class="gmail-settings-body">
+      <!-- Status -->
+      <div class="gmail-status-bar" :class="gmailConfig.authenticated ? 'connected' : 'disconnected'">
+        <span v-if="gmailConfig.authenticated">✅ {{ L('connected') }} — {{ gmailConfig.email }}</span>
+        <span v-else>❌ {{ L('notConnected') }}</span>
+        <el-button v-if="gmailConfig.authenticated" size="small" type="danger" @click="disconnect">{{ L('disconnect') }}</el-button>
+      </div>
+
+      <el-form label-position="top" size="default" style="max-width:500px">
+        <el-form-item :label="L('clientId')">
+          <el-input v-model="gmailConfig.clientId" placeholder="xxxx.apps.googleusercontent.com" />
+        </el-form-item>
+        <el-form-item :label="L('clientSecret')">
+          <el-input v-model="gmailConfig.clientSecret" type="password" show-password placeholder="GOCSPX-xxxx" />
+        </el-form-item>
+        <el-form-item :label="L('redirectUri')">
+          <el-input v-model="gmailConfig.redirectUri" placeholder="urn:ietf:wg:oauth:2.0:oob" />
+        </el-form-item>
+        <el-form-item :label="L('checkInterval')">
+          <el-input-number v-model="gmailConfig.checkInterval" :min="1" :max="60" controls-position="right" style="width:140px" />
+        </el-form-item>
+        <div style="display:flex;gap:10px;margin-bottom:20px">
+          <el-button type="primary" @click="saveConfig" :loading="configSaving">💾 {{ L('save') }}</el-button>
+        </div>
+      </el-form>
+
+      <!-- Auth flow -->
+      <template v-if="!gmailConfig.authenticated && gmailConfig.clientId">
+        <el-divider>{{ L('authorize') }}</el-divider>
+        <div style="display:flex;flex-direction:column;gap:10px;max-width:500px">
+          <el-button type="success" @click="getAuthUrl">🔗 {{ L('connect') }}</el-button>
+          <template v-if="authUrl">
+            <el-form-item :label="L('authCode')">
+              <el-input v-model="authCode" :placeholder="L('pasteCode')" />
+            </el-form-item>
+            <el-button type="primary" @click="submitAuthCode" :disabled="!authCode">✅ {{ L('authorize') }}</el-button>
+          </template>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- MAIN LAYOUT -->
+  <template v-else>
+    <div class="gmail-layout">
+      <!-- SIDEBAR -->
+      <div class="gmail-sidebar">
+        <el-button type="primary" @click="view='compose'; resetCompose()" class="gmail-compose-btn">
+          ✏️ {{ L('compose') }}
+        </el-button>
+
+        <div class="gmail-folders">
+          <div v-for="f in folders" :key="f.id"
+            :class="['gmail-folder-item', { active: activeLabel===f.id }]"
+            @click="activeLabel=f.id">
+            <span>{{ f.icon }} {{ f.name }}</span>
+            <el-badge v-if="f.id==='INBOX' && unreadCount > 0" :value="unreadCount" type="danger" />
+          </div>
+        </div>
+
+        <div class="gmail-sidebar-bottom">
+          <div class="gmail-folder-item" @click="view='settings'">
+            <span>⚙️ {{ L('settings') }}</span>
+          </div>
+          <div v-if="gmailConfig.email" class="gmail-sidebar-email">{{ gmailConfig.email }}</div>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="gmail-content">
+        <!-- COMPOSE -->
+        <div v-if="view==='compose'" class="gmail-compose">
+          <div class="gmail-content-header">
+            <el-button text @click="view='list'">← {{ L('back') }}</el-button>
+            <h3>{{ L('compose') }}</h3>
+          </div>
+          <div class="gmail-compose-form">
+            <div style="display:flex;gap:6px;margin-bottom:8px;align-items:stretch">
+              <el-input v-model="compose.to" :placeholder="L('to')" style="flex:1">
+                <template #prepend>{{ L('to') }}</template>
+              </el-input>
+              <el-button @click="showContactPicker=true" style="height:auto">📇</el-button>
+            </div>
+            <!-- Contact Picker -->
+            <div v-if="showContactPicker" class="gmail-contact-picker">
+              <div class="gmail-cp-header">
+                <input v-model="cpSearch" :placeholder="L('searchContacts')" class="gmail-cp-search" @input="searchContacts" />
+                <button class="gmail-cp-close" @click="showContactPicker=false">✕</button>
+              </div>
+              <div class="gmail-cp-list">
+                <div v-if="!cpContacts.length" style="text-align:center;color:#aaa;padding:16px;font-size:13px">{{ L('noContacts') }}</div>
+                <div v-for="c in cpContacts" :key="c.id" class="gmail-cp-item" @click="pickContact(c)">
+                  <div class="gmail-cp-avatar" :style="{background:c.avatar_color||'#ea4335'}">{{(c.first_name||'').charAt(0)}}{{(c.last_name||'').charAt(0)}}</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-weight:600;font-size:13px">{{c.first_name}} {{c.last_name}}</div>
+                    <div style="font-size:11px;color:#909399">{{c.email}}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-if="!compose.showCc" style="margin-bottom:8px">
+              <el-button text size="small" @click="compose.showCc=true">CC / BCC</el-button>
+            </div>
+            <template v-if="compose.showCc">
+              <el-input v-model="compose.cc" :placeholder="L('cc')" style="margin-bottom:8px">
+                <template #prepend>{{ L('cc') }}</template>
+              </el-input>
+              <el-input v-model="compose.bcc" :placeholder="L('bcc')" style="margin-bottom:8px">
+                <template #prepend>{{ L('bcc') }}</template>
+              </el-input>
+            </template>
+            <el-input v-model="compose.subject" :placeholder="L('subject')" style="margin-bottom:8px">
+              <template #prepend>{{ L('subject') }}</template>
+            </el-input>
+            <el-input v-model="compose.text" type="textarea" :rows="14" :placeholder="L('compose') + '...'" style="margin-bottom:12px" />
+            <div class="gmail-compose-actions">
+              <el-button type="primary" @click="sendMail" :loading="sendingMail" :disabled="!compose.to">
+                {{ sendingMail ? L('sending') : L('send') }}
+              </el-button>
+              <el-button @click="view='list'">{{ L('back') }}</el-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- READ VIEW -->
+        <div v-else-if="view==='read' && selectedMsg" class="gmail-read">
+          <div class="gmail-content-header">
+            <el-button text @click="view='list'; selectedMsg=null">← {{ L('back') }}</el-button>
+            <div class="gmail-read-actions">
+              <el-button size="small" @click="replyTo(selectedMsg)">↩️ {{ L('reply') }}</el-button>
+              <el-button size="small" @click="forwardMsg(selectedMsg)">↪️ {{ L('forward') }}</el-button>
+              <el-button size="small" type="danger" @click="trashMessage(selectedMsg)">🗑️ {{ L('delete') }}</el-button>
+            </div>
+          </div>
+          <div class="gmail-read-header">
+            <h3 class="gmail-read-subject">{{ selectedMsg.subject || L('noSubject') }}</h3>
+            <div class="gmail-read-meta">
+              <span class="gmail-read-from">{{ selectedMsg.from }}</span>
+              <span class="gmail-read-date">{{ formatDate(selectedMsg.date) }}</span>
+            </div>
+            <div v-if="selectedMsg.to" class="gmail-read-to">{{ L('to') }}: {{ selectedMsg.to }}</div>
+            <div v-if="selectedMsg.cc" class="gmail-read-to">{{ L('cc') }}: {{ selectedMsg.cc }}</div>
+          </div>
+          <div class="gmail-read-body">
+            <div v-if="selectedMsg.html" class="gmail-html-body" v-html="selectedMsg.html"></div>
+            <pre v-else class="gmail-text-body">{{ selectedMsg.text || selectedMsg.snippet }}</pre>
+          </div>
+          <!-- Attachments -->
+          <div v-if="selectedMsg.attachments && selectedMsg.attachments.length" class="gmail-attachments">
+            <div class="gmail-att-label">📎 {{ L('attachments') }} ({{ selectedMsg.attachments.length }})</div>
+            <div v-for="att in selectedMsg.attachments" :key="att.attachmentId" class="gmail-att-item">
+              <a :href="'/api/gmail/messages/' + selectedMsg.id + '/attachments/' + att.attachmentId"
+                target="_blank" class="gmail-att-link">
+                📄 {{ att.filename }} <span class="gmail-att-size">({{ Math.round(att.size/1024) }}KB)</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- MESSAGE LIST -->
+        <div v-else class="gmail-list-view">
+          <div class="gmail-content-header">
+            <h3>{{ labelName(activeLabel) }}</h3>
+            <div class="gmail-list-actions">
+              <el-input v-model="searchQuery" :placeholder="L('search')" size="small" class="gmail-search-input" clearable>
+                <template #prefix>🔍</template>
+              </el-input>
+              <el-button size="small" :type="filterUnread?'primary':''" @click="filterUnread=!filterUnread">
+                {{ filterUnread ? L('all') : L('unread') }}
+              </el-button>
+              <el-button size="small" @click="loadMessages()" :loading="loading">🔄 {{ L('refresh') }}</el-button>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div v-if="loading" class="gmail-empty">⏳ {{ L('loading') }}</div>
+
+          <!-- Empty -->
+          <div v-else-if="filteredMessages.length === 0" class="gmail-empty">📭 {{ L('noMails') }}</div>
+
+          <!-- Messages -->
+          <div v-else class="gmail-message-list">
+            <div v-for="msg in filteredMessages" :key="msg.id"
+              :class="['gmail-msg-row', { unread: msg.unread }]"
+              @click="openMessage(msg)">
+              <div class="gmail-msg-dot" v-if="msg.unread"></div>
+              <div class="gmail-msg-dot-empty" v-else></div>
+              <div class="gmail-msg-from">{{ shortFrom(msg.from) }}</div>
+              <div class="gmail-msg-subject">
+                {{ msg.subject || L('noSubject') }}
+                <span class="gmail-msg-snippet"> — {{ shortSnippet(msg.snippet) }}</span>
+              </div>
+              <div class="gmail-msg-date">{{ formatDate(msg.date) }}</div>
+              <div class="gmail-msg-del" @click.stop="trashMessage(msg)"><span class="gmail-del-icon">🗑️</span></div>
+            </div>
+            <!-- Load more -->
+            <div v-if="nextPageToken" class="gmail-load-more">
+              <el-button size="small" @click="loadMessages(true)" :loading="loadingMore">{{ L('loadMore') }}</el-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+</div>

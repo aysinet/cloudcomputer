@@ -71,6 +71,24 @@
           </select>
         </div>
       </template>
+      <!-- Prompt fields -->
+      <template v-if="form.actionType==='prompt'">
+        <div class="sch-form-row">
+          <label>{{L('promptProvider')}}</label>
+          <select v-model="form.promptProvider" class="sch-input">
+            <option value="">—</option>
+            <option v-for="p in aiProviders" :key="p.id" :value="p.id">{{p.icon}} {{p.name}}</option>
+          </select>
+        </div>
+        <div class="sch-form-row">
+          <label>{{L('promptModel')}}</label>
+          <input v-model="form.promptModel" class="sch-input" placeholder="gpt-4o, claude-3..." maxlength="100" />
+        </div>
+        <div class="sch-form-row">
+          <label>{{L('promptText')}}</label>
+          <textarea v-model="form.promptText" class="sch-input sch-textarea" rows="4" maxlength="8000" :placeholder="L('promptText')"></textarea>
+        </div>
+      </template>
       <!-- Webhook fields -->
       <template v-if="form.actionType==='webhook'">
         <div class="sch-form-row">

@@ -30,16 +30,25 @@
           {{ t('disconnect') }}
         </el-button>
         <el-button size="small" @click="saveConn" :title="t('save')">💾</el-button>
-        <el-button size="small" @click="showSavedPanel = !showSavedPanel" :title="t('savedConnections')">📋</el-button>
+        <el-button size="small" @click="importFileZillaXml" :title="t('importXml')">📥</el-button>
+        <el-button size="small" @click="showSavedPanel = !showSavedPanel" :title="t('savedConnections')">
+          📋 <span v-if="savedConns.length" class="ftp-badge">{{ savedConns.length }}</span>
+        </el-button>
       </div>
     </div>
 
     <!-- Saved Connections Dropdown -->
     <div class="ftp-saved-panel" v-if="showSavedPanel">
-      <div class="ftp-saved-title">{{ t('savedConnections') }}</div>
+      <div class="ftp-saved-header">
+        <span class="ftp-saved-title">{{ t('savedConnections') }} <small v-if="savedConns.length">({{ savedConns.length }} {{ t('serverCount') }})</small></span>
+        <div class="ftp-saved-actions">
+          <el-button size="small" text @click="importFileZillaXml" :title="t('importXml')">📥 {{ t('importXml') }}</el-button>
+          <el-button size="small" text type="danger" @click="deleteAllConns" v-if="savedConns.length" :title="t('deleteAll')">🗑️</el-button>
+        </div>
+      </div>
       <div v-if="!savedConns.length" class="ftp-saved-empty">{{ t('noSaved') }}</div>
       <div v-for="(c, i) in savedConns" :key="i" class="ftp-saved-item">
-        <span class="ftp-saved-name" @click="loadConn(c)">📡 {{ c.name }} <small>({{ c.host }}:{{ c.port }})</small></span>
+        <span class="ftp-saved-name" @click="loadConn(c)">📡 {{ c.name }} <small>({{ c.host }}:{{ c.port }}{{ c.secure ? ' 🔒' : '' }})</small></span>
         <el-button type="danger" size="small" text @click="deleteConn(i)">✗</el-button>
       </div>
     </div>

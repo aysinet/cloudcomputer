@@ -1,5 +1,5 @@
 ---
-name: planner
+name: dev-planner
 description: Use PROACTIVELY when the user asks to implement a new feature, refactor code, or make architectural changes. Creates step-by-step implementation plans before any code is written.
 tools: Read, Grep, Glob
 model: opus

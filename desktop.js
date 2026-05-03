@@ -21,6 +21,14 @@ const QRCode = require('qrcode');
 const app = express();
 const server = http.createServer(app);
 
+// Global error handlers — prevent server crash on unhandled errors
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] Uncaught Exception:', err.message, err.stack);
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[FATAL] Unhandled Rejection:', reason instanceof Error ? reason.message + ' ' + reason.stack : reason);
+});
+
 // #region SQLite DB
 const DB_PATH = path.join(__dirname, 'data', 'global.db');
 let globalDb = null;
@@ -2127,7 +2135,38 @@ app.post('/api/2fa/disable', authMiddleware, (req, res) => {
 });
 
 // #endregion
-// #region AI Settings (per-user, secure storage)
+// #region AI Chat & Settings
+const OLLAMA_URL = process.env.OLLAMA_URL || null;
+
+// Metadata for free (noKeyRequired) providers — used for auto-setup in user settings
+const FREE_PROVIDER_META = {
+  ollama: { name: 'Ollama (Local)', icon: '🦙', defaultModel: '' }
+};
+
+const AI_PROVIDER_ENDPOINTS = {
+  openai:      { url: 'https://api.openai.com/v1/chat/completions', authHeader: 'Bearer' },
+  anthropic:   { url: 'https://api.anthropic.com/v1/messages', authHeader: 'x-api-key', extraHeaders: { 'anthropic-version': '2023-06-01' } },
+  google:      { url: 'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent', authParam: 'key' },
+  mistral:     { url: 'https://api.mistral.ai/v1/chat/completions', authHeader: 'Bearer' },
+  deepseek:    { url: 'https://api.deepseek.com/v1/chat/completions', authHeader: 'Bearer' },
+  cohere:      { url: 'https://api.cohere.ai/v2/chat', authHeader: 'Bearer' },
+  groq:        { url: 'https://api.groq.com/openai/v1/chat/completions', authHeader: 'Bearer' },
+  xai:         { url: 'https://api.x.ai/v1/chat/completions', authHeader: 'Bearer' },
+  github:      { url: 'https://models.inference.ai.azure.com/chat/completions', authHeader: 'Bearer' },
+  openrouter:  { url: 'https://openrouter.ai/api/v1/chat/completions', authHeader: 'Bearer' },
+  perplexity:  { url: 'https://api.perplexity.ai/chat/completions', authHeader: 'Bearer' },
+  huggingface: { url: 'https://router.huggingface.co/v1/chat/completions', authHeader: 'Bearer' }
+};
+
+// Register Ollama as built-in provider when OLLAMA_URL is set (managed by superadmin)
+if (OLLAMA_URL) {
+  AI_PROVIDER_ENDPOINTS.ollama = {
+    url: OLLAMA_URL + '/v1/chat/completions',
+    authHeader: 'Bearer',
+    noKeyRequired: true
+  };
+}
+
 function getUserAISettingsPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe);
@@ -2137,8 +2176,35 @@ function getUserAISettingsPath(username) {
 
 function getUserAISettings(username) {
   const fp = getUserAISettingsPath(username);
-  if (!fs.existsSync(fp)) return { providers: [], agents: [] };
-  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return { providers: [], agents: [] }; }
+  let data = { providers: [], agents: [] };
+  if (fs.existsSync(fp)) {
+    try { data = JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch {}
+  }
+  if (!data.providers) data.providers = [];
+  if (!data.agents) data.agents = [];
+
+  // Auto-inject free (noKeyRequired) providers if not already present
+  let modified = false;
+  for (const [id, ep] of Object.entries(AI_PROVIDER_ENDPOINTS)) {
+    if (!ep.noKeyRequired) continue;
+    if (data.providers.some(p => p.id === id)) continue;
+    const meta = FREE_PROVIDER_META[id] || { name: id, icon: '🤖', defaultModel: '' };
+    data.providers.unshift({
+      id,
+      name: meta.name,
+      icon: meta.icon,
+      defaultModel: meta.defaultModel,
+      enabled: true,
+      apiKey: '',
+      model: '',
+      custom: false
+    });
+    modified = true;
+  }
+  if (modified) {
+    try { fs.writeFileSync(fp, JSON.stringify(data, null, 2)); } catch {}
+  }
+  return data;
 }
 
 function saveUserAISettings(username, data) {
@@ -2203,27 +2269,372 @@ app.get('/api/ai-settings/provider/:providerId', authMiddleware, (req, res) => {
   });
 });
 
-// #endregion
-// #region AI Chat Proxy
-const AI_PROVIDER_ENDPOINTS = {
-  openai:      { url: 'https://api.openai.com/v1/chat/completions', authHeader: 'Bearer' },
-  anthropic:   { url: 'https://api.anthropic.com/v1/messages', authHeader: 'x-api-key', extraHeaders: { 'anthropic-version': '2023-06-01' } },
-  google:      { url: 'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent', authParam: 'key' },
-  mistral:     { url: 'https://api.mistral.ai/v1/chat/completions', authHeader: 'Bearer' },
-  deepseek:    { url: 'https://api.deepseek.com/v1/chat/completions', authHeader: 'Bearer' },
-  cohere:      { url: 'https://api.cohere.ai/v2/chat', authHeader: 'Bearer' },
-  groq:        { url: 'https://api.groq.com/openai/v1/chat/completions', authHeader: 'Bearer' },
-  xai:         { url: 'https://api.x.ai/v1/chat/completions', authHeader: 'Bearer' },
-  github:      { url: 'https://models.inference.ai.azure.com/chat/completions', authHeader: 'Bearer' },
-  openrouter:  { url: 'https://openrouter.ai/api/v1/chat/completions', authHeader: 'Bearer' },
-  perplexity:  { url: 'https://api.perplexity.ai/chat/completions', authHeader: 'Bearer' }
+// AI Models catalog
+const AI_MODELS_PATH = path.join(DATA_DIR, 'ai', 'models.json');
+function getAIModels() {
+  try { return JSON.parse(fs.readFileSync(AI_MODELS_PATH, 'utf-8')); } catch { return {}; }
+}
+
+app.get('/api/ai/models', authMiddleware, (req, res) => {
+  const models = getAIModels();
+  const providerId = req.query.provider;
+  if (providerId) {
+    const p = models[providerId];
+    return res.json({ provider: providerId, models: p ? p.models : [] });
+  }
+  res.json(models);
+});
+
+// #region AI Tool Registry & Executor
+const AI_TOOL_REGISTRY = {};
+
+function getAISystemPrompt() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  const isoDate = now.toISOString().split('T')[0];
+  return `You are Cloud Computer AI Assistant. You have access to tools that interact with the user's installed applications and system.
+
+Current date and time: ${dateStr}, ${timeStr} (${isoDate})
+
+Rules:
+- ALWAYS use the current date above for any date calculations (e.g., "3 days later", "next week", "tomorrow"). NEVER guess or use your training data for the current date.
+- When the user asks about system info, files, disk usage, calendar events, tasks, budgets, or any app data, USE the appropriate tools to get REAL data
+- Never guess or fabricate data — always use tools for factual queries
+- Format responses clearly with the data you retrieve
+- You can call multiple tools if needed to answer a question
+- If a tool returns an error, explain the issue to the user
+- For conversational messages (greetings, opinions, creative writing), respond directly without tools
+- EMAIL: When the user asks to send an email, use the post_mail_send tool directly with to, subject, and text. The system uses the default/active mail account automatically — do NOT ask the user which account to use. If no account is configured the API will return an error, then tell the user to add an account in the Mail app settings.
+- WEATHER: When the user asks about weather/temperature, call the get_weather tool directly with NO parameters. The API reads the user's location (city, latitude, longitude) from their saved settings automatically — do NOT ask the user for location or coordinates.
+- SETTINGS: User preferences (city, country, latitude, longitude, timezone, locale, theme, etc.) are stored in settings.json and accessible via get_settings. Use this when you need user context like location.`;
+}
+
+function parseSkillMd(appId, content) {
+  const tools = [];
+  const lines = content.split('\n');
+  const headerRegex = /^#{2,4}\s+(GET|POST|PUT|DELETE|PATCH)\s+(\S+)/;
+  const inlineRegex = /^-\s+\*\*(GET|POST|PUT|DELETE|PATCH)\s+(\S+)\*\*\s*[\u2014\u2013-]\s*(.+)/;
+  let currentEndpoint = null;
+  let currentDesc = '';
+  let currentParams = {};
+  let currentQueryParams = {};
+
+  function flush() {
+    if (!currentEndpoint) return;
+    tools.push(buildToolDef(appId, currentEndpoint, currentDesc, currentParams, currentQueryParams));
+    currentEndpoint = null;
+    currentDesc = '';
+    currentParams = {};
+    currentQueryParams = {};
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const hMatch = line.match(headerRegex);
+    if (hMatch) {
+      flush();
+      currentEndpoint = { method: hMatch[1], path: hMatch[2].split('?')[0] };
+      const qm = hMatch[2].match(/\?(.+)/);
+      if (qm) { for (const p of qm[1].split('&')) { const n = p.split('=')[0]; currentQueryParams[n] = { type: 'string', description: n }; } }
+      continue;
+    }
+    const iMatch = line.match(inlineRegex);
+    if (iMatch) {
+      flush();
+      currentEndpoint = { method: iMatch[1], path: iMatch[2].split('?')[0] };
+      currentDesc = iMatch[3].trim();
+      const bodyInline = iMatch[3].match(/\(body:\s*\{([^}]+)\}\)/i);
+      if (bodyInline) {
+        currentDesc = currentDesc.replace(/\(body:\s*\{[^}]+\}\)/i, '').trim();
+        parseBodyString(bodyInline[1], currentParams);
+      }
+      const qm = iMatch[2].match(/\?(.+)/);
+      if (qm) { for (const p of qm[1].split('&')) { const n = p.split('=')[0]; currentQueryParams[n] = { type: 'string', description: n }; } }
+      continue;
+    }
+    if (currentEndpoint && !currentDesc && !line.startsWith('#') && !line.startsWith('-') && !line.startsWith('*') && line.trim()) {
+      currentDesc = line.trim();
+      continue;
+    }
+    if (currentEndpoint && /\*\*Body\*\*/i.test(line)) {
+      const bm = line.match(/\{([^}]+)\}/);
+      if (bm) parseBodyString(bm[1], currentParams);
+      continue;
+    }
+    if (currentEndpoint && /\*\*Query\*\*/i.test(line)) {
+      const qr = /`(\w+)`\s*(?:\(([^)]+)\))?/g;
+      let m;
+      while ((m = qr.exec(line)) !== null) { currentQueryParams[m[1]] = { type: 'string', description: m[2] || m[1] }; }
+      continue;
+    }
+    if (/^#{1,2}\s+/.test(line) && !headerRegex.test(line)) { flush(); }
+  }
+  flush();
+  return tools;
+}
+
+function parseBodyString(bodyStr, params) {
+  for (const part of bodyStr.split(',')) {
+    const cleaned = part.trim();
+    if (!cleaned) continue;
+    const nm = cleaned.match(/^(\w+)/);
+    if (!nm) continue;
+    const name = nm[1];
+    const isReq = /required/i.test(cleaned);
+    const tm = cleaned.match(/:\s*"?(string|number|integer|boolean)"?/i);
+    params[name] = {
+      type: (tm && ['number','integer','boolean'].includes(tm[1].toLowerCase())) ? tm[1].toLowerCase() : 'string',
+      description: name + (isReq ? ' (required)' : '')
+    };
+  }
+}
+
+function buildToolDef(appId, endpoint, description, bodyParams, queryParams) {
+  const method = endpoint.method.toLowerCase();
+  const pathName = endpoint.path
+    .replace(/^\/api\//, '')
+    .replace(/:[a-zA-Z_]\w*/g, 'by_id')
+    .replace(/[\/-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
+  const name = (method + '_' + pathName).slice(0, 64);
+  const properties = {};
+  const required = [];
+  const pathParams = [];
+  const pr = /:[a-zA-Z_](\w*)/g;
+  let pm;
+  while ((pm = pr.exec(endpoint.path)) !== null) {
+    const pName = endpoint.path.slice(pm.index + 1, pm.index + pm[0].length);
+    pathParams.push(pName);
+    properties[pName] = { type: 'string', description: 'ID parameter' };
+    required.push(pName);
+  }
+  for (const [k, v] of Object.entries(queryParams)) { properties[k] = { type: v.type || 'string', description: v.description || k }; }
+  for (const [k, v] of Object.entries(bodyParams)) {
+    properties[k] = { type: v.type || 'string', description: v.description || k };
+    if (v.description && v.description.includes('required')) required.push(k);
+  }
+  return {
+    name, appId, method: endpoint.method, path: endpoint.path, pathParams,
+    description: description || (method.toUpperCase() + ' ' + endpoint.path),
+    parameters: { type: 'object', properties, ...(required.length ? { required } : {}) }
+  };
+}
+
+function buildToolRegistry() {
+  const dirs = [
+    path.join(__dirname, 'apps', 'store'),
+    path.join(__dirname, 'apps', 'builtin')
+  ];
+  for (const base of dirs) {
+    if (!fs.existsSync(base)) continue;
+    let apps;
+    try { apps = fs.readdirSync(base, { withFileTypes: true }); } catch { continue; }
+    for (const entry of apps) {
+      if (!entry.isDirectory()) continue;
+      const skillPath = path.join(base, entry.name, 'SKILL.md');
+      if (!fs.existsSync(skillPath)) continue;
+      try {
+        const content = fs.readFileSync(skillPath, 'utf-8');
+        const tools = parseSkillMd(entry.name, content);
+        for (const tool of tools) {
+          if (AI_TOOL_REGISTRY[tool.name]) {
+            // Conflict — prefix with appId
+            const altName = (tool.appId.replace(/-/g, '_') + '_' + tool.name).slice(0, 64);
+            tool.name = altName;
+          }
+          AI_TOOL_REGISTRY[tool.name] = tool;
+        }
+      } catch {}
+    }
+  }
+  console.log('[AI Tools] Registry built: ' + Object.keys(AI_TOOL_REGISTRY).length + ' tools from SKILL.md files');
+}
+
+async function executeToolCall(toolName, args, authToken) {
+  const tool = AI_TOOL_REGISTRY[toolName];
+  if (!tool) { console.error('[AI Tool] Unknown tool:', toolName); return { error: 'Unknown tool: ' + toolName }; }
+  const port = config.server.port || 8080;
+  let urlPath = tool.path;
+  for (const param of (tool.pathParams || [])) {
+    if (args[param]) urlPath = urlPath.replace(':' + param, encodeURIComponent(String(args[param])));
+  }
+  const fetchOpts = {
+    method: tool.method,
+    headers: { 'Authorization': 'Bearer ' + authToken, 'Content-Type': 'application/json' }
+  };
+  if (tool.method === 'GET' || tool.method === 'DELETE') {
+    const qa = {};
+    for (const [k, v] of Object.entries(args || {})) {
+      if (!(tool.pathParams || []).includes(k) && v !== undefined && v !== '') qa[k] = v;
+    }
+    if (Object.keys(qa).length) urlPath += '?' + new URLSearchParams(qa).toString();
+  } else {
+    const ba = {};
+    for (const [k, v] of Object.entries(args || {})) { if (!(tool.pathParams || []).includes(k)) ba[k] = v; }
+    fetchOpts.body = JSON.stringify(ba);
+  }
+  try {
+    console.log('[AI Tool] Calling:', tool.method, urlPath);
+    const resp = await fetch('http://127.0.0.1:' + port + urlPath, { ...fetchOpts, signal: AbortSignal.timeout(30000) });
+    let data;
+    const respText = await resp.text();
+    try { data = JSON.parse(respText); } catch { data = { raw: respText.slice(0, 500) }; }
+    // Truncate large results to prevent context overflow
+    const str = JSON.stringify(data);
+    if (str.length > 4000) {
+      if (Array.isArray(data)) {
+        // Summarize array items — strip large fields like text/html/content/body
+        const summarized = data.slice(0, 20).map(item => {
+          if (typeof item !== 'object' || item === null) return item;
+          const slim = {};
+          for (const [k, v] of Object.entries(item)) {
+            if (['text','html','body','content','rawContent','raw'].includes(k)) {
+              slim[k] = typeof v === 'string' ? v.slice(0, 80) + (v.length > 80 ? '...' : '') : v;
+            } else if (typeof v === 'string' && v.length > 200) {
+              slim[k] = v.slice(0, 200) + '...';
+            } else {
+              slim[k] = v;
+            }
+          }
+          return slim;
+        });
+        return { summary: `Array with ${data.length} items`, count: data.length, items: summarized };
+      }
+      // For objects with array values, truncate similarly
+      const truncated = {};
+      for (const [k, v] of Object.entries(data)) {
+        if (Array.isArray(v)) {
+          truncated[k] = v.slice(0, 20).map(item => {
+            if (typeof item !== 'object' || item === null) return item;
+            const slim = {};
+            for (const [ik, iv] of Object.entries(item)) {
+              if (['text','html','body','content','rawContent','raw'].includes(ik)) {
+                slim[ik] = typeof iv === 'string' ? iv.slice(0, 80) + (iv.length > 80 ? '...' : '') : iv;
+              } else if (typeof iv === 'string' && iv.length > 200) {
+                slim[ik] = iv.slice(0, 200) + '...';
+              } else {
+                slim[ik] = iv;
+              }
+            }
+            return slim;
+          });
+          truncated[k + '_total'] = v.length;
+        } else {
+          truncated[k] = v;
+        }
+      }
+      const tStr = JSON.stringify(truncated);
+      if (tStr.length > 6000) return { summary: 'Result truncated', data: JSON.parse(tStr.slice(0, 5500) + '"}]}') };
+      return { summary: 'Result truncated', data: truncated };
+    }
+    return data;
+  } catch (e) {
+    console.error('[AI Tool] Execution failed:', toolName, urlPath, e.message);
+    return { error: 'Tool execution failed: ' + e.message };
+  }
+}
+
+buildToolRegistry();
+
+// Domain → App mapping (from coordinator agent)
+const AI_DOMAIN_APPS = {
+  files: ['fileman','archiver','backup-restore','disksize','gdrive','ftp-client','synchronizer'],
+  organizer: ['calendar','todo','kanban','reminder','scheduler','keepnote','postit','contacts'],
+  finance: ['budget','coin-tracker','stock-tracker','currency-converter','eth-wallet','solana-wallet'],
+  media: ['music-player','photos','audio-recorder','audio-editor','loopstudio'],
+  communication: ['mail-app','notifications'],
+  developer: ['codeeditor','github','requestly','rabbitmq-tracker'],
+  creative: ['spreadsheet','presentation','math-formula','wordcloud','ascii-art','qrcode-maker','3d-home','featherwiki','book-reader'],
+  web: ['browser','wikipedia','youtube','google-trends','sport-scores','rss-reader','map'],
+  system: ['settings','weather','petcarely','stopwatch','password-manager']
 };
+
+const AI_DOMAIN_KEYWORDS = {
+  files: ['disk','dosya','file','storage','backup','yedek','ftp','gdrive','archive','sync','boyut','alan','depolama','yer','kapa','klasör','folder','directory','sil','delete','upload','download','indirme','kopyala','taşı'],
+  organizer: ['todo','task','calendar','takvim','reminder','hatırlat','note','not','contact','kişi','kanban','schedule','görev','plan','toplantı','meeting','etkinlik','event','ajanda','randevu'],
+  finance: ['budget','bütçe','crypto','coin','currency','döviz','stock','hisse','wallet','cüzdan','para','gelir','gider','harcama','fiyat','kur','borsa','finans','expense','income'],
+  media: ['music','müzik','photo','fotoğraf','video','audio','ses','record','kayıt','şarkı','song','album','çal','play'],
+  communication: ['email','mail','notification','bildirim','mesaj','message','inbox','posta'],
+  developer: ['code','github','api','debug','repo','commit','pull','push','rabbitmq','branch'],
+  creative: ['spreadsheet','excel','presentation','sunum','formula','word cloud','ascii','qr','3d','wiki','book','kitap','tablo','slayt'],
+  web: ['browser','wikipedia','youtube','google','sport','rss','map','harita','haber','news','arama','search','skor','score','trend'],
+  system: ['setting','ayar','password','şifre','weather','hava','pet','stopwatch','kronometre','monitor','cpu','ram','sistem','system','sıcaklık','derece']
+};
+
+function getRelevantTools(userMessage, contextAppId) {
+  const msg = (userMessage || '').toLowerCase();
+  const matchedApps = new Set();
+
+  // Context app always included
+  if (contextAppId) {
+    matchedApps.add(contextAppId);
+    for (const [domain, apps] of Object.entries(AI_DOMAIN_APPS)) {
+      if (apps.includes(contextAppId)) { apps.forEach(a => matchedApps.add(a)); break; }
+    }
+  }
+
+  // Keyword matching
+  for (const [domain, keywords] of Object.entries(AI_DOMAIN_KEYWORDS)) {
+    for (const kw of keywords) {
+      if (msg.includes(kw)) {
+        (AI_DOMAIN_APPS[domain] || []).forEach(a => matchedApps.add(a));
+        break;
+      }
+    }
+  }
+
+  // If no domain matched, return general-purpose tools (files + system + organizer)
+  if (matchedApps.size === 0) {
+    ['files','system','organizer'].forEach(d => (AI_DOMAIN_APPS[d] || []).forEach(a => matchedApps.add(a)));
+  }
+
+  const filtered = Object.values(AI_TOOL_REGISTRY).filter(t => matchedApps.has(t.appId));
+  // Cap at 64 tools max
+  return filtered.slice(0, 64);
+}
+
+app.get('/api/ai/tools', authMiddleware, (req, res) => {
+  const q = req.query.q;
+  let tools = Object.values(AI_TOOL_REGISTRY);
+  if (q) tools = getRelevantTools(q);
+  const mapped = tools.map(t => ({ name: t.name, appId: t.appId, method: t.method, path: t.path, description: t.description }));
+  res.json({ tools: mapped, count: mapped.length });
+});
+// #endregion
+
+// AI Chat Proxy
+
+// Ollama status & model list (read-only for all users)
+app.get('/api/ai/ollama-status', authMiddleware, async (req, res) => {
+  if (!OLLAMA_URL) return res.json({ available: false, models: [] });
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const resp = await fetch(OLLAMA_URL + '/api/tags', { signal: controller.signal });
+    clearTimeout(timeout);
+    const data = await resp.json();
+    const models = (data.models || []).map(m => ({
+      name: m.name,
+      size: m.size,
+      modified: m.modified_at,
+      family: m.details?.family || '',
+      parameterSize: m.details?.parameter_size || ''
+    }));
+    res.json({ available: true, url: OLLAMA_URL, models });
+  } catch {
+    res.json({ available: false, url: OLLAMA_URL, models: [] });
+  }
+});
 
 function aiProxyRequest(endpoint, headers, body) {
   return new Promise((resolve, reject) => {
+    try {
     const parsedUrl = new URL(endpoint);
     const lib = parsedUrl.protocol === 'https:' ? require('https') : require('http');
     const postData = JSON.stringify(body);
+    console.log('[AI Proxy] Request:', parsedUrl.hostname, parsedUrl.pathname, 'payload:', (postData.length / 1024).toFixed(1) + 'KB');
     const reqHeaders = { ...headers, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) };
     const req = lib.request({
       hostname: parsedUrl.hostname,
@@ -2236,18 +2647,22 @@ function aiProxyRequest(endpoint, headers, body) {
       resp.on('data', chunk => { data += chunk; });
       resp.on('end', () => {
         try { resolve({ status: resp.statusCode, data: JSON.parse(data) }); }
-        catch { resolve({ status: resp.statusCode, data: { raw: data } }); }
+        catch { resolve({ status: resp.statusCode, data: { raw: data.slice(0, 500) } }); }
       });
     });
-    req.on('error', reject);
-    req.setTimeout(60000, () => { req.destroy(); reject(new Error('Request timeout')); });
+    req.on('error', (err) => { console.error('[AI Proxy] Request error:', endpoint, err.message); reject(err); });
+    req.setTimeout(60000, () => { req.destroy(); const err = new Error('Request timeout'); console.error('[AI Proxy] Timeout:', endpoint); reject(err); });
     req.write(postData);
     req.end();
+    } catch (e) {
+      console.error('[AI Proxy] Setup error:', e.message);
+      reject(e);
+    }
   });
 }
 
 app.post('/api/ai/chat', authMiddleware, async (req, res) => {
-  const { provider: providerId, messages, context } = req.body;
+  const { provider: providerId, messages, context, model: requestModel } = req.body;
   if (!providerId || !Array.isArray(messages) || !messages.length) {
     return res.status(400).json({ error: 'provider and messages required' });
   }
@@ -2255,78 +2670,151 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'Too many messages' });
   }
 
-  const settings = getUserAISettings(req.user.username);
-  const provider = (settings.providers || []).find(p => p.id === providerId && p.enabled);
-  if (!provider || !provider.apiKey) {
-    return res.status(400).json({ error: 'Provider not configured or no API key' });
+  // Check for built-in provider with noKeyRequired (e.g. Ollama)
+  const endpointConfig = AI_PROVIDER_ENDPOINTS[providerId];
+  const isNoKeyProvider = endpointConfig && endpointConfig.noKeyRequired;
+
+  let provider;
+  if (isNoKeyProvider) {
+    const settings = getUserAISettings(req.user.username);
+    provider = (settings.providers || []).find(p => p.id === providerId) || { id: providerId, enabled: true };
+  } else {
+    const settings = getUserAISettings(req.user.username);
+    provider = (settings.providers || []).find(p => p.id === providerId && p.enabled);
+    if (!provider || !provider.apiKey) {
+      return res.status(400).json({ error: 'Provider not configured or no API key' });
+    }
   }
 
-  const model = provider.model || provider.defaultModel;
-  const sanitizedMessages = messages.slice(-50).map(m => ({
+  const model = requestModel ? String(requestModel).slice(0, 100) : (provider.model || provider.defaultModel);
+  const conversationMsgs = messages.slice(-50).map(m => ({
     role: String(m.role || 'user').slice(0, 20),
     content: String(m.content || '').slice(0, 8000)
   }));
 
-  // Check for custom provider
-  const endpointConfig = AI_PROVIDER_ENDPOINTS[providerId];
   if (!endpointConfig && !provider.custom) {
     return res.status(400).json({ error: 'Unknown provider' });
   }
 
+  // Tool calling setup — scan recent messages (not just last) for keyword matching
+  // This ensures follow-up messages like "evet"/"yes" still include the right tools
+  const recentMsgs = conversationMsgs.filter(m => m.role !== 'system').slice(-6);
+  const combinedText = recentMsgs.map(m => typeof m.content === 'string' ? m.content : '').join(' ');
+  const toolDefs = getRelevantTools(combinedText, context);
+  const enableTools = toolDefs.length > 0 && providerId !== 'cohere';
+
+  if (enableTools && !conversationMsgs.find(m => m.role === 'system')) {
+    conversationMsgs.unshift({ role: 'system', content: getAISystemPrompt() });
+  }
+
+  const authToken = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  const MAX_TOOL_ROUNDS = 5;
+  console.log('[AI Chat] Request:', providerId, model, 'messages:', conversationMsgs.length, 'tools:', toolDefs.length, 'user:', req.user.username);
+
   try {
-    let content = '';
+    for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
 
-    if (providerId === 'anthropic') {
-      // Anthropic uses a different format
-      const systemMsg = sanitizedMessages.find(m => m.role === 'system');
-      const chatMsgs = sanitizedMessages.filter(m => m.role !== 'system');
-      const body = { model, max_tokens: 4096, messages: chatMsgs };
-      if (systemMsg) body.system = systemMsg.content;
-      const headers = { 'x-api-key': provider.apiKey, 'anthropic-version': '2023-06-01' };
-      const result = await aiProxyRequest(endpointConfig.url, headers, body);
-      if (result.status !== 200) {
-        return res.status(502).json({ error: result.data?.error?.message || 'Anthropic API error' });
-      }
-      content = result.data?.content?.[0]?.text || '';
+      if (providerId === 'anthropic') {
+        const systemMsg = conversationMsgs.find(m => m.role === 'system');
+        const chatMsgs = conversationMsgs.filter(m => m.role !== 'system');
+        const body = { model, max_tokens: 4096, messages: chatMsgs };
+        if (systemMsg) body.system = typeof systemMsg.content === 'string' ? systemMsg.content : JSON.stringify(systemMsg.content);
+        if (enableTools && toolDefs.length) {
+          body.tools = toolDefs.map(t => ({ name: t.name, description: t.description, input_schema: t.parameters }));
+        }
+        const headers = { 'x-api-key': provider.apiKey, 'anthropic-version': '2023-06-01' };
+        const result = await aiProxyRequest(endpointConfig.url, headers, body);
+        if (result.status !== 200) {
+          console.error('[AI Chat] Anthropic error:', result.status, JSON.stringify(result.data?.error || result.data).slice(0, 500));
+          return res.status(502).json({ error: result.data?.error?.message || 'Anthropic API error' });
+        }
+        const responseContent = result.data?.content || [];
+        const toolUseBlocks = responseContent.filter(c => c.type === 'tool_use');
+        if (toolUseBlocks.length > 0 && round < MAX_TOOL_ROUNDS) {
+          conversationMsgs.push({ role: 'assistant', content: responseContent });
+          const toolResults = [];
+          for (const tu of toolUseBlocks) {
+            console.log('[AI Chat] Tool call (Anthropic) round', round, ':', tu.name, JSON.stringify(tu.input || {}).slice(0, 200));
+            const toolResult = await executeToolCall(tu.name, tu.input || {}, authToken);
+            console.log('[AI Chat] Tool result:', tu.name, JSON.stringify(toolResult).slice(0, 200));
+            toolResults.push({ type: 'tool_result', tool_use_id: tu.id, content: JSON.stringify(toolResult) });
+          }
+          conversationMsgs.push({ role: 'user', content: toolResults });
+          continue;
+        }
+        return res.json({ content: responseContent.filter(c => c.type === 'text').map(c => c.text).join('\n') || '' });
 
-    } else if (providerId === 'google') {
-      // Google Gemini uses a different format
-      const url = endpointConfig.url.replace('{model}', encodeURIComponent(model)) + '?key=' + encodeURIComponent(provider.apiKey);
-      const geminiContents = sanitizedMessages.map(m => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }]
-      }));
-      const result = await aiProxyRequest(url, {}, { contents: geminiContents });
-      if (result.status !== 200) {
-        return res.status(502).json({ error: result.data?.error?.message || 'Google API error' });
-      }
-      content = result.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      } else if (providerId === 'google') {
+        // Google Gemini (tool calling not yet supported — basic response)
+        const url = endpointConfig.url.replace('{model}', encodeURIComponent(model)) + '?key=' + encodeURIComponent(provider.apiKey);
+        const geminiContents = conversationMsgs.filter(m => m.role !== 'system').map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: typeof m.content === 'string' ? m.content : JSON.stringify(m.content) }]
+        }));
+        const reqBody = { contents: geminiContents };
+        const sysMsg = conversationMsgs.find(m => m.role === 'system');
+        if (sysMsg) reqBody.systemInstruction = { parts: [{ text: typeof sysMsg.content === 'string' ? sysMsg.content : '' }] };
+        const result = await aiProxyRequest(url, {}, reqBody);
+        if (result.status !== 200) {
+          console.error('[AI Chat] Google error:', result.status, JSON.stringify(result.data?.error || result.data).slice(0, 500));
+          return res.status(502).json({ error: result.data?.error?.message || 'Google API error' });
+        }
+        return res.json({ content: result.data?.candidates?.[0]?.content?.parts?.[0]?.text || '' });
 
-    } else if (providerId === 'cohere') {
-      // Cohere v2 chat format
-      const body = { model, messages: sanitizedMessages };
-      const headers = { 'Authorization': 'Bearer ' + provider.apiKey };
-      const result = await aiProxyRequest(endpointConfig.url, headers, body);
-      if (result.status !== 200) {
-        return res.status(502).json({ error: result.data?.message || 'Cohere API error' });
-      }
-      content = result.data?.message?.content?.[0]?.text || '';
+      } else if (providerId === 'cohere') {
+        // Cohere v2 chat format (tool calling not yet supported)
+        const body = { model, messages: conversationMsgs };
+        const headers = { 'Authorization': 'Bearer ' + provider.apiKey };
+        const result = await aiProxyRequest(endpointConfig.url, headers, body);
+        if (result.status !== 200) {
+          console.error('[AI Chat] Cohere error:', result.status, JSON.stringify(result.data || {}).slice(0, 500));
+          return res.status(502).json({ error: result.data?.message || 'Cohere API error' });
+        }
+        return res.json({ content: result.data?.message?.content?.[0]?.text || '' });
 
-    } else {
-      // OpenAI-compatible format (openai, mistral, deepseek, groq, xai, github, openrouter, perplexity, custom)
-      const url = provider.custom ? (provider.apiEndpoint || endpointConfig?.url || '') : endpointConfig.url;
-      if (!url) return res.status(400).json({ error: 'No endpoint configured' });
-      const body = { model, messages: sanitizedMessages, max_tokens: 4096 };
-      const headers = { 'Authorization': 'Bearer ' + provider.apiKey };
-      const result = await aiProxyRequest(url, headers, body);
-      if (result.status !== 200) {
-        return res.status(502).json({ error: result.data?.error?.message || 'API error' });
+      } else {
+        // OpenAI-compatible (openai, mistral, deepseek, groq, xai, github, openrouter, perplexity, custom)
+        const url = provider.custom ? (provider.apiEndpoint || endpointConfig?.url || '') : endpointConfig.url;
+        if (!url) return res.status(400).json({ error: 'No endpoint configured' });
+        const body = { model, messages: conversationMsgs, max_tokens: 4096 };
+        if (enableTools && toolDefs.length) {
+          body.tools = toolDefs.map(t => ({
+            type: 'function',
+            function: { name: t.name, description: t.description, parameters: t.parameters }
+          }));
+          body.tool_choice = 'auto';
+        }
+        const headers = isNoKeyProvider ? {} : { 'Authorization': 'Bearer ' + provider.apiKey };
+        const result = await aiProxyRequest(url, headers, body);
+        if (result.status !== 200) {
+          console.error('[AI Chat] OpenAI-compatible error:', providerId, result.status, JSON.stringify(result.data?.error || result.data).slice(0, 500));
+          return res.status(502).json({ error: result.data?.error?.message || 'API error' });
+        }
+        const choice = result.data?.choices?.[0];
+        const msgToolCalls = choice?.message?.tool_calls;
+        if (msgToolCalls && msgToolCalls.length > 0 && round < MAX_TOOL_ROUNDS) {
+          conversationMsgs.push(choice.message);
+          for (const tc of msgToolCalls) {
+            let args = {};
+            try { args = JSON.parse(tc.function.arguments || '{}'); } catch {}
+            console.log('[AI Chat] Tool call (OpenAI) round', round, ':', tc.function.name, JSON.stringify(args).slice(0, 200));
+            const toolResult = await executeToolCall(tc.function.name, args, authToken);
+            console.log('[AI Chat] Tool result:', tc.function.name, JSON.stringify(toolResult).slice(0, 200));
+            conversationMsgs.push({
+              role: 'tool',
+              tool_call_id: tc.id,
+              content: JSON.stringify(toolResult)
+            });
+          }
+          continue;
+        }
+        return res.json({ content: choice?.message?.content || '' });
       }
-      content = result.data?.choices?.[0]?.message?.content || '';
     }
 
-    res.json({ content });
+    res.json({ content: '' });
   } catch (e) {
+    console.error('[AI Chat] Unhandled error:', providerId, model, e.message, e.stack?.split('\n').slice(0, 3).join(' '));
     res.status(500).json({ error: e.message || 'Internal error' });
   }
 });
@@ -2381,11 +2869,38 @@ app.post('/api/chatgpt/conversations', authMiddleware, (req, res) => {
 });
 
 // GET available providers (with key status)
-app.get('/api/chatgpt/providers', authMiddleware, (req, res) => {
+app.get('/api/chatgpt/providers', authMiddleware, async (req, res) => {
   const data = getUserAISettings(req.user.username);
   const available = (data.providers || [])
     .filter(p => p.enabled && p.apiKey)
     .map(p => ({ id: p.id, name: p.name, icon: p.icon, model: p.model || p.defaultModel }));
+
+  // Include Ollama as built-in provider if available (no API key needed)
+  if (OLLAMA_URL) {
+    const alreadyHasOllama = available.some(p => p.id === 'ollama');
+    if (!alreadyHasOllama) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+        const resp = await fetch(OLLAMA_URL + '/api/tags', { signal: controller.signal });
+        clearTimeout(timeout);
+        const tags = await resp.json();
+        const defaultModel = (tags.models && tags.models.length > 0) ? tags.models[0].name : '';
+        // Check if user has a preferred Ollama model in their settings
+        const userOllama = (data.providers || []).find(p => p.id === 'ollama');
+        available.unshift({
+          id: 'ollama',
+          name: 'Ollama (Local)',
+          icon: '🦙',
+          model: userOllama?.model || defaultModel,
+          system: true
+        });
+      } catch {
+        // Ollama not reachable — skip
+      }
+    }
+  }
+
   res.json({ providers: available });
 });
 
@@ -2399,10 +2914,20 @@ app.post('/api/chatgpt/stream', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'Too many messages' });
   }
 
-  const settings = getUserAISettings(req.user.username);
-  const provider = (settings.providers || []).find(p => p.id === providerId && p.enabled);
-  if (!provider || !provider.apiKey) {
-    return res.status(400).json({ error: 'Provider not configured or no API key' });
+  // Check for built-in provider with noKeyRequired (e.g. Ollama)
+  const endpointConfig = AI_PROVIDER_ENDPOINTS[providerId];
+  const isNoKeyProvider = endpointConfig && endpointConfig.noKeyRequired;
+
+  let provider;
+  if (isNoKeyProvider) {
+    const settings = getUserAISettings(req.user.username);
+    provider = (settings.providers || []).find(p => p.id === providerId) || { id: providerId, enabled: true };
+  } else {
+    const settings = getUserAISettings(req.user.username);
+    provider = (settings.providers || []).find(p => p.id === providerId && p.enabled);
+    if (!provider || !provider.apiKey) {
+      return res.status(400).json({ error: 'Provider not configured or no API key' });
+    }
   }
 
   const model = provider.model || provider.defaultModel;
@@ -2411,7 +2936,6 @@ app.post('/api/chatgpt/stream', authMiddleware, async (req, res) => {
     content: String(m.content || '').slice(0, 30000)
   }));
 
-  const endpointConfig = AI_PROVIDER_ENDPOINTS[providerId];
   if (!endpointConfig && !provider.custom) {
     return res.status(400).json({ error: 'Unknown provider' });
   }
@@ -2530,7 +3054,9 @@ app.post('/api/chatgpt/stream', authMiddleware, async (req, res) => {
       const url = provider.custom ? (provider.apiEndpoint || endpointConfig?.url || '') : endpointConfig.url;
       if (!url) { sse('error', { message: 'No endpoint' }); res.end(); return; }
       const body = { model, messages: sanitizedMessages, max_tokens: 4096, stream: true };
-      const hdrs = { 'Authorization': 'Bearer ' + provider.apiKey, 'Content-Type': 'application/json' };
+      const hdrs = isNoKeyProvider
+        ? { 'Content-Type': 'application/json' }
+        : { 'Authorization': 'Bearer ' + provider.apiKey, 'Content-Type': 'application/json' };
 
       const parsedUrl = new URL(url);
       const lib = parsedUrl.protocol === 'https:' ? require('https') : require('http');
@@ -6059,6 +6585,97 @@ async function executeSchedulerTask(username, task, allTasks) {
           result = 'Webhook error: ' + e.message;
         }
       }
+
+    } else if (task.actionType === 'prompt') {
+      // Execute AI prompt
+      const promptText = task.actionData && task.actionData.prompt;
+      const providerId = task.actionData && task.actionData.provider;
+      const promptModel = task.actionData && task.actionData.model;
+      if (!promptText) { success = false; result = 'No prompt text'; }
+      else if (!providerId) { success = false; result = 'No AI provider selected'; }
+      else {
+        try {
+          const settings = getUserAISettings(username);
+          const endpointConfig = AI_PROVIDER_ENDPOINTS[providerId];
+          const isNoKeyProvider = endpointConfig && endpointConfig.noKeyRequired;
+          let provider;
+          if (isNoKeyProvider) {
+            provider = (settings.providers || []).find(p => p.id === providerId) || { id: providerId, enabled: true };
+          } else {
+            provider = (settings.providers || []).find(p => p.id === providerId && p.enabled);
+          }
+          if (!provider || (!isNoKeyProvider && !provider.apiKey)) {
+            success = false;
+            result = 'AI provider not configured or no API key: ' + providerId;
+          } else {
+            const model = promptModel || provider.model || provider.defaultModel;
+            const systemPrompt = getAISystemPrompt();
+            const conversationMsgs = [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: String(promptText).slice(0, 8000) }
+            ];
+
+            // Build AI request based on provider type
+            let aiContent = '';
+            if (providerId === 'anthropic') {
+              const chatMsgs = conversationMsgs.filter(m => m.role !== 'system');
+              const body = { model, max_tokens: 4096, messages: chatMsgs, system: systemPrompt };
+              const headers = { 'x-api-key': provider.apiKey, 'anthropic-version': '2023-06-01' };
+              const aiResult = await aiProxyRequest(endpointConfig.url, headers, body);
+              if (aiResult.status !== 200) throw new Error('Anthropic API error: ' + (aiResult.data?.error?.message || aiResult.status));
+              aiContent = (aiResult.data?.content || []).filter(c => c.type === 'text').map(c => c.text).join('\n') || '';
+            } else if (providerId === 'google') {
+              const url = endpointConfig.url.replace('{model}', encodeURIComponent(model)) + '?key=' + encodeURIComponent(provider.apiKey);
+              const geminiContents = [{ role: 'user', parts: [{ text: promptText }] }];
+              const reqBody = { contents: geminiContents, systemInstruction: { parts: [{ text: systemPrompt }] } };
+              const aiResult = await aiProxyRequest(url, {}, reqBody);
+              if (aiResult.status !== 200) throw new Error('Google API error: ' + (aiResult.data?.error?.message || aiResult.status));
+              aiContent = aiResult.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            } else if (providerId === 'cohere') {
+              const body = { model, messages: conversationMsgs };
+              const headers = { 'Authorization': 'Bearer ' + provider.apiKey };
+              const aiResult = await aiProxyRequest(endpointConfig.url, headers, body);
+              if (aiResult.status !== 200) throw new Error('Cohere API error: ' + (aiResult.data?.message || aiResult.status));
+              aiContent = aiResult.data?.message?.content?.[0]?.text || '';
+            } else {
+              // OpenAI-compatible
+              const url = provider.custom ? (provider.apiEndpoint || endpointConfig?.url || '') : endpointConfig.url;
+              if (!url) throw new Error('No endpoint configured for provider');
+              const body = { model, messages: conversationMsgs, max_tokens: 4096 };
+              const headers = isNoKeyProvider ? {} : { 'Authorization': 'Bearer ' + provider.apiKey };
+              const aiResult = await aiProxyRequest(url, headers, body);
+              if (aiResult.status !== 200) throw new Error('API error: ' + (aiResult.data?.error?.message || aiResult.status));
+              aiContent = aiResult.data?.choices?.[0]?.message?.content || '';
+            }
+
+            result = aiContent.slice(0, 2000) || 'Empty AI response';
+            console.log('[Scheduler] Prompt executed for', username, '- provider:', providerId, 'model:', model, 'result length:', aiContent.length);
+
+            // Send notification with AI response
+            const notif = {
+              id: crypto.randomUUID(),
+              icon: '🤖',
+              bg: '#e8f0fe',
+              title: '🤖 ' + task.name,
+              text: aiContent.slice(0, 300) || 'AI prompt executed',
+              time: now.toISOString(),
+              read: false,
+              createdAt: now.getTime(),
+              action: { app: 'scheduler' }
+            };
+            addNotificationToDb(username, notif);
+            wsClients.forEach(ws => {
+              if (ws.readyState !== 1) return;
+              if (ws.user && ws.user.username === username) {
+                ws.send(JSON.stringify({ type: 'notification', data: notif }));
+              }
+            });
+          }
+        } catch (e) {
+          success = false;
+          result = 'Prompt error: ' + e.message;
+        }
+      }
     }
   } catch (e) {
     success = false;
@@ -7064,7 +7681,13 @@ app.post('/api/mail/send', authMiddleware, async (req, res) => {
       port: acc.smtpPort,
       secure: acc.smtpSecure,
       auth: { user: acc.email, pass: acc.password },
-      tls: { rejectUnauthorized: false }
+      tls: { rejectUnauthorized: false },
+      connectionTimeout: 15000,
+      greetingTimeout: 10000,
+      socketTimeout: 20000
+    });
+    transporter.on('error', (err) => {
+      console.error('[Mail] Transporter error:', err.message);
     });
 
     const mailOptions = {
@@ -8329,16 +8952,16 @@ app.get('/api/postit/list', authMiddleware, (req, res) => {
 });
 
 app.post('/api/postit/save', authMiddleware, (req, res) => {
-  const { id, content, color, x, y, w, h, visible, createdAt, updatedAt } = req.body;
-  if (!id) return res.status(400).json({ error: 'id required' });
+  const { content, color, x, y, w, h, visible, createdAt, updatedAt } = req.body;
+  const id = req.body.id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 7));
   const postits = getUserPostits(req.user.username);
   const idx = postits.findIndex(p => p.id === id);
   const postit = {
     id: String(id).slice(0, 50),
     content: String(content || '').slice(0, 5000),
     color: String(color || 'yellow').slice(0, 20),
-    x: Number(x) || 100,
-    y: Number(y) || 100,
+    x: Number(x) || (120 + Math.floor(Math.random() * 400)),
+    y: Number(y) || (80 + Math.floor(Math.random() * 300)),
     w: Math.max(160, Number(w) || 220),
     h: Math.max(140, Number(h) || 220),
     visible: visible !== false,
@@ -10570,6 +11193,372 @@ app.post('/api/minify', authMiddleware, (req, res) => {
 });
 // #endregion
 
+// #region Gmail App
+function getGmailSettingsPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe, 'gmail');
+  ensureDir(dir);
+  return path.join(dir, 'settings.json');
+}
+function loadGmailSettings(username) {
+  const fp = getGmailSettingsPath(username);
+  if (!fs.existsSync(fp)) return {};
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return {}; }
+}
+function saveGmailSettings(username, settings) {
+  fs.writeFileSync(getGmailSettingsPath(username), JSON.stringify(settings, null, 2));
+}
+
+function createGmailOAuthClient(settings) {
+  return new google.auth.OAuth2(
+    settings.clientId,
+    settings.clientSecret,
+    settings.redirectUri || 'urn:ietf:wg:oauth:2.0:oob'
+  );
+}
+
+function getAuthenticatedGmail(username) {
+  const settings = loadGmailSettings(username);
+  if (!settings.clientId || !settings.tokens) return null;
+  const oauth2 = createGmailOAuthClient(settings);
+  oauth2.setCredentials(settings.tokens);
+  oauth2.on('tokens', (newTokens) => {
+    const s = loadGmailSettings(username);
+    s.tokens = Object.assign({}, s.tokens, newTokens);
+    saveGmailSettings(username, s);
+  });
+  return google.gmail({ version: 'v1', auth: oauth2 });
+}
+
+// Config
+app.get('/api/gmail/config', authMiddleware, (req, res) => {
+  const s = loadGmailSettings(req.user.username);
+  res.json({
+    clientId: s.clientId || '',
+    clientSecret: s.clientSecret ? '••••' : '',
+    redirectUri: s.redirectUri || '',
+    authenticated: !!(s.tokens && s.tokens.access_token),
+    email: s.email || '',
+    checkInterval: s.checkInterval || 5
+  });
+});
+
+app.post('/api/gmail/config', authMiddleware, (req, res) => {
+  const { clientId, clientSecret, redirectUri, checkInterval } = req.body;
+  const s = loadGmailSettings(req.user.username);
+  if (clientId !== undefined) s.clientId = String(clientId).substring(0, 200);
+  if (clientSecret !== undefined) s.clientSecret = String(clientSecret).substring(0, 200);
+  if (redirectUri !== undefined) s.redirectUri = String(redirectUri).substring(0, 500);
+  if (checkInterval !== undefined) s.checkInterval = Math.max(1, Math.min(60, Number(checkInterval) || 5));
+  saveGmailSettings(req.user.username, s);
+  res.json({ ok: true });
+});
+
+// Auth URL
+app.get('/api/gmail/auth-url', authMiddleware, (req, res) => {
+  const s = loadGmailSettings(req.user.username);
+  if (!s.clientId || !s.clientSecret) return res.status(400).json({ error: 'No OAuth credentials configured' });
+  const oauth2 = createGmailOAuthClient(s);
+  const url = oauth2.generateAuthUrl({
+    access_type: 'offline',
+    prompt: 'consent',
+    scope: [
+      'https://www.googleapis.com/auth/gmail.readonly',
+      'https://www.googleapis.com/auth/gmail.send',
+      'https://www.googleapis.com/auth/gmail.modify',
+      'https://www.googleapis.com/auth/gmail.labels'
+    ]
+  });
+  res.json({ url });
+});
+
+// Auth callback
+app.post('/api/gmail/auth-callback', authMiddleware, async (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'No authorization code' });
+  const s = loadGmailSettings(req.user.username);
+  if (!s.clientId || !s.clientSecret) return res.status(400).json({ error: 'No OAuth credentials' });
+  try {
+    const oauth2 = createGmailOAuthClient(s);
+    const { tokens } = await oauth2.getToken(String(code).substring(0, 500));
+    s.tokens = tokens;
+    // Fetch profile email
+    oauth2.setCredentials(tokens);
+    const gmail = google.gmail({ version: 'v1', auth: oauth2 });
+    const profile = await gmail.users.getProfile({ userId: 'me' });
+    s.email = profile.data.emailAddress || '';
+    saveGmailSettings(req.user.username, s);
+    res.json({ ok: true, email: s.email });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Disconnect
+app.post('/api/gmail/disconnect', authMiddleware, (req, res) => {
+  const s = loadGmailSettings(req.user.username);
+  delete s.tokens;
+  delete s.email;
+  delete s.lastHistoryId;
+  saveGmailSettings(req.user.username, s);
+  res.json({ ok: true });
+});
+
+// Labels
+app.get('/api/gmail/labels', authMiddleware, async (req, res) => {
+  const gmail = getAuthenticatedGmail(req.user.username);
+  if (!gmail) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const r = await gmail.users.labels.list({ userId: 'me' });
+    res.json(r.data.labels || []);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// List messages
+app.get('/api/gmail/messages', authMiddleware, async (req, res) => {
+  const gmail = getAuthenticatedGmail(req.user.username);
+  if (!gmail) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const labelId = req.query.label || 'INBOX';
+    const q = req.query.q || '';
+    const pageToken = req.query.pageToken || undefined;
+    const listRes = await gmail.users.messages.list({
+      userId: 'me',
+      labelIds: [labelId],
+      q: q || undefined,
+      maxResults: 30,
+      pageToken
+    });
+    const messages = listRes.data.messages || [];
+    const nextPageToken = listRes.data.nextPageToken || null;
+    // Fetch metadata for each message
+    const detailed = await Promise.all(messages.map(async (m) => {
+      try {
+        const msg = await gmail.users.messages.get({ userId: 'me', id: m.id, format: 'metadata', metadataHeaders: ['From', 'To', 'Subject', 'Date', 'Cc', 'Bcc'] });
+        const headers = {};
+        (msg.data.payload?.headers || []).forEach(h => { headers[h.name.toLowerCase()] = h.value; });
+        return {
+          id: msg.data.id,
+          threadId: msg.data.threadId,
+          snippet: msg.data.snippet,
+          from: headers.from || '',
+          to: headers.to || '',
+          subject: headers.subject || '',
+          date: headers.date || '',
+          labelIds: msg.data.labelIds || [],
+          unread: (msg.data.labelIds || []).includes('UNREAD')
+        };
+      } catch { return null; }
+    }));
+    res.json({ messages: detailed.filter(Boolean), nextPageToken });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Get single message (full body)
+app.get('/api/gmail/messages/:id', authMiddleware, async (req, res) => {
+  const gmail = getAuthenticatedGmail(req.user.username);
+  if (!gmail) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const msg = await gmail.users.messages.get({ userId: 'me', id: req.params.id, format: 'full' });
+    const headers = {};
+    (msg.data.payload?.headers || []).forEach(h => { headers[h.name.toLowerCase()] = h.value; });
+
+    function getBody(payload) {
+      let html = '', text = '';
+      if (payload.mimeType === 'text/html' && payload.body?.data) {
+        html = Buffer.from(payload.body.data, 'base64url').toString('utf-8');
+      } else if (payload.mimeType === 'text/plain' && payload.body?.data) {
+        text = Buffer.from(payload.body.data, 'base64url').toString('utf-8');
+      }
+      if (payload.parts) {
+        for (const part of payload.parts) {
+          const sub = getBody(part);
+          if (sub.html) html = sub.html;
+          if (sub.text && !text) text = sub.text;
+        }
+      }
+      return { html, text };
+    }
+
+    function getAttachments(payload, list) {
+      list = list || [];
+      if (payload.filename && payload.body?.attachmentId) {
+        list.push({ filename: payload.filename, mimeType: payload.mimeType, size: payload.body.size || 0, attachmentId: payload.body.attachmentId });
+      }
+      if (payload.parts) for (const p of payload.parts) getAttachments(p, list);
+      return list;
+    }
+
+    const body = getBody(msg.data.payload);
+    const attachments = getAttachments(msg.data.payload);
+
+    res.json({
+      id: msg.data.id,
+      threadId: msg.data.threadId,
+      snippet: msg.data.snippet,
+      from: headers.from || '',
+      to: headers.to || '',
+      cc: headers.cc || '',
+      bcc: headers.bcc || '',
+      subject: headers.subject || '',
+      date: headers.date || '',
+      labelIds: msg.data.labelIds || [],
+      unread: (msg.data.labelIds || []).includes('UNREAD'),
+      html: body.html,
+      text: body.text,
+      attachments
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Download attachment
+app.get('/api/gmail/messages/:msgId/attachments/:attId', authMiddleware, async (req, res) => {
+  const gmail = getAuthenticatedGmail(req.user.username);
+  if (!gmail) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const att = await gmail.users.messages.attachments.get({ userId: 'me', messageId: req.params.msgId, id: req.params.attId });
+    const data = Buffer.from(att.data.data, 'base64url');
+    res.setHeader('Content-Disposition', 'attachment');
+    res.send(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Mark as read/unread
+app.post('/api/gmail/messages/:id/read', authMiddleware, async (req, res) => {
+  const gmail = getAuthenticatedGmail(req.user.username);
+  if (!gmail) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    await gmail.users.messages.modify({ userId: 'me', id: req.params.id, requestBody: { removeLabelIds: ['UNREAD'] } });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/gmail/messages/:id/unread', authMiddleware, async (req, res) => {
+  const gmail = getAuthenticatedGmail(req.user.username);
+  if (!gmail) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    await gmail.users.messages.modify({ userId: 'me', id: req.params.id, requestBody: { addLabelIds: ['UNREAD'] } });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Trash / delete
+app.post('/api/gmail/messages/:id/trash', authMiddleware, async (req, res) => {
+  const gmail = getAuthenticatedGmail(req.user.username);
+  if (!gmail) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    await gmail.users.messages.trash({ userId: 'me', id: req.params.id });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Send mail
+app.post('/api/gmail/send', authMiddleware, async (req, res) => {
+  const gmail = getAuthenticatedGmail(req.user.username);
+  if (!gmail) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const { to, cc, bcc, subject, text, html, inReplyTo, references } = req.body;
+    if (!to) return res.status(400).json({ error: 'Recipient required' });
+
+    const s = loadGmailSettings(req.user.username);
+    const boundary = '----=_Part_' + crypto.randomUUID();
+    let headers = [
+      'MIME-Version: 1.0',
+      'From: ' + (s.email || ''),
+      'To: ' + String(to).substring(0, 1000),
+    ];
+    if (cc) headers.push('Cc: ' + String(cc).substring(0, 1000));
+    if (bcc) headers.push('Bcc: ' + String(bcc).substring(0, 1000));
+    headers.push('Subject: ' + String(subject || '').substring(0, 500));
+    if (inReplyTo) headers.push('In-Reply-To: ' + String(inReplyTo).substring(0, 500));
+    if (references) headers.push('References: ' + String(references).substring(0, 2000));
+
+    if (html) {
+      headers.push('Content-Type: multipart/alternative; boundary="' + boundary + '"');
+      const body = headers.join('\r\n') + '\r\n\r\n' +
+        '--' + boundary + '\r\n' +
+        'Content-Type: text/plain; charset=UTF-8\r\n\r\n' +
+        (text || '') + '\r\n' +
+        '--' + boundary + '\r\n' +
+        'Content-Type: text/html; charset=UTF-8\r\n\r\n' +
+        html + '\r\n' +
+        '--' + boundary + '--';
+      const raw = Buffer.from(body).toString('base64url');
+      await gmail.users.messages.send({ userId: 'me', requestBody: { raw } });
+    } else {
+      headers.push('Content-Type: text/plain; charset=UTF-8');
+      const body = headers.join('\r\n') + '\r\n\r\n' + (text || '');
+      const raw = Buffer.from(body).toString('base64url');
+      await gmail.users.messages.send({ userId: 'me', requestBody: { raw } });
+    }
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Gmail periodic checker
+const GMAIL_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes default
+let gmailCheckTimer = null;
+
+function startGmailChecker() {
+  gmailCheckTimer = setInterval(async () => {
+    try {
+      const users = config.auth?.users || [];
+      for (const username of users) {
+        const gmail = getAuthenticatedGmail(username);
+        if (!gmail) continue;
+        const s = loadGmailSettings(username);
+        try {
+          const listRes = await gmail.users.messages.list({ userId: 'me', labelIds: ['INBOX', 'UNREAD'], maxResults: 10 });
+          const msgs = listRes.data.messages || [];
+          if (msgs.length === 0) continue;
+
+          const lastCheck = s.lastCheckTime || 0;
+          let newCount = 0;
+          let latestSubject = '';
+
+          for (const m of msgs) {
+            try {
+              const msg = await gmail.users.messages.get({ userId: 'me', id: m.id, format: 'metadata', metadataHeaders: ['From', 'Subject', 'Date'] });
+              const internalDate = parseInt(msg.data.internalDate || '0');
+              if (internalDate > lastCheck) {
+                newCount++;
+                const headers = {};
+                (msg.data.payload?.headers || []).forEach(h => { headers[h.name.toLowerCase()] = h.value; });
+                if (!latestSubject) latestSubject = headers.subject || msg.data.snippet || '';
+              }
+            } catch {}
+          }
+
+          if (newCount > 0) {
+            s.lastCheckTime = Date.now();
+            saveGmailSettings(username, s);
+
+            const notif = {
+              id: crypto.randomUUID(),
+              icon: '📬',
+              bg: '#e8f5e9',
+              title: '📬 ' + newCount + ' new Gmail',
+              text: (s.email || 'Gmail') + ': ' + latestSubject,
+              time: new Date().toISOString(),
+              read: false,
+              createdAt: Date.now(),
+              action: { app: 'gmail' }
+            };
+            addNotificationToDb(username, notif);
+            wsClients.forEach(ws => {
+              if (ws.readyState !== 1) return;
+              if (ws.user && ws.user.username === username) {
+                ws.send(JSON.stringify({ type: 'notification', data: notif }));
+              }
+            });
+          }
+        } catch {}
+      }
+    } catch (e) { console.error('Gmail checker error:', e.message); }
+  }, GMAIL_CHECK_INTERVAL);
+}
+// #endregion
+
 server.listen(config.server.port, config.server.host, () => {
   console.log(`Desktop Server running at http://${config.server.host}:${config.server.port}`);
   console.log(`WebSocket endpoint: ws://${config.server.host}:${config.server.port}/ws`);
@@ -10578,6 +11567,7 @@ server.listen(config.server.port, config.server.host, () => {
   startSchedulerChecker();
   startMailChecker();
   startSyncChecker();
+  startGmailChecker();
 });
 
 // #endregion

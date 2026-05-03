@@ -328,10 +328,13 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         <button class="ai-ctx-close" @click="aiActiveContext=null">✕</button>
       </div>
       <div class="ai-provider-bar">
-        <select class="ai-provider-select" v-model="aiSelectedProvider">
+        <select class="ai-provider-select" v-model="aiSelectedProvider" @change="aiOnProviderChange">
           <option v-for="p in aiEnabledProviders" :key="p.id" :value="p.id">{{p.icon}} {{p.name}}</option>
         </select>
-        <span class="ai-model-tag" v-if="aiCurrentModel">{{aiCurrentModel}}</span>
+        <select class="ai-model-select" v-model="aiSelectedModel" v-if="aiCurrentProviderModels.length">
+          <option v-for="m in aiCurrentProviderModels" :key="m.id" :value="m.id">{{m.name}}</option>
+        </select>
+        <span class="ai-model-tag" v-else-if="aiCurrentModel">{{aiCurrentModel}}</span>
       </div>
       <div v-if="!aiEnabledProviders.length" class="ai-no-provider">
         <div class="ai-no-provider-icon">⚙️</div>
@@ -368,8 +371,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       <div class="ai-input-area" v-if="aiEnabledProviders.length">
         <div class="ai-input-row">
           <div class="ai-input-wrap">
-            <textarea class="ai-input" v-model="aiInput" :placeholder="t('aiPlaceholder')" rows="1" @keydown.enter.exact.prevent="aiSendMsg()" @input="aiAutoResize($event)"></textarea>
+            <textarea class="ai-input" v-model="aiInput" :placeholder="aiListening ? t('aiMicListening') : t('aiPlaceholder')" rows="1" @keydown.enter.exact.prevent="aiSendMsg()" @input="aiAutoResize($event)"></textarea>
           </div>
+          <button class="ai-mic-btn" @click="aiToggleVoice()" :class="{listening: aiListening}" :title="aiListening ? t('aiMicStop') : t('aiMicStart')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
           <button class="ai-send-btn" @click="aiSendMsg()" :disabled="!aiInput.trim()||aiLoading">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
@@ -419,7 +425,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
           </transition>
         </div>
         <button class="tray-btn">📶</button>
-        <button class="tray-btn ss-tray-btn" @click.stop="startScreenshot" :title="t('screenshot')">📷</button>
+        <button v-if="showScreenshotTray" class="tray-btn ss-tray-btn" @click.stop="startScreenshot" :title="t('screenshot')">📷</button>
         <button v-if="showKeyboardTray" class="tray-btn skb-tray-btn" @click="openApp(apps.find(a=>a.id==='screenkeyboard'))" :title="t('skbTrayShow')">⌨️</button>
         <button v-if="showMagnifierTray" class="tray-btn" @click="openApp(apps.find(a=>a.id==='magnifier'))" :title="t('magTrayShow')">🔍</button>
       </div>
@@ -851,7 +857,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
               <button v-if="p.custom" class="ai-remove-btn" @click="removeProvider(i)" :title="t('aiRemove')">✕</button>
             </div>
             <div class="ai-provider-body">
-              <div class="ai-field">
+              <div v-if="!p.system" class="ai-field">
                 <label class="ai-field-label">{{t('aiApiKey')}}</label>
                 <div class="ai-key-row">
                   <input :type="p.showKey?'text':'password'" class="ai-key-input" v-model="p.apiKey" :placeholder="t('aiKeyPlaceholder')" />
@@ -860,7 +866,11 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
               </div>
               <div class="ai-field">
                 <label class="ai-field-label">{{t('aiModel')}} <span class="ai-field-hint">({{t('aiDefault')}}: {{p.defaultModel}})</span></label>
-                <input type="text" class="ai-key-input" v-model="p.model" :placeholder="p.defaultModel" />
+                <select v-if="aiGetModels(p.id).length" class="ai-key-input" v-model="p.model" @focus="aiLoadModels(p.id)">
+                  <option value="">{{p.defaultModel}} ({{t('aiDefault')}})</option>
+                  <option v-for="m in aiGetModels(p.id)" :key="m.id" :value="m.id">{{m.name}}</option>
+                </select>
+                <input v-else type="text" class="ai-key-input" v-model="p.model" :placeholder="p.defaultModel" @focus="aiLoadModels(p.id)" />
               </div>
             </div>
           </div>
@@ -937,6 +947,10 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         <div class="settings-row">
           <div><div class="lbl">{{t('magTrayToggle')}}</div><div class="sub">{{t('magTrayToggleDesc')}}</div></div>
           <div class="ctrl"><label class="settings-toggle"><input type="checkbox" :checked="showMagnifierTray" @change="toggleMagnifierTray"><span class="settings-slider"></span></label></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="lbl">{{t('ssTrayToggle')}}</div><div class="sub">{{t('ssTrayToggleDesc')}}</div></div>
+          <div class="ctrl"><label class="settings-toggle"><input type="checkbox" :checked="showScreenshotTray" @change="toggleScreenshotTray"><span class="settings-slider"></span></label></div>
         </div>
       </template>
       <template v-else-if="active==='security'">
@@ -1563,6 +1577,7 @@ const useSettingsStore = defineStore('settings', {
     restoreSession: false,
     showKeyboardTray: false,
     showMagnifierTray: false,
+    showScreenshotTray: true,
     fonts: [],
     zoom: 100,
     windowStates: {},
@@ -1587,6 +1602,7 @@ const useSettingsStore = defineStore('settings', {
         if (s.restoreSession !== undefined) this.restoreSession = s.restoreSession;
         if (s.showKeyboardTray !== undefined) this.showKeyboardTray = s.showKeyboardTray;
         if (s.showMagnifierTray !== undefined) this.showMagnifierTray = s.showMagnifierTray;
+        if (s.showScreenshotTray !== undefined) this.showScreenshotTray = s.showScreenshotTray;
         if (s.fonts) this.fonts = s.fonts;
         if (s.zoom) { this.zoom = s.zoom; window.__applyZoom && window.__applyZoom(s.zoom); }
         if (s.windowStates) this.windowStates = s.windowStates;
@@ -2178,6 +2194,7 @@ const I18N = {
     settingsSession: 'Oturum', restoreApps: 'Uygulamaları Geri Yükle', restoreAppsDesc: 'Sayfa yenilendiğinde açık uygulamalar tekrar açılsın',
     skbTrayToggle: 'Ekran Klavyesi Simgesi', skbTrayToggleDesc: 'Görev çubuğunda ekran klavyesi simgesini göster',
     magTrayShow: 'Büyüteci Göster', magTrayToggle: 'Büyüteç Simgesi', magTrayToggleDesc: 'Görev çubuğunda büyüteç simgesini göster',
+    ssTrayToggle: 'Ekran Görüntüsü Simgesi', ssTrayToggleDesc: 'Görev çubuğunda ekran görüntüsü simgesini göster',
     settingsSecurity: 'Güvenlik', twoFactorAuth: 'İki Faktörlü Doğrulama (2FA)', twoFactorAuthDesc: 'Girişte authenticator uygulaması ile ek doğrulama',
     twoFAScanQR: 'QR kodu authenticator uygulamanızla tarayın', twoFAManualKey: 'veya bu kodu manuel girin:',
     twoFAEnterCode: 'Doğrulama kodu', twoFAVerify: 'Doğrula', twoFAActivated: '2FA başarıyla etkinleştirildi',
@@ -2191,7 +2208,7 @@ const I18N = {
     aiAgentProvider: 'Sağlayıcı', aiAgentModel: 'Model', aiAgentPrompt: 'Sistem Komut İstemi',
     aiSave: 'Kaydet', aiSaved: 'AI ayarları kaydedildi', aiRemove: 'Kaldır',
     aiKeyHidden: 'Anahtar gizleniyor', aiKeyPlaceholder: 'API anahtarını girin...', aiDefault: 'Varsayılan',
-    aiChat: 'AI Asistan', aiNewChat: 'Yeni Sohbet', aiClear: 'Temizle', aiNoProvider: 'Henüz bir AI sağlayıcı yapılandırılmadı. Ayarlardan bir sağlayıcı ekleyin.', aiGoSettings: 'Ayarlara Git', aiWelcome: 'Merhaba! Ben AI Asistanınızım', aiWelcomeDesc: 'Size yardımcı olmak için buradayım. Bir soru sorun veya açık uygulamalarınızla ilgili yardım isteyin.', aiPlaceholder: 'Mesajınızı yazın...', aiChip1: 'Bu uygulamada ne yapabilirim?', aiChip2: 'Bana bir metin yaz', aiChip3: 'Bir sorunumu çöz',
+    aiChat: 'AI Asistan', aiNewChat: 'Yeni Sohbet', aiClear: 'Temizle', aiNoProvider: 'Henüz bir AI sağlayıcı yapılandırılmadı. Ayarlardan bir sağlayıcı ekleyin.', aiGoSettings: 'Ayarlara Git', aiWelcome: 'Merhaba! Ben AI Asistanınızım', aiWelcomeDesc: 'Size yardımcı olmak için buradayım. Bir soru sorun veya açık uygulamalarınızla ilgili yardım isteyin.', aiPlaceholder: 'Mesajınızı yazın...', aiMicStart: 'Sesli yazma', aiMicStop: 'Dinlemeyi durdur', aiMicListening: 'Dinleniyor...', aiChip1: 'Bu uygulamada ne yapabilirim?', aiChip2: 'Bana bir metin yaz', aiChip3: 'Bir sorunumu çöz',
     settingsUsers: 'Kullanıcılar', usersAdd: 'Yeni Kullanıcı', usersNewUser: 'Yeni Kullanıcı Oluştur', usersUsername: 'Kullanıcı Adı', usersDisplayName: 'Görünen Ad', usersDisplayNamePlaceholder: 'Ahmet Yılmaz', usersPassword: 'Şifre', usersPasswordConfirm: 'Şifre Tekrar', usersNewPassword: 'Yeni Şifre', usersPasswordLeaveEmpty: 'Değiştirmemek için boş bırakın', usersAvatar: 'Avatar', usersNoAvatar: 'Yok', usersEdit: 'Düzenle', usersDelete: 'Sil', usersSave: 'Kaydet', usersCancel: 'İptal', usersActive: 'Aktif', usersCreated: 'Oluşturulma', usersDeleted: 'Kullanıcı silindi', usersSaved: 'Kaydedildi', usersFieldsRequired: 'Kullanıcı adı ve şifre gerekli', usersPasswordMismatch: 'Şifreler eşleşmiyor', usersDeleteConfirm: 'Kullanıcıyı sil', usersUsernameNoChange: 'Kullanıcı adı değiştirilemez (dizin yollarında kullanılıyor)', usersChangeAvatar: 'Avatarı değiştir'
   },
   en: {
@@ -2228,6 +2245,7 @@ const I18N = {
     settingsSession: 'Session', restoreApps: 'Restore Apps', restoreAppsDesc: 'Reopen apps after page refresh',
     skbTrayToggle: 'Screen Keyboard Icon', skbTrayToggleDesc: 'Show screen keyboard icon in taskbar',
     magTrayShow: 'Show Magnifier', magTrayToggle: 'Magnifier Icon', magTrayToggleDesc: 'Show magnifier icon in taskbar',
+    ssTrayToggle: 'Screenshot Icon', ssTrayToggleDesc: 'Show screenshot icon in taskbar',
     settingsSecurity: 'Security', twoFactorAuth: 'Two-Factor Authentication (2FA)', twoFactorAuthDesc: 'Require authenticator app verification at login',
     twoFAScanQR: 'Scan QR code with your authenticator app', twoFAManualKey: 'or enter this key manually:',
     twoFAEnterCode: 'Verification code', twoFAVerify: 'Verify', twoFAActivated: '2FA enabled successfully',
@@ -2241,7 +2259,7 @@ const I18N = {
     aiAgentProvider: 'Provider', aiAgentModel: 'Model', aiAgentPrompt: 'System Prompt',
     aiSave: 'Save', aiSaved: 'AI settings saved', aiRemove: 'Remove',
     aiKeyHidden: 'Key is hidden', aiKeyPlaceholder: 'Enter API key...', aiDefault: 'Default',
-    aiChat: 'AI Assistant', aiNewChat: 'New Chat', aiClear: 'Clear', aiNoProvider: 'No AI provider configured yet. Add a provider from Settings.', aiGoSettings: 'Go to Settings', aiWelcome: 'Hello! I\'m your AI Assistant', aiWelcomeDesc: 'I\'m here to help you. Ask a question or get help with your open apps.', aiPlaceholder: 'Type your message...', aiChip1: 'What can I do in this app?', aiChip2: 'Write me a text', aiChip3: 'Help me solve a problem',
+    aiChat: 'AI Assistant', aiNewChat: 'New Chat', aiClear: 'Clear', aiNoProvider: 'No AI provider configured yet. Add a provider from Settings.', aiGoSettings: 'Go to Settings', aiWelcome: 'Hello! I\'m your AI Assistant', aiWelcomeDesc: 'I\'m here to help you. Ask a question or get help with your open apps.', aiPlaceholder: 'Type your message...', aiMicStart: 'Voice input', aiMicStop: 'Stop listening', aiMicListening: 'Listening...', aiChip1: 'What can I do in this app?', aiChip2: 'Write me a text', aiChip3: 'Help me solve a problem',
     settingsUsers: 'Users', usersAdd: 'New User', usersNewUser: 'Create New User', usersUsername: 'Username', usersDisplayName: 'Display Name', usersDisplayNamePlaceholder: 'John Doe', usersPassword: 'Password', usersPasswordConfirm: 'Confirm', usersNewPassword: 'New Password', usersPasswordLeaveEmpty: 'Leave empty to keep current', usersAvatar: 'Avatar', usersNoAvatar: 'None', usersEdit: 'Edit', usersDelete: 'Delete', usersSave: 'Save', usersCancel: 'Cancel', usersActive: 'Active', usersCreated: 'Created', usersDeleted: 'User deleted', usersSaved: 'Saved', usersFieldsRequired: 'Username and password required', usersPasswordMismatch: 'Passwords do not match', usersDeleteConfirm: 'Delete user', usersUsernameNoChange: 'Username cannot be changed (used in directory paths)', usersChangeAvatar: 'Change avatar'
   },
   de: {
@@ -2278,6 +2296,7 @@ const I18N = {
     settingsSession: 'Sitzung', restoreApps: 'Apps wiederherstellen', restoreAppsDesc: 'Offene Apps nach Seitenaktualisierung erneut öffnen',
     skbTrayToggle: 'Bildschirmtastatur-Symbol', skbTrayToggleDesc: 'Bildschirmtastatur-Symbol in der Taskleiste anzeigen',
     magTrayShow: 'Lupe anzeigen', magTrayToggle: 'Lupen-Symbol', magTrayToggleDesc: 'Lupen-Symbol in der Taskleiste anzeigen',
+    ssTrayToggle: 'Screenshot-Symbol', ssTrayToggleDesc: 'Screenshot-Symbol in der Taskleiste anzeigen',
     settingsFonts: 'Schriftarten', fontsMyFonts: 'Meine Schriftarten', fontsMyFontsDesc: 'Im Schriftarten-Dialog angezeigte Schriftarten', fontsEmpty: 'Noch keine Schriftarten hinzugefügt. Fügen Sie unten Schriftarten aus Google Fonts hinzu.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Schriftarten suchen und hinzufügen', fontsSearchPlaceholder: 'Schriftarten suchen...', fontsLoading: 'Google Fonts werden geladen...', fontsNoResults: 'Keine Schriftarten gefunden', fontsAdd: 'Hinzufügen', fontsAdded: 'Hinzugefügt', fontsClickToLoad: 'Klicken Sie auf das Suchfeld um Schriftarten zu laden',
     settingsAI: 'Künstliche Intelligenz', aiTokens: 'API-Schlüssel', aiTokensDesc: 'KI-Dienstschlüssel für alle Apps verfügbar',
     aiAgents: 'Agenten', aiAgentsDesc: 'KI-Agenten konfigurieren',
@@ -2286,7 +2305,7 @@ const I18N = {
     aiAgentProvider: 'Anbieter', aiAgentModel: 'Modell', aiAgentPrompt: 'Systemaufforderung',
     aiSave: 'Speichern', aiSaved: 'KI-Einstellungen gespeichert', aiRemove: 'Entfernen',
     aiKeyHidden: 'Schlüssel ist verborgen', aiKeyPlaceholder: 'API-Schlüssel eingeben...', aiDefault: 'Standard',
-    aiChat: 'KI-Assistent', aiNewChat: 'Neuer Chat', aiClear: 'Löschen', aiNoProvider: 'Kein AI-Anbieter konfiguriert. Fügen Sie einen Anbieter in den Einstellungen hinzu.', aiGoSettings: 'Zu Einstellungen', aiWelcome: 'Hallo! Ich bin Ihr KI-Assistent', aiWelcomeDesc: 'Ich bin hier, um Ihnen zu helfen. Stellen Sie eine Frage oder lassen Sie sich bei Ihren geöffneten Apps helfen.', aiPlaceholder: 'Nachricht eingeben...', aiChip1: 'Was kann ich in dieser App tun?', aiChip2: 'Schreibe mir einen Text', aiChip3: 'Hilf mir ein Problem zu lösen'
+    aiChat: 'KI-Assistent', aiNewChat: 'Neuer Chat', aiClear: 'Löschen', aiNoProvider: 'Kein AI-Anbieter konfiguriert. Fügen Sie einen Anbieter in den Einstellungen hinzu.', aiGoSettings: 'Zu Einstellungen', aiWelcome: 'Hallo! Ich bin Ihr KI-Assistent', aiWelcomeDesc: 'Ich bin hier, um Ihnen zu helfen. Stellen Sie eine Frage oder lassen Sie sich bei Ihren geöffneten Apps helfen.', aiPlaceholder: 'Nachricht eingeben...', aiMicStart: 'Spracheingabe', aiMicStop: 'Zuhören beenden', aiMicListening: 'Zuhören...', aiChip1: 'Was kann ich in dieser App tun?', aiChip2: 'Schreibe mir einen Text', aiChip3: 'Hilf mir ein Problem zu lösen'
   },
   fr: {
     apps: 'Applications', user: 'Utilisateur', loading: 'Chargement...', search: 'Rechercher...',
@@ -2322,6 +2341,7 @@ const I18N = {
     settingsSession: 'Session', restoreApps: 'Restaurer les applications', restoreAppsDesc: 'Rouvrir les applications après actualisation de la page',
     skbTrayToggle: 'Icône clavier virtuel', skbTrayToggleDesc: 'Afficher l\'icône du clavier virtuel dans la barre des tâches',
     magTrayShow: 'Afficher la loupe', magTrayToggle: 'Icône loupe', magTrayToggleDesc: 'Afficher l\'icône de la loupe dans la barre des tâches',
+    ssTrayToggle: 'Icône capture d\'écran', ssTrayToggleDesc: 'Afficher l\'icône de capture d\'écran dans la barre des tâches',
     settingsFonts: 'Polices', fontsMyFonts: 'Mes polices', fontsMyFontsDesc: 'Polices affichées dans le dialogue de polices', fontsEmpty: 'Aucune police ajoutée. Ajoutez des polices depuis Google Fonts ci-dessous.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Recherchez et ajoutez les polices souhaitées', fontsSearchPlaceholder: 'Rechercher des polices...', fontsLoading: 'Chargement de Google Fonts...', fontsNoResults: 'Aucune police trouvée', fontsAdd: 'Ajouter', fontsAdded: 'Ajouté', fontsClickToLoad: 'Cliquez sur la barre de recherche pour charger les polices',
     settingsAI: 'Intelligence Artificielle', aiTokens: 'Clés API', aiTokensDesc: 'Clés de service IA disponibles pour toutes les applications',
     aiAgents: 'Agents', aiAgentsDesc: 'Configurer les agents IA à utiliser',
@@ -2330,7 +2350,7 @@ const I18N = {
     aiAgentProvider: 'Fournisseur', aiAgentModel: 'Modèle', aiAgentPrompt: 'Invite système',
     aiSave: 'Enregistrer', aiSaved: 'Paramètres IA enregistrés', aiRemove: 'Supprimer',
     aiKeyHidden: 'Clé masquée', aiKeyPlaceholder: 'Entrer la clé API...', aiDefault: 'Par défaut',
-    aiChat: 'Assistant IA', aiNewChat: 'Nouveau chat', aiClear: 'Effacer', aiNoProvider: 'Aucun fournisseur IA configuré. Ajoutez un fournisseur dans les Paramètres.', aiGoSettings: 'Aller aux Paramètres', aiWelcome: 'Bonjour ! Je suis votre Assistant IA', aiWelcomeDesc: 'Je suis là pour vous aider. Posez une question ou demandez de l\'aide avec vos applications.', aiPlaceholder: 'Tapez votre message...', aiChip1: 'Que puis-je faire dans cette app ?', aiChip2: 'Écris-moi un texte', aiChip3: 'Aide-moi à résoudre un problème'
+    aiChat: 'Assistant IA', aiNewChat: 'Nouveau chat', aiClear: 'Effacer', aiNoProvider: 'Aucun fournisseur IA configuré. Ajoutez un fournisseur dans les Paramètres.', aiGoSettings: 'Aller aux Paramètres', aiWelcome: 'Bonjour ! Je suis votre Assistant IA', aiWelcomeDesc: 'Je suis là pour vous aider. Posez une question ou demandez de l\'aide avec vos applications.', aiPlaceholder: 'Tapez votre message...', aiMicStart: 'Saisie vocale', aiMicStop: 'Arrêter l\'écoute', aiMicListening: 'Écoute en cours...', aiChip1: 'Que puis-je faire dans cette app ?', aiChip2: 'Écris-moi un texte', aiChip3: 'Aide-moi à résoudre un problème'
   },
   es: {
     apps: 'Aplicaciones', user: 'Usuario', loading: 'Cargando...', search: 'Buscar...',
@@ -2366,6 +2386,7 @@ const I18N = {
     settingsSession: 'Sesión', restoreApps: 'Restaurar aplicaciones', restoreAppsDesc: 'Reabrir aplicaciones tras actualizar la página',
     skbTrayToggle: 'Icono de teclado', skbTrayToggleDesc: 'Mostrar icono de teclado en pantalla en la barra de tareas',
     magTrayShow: 'Mostrar lupa', magTrayToggle: 'Icono de lupa', magTrayToggleDesc: 'Mostrar icono de lupa en la barra de tareas',
+    ssTrayToggle: 'Icono de captura', ssTrayToggleDesc: 'Mostrar icono de captura de pantalla en la barra de tareas',
     settingsFonts: 'Fuentes', fontsMyFonts: 'Mis fuentes', fontsMyFontsDesc: 'Fuentes mostradas en el diálogo de fuentes', fontsEmpty: 'Aún no se han añadido fuentes. Añada fuentes desde Google Fonts abajo.', fontsBrowse: 'Google Fonts', fontsBrowseDesc: 'Busque y añada las fuentes que desee usar', fontsSearchPlaceholder: 'Buscar fuentes...', fontsLoading: 'Cargando Google Fonts...', fontsNoResults: 'No se encontraron fuentes', fontsAdd: 'Añadir', fontsAdded: 'Añadido', fontsClickToLoad: 'Haga clic en el cuadro de búsqueda para cargar fuentes',
     settingsAI: 'Inteligencia Artificial', aiTokens: 'Claves API', aiTokensDesc: 'Claves de servicio IA disponibles en todas las aplicaciones',
     aiAgents: 'Agentes', aiAgentsDesc: 'Configurar los agentes IA a utilizar',
@@ -2374,7 +2395,7 @@ const I18N = {
     aiAgentProvider: 'Proveedor', aiAgentModel: 'Modelo', aiAgentPrompt: 'Indicación del sistema',
     aiSave: 'Guardar', aiSaved: 'Configuración IA guardada', aiRemove: 'Eliminar',
     aiKeyHidden: 'Clave oculta', aiKeyPlaceholder: 'Ingrese clave API...', aiDefault: 'Predeterminado',
-    aiChat: 'Asistente IA', aiNewChat: 'Nuevo chat', aiClear: 'Borrar', aiNoProvider: 'No hay proveedor de IA configurado. Agregue uno desde Configuración.', aiGoSettings: 'Ir a Configuración', aiWelcome: '¡Hola! Soy tu Asistente IA', aiWelcomeDesc: 'Estoy aquí para ayudarte. Haz una pregunta o pide ayuda con tus aplicaciones abiertas.', aiPlaceholder: 'Escribe tu mensaje...', aiChip1: '¿Qué puedo hacer en esta app?', aiChip2: 'Escríbeme un texto', aiChip3: 'Ayúdame a resolver un problema'
+    aiChat: 'Asistente IA', aiNewChat: 'Nuevo chat', aiClear: 'Borrar', aiNoProvider: 'No hay proveedor de IA configurado. Agregue uno desde Configuración.', aiGoSettings: 'Ir a Configuración', aiWelcome: '¡Hola! Soy tu Asistente IA', aiWelcomeDesc: 'Estoy aquí para ayudarte. Haz una pregunta o pide ayuda con tus aplicaciones abiertas.', aiPlaceholder: 'Escribe tu mensaje...', aiMicStart: 'Entrada de voz', aiMicStop: 'Dejar de escuchar', aiMicListening: 'Escuchando...', aiChip1: '¿Qué puedo hacer en esta app?', aiChip2: 'Escríbeme un texto', aiChip3: 'Ayúdame a resolver un problema'
   },
   ru: {
     apps: 'Приложения', user: 'Пользователь', loading: 'Загрузка...', search: 'Поиск...',
@@ -2418,7 +2439,7 @@ const I18N = {
     aiAgentProvider: 'Провайдер', aiAgentModel: 'Модель', aiAgentPrompt: 'Системный промпт',
     aiSave: 'Сохранить', aiSaved: 'Настройки ИИ сохранены', aiRemove: 'Удалить',
     aiKeyHidden: 'Ключ скрыт', aiKeyPlaceholder: 'Введите API-ключ...', aiDefault: 'По умолчанию',
-    aiChat: 'ИИ Ассистент', aiNewChat: 'Новый чат', aiClear: 'Очистить', aiNoProvider: 'Провайдер ИИ не настроен. Добавьте провайдера в Настройках.', aiGoSettings: 'Перейти в Настройки', aiWelcome: 'Здравствуйте! Я ваш ИИ Ассистент', aiWelcomeDesc: 'Я здесь, чтобы помочь вам. Задайте вопрос или попросите помощь с открытыми приложениями.', aiPlaceholder: 'Введите сообщение...', aiChip1: 'Что я могу делать в этом приложении?', aiChip2: 'Напиши мне текст', aiChip3: 'Помоги решить проблему'
+    aiChat: 'ИИ Ассистент', aiNewChat: 'Новый чат', aiClear: 'Очистить', aiNoProvider: 'Провайдер ИИ не настроен. Добавьте провайдера в Настройках.', aiGoSettings: 'Перейти в Настройки', aiWelcome: 'Здравствуйте! Я ваш ИИ Ассистент', aiWelcomeDesc: 'Я здесь, чтобы помочь вам. Задайте вопрос или попросите помощь с открытыми приложениями.', aiPlaceholder: 'Введите сообщение...', aiMicStart: 'Голосовой ввод', aiMicStop: 'Остановить прослушивание', aiMicListening: 'Слушаю...', aiChip1: 'Что я могу делать в этом приложении?', aiChip2: 'Напиши мне текст', aiChip3: 'Помоги решить проблему'
   },
   zh: {
     apps: '应用程序', user: '用户', loading: '加载中...', search: '搜索...',
@@ -2462,7 +2483,7 @@ const I18N = {
     aiAgentProvider: '提供商', aiAgentModel: '模型', aiAgentPrompt: '系统提示',
     aiSave: '保存', aiSaved: 'AI设置已保存', aiRemove: '移除',
     aiKeyHidden: '密钥已隐藏', aiKeyPlaceholder: '输入API密钥...', aiDefault: '默认',
-    aiChat: 'AI 助手', aiNewChat: '新对话', aiClear: '清除', aiNoProvider: '尚未配置AI提供商。请在设置中添加提供商。', aiGoSettings: '前往设置', aiWelcome: '你好！我是你的AI助手', aiWelcomeDesc: '我在这里帮助你。提问或获取有关打开的应用的帮助。', aiPlaceholder: '输入消息...', aiChip1: '这个应用能做什么？', aiChip2: '帮我写一段文字', aiChip3: '帮我解决一个问题'
+    aiChat: 'AI 助手', aiNewChat: '新对话', aiClear: '清除', aiNoProvider: '尚未配置AI提供商。请在设置中添加提供商。', aiGoSettings: '前往设置', aiWelcome: '你好！我是你的AI助手', aiWelcomeDesc: '我在这里帮助你。提问或获取有关打开的应用的帮助。', aiPlaceholder: '输入消息...', aiMicStart: '语音输入', aiMicStop: '停止收听', aiMicListening: '正在收听...', aiChip1: '这个应用能做什么？', aiChip2: '帮我写一段文字', aiChip3: '帮我解决一个问题'
   },
   ja: {
     apps: 'アプリケーション', user: 'ユーザー', loading: '読み込み中...', search: '検索...',
@@ -2506,7 +2527,7 @@ const I18N = {
     aiAgentProvider: 'プロバイダー', aiAgentModel: 'モデル', aiAgentPrompt: 'システムプロンプト',
     aiSave: '保存', aiSaved: 'AI設定を保存しました', aiRemove: '削除',
     aiKeyHidden: 'キーは非表示', aiKeyPlaceholder: 'APIキーを入力...', aiDefault: 'デフォルト',
-    aiChat: 'AIアシスタント', aiNewChat: '新しいチャット', aiClear: 'クリア', aiNoProvider: 'AIプロバイダーが設定されていません。設定からプロバイダーを追加してください。', aiGoSettings: '設定へ', aiWelcome: 'こんにちは！AIアシスタントです', aiWelcomeDesc: 'お手伝いします。質問をするか、開いているアプリのヘルプを求めてください。', aiPlaceholder: 'メッセージを入力...', aiChip1: 'このアプリで何ができますか？', aiChip2: 'テキストを書いて', aiChip3: '問題を解決して'
+    aiChat: 'AIアシスタント', aiNewChat: '新しいチャット', aiClear: 'クリア', aiNoProvider: 'AIプロバイダーが設定されていません。設定からプロバイダーを追加してください。', aiGoSettings: '設定へ', aiWelcome: 'こんにちは！AIアシスタントです', aiWelcomeDesc: 'お手伝いします。質問をするか、開いているアプリのヘルプを求めてください。', aiPlaceholder: 'メッセージを入力...', aiMicStart: '音声入力', aiMicStop: '聞き取りを停止', aiMicListening: '聞いています...', aiChip1: 'このアプリで何ができますか？', aiChip2: 'テキストを書いて', aiChip3: '問題を解決して'
   },
   it: {
     apps: 'Applicazioni', user: 'Utente', loading: 'Caricamento...', search: 'Cerca...',
@@ -2550,7 +2571,7 @@ const I18N = {
     aiAgentProvider: 'Provider', aiAgentModel: 'Modello', aiAgentPrompt: 'Prompt di sistema',
     aiSave: 'Salva', aiSaved: 'Impostazioni IA salvate', aiRemove: 'Rimuovi',
     aiKeyHidden: 'Chiave nascosta', aiKeyPlaceholder: 'Inserisci chiave API...', aiDefault: 'Predefinito',
-    aiChat: 'Assistente IA', aiNewChat: 'Nuova chat', aiClear: 'Cancella', aiNoProvider: 'Nessun provider IA configurato. Aggiungi un provider dalle Impostazioni.', aiGoSettings: 'Vai alle Impostazioni', aiWelcome: 'Ciao! Sono il tuo Assistente IA', aiWelcomeDesc: 'Sono qui per aiutarti. Fai una domanda o chiedi aiuto con le tue app aperte.', aiPlaceholder: 'Scrivi il tuo messaggio...', aiChip1: 'Cosa posso fare in questa app?', aiChip2: 'Scrivimi un testo', aiChip3: 'Aiutami a risolvere un problema'
+    aiChat: 'Assistente IA', aiNewChat: 'Nuova chat', aiClear: 'Cancella', aiNoProvider: 'Nessun provider IA configurato. Aggiungi un provider dalle Impostazioni.', aiGoSettings: 'Vai alle Impostazioni', aiWelcome: 'Ciao! Sono il tuo Assistente IA', aiWelcomeDesc: 'Sono qui per aiutarti. Fai una domanda o chiedi aiuto con le tue app aperte.', aiPlaceholder: 'Scrivi il tuo messaggio...', aiMicStart: 'Input vocale', aiMicStop: 'Smetti di ascoltare', aiMicListening: 'Ascolto...', aiChip1: 'Cosa posso fare in questa app?', aiChip2: 'Scrivimi un testo', aiChip3: 'Aiutami a risolvere un problema'
   },
   ar: {
     apps: 'التطبيقات', user: 'المستخدم', loading: 'جاري التحميل...', search: 'بحث...',
@@ -2594,7 +2615,7 @@ const I18N = {
     aiAgentProvider: 'المزود', aiAgentModel: 'النموذج', aiAgentPrompt: 'أمر النظام',
     aiSave: 'حفظ', aiSaved: 'تم حفظ إعدادات الذكاء الاصطناعي', aiRemove: 'إزالة',
     aiKeyHidden: 'المفتاح مخفي', aiKeyPlaceholder: 'أدخل مفتاح API...', aiDefault: 'افتراضي',
-    aiChat: 'مساعد الذكاء الاصطناعي', aiNewChat: 'محادثة جديدة', aiClear: 'مسح', aiNoProvider: 'لم يتم تكوين مزود ذكاء اصطناعي. أضف مزوداً من الإعدادات.', aiGoSettings: 'انتقل للإعدادات', aiWelcome: 'مرحباً! أنا مساعدك الذكي', aiWelcomeDesc: 'أنا هنا لمساعدتك. اطرح سؤالاً أو اطلب المساعدة مع تطبيقاتك المفتوحة.', aiPlaceholder: 'اكتب رسالتك...', aiChip1: 'ماذا أستطيع أن أفعل؟', aiChip2: 'اكتب لي نصاً', aiChip3: 'ساعدني في حل مشكلة'
+    aiChat: 'مساعد الذكاء الاصطناعي', aiNewChat: 'محادثة جديدة', aiClear: 'مسح', aiNoProvider: 'لم يتم تكوين مزود ذكاء اصطناعي. أضف مزوداً من الإعدادات.', aiGoSettings: 'انتقل للإعدادات', aiWelcome: 'مرحباً! أنا مساعدك الذكي', aiWelcomeDesc: 'أنا هنا لمساعدتك. اطرح سؤالاً أو اطلب المساعدة مع تطبيقاتك المفتوحة.', aiPlaceholder: 'اكتب رسالتك...', aiMicStart: 'إدخال صوتي', aiMicStop: 'إيقاف الاستماع', aiMicListening: 'جارٍ الاستماع...', aiChip1: 'ماذا أستطيع أن أفعل؟', aiChip2: 'اكتب لي نصاً', aiChip3: 'ساعدني في حل مشكلة'
   },
   ko: {
     apps: '애플리케이션', user: '사용자', loading: '로딩 중...', search: '검색...',
@@ -2638,7 +2659,7 @@ const I18N = {
     aiAgentProvider: '제공업체', aiAgentModel: '모델', aiAgentPrompt: '시스템 프롬프트',
     aiSave: '저장', aiSaved: 'AI 설정이 저장되었습니다', aiRemove: '제거',
     aiKeyHidden: '키가 숨겨져 있습니다', aiKeyPlaceholder: 'API 키 입력...', aiDefault: '기본값',
-    aiChat: 'AI 어시스턴트', aiNewChat: '새 대화', aiClear: '지우기', aiNoProvider: 'AI 제공업체가 구성되지 않았습니다. 설정에서 제공업체를 추가하세요.', aiGoSettings: '설정으로 이동', aiWelcome: '안녕하세요! AI 어시스턴트입니다', aiWelcomeDesc: '도움을 드리겠습니다. 질문을 하거나 열린 앱에 대한 도움을 요청하세요.', aiPlaceholder: '메시지를 입력하세요...', aiChip1: '이 앱에서 뭘 할 수 있나요?', aiChip2: '글을 써줘', aiChip3: '문제 해결을 도와줘'
+    aiChat: 'AI 어시스턴트', aiNewChat: '새 대화', aiClear: '지우기', aiNoProvider: 'AI 제공업체가 구성되지 않았습니다. 설정에서 제공업체를 추가하세요.', aiGoSettings: '설정으로 이동', aiWelcome: '안녕하세요! AI 어시스턴트입니다', aiWelcomeDesc: '도움을 드리겠습니다. 질문을 하거나 열린 앱에 대한 도움을 요청하세요.', aiPlaceholder: '메시지를 입력하세요...', aiMicStart: '음성 입력', aiMicStop: '듣기 중지', aiMicListening: '듣는 중...', aiChip1: '이 앱에서 뭘 할 수 있나요?', aiChip2: '글을 써줘', aiChip3: '문제 해결을 도와줘'
   },
   hi: {
     apps: 'एप्लिकेशन', user: 'उपयोगकर्ता', loading: 'लोड हो रहा है...', search: 'खोजें...',
@@ -2682,7 +2703,7 @@ const I18N = {
     aiAgentProvider: 'प्रदाता', aiAgentModel: 'मॉडल', aiAgentPrompt: 'सिस्टम प्रॉम्प्ट',
     aiSave: 'सहेजें', aiSaved: 'AI सेटिंग्स सहेजी गईं', aiRemove: 'हटाएं',
     aiKeyHidden: 'कुंजी छिपी हुई है', aiKeyPlaceholder: 'API कुंजी दर्ज करें...', aiDefault: 'डिफ़ॉल्ट',
-    aiChat: 'AI सहायक', aiNewChat: 'नई चैट', aiClear: 'साफ़ करें', aiNoProvider: 'कोई AI प्रदाता कॉन्फ़िगर नहीं किया गया। सेटिंग्स से एक प्रदाता जोड़ें।', aiGoSettings: 'सेटिंग्स पर जाएं', aiWelcome: 'नमस्ते! मैं आपका AI सहायक हूं', aiWelcomeDesc: 'मैं आपकी मदद के लिए यहां हूं। कोई प्रश्न पूछें या अपने खुले ऐप्स में मदद मांगें।', aiPlaceholder: 'अपना संदेश लिखें...', aiChip1: 'इस ऐप में क्या कर सकता हूं?', aiChip2: 'मेरे लिए एक टेक्स्ट लिखो', aiChip3: 'एक समस्या हल करने में मदद करो'
+    aiChat: 'AI सहायक', aiNewChat: 'नई चैट', aiClear: 'साफ़ करें', aiNoProvider: 'कोई AI प्रदाता कॉन्फ़िगर नहीं किया गया। सेटिंग्स से एक प्रदाता जोड़ें।', aiGoSettings: 'सेटिंग्स पर जाएं', aiWelcome: 'नमस्ते! मैं आपका AI सहायक हूं', aiWelcomeDesc: 'मैं आपकी मदद के लिए यहां हूं। कोई प्रश्न पूछें या अपने खुले ऐप्स में मदद मांगें।', aiPlaceholder: 'अपना संदेश लिखें...', aiMicStart: 'आवाज़ से लिखें', aiMicStop: 'सुनना बंद करें', aiMicListening: 'सुन रहा हूँ...', aiChip1: 'इस ऐप में क्या कर सकता हूं?', aiChip2: 'मेरे लिए एक टेक्स्ट लिखो', aiChip3: 'एक समस्या हल करने में मदद करो'
   },
   pt: {
     apps: 'Aplicações', user: 'Utilizador', loading: 'Carregando...', search: 'Pesquisar...',
@@ -2726,7 +2747,7 @@ const I18N = {
     aiAgentProvider: 'Provedor', aiAgentModel: 'Modelo', aiAgentPrompt: 'Prompt do sistema',
     aiSave: 'Salvar', aiSaved: 'Configurações IA salvas', aiRemove: 'Remover',
     aiKeyHidden: 'Chave oculta', aiKeyPlaceholder: 'Insira a chave API...', aiDefault: 'Padrão',
-    aiChat: 'Assistente IA', aiNewChat: 'Novo chat', aiClear: 'Limpar', aiNoProvider: 'Nenhum provedor de IA configurado. Adicione um provedor nas Configurações.', aiGoSettings: 'Ir para Configurações', aiWelcome: 'Olá! Sou seu Assistente IA', aiWelcomeDesc: 'Estou aqui para ajudar. Faça uma pergunta ou peça ajuda com seus aplicativos abertos.', aiPlaceholder: 'Digite sua mensagem...', aiChip1: 'O que posso fazer neste app?', aiChip2: 'Escreva-me um texto', aiChip3: 'Ajude-me a resolver um problema'
+    aiChat: 'Assistente IA', aiNewChat: 'Novo chat', aiClear: 'Limpar', aiNoProvider: 'Nenhum provedor de IA configurado. Adicione um provedor nas Configurações.', aiGoSettings: 'Ir para Configurações', aiWelcome: 'Olá! Sou seu Assistente IA', aiWelcomeDesc: 'Estou aqui para ajudar. Faça uma pergunta ou peça ajuda com seus aplicativos abertos.', aiPlaceholder: 'Digite sua mensagem...', aiMicStart: 'Entrada de voz', aiMicStop: 'Parar de ouvir', aiMicListening: 'Ouvindo...', aiChip1: 'O que posso fazer neste app?', aiChip2: 'Escreva-me um texto', aiChip3: 'Ajude-me a resolver um problema'
   }
 };
 
@@ -3472,6 +3493,7 @@ const WeatherApp = {
 const SettingsApp = {
   template: '#SettingsApp',
   setup() {
+    const ElMessage = window.ElementPlus?.ElMessage || { success(){}, error(){}, warning(){}, info(){} };
     const settingsStore = useSettingsStore();
     const active = ref('display');
     const tabs = computed(() => [
@@ -3909,6 +3931,14 @@ const SettingsApp = {
       settingsStore.save({ showMagnifierTray: e.target.checked });
     }
 
+    // ── Screenshot tray toggle ──
+    const showScreenshotTray = ref(settingsStore.showScreenshotTray !== false);
+
+    function toggleScreenshotTray(e) {
+      showScreenshotTray.value = e.target.checked;
+      settingsStore.save({ showScreenshotTray: e.target.checked });
+    }
+
     // ── 2FA Settings ──
     const twoFAEnabled = ref(false);
     const twoFASetup = ref(false);
@@ -3998,6 +4028,24 @@ const SettingsApp = {
     }
 
     // ── AI Settings ──
+    const aiModelCache = reactive({});
+    async function aiLoadModels(providerId) {
+      if (!providerId || aiModelCache[providerId]) return;
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/ai/models?provider=' + encodeURIComponent(providerId), { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) {
+          const data = await res.json();
+          aiModelCache[providerId] = data.models || [];
+        }
+      } catch {}
+    }
+    function aiGetModels(providerId) {
+      if (!providerId) return [];
+      if (!aiModelCache[providerId]) { aiLoadModels(providerId); return []; }
+      return aiModelCache[providerId];
+    }
+
     const AI_BUILTIN_PROVIDERS = [
       { id: 'openai', name: 'OpenAI', icon: '🟢', defaultModel: 'gpt-4o', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
       { id: 'anthropic', name: 'Anthropic', icon: '🟠', defaultModel: 'claude-sonnet-4-20250514', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
@@ -4007,9 +4055,10 @@ const SettingsApp = {
       { id: 'cohere', name: 'Cohere', icon: '🟡', defaultModel: 'command-r-plus', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
       { id: 'groq', name: 'Groq', icon: '⚡', defaultModel: 'llama-3.3-70b-versatile', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
       { id: 'xai', name: 'xAI (Grok)', icon: '✖️', defaultModel: 'grok-3', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
-      { id: 'github', name: 'GitHub Copilot', icon: '🐙', defaultModel: 'claude-sonnet-4', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'github', name: 'GitHub Copilot', icon: '🐙', defaultModel: 'gpt-4o', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
       { id: 'openrouter', name: 'OpenRouter', icon: '🌐', defaultModel: 'auto', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
-      { id: 'perplexity', name: 'Perplexity', icon: '🔍', defaultModel: 'sonar-pro', enabled: false, apiKey: '', model: '', showKey: false, custom: false }
+      { id: 'perplexity', name: 'Perplexity', icon: '🔍', defaultModel: 'sonar-pro', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'huggingface', name: 'HuggingFace', icon: '🤗', defaultModel: 'Qwen/Qwen2.5-72B-Instruct', enabled: false, apiKey: '', model: '', showKey: false, custom: false }
     ];
 
     const aiProviders = ref(JSON.parse(JSON.stringify(AI_BUILTIN_PROVIDERS)));
@@ -4066,8 +4115,8 @@ const SettingsApp = {
               existing.enabled = sp.enabled;
               existing.apiKey = sp.apiKey || '';
               existing.model = sp.model || '';
-            } else if (sp.custom) {
-              merged.push({ ...sp, showKey: false, custom: true });
+            } else {
+              merged.push({ ...sp, showKey: false, custom: sp.custom || false, system: !sp.apiKey && !sp.custom });
             }
           }
           aiProviders.value = merged;
@@ -4075,6 +4124,8 @@ const SettingsApp = {
         if (data.agents && Array.isArray(data.agents)) {
           aiAgents.value = data.agents.map(a => ({ ...a, enabled: a.enabled !== false }));
         }
+        // Pre-load model lists for all providers
+        for (const p of aiProviders.value) { aiLoadModels(p.id); }
       } catch {}
     }
 
@@ -4195,7 +4246,7 @@ const SettingsApp = {
     }
     watch(active, (v) => { if (v === 'network') loadNetworkInfo(); if (v === 'users') loadUsers(); });
 
-    return { active, tabs, currentRows, zoomLevel, zoomOptions, darkModeVal, onZoomChange, screenInfo, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, wpAuthUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray, twoFAEnabled, twoFASetup, twoFASecret, twoFAQRUrl, twoFACode, twoFAError, twoFADisabling, twoFADisableCode, toggle2FA, verify2FASetup, confirm2FADisable, aiProviders, aiAgents, addProvider, removeProvider, addAgent, removeAgent, saveAISettings, userFonts, isFontAdded, addFont, removeFont, showGoogleFontsDialog, netInfo, netLoading, userList, showCreateUser, newUser, editingUser, editForm, currentUsername, avatarOptions, loadUsers, createUser, startEditUser, pickAvatar, saveUserEdit, deleteUser };
+    return { active, tabs, currentRows, zoomLevel, zoomOptions, darkModeVal, onZoomChange, screenInfo, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, wpAuthUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray, showScreenshotTray, toggleScreenshotTray, twoFAEnabled, twoFASetup, twoFASecret, twoFAQRUrl, twoFACode, twoFAError, twoFADisabling, twoFADisableCode, toggle2FA, verify2FASetup, confirm2FADisable, aiProviders, aiAgents, addProvider, removeProvider, addAgent, removeAgent, saveAISettings, aiGetModels, aiLoadModels, aiModelCache, userFonts, isFontAdded, addFont, removeFont, showGoogleFontsDialog, netInfo, netLoading, userList, showCreateUser, newUser, editingUser, editForm, currentUsername, avatarOptions, loadUsers, createUser, startEditUser, pickAvatar, saveUserEdit, deleteUser };
   }
 };
 
@@ -5631,6 +5682,14 @@ createApp({
         if (res.ok) { const d = await res.json(); currentUsername.value = d.user?.username || ''; currentDisplayName.value = d.user?.displayName || ''; currentAvatar.value = d.user?.avatar || ''; }
       } catch {}
     }
+    function onUserUpdated(e) {
+      if (e.detail) {
+        currentDisplayName.value = e.detail.displayName || '';
+        currentAvatar.value = e.detail.avatar || '';
+      } else {
+        loadCurrentUser();
+      }
+    }
     let wbMap = {};
     let subApps = {};
     let clockTimer = null;
@@ -6492,14 +6551,6 @@ createApp({
       window.addEventListener('app-uninstalled', onAppUninstalled);
       window.addEventListener('open-app-action', onOpenAppAction);
       window.addEventListener('keydown', onGlobalKeyDown);
-      function onUserUpdated(e) {
-        if (e.detail) {
-          currentDisplayName.value = e.detail.displayName || '';
-          currentAvatar.value = e.detail.avatar || '';
-        } else {
-          loadCurrentUser();
-        }
-      }
       window.addEventListener('user-updated', onUserUpdated);
       loadDesktopLayout();
       loadCurrentUser();
@@ -6686,15 +6737,125 @@ createApp({
       ssCapturedCanvas = null;
     }
 
+    // ── AI Model Catalog ──
+    const aiModelCache = reactive({});
+    async function aiLoadModels(providerId) {
+      if (!providerId || aiModelCache[providerId]) return;
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/ai/models?provider=' + encodeURIComponent(providerId), { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) {
+          const data = await res.json();
+          aiModelCache[providerId] = data.models || [];
+        }
+      } catch {}
+    }
+    function aiGetModels(providerId) {
+      if (!providerId) return [];
+      if (!aiModelCache[providerId]) { aiLoadModels(providerId); return []; }
+      return aiModelCache[providerId];
+    }
+
     // ── AI Chat Panel ──
     const aiPanelOpen = ref(false);
     const aiInput = ref('');
     const aiMessages = ref([]);
     const aiLoading = ref(false);
     const aiError = ref('');
+    const aiListening = ref(false);
+    let aiRecognition = null;
+    let aiMicStopping = false;
+    let aiFinalTranscript = '';
+    let aiRecErrorCount = 0;
+
+    const aiSpeechLangMap = { tr:'tr-TR', en:'en-US', de:'de-DE', fr:'fr-FR', es:'es-ES', ru:'ru-RU', zh:'zh-CN', ja:'ja-JP', it:'it-IT', ar:'ar-SA', ko:'ko-KR', hi:'hi-IN' };
+
+    function aiStopVoice(errorMsg) {
+      aiMicStopping = true;
+      aiListening.value = false;
+      if (aiRecognition) { try { aiRecognition.abort(); } catch(e) {} }
+      aiRecognition = null;
+      if (errorMsg) aiError.value = errorMsg;
+    }
+
+    function aiStartRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const rec = new SpeechRecognition();
+      const locale = settingsStore.locale || 'tr';
+      const isTr = locale === 'tr';
+      rec.lang = aiSpeechLangMap[locale] || locale;
+      rec.interimResults = true;
+      rec.continuous = true;
+      rec.maxAlternatives = 1;
+      rec.onstart = () => { aiListening.value = true; aiRecErrorCount = 0; };
+      rec.onend = () => {
+        if (!aiMicStopping && aiListening.value) {
+          if (aiRecErrorCount >= 3) {
+            aiStopVoice(isTr ? 'Ses tanıma servisi yanıt vermiyor. Lütfen tekrar deneyin.' : 'Speech recognition service not responding. Please try again.');
+            return;
+          }
+          try { aiStartRecognition(); } catch(e) { aiStopVoice(null); }
+          return;
+        }
+        aiListening.value = false;
+        aiRecognition = null;
+      };
+      rec.onerror = (e) => {
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+          aiStopVoice(isTr ? 'Mikrofon erişimi reddedildi. Tarayıcı ayarlarından mikrofon iznini kontrol edin.' : 'Microphone access denied. Check microphone permission in browser settings.');
+        } else if (e.error === 'audio-capture') {
+          aiStopVoice(isTr ? 'Mikrofon bulunamadı veya kullanılamıyor.' : 'Microphone not found or unavailable.');
+        } else if (e.error === 'network') {
+          aiRecErrorCount++;
+          if (aiRecErrorCount >= 3) {
+            aiStopVoice(isTr ? 'Ses tanıma servisi bağlantı hatası. İnternet bağlantınızı kontrol edin.' : 'Speech recognition network error. Check your internet connection.');
+          }
+        } else if (e.error === 'no-speech') {
+          aiRecErrorCount++;
+        }
+      };
+      rec.onresult = (e) => {
+        let interim = '';
+        aiRecErrorCount = 0;
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) {
+            aiFinalTranscript += e.results[i][0].transcript;
+          } else {
+            interim += e.results[i][0].transcript;
+          }
+        }
+        aiInput.value = aiFinalTranscript + interim;
+      };
+      aiRecognition = rec;
+      try {
+        rec.start();
+      } catch(e) {
+        aiStopVoice(isTr ? 'Ses tanıma başlatılamadı: ' + e.message : 'Could not start speech recognition: ' + e.message);
+      }
+    }
+
+    function aiToggleVoice() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        const isTr = (settingsStore.locale || 'tr') === 'tr';
+        aiError.value = isTr ? 'Tarayıcınız ses tanımayı desteklemiyor.' : 'Browser does not support speech recognition.';
+        return;
+      }
+      if (aiListening.value) {
+        aiMicStopping = true;
+        if (aiRecognition) aiRecognition.stop();
+        return;
+      }
+      aiError.value = '';
+      aiMicStopping = false;
+      aiRecErrorCount = 0;
+      aiFinalTranscript = aiInput.value;
+      aiStartRecognition();
+    }
     const aiSelectedProvider = ref('');
+    const aiSelectedModel = ref('');
     const aiActiveContext = ref(null);
     const aiMessagesEl = ref(null);
+    const aiProvidersList = ref([]);
 
     // Load AI Chat CSS
     (function() {
@@ -6708,27 +6869,44 @@ createApp({
     })();
 
     const aiEnabledProviders = computed(() => {
-      return (window.__aiProviders || []).filter(p => p.enabled && p.apiKey);
+      return aiProvidersList.value.filter(p => p.enabled);
     });
 
     const aiCurrentModel = computed(() => {
-      const p = (window.__aiProviders || []).find(pr => pr.id === aiSelectedProvider.value);
+      if (aiSelectedModel.value) return aiSelectedModel.value;
+      const p = aiProvidersList.value.find(pr => pr.id === aiSelectedProvider.value);
       return p ? (p.model || p.defaultModel) : '';
+    });
+
+    const aiCurrentProviderModels = computed(() => {
+      return aiGetModels(aiSelectedProvider.value);
     });
 
     async function aiLoadProviders() {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('/api/ai-settings', { headers: { 'Authorization': 'Bearer ' + token } });
+        const res = await fetch('/api/chatgpt/providers', { headers: { 'Authorization': 'Bearer ' + token } });
         if (!res.ok) return;
         const data = await res.json();
         if (data.providers) {
-          window.__aiProviders = data.providers.filter(p => p.enabled);
-          if (!aiSelectedProvider.value && window.__aiProviders.length) {
-            aiSelectedProvider.value = window.__aiProviders[0].id;
+          aiProvidersList.value = data.providers.map(p => ({ ...p, enabled: true }));
+          if (!aiSelectedProvider.value && aiProvidersList.value.length) {
+            aiSelectedProvider.value = aiProvidersList.value[0].id;
+          }
+          // Pre-load models for selected provider
+          if (aiSelectedProvider.value) {
+            aiLoadModels(aiSelectedProvider.value);
+            const p = aiProvidersList.value.find(pr => pr.id === aiSelectedProvider.value);
+            aiSelectedModel.value = p ? (p.model || p.defaultModel || '') : '';
           }
         }
       } catch {}
+    }
+
+    function aiOnProviderChange() {
+      aiLoadModels(aiSelectedProvider.value);
+      const p = aiProvidersList.value.find(pr => pr.id === aiSelectedProvider.value);
+      aiSelectedModel.value = p ? (p.model || p.defaultModel || '') : '';
     }
 
     watch(aiPanelOpen, (v) => { if (v) aiLoadProviders(); });
@@ -6777,6 +6955,7 @@ createApp({
       const msg = text || aiInput.value.trim();
       if (!msg || aiLoading.value) return;
       aiInput.value = '';
+      aiFinalTranscript = '';
       aiError.value = '';
 
       nextTick(() => {
@@ -6797,6 +6976,7 @@ createApp({
         const token = localStorage.getItem('token');
         const body = {
           provider: aiSelectedProvider.value,
+          model: aiSelectedModel.value || undefined,
           messages: aiMessages.value.map(m => ({ role: m.role, content: m.content })),
           context: aiActiveContext.value ? aiActiveContext.value.id : null
         };
@@ -6840,7 +7020,7 @@ createApp({
       document.addEventListener('click', aiHandleOutsideClick);
     });
 
-    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, iconCtxEl, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, removeFromDesktop, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, smCtx, smCtxEl, showSmCtx, hideSmCtx, addToDesktop, doLogout, currentUsername, currentDisplayName, currentAvatar, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture, smSearch, smFinderIdx, smSearchResults, smFinderDown, smFinderUp, smFinderEnter, showKeyboardTray: computed(() => settingsStore.showKeyboardTray), showMagnifierTray: computed(() => settingsStore.showMagnifierTray), dragState, desktopCtx, onIconDragStart, onIconDragEnter, onIconDragLeave, onIconDrop, onIconDragEnd, showDesktopCtx, hideDesktopCtx, arrangeIcons, desktopCtxEl, cascadeWindows, tileWindowsH, tileWindowsV, minimizeAll, focusWindowRestore, aiPanelOpen, aiInput, aiMessages, aiLoading, aiError, aiSelectedProvider, aiActiveContext, aiMessagesEl, aiEnabledProviders, aiCurrentModel, aiSendMsg, aiNewChat, aiClearChat, aiRenderMd, aiEscape, aiAutoResize };
+    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, iconCtxEl, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, removeFromDesktop, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, smCtx, smCtxEl, showSmCtx, hideSmCtx, addToDesktop, doLogout, currentUsername, currentDisplayName, currentAvatar, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture, smSearch, smFinderIdx, smSearchResults, smFinderDown, smFinderUp, smFinderEnter, showKeyboardTray: computed(() => settingsStore.showKeyboardTray), showMagnifierTray: computed(() => settingsStore.showMagnifierTray), showScreenshotTray: computed(() => settingsStore.showScreenshotTray), dragState, desktopCtx, onIconDragStart, onIconDragEnter, onIconDragLeave, onIconDrop, onIconDragEnd, showDesktopCtx, hideDesktopCtx, arrangeIcons, desktopCtxEl, cascadeWindows, tileWindowsH, tileWindowsV, minimizeAll, focusWindowRestore, aiPanelOpen, aiInput, aiMessages, aiLoading, aiError, aiListening, aiToggleVoice, aiSelectedProvider, aiSelectedModel, aiActiveContext, aiMessagesEl, aiEnabledProviders, aiCurrentModel, aiCurrentProviderModels, aiOnProviderChange, aiSendMsg, aiNewChat, aiClearChat, aiRenderMd, aiEscape, aiAutoResize, aiGetModels, aiLoadModels, aiModelCache };
   }
 }).use(pinia).use(ElementPlus, EP_LOCALES[localStorage.getItem('sys_locale') || 'tr'] || EP_LOCALES.en).mount('#app');
 

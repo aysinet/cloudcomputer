@@ -1,4 +1,28 @@
 services:
+  # ══════════════════════════════════════════════════════════
+  # INFRASTRUCTURE (managed by superadmin, shared across all instances)
+  # ══════════════════════════════════════════════════════════
+  ollama:
+    image: ollama/ollama
+    container_name: cloudpc-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - cloudpc-net
+    restart: always
+
+  # ══════════════════════════════════════════════════════════
+  # CLOUDCOMPUTER INSTANCE (one per deployment / user group)
+  # ══════════════════════════════════════════════════════════
   cloudcomputer:
     build:
       context: .
@@ -11,6 +35,7 @@ services:
       - INSTANCE_ID=${INSTANCE_ID:-default}
       - DOCKER_MANAGER_URL=http://docker-manager-${INSTANCE_ID:-default}:9800
       - DM_SECRET=cloudpc-docker-manager-secret
+      - OLLAMA_URL=http://cloudpc-ollama:11434
       - FINNHUB_API_KEY=${FINNHUB_API_KEY:-}
     volumes:
       - cloudpc-data:/app/data
@@ -18,6 +43,7 @@ services:
       - cloudpc-net
     depends_on:
       - docker-manager
+      - ollama
     restart: unless-stopped
 
   docker-manager:
@@ -44,6 +70,8 @@ networks:
     driver: bridge
 
 volumes:
+  ollama_models:
+    name: cloudpc-ollama-models
   cloudpc-data:
     name: cloudpc-${INSTANCE_ID:-default}-data
   cloudpc-dm-data:

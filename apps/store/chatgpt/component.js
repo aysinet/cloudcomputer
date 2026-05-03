@@ -205,7 +205,8 @@
     { id: 'google', name: 'Google Gemini', icon: '🔵', defaultModel: 'gemini-2.5-flash' },
     { id: 'deepseek', name: 'DeepSeek', icon: '🔷', defaultModel: 'deepseek-chat' },
     { id: 'groq', name: 'Groq', icon: '⚡', defaultModel: 'llama-3.3-70b-versatile' },
-    { id: 'xai', name: 'xAI (Grok)', icon: '✖️', defaultModel: 'grok-3' }
+    { id: 'xai', name: 'xAI (Grok)', icon: '✖️', defaultModel: 'grok-3' },
+    { id: 'huggingface', name: 'HuggingFace', icon: '🤗', defaultModel: 'Qwen/Qwen2.5-72B-Instruct' }
   ];
 
   /* ── Simple Markdown renderer (no external dependency) ── */

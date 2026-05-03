@@ -1,0 +1,31 @@
+/* Gmail App Mobile Overrides */
+.gmail-layout {
+  flex-direction: column !important;
+}
+.gmail-sidebar {
+  width: 100% !important;
+  min-width: unset !important;
+  flex-direction: row !important;
+  border-right: none !important;
+  border-bottom: 1px solid rgba(255,255,255,.06) !important;
+  padding: 8px !important;
+  gap: 6px;
+  overflow-x: auto;
+  align-items: center;
+}
+.gmail-compose-btn { width: auto !important; min-width: 0; margin-bottom: 0 !important; padding: 6px 12px !important; font-size: 12px !important; }
+.gmail-folders {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 2px;
+  flex: 1;
+  overflow-x: auto;
+}
+.gmail-folder-item { padding: 6px 10px !important; font-size: 12px !important; white-space: nowrap; }
+.gmail-sidebar-bottom { display: flex; border: none !important; padding: 0 !important; margin: 0 !important; gap: 4px; align-items: center; }
+.gmail-sidebar-email { display: none; }
+.gmail-search-input { width: 140px !important; }
+.gmail-msg-from { width: 100px !important; min-width: 100px !important; font-size: 12px !important; }
+.gmail-msg-snippet { display: none; }
+.gmail-content-header { flex-wrap: wrap; }
+.gmail-list-actions { flex-wrap: wrap; }

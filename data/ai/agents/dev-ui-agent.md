@@ -1,5 +1,5 @@
 ---
-name: ui-agent
+name: dev-ui-agent
 description: Use when the user needs UI/UX design decisions, component architecture, layout, typography, color system, or visual hierarchy. Produces design notes the builder agent can implement from.
 tools: Read, Grep, Glob
 model: sonnet

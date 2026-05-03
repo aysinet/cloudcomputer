@@ -1,0 +1,64 @@
+{
+  "id": "gmail",
+  "name": "Gmail",
+  "icon": "📬",
+  "color": "linear-gradient(135deg,#ea4335,#fbbc05)",
+  "type": "internal",
+  "size": {
+    "w": 950,
+    "h": 640
+  },
+  "global": false,
+  "description": "Gmail — Google hesabınızla e-posta okuyun, gönderin ve yönetin",
+  "lang": {
+    "tr": {
+      "name": "Gmail",
+      "description": "Gmail — Google hesabınızla e-posta okuyun, gönderin ve yönetin"
+    },
+    "en": {
+      "name": "Gmail",
+      "description": "Gmail — Read, send and manage emails with your Google account"
+    },
+    "de": {
+      "name": "Gmail",
+      "description": "Gmail — E-Mails mit Ihrem Google-Konto lesen, senden und verwalten"
+    },
+    "fr": {
+      "name": "Gmail",
+      "description": "Gmail — Lire, envoyer et gérer vos e-mails avec votre compte Google"
+    },
+    "es": {
+      "name": "Gmail",
+      "description": "Gmail — Lea, envíe y gestione correos con su cuenta de Google"
+    },
+    "ru": {
+      "name": "Gmail",
+      "description": "Gmail — Чтение, отправка и управление почтой через аккаунт Google"
+    },
+    "zh": {
+      "name": "Gmail",
+      "description": "Gmail — 使用Google账户收发和管理邮件"
+    },
+    "ja": {
+      "name": "Gmail",
+      "description": "Gmail — Googleアカウントでメールの送受信と管理"
+    },
+    "it": {
+      "name": "Gmail",
+      "description": "Gmail — Leggi, invia e gestisci email con il tuo account Google"
+    },
+    "ar": {
+      "name": "Gmail",
+      "description": "Gmail — اقرأ وأرسل وأدر بريدك الإلكتروني عبر حساب Google"
+    },
+    "ko": {
+      "name": "Gmail",
+      "description": "Gmail — Google 계정으로 이메일 읽기, 보내기 및 관리"
+    },
+    "hi": {
+      "name": "Gmail",
+      "description": "Gmail — Google खाते से ईमेल पढ़ें, भेजें और प्रबंधित करें"
+    }
+  },
+  "category": "productivity"
+}
