@@ -1,0 +1,113 @@
+<div class="es-install-form">
+  <div class="es-install-header">
+    <span class="es-install-icon">🔎</span>
+    <h3>Elasticsearch 8</h3>
+    <p class="es-install-subtitle" data-i18n="subtitle">Elasticsearch yapılandırmasını belirleyin</p>
+  </div>
+  <div class="es-install-body">
+    <label data-i18n="heapLabel">Java Heap Boyutu</label>
+    <select id="es-heap-size" class="es-select">
+      <option value="-Xms256m -Xmx256m">256 MB (Düşük)</option>
+      <option value="-Xms512m -Xmx512m" selected>512 MB (Önerilen)</option>
+      <option value="-Xms1g -Xmx1g">1 GB</option>
+      <option value="-Xms2g -Xmx2g">2 GB</option>
+    </select>
+    <p class="es-install-hint" data-i18n="heapHint">Elasticsearch JVM bellek ayarı. Sunucu kapasitesine göre seçin.</p>
+
+    <label data-i18n="passwordLabel" style="margin-top:16px">Elastic Şifresi (opsiyonel)</label>
+    <div class="es-password-wrap">
+      <input type="password" id="es-password" placeholder="Boş bırakılabilir" autocomplete="new-password" />
+      <button type="button" class="es-eye-btn" onclick="toggleEsPass()">👁</button>
+    </div>
+    <p class="es-install-hint" data-i18n="passwordHint">Şifre belirlerseniz xpack.security etkinleştirilir. Boş bırakırsanız güvenlik kapalı kalır.</p>
+
+    <div class="es-install-error" id="es-install-error" style="display:none"></div>
+  </div>
+  <div class="es-install-footer">
+    <button class="es-cancel-btn" onclick="cancelServiceInstall()" data-i18n="cancel">İptal</button>
+    <button class="es-install-btn" onclick="confirmServiceInstall()" data-i18n="installBtn">Kur ve Başlat</button>
+  </div>
+</div>
+
+<script>
+  const ES_I18N = {
+    tr: { subtitle: 'Elasticsearch yapılandırmasını belirleyin', heapLabel: 'Java Heap Boyutu', heapHint: 'Elasticsearch JVM bellek ayarı. Sunucu kapasitesine göre seçin.', passwordLabel: 'Elastic Şifresi (opsiyonel)', passwordHint: 'Şifre belirlerseniz xpack.security etkinleştirilir. Boş bırakırsanız güvenlik kapalı kalır.', cancel: 'İptal', installBtn: 'Kur ve Başlat', errorShort: 'Şifre en az 6 karakter olmalı' },
+    en: { subtitle: 'Configure Elasticsearch settings', heapLabel: 'Java Heap Size', heapHint: 'Elasticsearch JVM memory setting. Choose based on server capacity.', passwordLabel: 'Elastic Password (optional)', passwordHint: 'If you set a password, xpack.security will be enabled. Leave empty to keep security disabled.', cancel: 'Cancel', installBtn: 'Install & Start', errorShort: 'Password must be at least 6 characters' },
+    de: { subtitle: 'Elasticsearch-Einstellungen konfigurieren', heapLabel: 'Java-Heap-Größe', heapHint: 'JVM-Speichereinstellung. Wählen Sie basierend auf der Serverkapazität.', passwordLabel: 'Elastic-Passwort (optional)', passwordHint: 'Wenn ein Passwort gesetzt wird, wird xpack.security aktiviert.', cancel: 'Abbrechen', installBtn: 'Installieren & Starten', errorShort: 'Passwort muss mindestens 6 Zeichen lang sein' },
+    fr: { subtitle: 'Configurer Elasticsearch', heapLabel: 'Taille du tas Java', heapHint: 'Paramètre mémoire JVM. Choisissez en fonction de la capacité du serveur.', passwordLabel: 'Mot de passe Elastic (optionnel)', passwordHint: 'Si un mot de passe est défini, xpack.security sera activé.', cancel: 'Annuler', installBtn: 'Installer & Démarrer', errorShort: 'Le mot de passe doit comporter au moins 6 caractères' },
+    es: { subtitle: 'Configurar Elasticsearch', heapLabel: 'Tamaño del heap Java', heapHint: 'Configuración de memoria JVM. Elija según la capacidad del servidor.', passwordLabel: 'Contraseña Elastic (opcional)', passwordHint: 'Si estableces una contraseña, xpack.security se habilitará.', cancel: 'Cancelar', installBtn: 'Instalar e Iniciar', errorShort: 'La contraseña debe tener al menos 6 caracteres' }
+  };
+
+  function getEsLocale() {
+    try { return window.__serviceInstallLocale || 'tr'; } catch { return 'tr'; }
+  }
+
+  function getEsI18n(key) {
+    const loc = getEsLocale();
+    return (ES_I18N[loc] || ES_I18N.tr)[key] || (ES_I18N.tr)[key] || key;
+  }
+
+  function toggleEsPass() {
+    const inp = document.getElementById('es-password');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  function getInstallConfig() {
+    const password = (document.getElementById('es-password').value || '').trim();
+    const heapSize = document.getElementById('es-heap-size').value;
+    const errEl = document.getElementById('es-install-error');
+
+    if (password && password.length < 6) {
+      errEl.textContent = getEsI18n('errorShort');
+      errEl.style.display = 'block';
+      return null;
+    }
+    errEl.style.display = 'none';
+
+    const config = {};
+    config.ES_JAVA_OPTS = heapSize;
+    if (password) {
+      config.ELASTIC_PASSWORD = password;
+      config['xpack.security.enabled'] = 'true';
+    }
+    return config;
+  }
+</script>
+
+<style>
+  .es-install-form { padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; }
+  .es-install-header { text-align: center; margin-bottom: 20px; }
+  .es-install-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+  .es-install-header h3 { margin: 0 0 4px; font-size: 20px; color: #fff; }
+  .es-install-subtitle { margin: 0; font-size: 13px; color: #aaa; }
+  .es-install-body label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #ccc; }
+  .es-select {
+    width: 100%; padding: 10px 12px; border: 1px solid #444; border-radius: 6px;
+    background: #1e1e2e; color: #fff; font-size: 14px; outline: none; margin-bottom: 8px;
+  }
+  .es-select:focus { border-color: #FEC514; }
+  .es-password-wrap { display: flex; gap: 6px; margin-bottom: 8px; }
+  .es-password-wrap input {
+    flex: 1; padding: 10px 12px; border: 1px solid #444; border-radius: 6px;
+    background: #1e1e2e; color: #fff; font-size: 14px; outline: none;
+  }
+  .es-password-wrap input:focus { border-color: #FEC514; }
+  .es-eye-btn {
+    background: #2a2a3a; border: 1px solid #444; border-radius: 6px; padding: 0 12px;
+    cursor: pointer; font-size: 16px;
+  }
+  .es-install-hint { font-size: 11px; color: #888; margin: 4px 0 0; }
+  .es-install-error { color: #ff6b6b; font-size: 12px; margin-top: 8px; padding: 6px 10px; background: rgba(255,0,0,0.1); border-radius: 4px; }
+  .es-install-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .es-cancel-btn {
+    padding: 8px 20px; border: 1px solid #555; border-radius: 6px; background: transparent;
+    color: #ccc; cursor: pointer; font-size: 13px;
+  }
+  .es-cancel-btn:hover { background: #333; }
+  .es-install-btn {
+    padding: 8px 24px; border: none; border-radius: 6px;
+    background: linear-gradient(135deg, #FEC514, #00BFB3); color: #1a1a2e;
+    cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  .es-install-btn:hover { opacity: 0.9; }
+</style>

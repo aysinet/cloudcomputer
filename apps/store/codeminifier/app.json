@@ -1,0 +1,29 @@
+{
+  "id": "codeminifier",
+  "name": "Kod Küçültücü",
+  "icon": "🗜️",
+  "color": "linear-gradient(135deg,#e65100,#ff9800)",
+  "type": "internal",
+  "size": {
+    "w": 720,
+    "h": 520
+  },
+  "global": false,
+  "description": "JS, CSS, HTML, JSON, SVG, XML dosyalarını küçültür — tdewolff/minify motoru",
+  "lang": {
+    "tr": { "name": "Kod Küçültücü", "description": "JS, CSS, HTML, JSON, SVG, XML dosyalarını küçültür — tdewolff/minify motoru" },
+    "en": { "name": "Code Minifier", "description": "Minify JS, CSS, HTML, JSON, SVG, XML files — tdewolff/minify engine" },
+    "de": { "name": "Code-Minifier", "description": "JS, CSS, HTML, JSON, SVG, XML-Dateien minimieren — tdewolff/minify" },
+    "fr": { "name": "Minifieur de code", "description": "Minifier les fichiers JS, CSS, HTML, JSON, SVG, XML — tdewolff/minify" },
+    "es": { "name": "Minificador de código", "description": "Minificar archivos JS, CSS, HTML, JSON, SVG, XML — tdewolff/minify" },
+    "ru": { "name": "Минификатор кода", "description": "Минификация JS, CSS, HTML, JSON, SVG, XML файлов — tdewolff/minify" },
+    "zh": { "name": "代码压缩器", "description": "压缩 JS、CSS、HTML、JSON、SVG、XML 文件" },
+    "ja": { "name": "コード圧縮", "description": "JS, CSS, HTML, JSON, SVG, XMLファイルを圧縮" },
+    "it": { "name": "Minificatore codice", "description": "Minifica file JS, CSS, HTML, JSON, SVG, XML — tdewolff/minify" },
+    "ar": { "name": "ضاغط الأكواد", "description": "تصغير ملفات JS, CSS, HTML, JSON, SVG, XML — tdewolff/minify" },
+    "ko": { "name": "코드 압축기", "description": "JS, CSS, HTML, JSON, SVG, XML 파일 압축 — tdewolff/minify" },
+    "hi": { "name": "कोड मिनीफायर", "description": "JS, CSS, HTML, JSON, SVG, XML फ़ाइलों को छोटा करें — tdewolff/minify" },
+    "pt": { "name": "Minificador de código", "description": "Minificar arquivos JS, CSS, HTML, JSON, SVG, XML — tdewolff/minify" }
+  },
+  "category": "development"
+}

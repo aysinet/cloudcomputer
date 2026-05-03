@@ -232,11 +232,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 .icon-ctx-sub{padding:4px 0}
 .icon-ctx-sub .icon-ctx-item{padding-left:28px;font-size:12px}
 
-.fs-toggle{position:fixed;top:0;right:0;width:16px;height:16px;background:rgba(255,255,255,.06);backdrop-filter:blur(8px);border:none;cursor:pointer;z-index:199998;clip-path:polygon(100% 0,0 0,100% 100%);display:flex;align-items:flex-start;justify-content:flex-end;padding:2px 2px 0 0;transition:width .3s ease,height .3s ease,background .3s ease,padding .3s ease}
-.fs-toggle:hover{width:48px;height:48px;background:rgba(255,255,255,.25);padding:6px 6px 0 0}
-.fs-toggle svg{width:14px;height:14px;color:#fff;pointer-events:none;opacity:0;transition:opacity .3s ease}
-.fs-toggle:hover svg{opacity:1}
-
 /* ── AI Desktop FAB ── */
 .ai-desktop-fab{position:absolute;bottom:12px;right:12px;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);border:2px solid rgba(255,255,255,.15);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(102,126,234,.4);transition:transform .2s,box-shadow .2s;z-index:100}
 .ai-desktop-fab:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(102,126,234,.6)}
@@ -308,10 +303,6 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       <div class="icon-ctx-sep"></div>
       <div class="icon-ctx-item" style="color:#f56c6c" @click="removeFromDesktop(iconCtx.app.id)">🗑 {{t('ctxRemove')}}</div>
     </div>
-    <button class="fs-toggle" @click="toggleFullscreen" :title="isFullscreen?t('fullscreenExit'):t('fullscreen')">
-      <svg v-if="!isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-      <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-    </button>
     <!-- AI Assistant FAB -->
     <button class="ai-desktop-fab" @click.stop="aiPanelOpen=!aiPanelOpen" :title="t('aiChat')" :class="{active:aiPanelOpen}">
       🤖
@@ -495,8 +486,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
       </div>
       <div class="sm-footer">
         <div class="sm-user">
-          <div class="sm-avatar">K</div>
-          <span>{{t('user')}}</span>
+          <div class="sm-avatar">{{currentAvatar || (currentDisplayName || currentUsername || '').charAt(0).toUpperCase() || 'U'}}</div>
+          <span>{{currentDisplayName || currentUsername || t('user')}}</span>
         </div>
         <div style="display:flex;gap:6px">
           <button class="sm-power sm-settings-btn" @click="openApp(apps.find(a=>a.id==='settings'));closeMenu()" title="Ayarlar">⚙️</button>
@@ -991,6 +982,92 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
             <button @click="confirm2FADisable" style="height:36px;padding:0 16px;border-radius:8px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;cursor:pointer;font-size:13px">{{t('twoFADisableBtn')}}</button>
           </div>
           <div v-if="twoFAError" style="text-align:center;color:#f87171;font-size:12px;margin-top:8px">{{twoFAError}}</div>
+        </div>
+      </template>
+      <template v-else-if="active==='users'">
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <button @click="showCreateUser=true" style="padding:8px 20px;border-radius:8px;border:1px solid rgba(102,126,234,.4);background:rgba(102,126,234,.12);color:#667eea;cursor:pointer;font-size:13px;font-weight:500">➕ {{t('usersAdd') || 'New User'}}</button>
+        </div>
+        <!-- Create user form -->
+        <div v-if="showCreateUser" class="um-card" style="margin-bottom:16px;border-color:rgba(102,126,234,.3);background:#f8f9ff">
+          <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:12px">{{t('usersNewUser') || 'Create New User'}}</div>
+          <div class="um-form">
+            <div class="um-form-row">
+              <label class="um-form-label">{{t('usersUsername') || 'Username'}}</label>
+              <input type="text" v-model="newUser.username" class="um-input" placeholder="username" maxlength="32" />
+            </div>
+            <div class="um-form-row">
+              <label class="um-form-label">{{t('usersDisplayName') || 'Display Name'}}</label>
+              <input type="text" v-model="newUser.displayName" class="um-input" :placeholder="t('usersDisplayNamePlaceholder') || 'John Doe'" maxlength="50" />
+            </div>
+            <div class="um-form-row">
+              <label class="um-form-label">{{t('usersPassword') || 'Password'}}</label>
+              <input type="password" v-model="newUser.password" class="um-input" placeholder="••••••••" />
+            </div>
+            <div class="um-form-row">
+              <label class="um-form-label">{{t('usersPasswordConfirm') || 'Confirm'}}</label>
+              <input type="password" v-model="newUser.passwordConfirm" class="um-input" placeholder="••••••••" />
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button @click="createUser" class="um-btn-primary">{{t('usersSave') || 'Create'}}</button>
+            <button @click="showCreateUser=false;newUser={username:'',password:'',passwordConfirm:'',displayName:''}" class="um-btn-secondary">{{t('usersCancel') || 'Cancel'}}</button>
+          </div>
+        </div>
+        <!-- User list -->
+        <div v-for="u in userList" :key="u.username" class="um-card">
+          <div class="um-card-header">
+            <div class="um-avatar" :style="{background: u.avatar ? 'none' : 'linear-gradient(135deg,#667eea,#764ba2)'}" @click="editingUser===u.username && pickAvatar(u.username)">
+              <span v-if="!u.avatar">{{(u.displayName || u.username).charAt(0).toUpperCase()}}</span>
+              <span v-else style="font-size:28px">{{u.avatar}}</span>
+              <div v-if="editingUser===u.username" class="um-avatar-edit" :title="t('usersChangeAvatar') || 'Change avatar'">✏️</div>
+            </div>
+            <div class="um-user-info">
+              <div class="um-username">{{u.username}} <span v-if="u.username===currentUsername" class="um-badge-active">{{t('usersActive') || 'Active'}}</span></div>
+              <div class="um-display-name" v-if="u.displayName && editingUser!==u.username">{{u.displayName}}</div>
+              <div class="um-created" v-if="u.createdAt">{{t('usersCreated') || 'Created'}}: {{new Date(u.createdAt).toLocaleDateString()}}</div>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:6px">
+              <button v-if="editingUser!==u.username" @click="startEditUser(u)" class="um-btn-sm">✏️ {{t('usersEdit') || 'Edit'}}</button>
+              <button v-if="u.username!==currentUsername" @click="deleteUser(u.username)" class="um-btn-sm um-btn-danger">🗑️ {{t('usersDelete') || 'Delete'}}</button>
+            </div>
+          </div>
+          <!-- Edit form -->
+          <div v-if="editingUser===u.username" class="um-edit-body">
+            <div class="um-form">
+              <div class="um-form-row">
+                <label class="um-form-label">{{t('usersUsername') || 'Username'}}</label>
+                <input type="text" :value="u.username" class="um-input" disabled style="opacity:.5;cursor:not-allowed" />
+                <span style="font-size:11px;color:#999">{{t('usersUsernameNoChange') || 'Username cannot be changed (used in directory paths)'}}</span>
+              </div>
+              <div class="um-form-row">
+                <label class="um-form-label">{{t('usersDisplayName') || 'Display Name'}}</label>
+                <input type="text" v-model="editForm.displayName" class="um-input" maxlength="50" />
+              </div>
+              <div class="um-form-row">
+                <label class="um-form-label">{{t('usersNewPassword') || 'New Password'}}</label>
+                <input type="password" v-model="editForm.password" class="um-input" :placeholder="t('usersPasswordLeaveEmpty') || 'Leave empty to keep current'" />
+              </div>
+              <div class="um-form-row" v-if="editForm.password">
+                <label class="um-form-label">{{t('usersPasswordConfirm') || 'Confirm'}}</label>
+                <input type="password" v-model="editForm.passwordConfirm" class="um-input" placeholder="••••••••" />
+              </div>
+              <!-- Avatar picker -->
+              <div class="um-form-row">
+                <label class="um-form-label">{{t('usersAvatar') || 'Avatar'}}</label>
+                <div class="um-avatar-grid">
+                  <div v-for="av in avatarOptions" :key="av" @click="editForm.avatar=av"
+                    class="um-avatar-option" :class="{selected: editForm.avatar===av}">{{av}}</div>
+                  <div @click="editForm.avatar=''" class="um-avatar-option" :class="{selected: !editForm.avatar}"
+                    style="font-size:11px;color:#999">{{t('usersNoAvatar') || 'None'}}</div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button @click="saveUserEdit(u.username)" class="um-btn-primary">💾 {{t('usersSave') || 'Save'}}</button>
+              <button @click="editingUser=''" class="um-btn-secondary">{{t('usersCancel') || 'Cancel'}}</button>
+            </div>
+          </div>
         </div>
       </template>
       <template v-else-if="active==='network'">
@@ -2114,7 +2191,8 @@ const I18N = {
     aiAgentProvider: 'Sağlayıcı', aiAgentModel: 'Model', aiAgentPrompt: 'Sistem Komut İstemi',
     aiSave: 'Kaydet', aiSaved: 'AI ayarları kaydedildi', aiRemove: 'Kaldır',
     aiKeyHidden: 'Anahtar gizleniyor', aiKeyPlaceholder: 'API anahtarını girin...', aiDefault: 'Varsayılan',
-    aiChat: 'AI Asistan', aiNewChat: 'Yeni Sohbet', aiClear: 'Temizle', aiNoProvider: 'Henüz bir AI sağlayıcı yapılandırılmadı. Ayarlardan bir sağlayıcı ekleyin.', aiGoSettings: 'Ayarlara Git', aiWelcome: 'Merhaba! Ben AI Asistanınızım', aiWelcomeDesc: 'Size yardımcı olmak için buradayım. Bir soru sorun veya açık uygulamalarınızla ilgili yardım isteyin.', aiPlaceholder: 'Mesajınızı yazın...', aiChip1: 'Bu uygulamada ne yapabilirim?', aiChip2: 'Bana bir metin yaz', aiChip3: 'Bir sorunumu çöz'
+    aiChat: 'AI Asistan', aiNewChat: 'Yeni Sohbet', aiClear: 'Temizle', aiNoProvider: 'Henüz bir AI sağlayıcı yapılandırılmadı. Ayarlardan bir sağlayıcı ekleyin.', aiGoSettings: 'Ayarlara Git', aiWelcome: 'Merhaba! Ben AI Asistanınızım', aiWelcomeDesc: 'Size yardımcı olmak için buradayım. Bir soru sorun veya açık uygulamalarınızla ilgili yardım isteyin.', aiPlaceholder: 'Mesajınızı yazın...', aiChip1: 'Bu uygulamada ne yapabilirim?', aiChip2: 'Bana bir metin yaz', aiChip3: 'Bir sorunumu çöz',
+    settingsUsers: 'Kullanıcılar', usersAdd: 'Yeni Kullanıcı', usersNewUser: 'Yeni Kullanıcı Oluştur', usersUsername: 'Kullanıcı Adı', usersDisplayName: 'Görünen Ad', usersDisplayNamePlaceholder: 'Ahmet Yılmaz', usersPassword: 'Şifre', usersPasswordConfirm: 'Şifre Tekrar', usersNewPassword: 'Yeni Şifre', usersPasswordLeaveEmpty: 'Değiştirmemek için boş bırakın', usersAvatar: 'Avatar', usersNoAvatar: 'Yok', usersEdit: 'Düzenle', usersDelete: 'Sil', usersSave: 'Kaydet', usersCancel: 'İptal', usersActive: 'Aktif', usersCreated: 'Oluşturulma', usersDeleted: 'Kullanıcı silindi', usersSaved: 'Kaydedildi', usersFieldsRequired: 'Kullanıcı adı ve şifre gerekli', usersPasswordMismatch: 'Şifreler eşleşmiyor', usersDeleteConfirm: 'Kullanıcıyı sil', usersUsernameNoChange: 'Kullanıcı adı değiştirilemez (dizin yollarında kullanılıyor)', usersChangeAvatar: 'Avatarı değiştir'
   },
   en: {
     apps: 'Applications', user: 'User', loading: 'Loading...', search: 'Search...',
@@ -2163,7 +2241,8 @@ const I18N = {
     aiAgentProvider: 'Provider', aiAgentModel: 'Model', aiAgentPrompt: 'System Prompt',
     aiSave: 'Save', aiSaved: 'AI settings saved', aiRemove: 'Remove',
     aiKeyHidden: 'Key is hidden', aiKeyPlaceholder: 'Enter API key...', aiDefault: 'Default',
-    aiChat: 'AI Assistant', aiNewChat: 'New Chat', aiClear: 'Clear', aiNoProvider: 'No AI provider configured yet. Add a provider from Settings.', aiGoSettings: 'Go to Settings', aiWelcome: 'Hello! I\'m your AI Assistant', aiWelcomeDesc: 'I\'m here to help you. Ask a question or get help with your open apps.', aiPlaceholder: 'Type your message...', aiChip1: 'What can I do in this app?', aiChip2: 'Write me a text', aiChip3: 'Help me solve a problem'
+    aiChat: 'AI Assistant', aiNewChat: 'New Chat', aiClear: 'Clear', aiNoProvider: 'No AI provider configured yet. Add a provider from Settings.', aiGoSettings: 'Go to Settings', aiWelcome: 'Hello! I\'m your AI Assistant', aiWelcomeDesc: 'I\'m here to help you. Ask a question or get help with your open apps.', aiPlaceholder: 'Type your message...', aiChip1: 'What can I do in this app?', aiChip2: 'Write me a text', aiChip3: 'Help me solve a problem',
+    settingsUsers: 'Users', usersAdd: 'New User', usersNewUser: 'Create New User', usersUsername: 'Username', usersDisplayName: 'Display Name', usersDisplayNamePlaceholder: 'John Doe', usersPassword: 'Password', usersPasswordConfirm: 'Confirm', usersNewPassword: 'New Password', usersPasswordLeaveEmpty: 'Leave empty to keep current', usersAvatar: 'Avatar', usersNoAvatar: 'None', usersEdit: 'Edit', usersDelete: 'Delete', usersSave: 'Save', usersCancel: 'Cancel', usersActive: 'Active', usersCreated: 'Created', usersDeleted: 'User deleted', usersSaved: 'Saved', usersFieldsRequired: 'Username and password required', usersPasswordMismatch: 'Passwords do not match', usersDeleteConfirm: 'Delete user', usersUsernameNoChange: 'Username cannot be changed (used in directory paths)', usersChangeAvatar: 'Change avatar'
   },
   de: {
     apps: 'Anwendungen', user: 'Benutzer', loading: 'Laden...', search: 'Suchen...',
@@ -3404,6 +3483,7 @@ const SettingsApp = {
       { id: 'sound', icon: '🔊', name: t('settingsSound') },
       { id: 'session', icon: '🔄', name: t('settingsSession') || 'Oturum' },
       { id: 'security', icon: '🔐', name: t('settingsSecurity') || 'Güvenlik' },
+      { id: 'users', icon: '👥', name: t('settingsUsers') || 'Users' },
       { id: 'ai', icon: '🤖', name: t('settingsAI') || 'AI' },
       { id: 'network', icon: '📶', name: t('settingsNetwork') },
       { id: 'about', icon: 'ℹ️', name: t('settingsAbout') }
@@ -3998,6 +4078,101 @@ const SettingsApp = {
       } catch {}
     }
 
+    // ── User Management ──
+    const userList = ref([]);
+    const showCreateUser = ref(false);
+    const newUser = ref({ username: '', password: '', passwordConfirm: '', displayName: '' });
+    const editingUser = ref('');
+    const editForm = ref({ displayName: '', password: '', passwordConfirm: '', avatar: '' });
+    const currentUsername = ref('');
+    const avatarOptions = ['😀','😎','🤓','🧑‍💻','👨‍💼','👩‍💼','🧑‍🎨','🧑‍🔬','🧑‍🚀','🦊','🐱','🐶','🐼','🦁','🐸','🌟','🔥','💎','🎮','🎵','🏀','⚽','🌈','🍀','🎯','🚀','🛡️','👑','🎭','🌸'];
+
+    async function loadUsers() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/users', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) userList.value = await res.json();
+        const me = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (me.ok) { const d = await me.json(); currentUsername.value = d.user?.username || ''; }
+      } catch {}
+    }
+
+    async function createUser() {
+      const u = newUser.value;
+      if (!u.username || !u.password) return ElMessage.warning(t('usersFieldsRequired') || 'Username and password required');
+      if (u.password !== u.passwordConfirm) return ElMessage.warning(t('usersPasswordMismatch') || 'Passwords do not match');
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/users/create', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: u.username, password: u.password, displayName: u.displayName })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          ElMessage.success(t('usersCreated') || 'User created');
+          showCreateUser.value = false;
+          newUser.value = { username: '', password: '', passwordConfirm: '', displayName: '' };
+          await loadUsers();
+        } else {
+          ElMessage.error(data.error || 'Error');
+        }
+      } catch { ElMessage.error('Connection error'); }
+    }
+
+    function startEditUser(u) {
+      editingUser.value = u.username;
+      editForm.value = { displayName: u.displayName || '', password: '', passwordConfirm: '', avatar: u.avatar || '' };
+    }
+
+    function pickAvatar(username) {
+      // Already in edit mode, avatar grid is visible
+    }
+
+    async function saveUserEdit(username) {
+      const f = editForm.value;
+      if (f.password && f.password !== f.passwordConfirm) return ElMessage.warning(t('usersPasswordMismatch') || 'Passwords do not match');
+      try {
+        const token = localStorage.getItem('token');
+        const body = { displayName: f.displayName, avatar: f.avatar };
+        if (f.password) body.password = f.password;
+        const res = await fetch('/api/users/' + encodeURIComponent(username) + '/update', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          ElMessage.success(t('usersSaved') || 'Saved');
+          editingUser.value = '';
+          await loadUsers();
+          if (username === currentUsername.value) {
+            window.dispatchEvent(new CustomEvent('user-updated', { detail: { displayName: f.displayName, avatar: f.avatar } }));
+          }
+        } else {
+          ElMessage.error(data.error || 'Error');
+        }
+      } catch { ElMessage.error('Connection error'); }
+    }
+
+    async function deleteUser(username) {
+      if (!confirm((t('usersDeleteConfirm') || 'Delete user') + ' "' + username + '"?')) return;
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/users/' + encodeURIComponent(username) + '/delete', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          ElMessage.success(t('usersDeleted') || 'User deleted');
+          await loadUsers();
+        } else {
+          ElMessage.error(data.error || 'Error');
+        }
+      } catch { ElMessage.error('Connection error'); }
+    }
+
     onMounted(() => {
       loadCountries();
       loadSettings();
@@ -4018,9 +4193,9 @@ const SettingsApp = {
       } catch {}
       netLoading.value = false;
     }
-    watch(active, (v) => { if (v === 'network') loadNetworkInfo(); });
+    watch(active, (v) => { if (v === 'network') loadNetworkInfo(); if (v === 'users') loadUsers(); });
 
-    return { active, tabs, currentRows, zoomLevel, zoomOptions, darkModeVal, onZoomChange, screenInfo, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, wpAuthUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray, twoFAEnabled, twoFASetup, twoFASecret, twoFAQRUrl, twoFACode, twoFAError, twoFADisabling, twoFADisableCode, toggle2FA, verify2FASetup, confirm2FADisable, aiProviders, aiAgents, addProvider, removeProvider, addAgent, removeAgent, saveAISettings, userFonts, isFontAdded, addFont, removeFont, showGoogleFontsDialog, netInfo, netLoading };
+    return { active, tabs, currentRows, zoomLevel, zoomOptions, darkModeVal, onZoomChange, screenInfo, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, wpAuthUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray, twoFAEnabled, twoFASetup, twoFASecret, twoFAQRUrl, twoFACode, twoFAError, twoFADisabling, twoFADisableCode, toggle2FA, verify2FASetup, confirm2FADisable, aiProviders, aiAgents, addProvider, removeProvider, addAgent, removeAgent, saveAISettings, userFonts, isFontAdded, addFont, removeFont, showGoogleFontsDialog, netInfo, netLoading, userList, showCreateUser, newUser, editingUser, editForm, currentUsername, avatarOptions, loadUsers, createUser, startEditUser, pickAvatar, saveUserEdit, deleteUser };
   }
 };
 
@@ -5446,6 +5621,16 @@ createApp({
     const volStore = useVolumeStore();
     const time = ref('');
     const date = ref('');
+    const currentUsername = ref('');
+    const currentDisplayName = ref('');
+    const currentAvatar = ref('');
+    async function loadCurrentUser() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) { const d = await res.json(); currentUsername.value = d.user?.username || ''; currentDisplayName.value = d.user?.displayName || ''; currentAvatar.value = d.user?.avatar || ''; }
+      } catch {}
+    }
     let wbMap = {};
     let subApps = {};
     let clockTimer = null;
@@ -5738,7 +5923,7 @@ createApp({
       const loc = LOCALE_MAP[store.locale] || 'tr-TR';
       const opts = store.timezone ? { timeZone: store.timezone } : {};
       const now = new Date();
-      time.value = now.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit', ...opts });
+      time.value = now.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit', hour12: false, ...opts });
       date.value = now.toLocaleDateString(loc, { day: '2-digit', month: '2-digit', year: 'numeric', ...opts });
     }
 
@@ -6307,7 +6492,17 @@ createApp({
       window.addEventListener('app-uninstalled', onAppUninstalled);
       window.addEventListener('open-app-action', onOpenAppAction);
       window.addEventListener('keydown', onGlobalKeyDown);
+      function onUserUpdated(e) {
+        if (e.detail) {
+          currentDisplayName.value = e.detail.displayName || '';
+          currentAvatar.value = e.detail.avatar || '';
+        } else {
+          loadCurrentUser();
+        }
+      }
+      window.addEventListener('user-updated', onUserUpdated);
       loadDesktopLayout();
+      loadCurrentUser();
       loadInstalledApps().then(() => {
         restoreSessionApps();
         // Auto-open PostIt app if there are visible postits (independent of session restore)
@@ -6323,6 +6518,7 @@ createApp({
       window.removeEventListener('app-uninstalled', onAppUninstalled);
       window.removeEventListener('open-app-action', onOpenAppAction);
       window.removeEventListener('keydown', onGlobalKeyDown);
+      window.removeEventListener('user-updated', onUserUpdated);
       if (wsConn) wsConn.close();
     });
 
@@ -6644,7 +6840,7 @@ createApp({
       document.addEventListener('click', aiHandleOutsideClick);
     });
 
-    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, iconCtxEl, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, removeFromDesktop, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, smCtx, smCtxEl, showSmCtx, hideSmCtx, addToDesktop, doLogout, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture, smSearch, smFinderIdx, smSearchResults, smFinderDown, smFinderUp, smFinderEnter, showKeyboardTray: computed(() => settingsStore.showKeyboardTray), showMagnifierTray: computed(() => settingsStore.showMagnifierTray), dragState, desktopCtx, onIconDragStart, onIconDragEnter, onIconDragLeave, onIconDrop, onIconDragEnd, showDesktopCtx, hideDesktopCtx, arrangeIcons, desktopCtxEl, cascadeWindows, tileWindowsH, tileWindowsV, minimizeAll, focusWindowRestore, aiPanelOpen, aiInput, aiMessages, aiLoading, aiError, aiSelectedProvider, aiActiveContext, aiMessagesEl, aiEnabledProviders, aiCurrentModel, aiSendMsg, aiNewChat, aiClearChat, aiRenderMd, aiEscape, aiAutoResize };
+    return { apps, desktopApps, openWindows, visibleWindows, currentDesktop, desktopStyle, menuOpen, volOpen, volStore, iconCtx, iconCtxEl, time, date, notifCount, openApp, focusWindow, switchDesktop, desktopHasWindows, toggleMenu, closeMenu, closeAllWindows, setSystemVol, showIconCtx, hideIconCtx, moveIcon, copyIcon, removeFromDesktop, isIconOnDesktop, isFullscreen, toggleFullscreen, t, appName, reminderAlert, dismissReminder, snoozeReminder, openReminderApp, menuCategories, openCats, toggleCat, smCtx, smCtxEl, showSmCtx, hideSmCtx, addToDesktop, doLogout, currentUsername, currentDisplayName, currentAvatar, ssActive, ssSelecting, ssCanvas, ssWidth, ssHeight, ssInfoX, ssInfoY, startScreenshot, ssMouseDown, ssMouseMove, ssMouseUp, ssCancelCapture, smSearch, smFinderIdx, smSearchResults, smFinderDown, smFinderUp, smFinderEnter, showKeyboardTray: computed(() => settingsStore.showKeyboardTray), showMagnifierTray: computed(() => settingsStore.showMagnifierTray), dragState, desktopCtx, onIconDragStart, onIconDragEnter, onIconDragLeave, onIconDrop, onIconDragEnd, showDesktopCtx, hideDesktopCtx, arrangeIcons, desktopCtxEl, cascadeWindows, tileWindowsH, tileWindowsV, minimizeAll, focusWindowRestore, aiPanelOpen, aiInput, aiMessages, aiLoading, aiError, aiSelectedProvider, aiActiveContext, aiMessagesEl, aiEnabledProviders, aiCurrentModel, aiSendMsg, aiNewChat, aiClearChat, aiRenderMd, aiEscape, aiAutoResize };
   }
 }).use(pinia).use(ElementPlus, EP_LOCALES[localStorage.getItem('sys_locale') || 'tr'] || EP_LOCALES.en).mount('#app');
 

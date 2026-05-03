@@ -11,7 +11,14 @@ RUN npm install --production
 # ── Runtime stage ──
 FROM node:20-alpine
 
-RUN apk add --no-cache 7zip
+RUN apk add --no-cache 7zip curl \
+    && ARCH=$(uname -m) \
+    && if [ "$ARCH" = "x86_64" ]; then GOARCH=amd64; \
+       elif [ "$ARCH" = "aarch64" ]; then GOARCH=arm64; \
+       else GOARCH=amd64; fi \
+    && curl -fsSL "https://github.com/tdewolff/minify/releases/latest/download/minify_linux_${GOARCH}.tar.gz" \
+       | tar -xz -C /usr/local/bin minify \
+    && chmod +x /usr/local/bin/minify
 
 WORKDIR /app
 

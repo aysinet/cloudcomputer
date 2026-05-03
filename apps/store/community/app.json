@@ -1,0 +1,71 @@
+{
+  "id": "community",
+  "name": "Community",
+  "icon": "🌐",
+  "color": "linear-gradient(135deg,#6366f1,#8b5cf6)",
+  "type": "internal",
+  "size": {
+    "w": 1050,
+    "h": 720
+  },
+  "global": false,
+  "singleInstance": true,
+  "description": "Cross-instance topluluk platformu — chat, forum, oyunlar, dosya paylaşımı",
+  "lang": {
+    "tr": {
+      "name": "Topluluk",
+      "description": "Cross-instance topluluk platformu — chat, forum, oyunlar, dosya paylaşımı"
+    },
+    "en": {
+      "name": "Community",
+      "description": "Cross-instance community platform — chat, forum, games, file sharing"
+    },
+    "de": {
+      "name": "Gemeinschaft",
+      "description": "Plattformübergreifende Community — Chat, Forum, Spiele, Dateifreigabe"
+    },
+    "fr": {
+      "name": "Communauté",
+      "description": "Plateforme communautaire multi-instance — chat, forum, jeux, partage de fichiers"
+    },
+    "es": {
+      "name": "Comunidad",
+      "description": "Plataforma comunitaria multi-instancia — chat, foro, juegos, compartir archivos"
+    },
+    "ru": {
+      "name": "Сообщество",
+      "description": "Кросс-инстанс платформа сообщества — чат, форум, игры, обмен файлами"
+    },
+    "zh": {
+      "name": "社区",
+      "description": "跨实例社区平台 — 聊天、论坛、游戏、文件共享"
+    },
+    "ja": {
+      "name": "コミュニティ",
+      "description": "クロスインスタンスコミュニティ — チャット、フォーラム、ゲーム、ファイル共有"
+    },
+    "it": {
+      "name": "Comunità",
+      "description": "Piattaforma comunitaria multi-istanza — chat, forum, giochi, condivisione file"
+    },
+    "ar": {
+      "name": "المجتمع",
+      "description": "منصة مجتمعية متعددة الخوادم — دردشة، منتدى، ألعاب، مشاركة ملفات"
+    },
+    "ko": {
+      "name": "커뮤니티",
+      "description": "크로스 인스턴스 커뮤니티 플랫폼 — 채팅, 포럼, 게임, 파일 공유"
+    },
+    "hi": {
+      "name": "समुदाय",
+      "description": "क्रॉस-इंस्टेंस समुदाय प्लेटफ़ॉर्म — चैट, फ़ोरम, गेम, फ़ाइल साझाकरण"
+    },
+    "pt": {
+      "name": "Comunidade",
+      "description": "Plataforma comunitária multi-instância — chat, fórum, jogos, compartilhamento de arquivos"
+    }
+  },
+  "category": "social",
+  "version": "1.0.0",
+  "author": "CloudComputer"
+}

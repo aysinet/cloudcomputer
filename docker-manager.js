@@ -372,6 +372,29 @@ app.get('/status/:appId', authCheck, async (req, res) => {
   }
 });
 
+// ── Container & image sizes ──
+app.get('/sizes', authCheck, async (req, res) => {
+  const results = [];
+  for (const [appId, hostPort] of Object.entries(portAllocations)) {
+    const containerName = `cloudpc-${appId}`;
+    let imageSize = 0, containerSize = 0, imageName = '';
+    try {
+      const out = await dockerExec(['inspect', '-f', '{{.Image}}||{{.Config.Image}}||{{.SizeRw}}', '--size', containerName], 10000);
+      const parts = out.split('||');
+      imageName = parts[1] || '';
+      containerSize = parseInt(parts[2]) || 0;
+    } catch { /* container not found */ }
+    if (imageName) {
+      try {
+        const out = await dockerExec(['image', 'inspect', '-f', '{{.Size}}', imageName], 10000);
+        imageSize = parseInt(out) || 0;
+      } catch { /* image not found */ }
+    }
+    results.push({ appId, imageSize, containerSize, totalSize: imageSize + containerSize });
+  }
+  res.json(results);
+});
+
 // ── List all allocated ports (for VirtPC to discover containers) ──
 app.get('/ports', authCheck, (req, res) => {
   res.json(portAllocations);

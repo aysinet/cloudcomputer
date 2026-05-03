@@ -1,0 +1,191 @@
+<div class="bg-root">
+  <!-- Menu Screen -->
+  <div v-if="screen === 'menu'" class="bg-menu-screen">
+    <div class="bg-menu-icon">🎲</div>
+    <div class="bg-menu-title">{{t('title')}}</div>
+    <div class="bg-menu-buttons">
+      <button class="bg-btn bg-btn-primary bg-btn-large" @click="startGame('ai')">
+        🤖 {{t('vsAI')}}
+      </button>
+      <button class="bg-btn bg-btn-secondary bg-btn-large" @click="startGame('pvp')">
+        👥 {{t('vs2P')}}
+      </button>
+    </div>
+    <div class="bg-menu-sub">{{t('subtitle')}}</div>
+  </div>
+
+  <!-- Game Screen -->
+  <div v-else class="bg-game-screen">
+    <!-- Top bar -->
+    <div class="bg-top-bar">
+      <div class="bg-player-info" :class="{ active: currentPlayer === 'black' }">
+        <span class="bg-checker-icon black-icon"></span>
+        <span>{{t('black')}} <template v-if="mode === 'ai'">({{t('you')}})</template></span>
+        <span class="bg-borne-off">{{borneOff.black}} / 15</span>
+      </div>
+      <div class="bg-dice-area">
+        <div class="bg-dice-container" v-if="dice.length">
+          <span v-for="(d, i) in dice" :key="i" class="bg-die" :class="{ used: usedDice[i] }">{{diceUnicode(d)}}</span>
+        </div>
+        <button v-if="!rolled && !gameOver && !(mode === 'ai' && currentPlayer === 'white')"
+                class="bg-btn bg-btn-roll" @click="rollDice">
+          🎲 {{t('roll')}}
+        </button>
+        <div v-if="rolled && canMove && !gameOver && !(mode === 'ai' && currentPlayer === 'white')" class="bg-turn-hint">
+          {{t('selectChecker')}}
+        </div>
+        <div v-if="rolled && !canMove && !gameOver" class="bg-turn-hint bg-no-move">
+          {{t('noMoves')}}
+        </div>
+      </div>
+      <div class="bg-player-info" :class="{ active: currentPlayer === 'white' }">
+        <span class="bg-checker-icon white-icon"></span>
+        <span>{{t('white')}} <template v-if="mode === 'ai'">({{t('computer')}})</template></span>
+        <span class="bg-borne-off">{{borneOff.white}} / 15</span>
+      </div>
+    </div>
+
+    <!-- Winner Banner -->
+    <div v-if="gameOver" class="bg-winner-banner">
+      <span>🏆 {{winnerText}}</span>
+      <button class="bg-btn bg-btn-primary" @click="screen = 'menu'">{{t('newGame')}}</button>
+    </div>
+
+    <!-- Board -->
+    <div class="bg-board-outer">
+      <!-- Point number labels - top -->
+      <div class="bg-labels bg-labels-top">
+        <div class="bg-label-group">
+          <span v-for="i in [12,13,14,15,16,17]" :key="'lt'+i" class="bg-lbl">{{i+1}}</span>
+        </div>
+        <div class="bg-label-bar-gap"></div>
+        <div class="bg-label-group">
+          <span v-for="i in [18,19,20,21,22,23]" :key="'lt'+i" class="bg-lbl">{{i+1}}</span>
+        </div>
+      </div>
+
+      <div class="bg-board-row">
+        <!-- Bear off tray left -->
+        <div class="bg-bearoff-tray">
+          <div class="bg-bearoff-label">{{t('white')}}</div>
+          <div class="bg-bearoff-pieces">
+            <div v-for="n in borneOff.white" :key="'bow'+n" class="bg-piece bg-piece-w bg-piece-sm"></div>
+          </div>
+          <div class="bg-bearoff-count">{{borneOff.white}}</div>
+        </div>
+
+        <div class="bg-board">
+          <!-- Top half -->
+          <div class="bg-half bg-half-top">
+            <div class="bg-quadrant">
+              <div v-for="i in [12,13,14,15,16,17]" :key="'tp'+i"
+                   class="bg-point"
+                   :class="[i%2===0?'bg-pt-dark':'bg-pt-light', {highlight:isValidTarget(i), selected:selectedPoint===i}]"
+                   @click="onPointClick(i)">
+                <svg class="bg-tri" viewBox="0 0 60 200" preserveAspectRatio="none">
+                  <polygon points="0,0 60,0 30,200"/>
+                </svg>
+                <div class="bg-stack bg-stack-top">
+                  <div v-for="c in getPointCheckers(i)" :key="c.idx"
+                       class="bg-piece" :class="'bg-piece-'+c.color[0]">
+                    <span v-if="c.extra" class="bg-piece-num">{{c.total}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="bg-bar" @click="onBarClick">
+              <div v-for="c in barCheckers('white')" :key="'bw'+c" class="bg-piece bg-piece-w bg-piece-bar"></div>
+            </div>
+            <div class="bg-quadrant">
+              <div v-for="i in [18,19,20,21,22,23]" :key="'tp'+i"
+                   class="bg-point"
+                   :class="[i%2===0?'bg-pt-dark':'bg-pt-light', {highlight:isValidTarget(i), selected:selectedPoint===i}]"
+                   @click="onPointClick(i)">
+                <svg class="bg-tri" viewBox="0 0 60 200" preserveAspectRatio="none">
+                  <polygon points="0,0 60,0 30,200"/>
+                </svg>
+                <div class="bg-stack bg-stack-top">
+                  <div v-for="c in getPointCheckers(i)" :key="c.idx"
+                       class="bg-piece" :class="'bg-piece-'+c.color[0]">
+                    <span v-if="c.extra" class="bg-piece-num">{{c.total}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom half -->
+          <div class="bg-half bg-half-bottom">
+            <div class="bg-quadrant">
+              <div v-for="i in [11,10,9,8,7,6]" :key="'bp'+i"
+                   class="bg-point"
+                   :class="[i%2===0?'bg-pt-dark':'bg-pt-light', {highlight:isValidTarget(i), selected:selectedPoint===i}]"
+                   @click="onPointClick(i)">
+                <div class="bg-stack bg-stack-bottom">
+                  <div v-for="c in getPointCheckers(i)" :key="c.idx"
+                       class="bg-piece" :class="'bg-piece-'+c.color[0]">
+                    <span v-if="c.extra" class="bg-piece-num">{{c.total}}</span>
+                  </div>
+                </div>
+                <svg class="bg-tri bg-tri-bottom" viewBox="0 0 60 200" preserveAspectRatio="none">
+                  <polygon points="30,0 60,200 0,200"/>
+                </svg>
+              </div>
+            </div>
+            <div class="bg-bar" @click="onBarClick">
+              <div v-for="c in barCheckers('black')" :key="'bb'+c" class="bg-piece bg-piece-b bg-piece-bar"></div>
+            </div>
+            <div class="bg-quadrant">
+              <div v-for="i in [5,4,3,2,1,0]" :key="'bp'+i"
+                   class="bg-point"
+                   :class="[i%2===0?'bg-pt-dark':'bg-pt-light', {highlight:isValidTarget(i), selected:selectedPoint===i}]"
+                   @click="onPointClick(i)">
+                <div class="bg-stack bg-stack-bottom">
+                  <div v-for="c in getPointCheckers(i)" :key="c.idx"
+                       class="bg-piece" :class="'bg-piece-'+c.color[0]">
+                    <span v-if="c.extra" class="bg-piece-num">{{c.total}}</span>
+                  </div>
+                </div>
+                <svg class="bg-tri bg-tri-bottom" viewBox="0 0 60 200" preserveAspectRatio="none">
+                  <polygon points="30,0 60,200 0,200"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bear off tray right -->
+        <div class="bg-bearoff-tray">
+          <div class="bg-bearoff-label">{{t('black')}}</div>
+          <div class="bg-bearoff-pieces">
+            <div v-for="n in borneOff.black" :key="'bob'+n" class="bg-piece bg-piece-b bg-piece-sm"></div>
+          </div>
+          <div class="bg-bearoff-count">{{borneOff.black}}</div>
+        </div>
+      </div>
+
+      <!-- Point number labels - bottom -->
+      <div class="bg-labels bg-labels-bottom">
+        <div class="bg-label-group">
+          <span v-for="i in [11,10,9,8,7,6]" :key="'lb'+i" class="bg-lbl">{{i+1}}</span>
+        </div>
+        <div class="bg-label-bar-gap"></div>
+        <div class="bg-label-group">
+          <span v-for="i in [5,4,3,2,1,0]" :key="'lb'+i" class="bg-lbl">{{i+1}}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-bottom-bar">
+      <button class="bg-btn bg-btn-small" @click="screen = 'menu'">◀ {{t('menu')}}</button>
+      <button v-if="rolled && !canMove && !gameOver && !(mode === 'ai' && currentPlayer === 'white')"
+              class="bg-btn bg-btn-small bg-btn-end-turn" @click="endTurn">
+        {{t('endTurn')}}
+      </button>
+      <button v-if="rolled && canMove && !gameOver && allDiceUsed && !(mode === 'ai' && currentPlayer === 'white')"
+              class="bg-btn bg-btn-small bg-btn-end-turn" @click="endTurn">
+        {{t('endTurn')}}
+      </button>
+    </div>
+  </div>
+</div>

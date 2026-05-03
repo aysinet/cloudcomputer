@@ -1,0 +1,42 @@
+{
+  "id": "elasticsearch",
+  "name": "Elasticsearch",
+  "icon": "🔎",
+  "color": "linear-gradient(135deg,#FEC514,#00BFB3)",
+  "type": "service",
+  "size": {
+    "w": 520,
+    "h": 420
+  },
+  "global": false,
+  "description": "Elasticsearch arama ve analiz motoru — dağıtık tam metin arama servisi",
+  "lang": {
+    "tr": { "name": "Elasticsearch", "description": "Elasticsearch arama ve analiz motoru — dağıtık tam metin arama servisi" },
+    "en": { "name": "Elasticsearch", "description": "Elasticsearch search and analytics engine — distributed full-text search service" },
+    "de": { "name": "Elasticsearch", "description": "Elasticsearch Such- und Analyse-Engine — verteilter Volltextsuchdienst" },
+    "fr": { "name": "Elasticsearch", "description": "Moteur de recherche et d'analyse Elasticsearch — service de recherche plein texte distribué" },
+    "es": { "name": "Elasticsearch", "description": "Motor de búsqueda y análisis Elasticsearch — servicio de búsqueda de texto completo distribuido" },
+    "ru": { "name": "Elasticsearch", "description": "Поисковый и аналитический движок Elasticsearch — распределённый полнотекстовый поиск" },
+    "zh": { "name": "Elasticsearch", "description": "Elasticsearch 搜索与分析引擎 — 分布式全文搜索服务" },
+    "ja": { "name": "Elasticsearch", "description": "Elasticsearch検索・分析エンジン — 分散型全文検索サービス" },
+    "it": { "name": "Elasticsearch", "description": "Motore di ricerca e analisi Elasticsearch — servizio di ricerca full-text distribuito" },
+    "ar": { "name": "Elasticsearch", "description": "محرك البحث والتحليل Elasticsearch — خدمة بحث نصي كامل موزعة" },
+    "ko": { "name": "Elasticsearch", "description": "Elasticsearch 검색 및 분석 엔진 — 분산 전문 검색 서비스" },
+    "hi": { "name": "Elasticsearch", "description": "Elasticsearch खोज और विश्लेषण इंजन — वितरित पूर्ण-पाठ खोज सेवा" },
+    "pt": { "name": "Elasticsearch", "description": "Motor de busca e análise Elasticsearch — serviço de busca de texto completo distribuído" }
+  },
+  "category": "development",
+  "docker": {
+    "image": "docker.elastic.co/elasticsearch/elasticsearch:8.15.0",
+    "containerPort": 9200,
+    "volumes": [
+      "${APP_VOLUME}:/usr/share/elasticsearch/data"
+    ],
+    "env": [
+      "discovery.type=single-node",
+      "xpack.security.enabled=false",
+      "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ],
+    "restart": "always"
+  }
+}

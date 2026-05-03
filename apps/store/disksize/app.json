@@ -1,0 +1,28 @@
+{
+  "id": "disksize",
+  "name": "Disk Boyutu",
+  "icon": "💾",
+  "color": "linear-gradient(135deg,#1a1a2e,#0f3460)",
+  "type": "internal",
+  "size": {
+    "w": 480,
+    "h": 520
+  },
+  "global": false,
+  "description": "Docker, AppData ve Kullanıcı dizinlerinin disk kullanımı",
+  "lang": {
+    "tr": { "name": "Disk Boyutu", "description": "Docker, AppData ve Kullanıcı dizinlerinin disk kullanımı" },
+    "en": { "name": "Disk Size", "description": "Disk usage of Docker, AppData and User directories" },
+    "de": { "name": "Festplattengröße", "description": "Festplattennutzung von Docker, AppData und Benutzerverzeichnissen" },
+    "fr": { "name": "Taille du disque", "description": "Utilisation du disque Docker, AppData et répertoires utilisateur" },
+    "es": { "name": "Tamaño de disco", "description": "Uso de disco de Docker, AppData y directorios de usuario" },
+    "pt": { "name": "Tamanho do disco", "description": "Uso de disco de Docker, AppData e diretórios de usuário" },
+    "it": { "name": "Dimensione disco", "description": "Utilizzo disco di Docker, AppData e directory utente" },
+    "ru": { "name": "Размер диска", "description": "Использование диска Docker, AppData и пользовательских каталогов" },
+    "zh": { "name": "磁盘大小", "description": "Docker、AppData 和用户目录的磁盘使用情况" },
+    "ja": { "name": "ディスクサイズ", "description": "Docker、AppData、ユーザーディレクトリのディスク使用量" },
+    "ko": { "name": "디스크 크기", "description": "Docker, AppData 및 사용자 디렉터리의 디스크 사용량" },
+    "ar": { "name": "حجم القرص", "description": "استخدام القرص لحاويات Docker ومجلدات AppData والمستخدمين" }
+  },
+  "category": "tools"
+}

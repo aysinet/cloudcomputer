@@ -1,0 +1,154 @@
+<div class="gt-root">
+  <!-- Header -->
+  <div class="gt-header">
+    <div class="gt-header-top">
+      <span class="gt-logo">📈 {{L('title')}}</span>
+      <div class="gt-filters">
+        <select v-model="country" class="gt-select">
+          <option v-for="c in COUNTRIES" :key="c.code" :value="c.code">
+            {{c.code ? c.name : L('worldwide')}}
+          </option>
+        </select>
+      </div>
+    </div>
+    <div class="gt-tabs">
+      <button :class="{active:tab==='trending'}" @click="tab='trending'">🔥 {{L('trending')}}</button>
+      <button :class="{active:tab==='search'}" @click="tab='search'">🔍 {{L('search')}}</button>
+    </div>
+  </div>
+
+  <!-- Trending Tab -->
+  <div v-if="tab==='trending'" class="gt-body">
+    <div class="gt-toolbar">
+      <div class="gt-cat-row">
+        <button v-for="cat in CATEGORIES" :key="cat.id"
+          :class="['gt-cat-btn', {active:categoryFilter===cat.id}]"
+          @click="categoryFilter=cat.id">{{L(cat.label)}}</button>
+      </div>
+      <button class="gt-refresh-btn" @click="fetchTrending" :disabled="trendLoading">↻</button>
+    </div>
+
+    <div v-if="trendLoading" class="gt-loading">
+      <div class="gt-spinner"></div> {{L('loading')}}
+    </div>
+
+    <div v-else-if="trendError" class="gt-error">
+      <span>⚠ {{L('error')}}: {{trendError}}</span>
+      <button @click="fetchTrending" class="gt-retry-btn">{{L('retry')}}</button>
+    </div>
+
+    <div v-else-if="!trendItems.length" class="gt-empty">{{L('noResults')}}</div>
+
+    <div v-else class="gt-trend-list">
+      <div v-for="(item, idx) in trendItems" :key="idx"
+        :class="['gt-trend-item', {expanded: expandedIdx===idx}]"
+        @click="toggleExpand(idx)">
+        <div class="gt-trend-row">
+          <span class="gt-trend-rank">{{idx+1}}</span>
+          <div class="gt-trend-info">
+            <span class="gt-trend-title">{{item.title}}</span>
+            <span v-if="item.traffic" class="gt-trend-traffic">
+              {{formatTraffic(item.traffic)}} {{L('traffic')}}
+            </span>
+          </div>
+          <div class="gt-trend-actions">
+            <button class="gt-icon-btn" @click.stop="addToCompare(item.title)" :title="L('addToCompare')">📊</button>
+            <button class="gt-icon-btn" @click.stop="openTrendsPage(item.title)" :title="L('explore')">↗</button>
+          </div>
+        </div>
+        <div v-if="expandedIdx===idx && item.articles && item.articles.length" class="gt-trend-articles">
+          <div v-for="(art, ai) in item.articles" :key="ai" class="gt-article">
+            <img v-if="art.image" :src="art.image" class="gt-article-img" loading="lazy" />
+            <div class="gt-article-body">
+              <a v-if="art.url" :href="art.url" target="_blank" class="gt-article-title">{{art.title}}</a>
+              <span v-else class="gt-article-title">{{art.title}}</span>
+              <span v-if="art.source" class="gt-article-source">{{art.source}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Tab -->
+  <div v-if="tab==='search'" class="gt-body">
+    <div class="gt-search-bar">
+      <input v-model="searchKeyword" :placeholder="L('searchPlaceholder')"
+        class="gt-input" @keyup.enter="doSearch" />
+      <button class="gt-search-btn" @click="doSearch" :disabled="searchLoading">🔍</button>
+    </div>
+
+    <div class="gt-compare-bar">
+      <div class="gt-compare-tags">
+        <span v-for="(t, ti) in compareTerms" :key="ti"
+          class="gt-tag" :style="{borderColor: CHART_COLORS[(ti+1)%CHART_COLORS.length]}">
+          {{t}}
+          <button class="gt-tag-remove" @click="removeTerm(ti)">×</button>
+        </span>
+      </div>
+      <input v-if="compareTerms.length < 4" v-model="newTerm"
+        :placeholder="L('comparePlaceholder')"
+        class="gt-input gt-compare-input" @keyup.enter="addCompareTerm" />
+      <button v-if="compareTerms.length" class="gt-clear-btn" @click="clearTerms">{{L('removeAll')}}</button>
+    </div>
+
+    <div class="gt-search-filters">
+      <select v-model="period" class="gt-select">
+        <option v-for="p in PERIODS" :key="p.value" :value="p.value">{{L(p.label)}}</option>
+      </select>
+    </div>
+
+    <div v-if="searchLoading" class="gt-loading">
+      <div class="gt-spinner"></div> {{L('loading')}}
+    </div>
+
+    <div v-else-if="searchError" class="gt-error">
+      <span>⚠ {{L('error')}}: {{searchError}}</span>
+      <button @click="fetchSearch" class="gt-retry-btn">{{L('retry')}}</button>
+    </div>
+
+    <div v-else-if="searchData" class="gt-results">
+      <!-- Chart -->
+      <div class="gt-chart-section">
+        <h3 class="gt-section-title">{{L('interestOverTime')}}</h3>
+        <div class="gt-chart-wrap">
+          <canvas ref="chartCanvas"></canvas>
+        </div>
+        <div v-if="searchData.keywords && searchData.keywords.length > 1" class="gt-legend">
+          <span v-for="(kw, ki) in searchData.keywords" :key="ki" class="gt-legend-item">
+            <span class="gt-legend-color" :style="{background:CHART_COLORS[ki%CHART_COLORS.length]}"></span>
+            {{kw}}
+          </span>
+        </div>
+      </div>
+
+      <!-- Related Queries -->
+      <div v-if="searchData.relatedQueries && searchData.relatedQueries.length" class="gt-related-section">
+        <h3 class="gt-section-title">{{L('relatedQueries')}}</h3>
+        <div class="gt-related-grid">
+          <div v-for="(rq, ri) in searchData.relatedQueries" :key="ri" class="gt-related-item"
+            @click="searchKeyword=rq.query; doSearch()">
+            <span class="gt-related-query">{{rq.query}}</span>
+            <span :class="['gt-related-value', rq.type]">
+              {{rq.type==='rising' ? (rq.value==='Breakout' ? '🚀 '+L('breakout') : '↑ '+rq.value) : rq.value}}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Related Topics -->
+      <div v-if="searchData.relatedTopics && searchData.relatedTopics.length" class="gt-related-section">
+        <h3 class="gt-section-title">{{L('relatedTopics')}}</h3>
+        <div class="gt-related-grid">
+          <div v-for="(rt, rti) in searchData.relatedTopics" :key="rti" class="gt-related-item"
+            @click="searchKeyword=rt.topic; doSearch()">
+            <span class="gt-related-query">{{rt.topic}}</span>
+            <span :class="['gt-related-value', rt.type]">
+              {{rt.type==='rising' ? (rt.value==='Breakout' ? '🚀 '+L('breakout') : '↑ '+rt.value) : rt.value}}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

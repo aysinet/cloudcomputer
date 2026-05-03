@@ -230,15 +230,37 @@
       function loadOSMDScript() {
         return new Promise((resolve, reject) => {
           if (window.opensheetmusicdisplay) return resolve();
+          // Check if script tag already exists
+          const existing = document.querySelector('script[src*="opensheetmusicdisplay"]');
+          if (existing) {
+            if (window.opensheetmusicdisplay) return resolve();
+            existing.addEventListener('load', () => resolve());
+            existing.addEventListener('error', () => {
+              // Try alternate CDN
+              loadFromCDN('https://cdn.jsdelivr.net/npm/opensheetmusicdisplay@1.9.7/build/opensheetmusicdisplay.min.js')
+                .then(resolve).catch(reject);
+            });
+            return;
+          }
+          loadFromCDN('https://unpkg.com/opensheetmusicdisplay@1.9.7/build/opensheetmusicdisplay.min.js')
+            .then(resolve)
+            .catch(() => loadFromCDN('https://cdn.jsdelivr.net/npm/opensheetmusicdisplay@1.9.7/build/opensheetmusicdisplay.min.js'))
+            .then(resolve).catch(reject);
+        });
+      }
+
+      function loadFromCDN(url) {
+        return new Promise((resolve, reject) => {
+          if (window.opensheetmusicdisplay) return resolve();
           const s = document.createElement('script');
-          s.src = 'https://unpkg.com/opensheetmusicdisplay@1.9.7/build/opensheetmusicdisplay.min.js';
+          s.src = url;
           s.onload = () => resolve();
-          s.onerror = () => reject(new Error('Script load failed'));
+          s.onerror = () => reject(new Error('Script load failed: ' + url));
           document.head.appendChild(s);
         });
       }
 
-      async function waitForOSMD(retries = 30) {
+      async function waitForOSMD(retries = 60) {
         for (let i = 0; i < retries; i++) {
           if (window.opensheetmusicdisplay) return true;
           await new Promise(r => setTimeout(r, 500));

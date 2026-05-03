@@ -10,7 +10,7 @@
   },
   "global": false,
   "description": "Google Drive dosya yöneticisi — dosya yükleme, indirme, klasör yönetimi ve paylaşım",
-  "category": "cloud",
+  "category": "utilities",
   "lang": {
     "tr": {
       "name": "Google Drive",

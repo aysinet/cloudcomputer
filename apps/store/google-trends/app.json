@@ -1,0 +1,68 @@
+{
+  "id": "google-trends",
+  "name": "Google Trends",
+  "icon": "📈",
+  "color": "linear-gradient(135deg,#4285F4,#34A853)",
+  "type": "internal",
+  "size": {
+    "w": 680,
+    "h": 620
+  },
+  "global": false,
+  "description": "Google Trends — popüler aramalar, ülke bazlı trendler, karşılaştırma",
+  "lang": {
+    "tr": {
+      "name": "Google Trends",
+      "description": "Google Trends — popüler aramalar, ülke bazlı trendler, karşılaştırma"
+    },
+    "en": {
+      "name": "Google Trends",
+      "description": "Google Trends — trending searches, country-based trends, comparison"
+    },
+    "de": {
+      "name": "Google Trends",
+      "description": "Google Trends — Trendsuchen, länderspezifische Trends, Vergleich"
+    },
+    "fr": {
+      "name": "Google Trends",
+      "description": "Google Trends — recherches tendances, tendances par pays, comparaison"
+    },
+    "es": {
+      "name": "Google Trends",
+      "description": "Google Trends — búsquedas populares, tendencias por país, comparación"
+    },
+    "ru": {
+      "name": "Google Trends",
+      "description": "Google Trends — популярные запросы, тренды по странам, сравнение"
+    },
+    "zh": {
+      "name": "Google 趋势",
+      "description": "Google Trends — 热门搜索、各国趋势、比较"
+    },
+    "ja": {
+      "name": "Google トレンド",
+      "description": "Google Trends — 人気の検索、国別トレンド、比較"
+    },
+    "it": {
+      "name": "Google Trends",
+      "description": "Google Trends — ricerche di tendenza, tendenze per paese, confronto"
+    },
+    "ar": {
+      "name": "اتجاهات جوجل",
+      "description": "Google Trends — عمليات البحث الرائجة، الاتجاهات حسب البلد، المقارنة"
+    },
+    "ko": {
+      "name": "Google 트렌드",
+      "description": "Google Trends — 인기 검색어, 국가별 트렌드, 비교"
+    },
+    "hi": {
+      "name": "Google Trends",
+      "description": "Google Trends — लोकप्रिय खोजें, देश-आधारित रुझान, तुलना"
+    },
+    "pt": {
+      "name": "Google Trends",
+      "description": "Google Trends — pesquisas populares, tendências por país, comparação"
+    }
+  },
+  "category": "internet"
+}

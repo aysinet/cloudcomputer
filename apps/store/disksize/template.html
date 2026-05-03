@@ -1,0 +1,95 @@
+<div class="ds-root">
+  <!-- Header -->
+  <div class="ds-header">
+    <span class="ds-title">💾 {{ t('title') }}</span>
+    <button class="ds-refresh-btn" @click="refreshData" :disabled="loading || refreshing">{{ refreshing ? t('calculating') : '↻ ' + t('refresh') }}</button>
+  </div>
+
+  <!-- Loading -->
+  <div v-if="loading" class="ds-loading">
+    <div class="ds-spinner"></div>
+    <span>{{ t('loading') }}</span>
+  </div>
+
+  <!-- Refreshing overlay -->
+  <div v-if="refreshing && !loading" class="ds-refreshing-bar">{{ t('calculating') }}</div>
+
+  <!-- Error -->
+  <div v-else-if="error" class="ds-error">⚠️ {{ error }}</div>
+
+  <!-- Content -->
+  <div v-else class="ds-content">
+    <!-- Grand Total -->
+    <div class="ds-grand-total">
+      <div class="ds-grand-total-label">{{ t('total') }}</div>
+      <div class="ds-grand-total-value">{{ formatSize(grandTotal) }}</div>
+      <div class="ds-cached-at" v-if="cachedAt">{{ t('lastUpdated') }}: {{ formatCachedAt() }}</div>
+    </div>
+
+    <!-- Bar chart -->
+    <div class="ds-bar-chart" v-if="grandTotal > 0">
+      <div class="ds-bar-segment ds-bar-docker" :style="{ width: sectionPercent(dockerTotal) + '%' }" :title="t('docker') + ': ' + formatSize(dockerTotal)"></div>
+      <div class="ds-bar-segment ds-bar-data" :style="{ width: sectionPercent(dataTotal) + '%' }" :title="t('data') + ': ' + formatSize(dataTotal)"></div>
+      <div class="ds-bar-segment ds-bar-backups" :style="{ width: sectionPercent(backupsTotal) + '%' }" :title="t('backups') + ': ' + formatSize(backupsTotal)"></div>
+    </div>
+    <div class="ds-bar-legend" v-if="grandTotal > 0">
+      <span class="ds-legend-item"><span class="ds-legend-dot ds-bar-docker"></span> {{ t('docker') }}</span>
+      <span class="ds-legend-item"><span class="ds-legend-dot ds-bar-data"></span> {{ t('data') }}</span>
+      <span class="ds-legend-item"><span class="ds-legend-dot ds-bar-backups"></span> {{ t('backups') }}</span>
+    </div>
+
+    <!-- Section: Docker -->
+    <div class="ds-section" :class="{ 'ds-expanded': expandedSection === 'docker' }">
+      <div class="ds-section-header" @click="toggleSection('docker')">
+        <span class="ds-section-icon">🐳</span>
+        <span class="ds-section-name">{{ t('docker') }}</span>
+        <span class="ds-section-size">{{ formatSize(dockerTotal) }}</span>
+        <span class="ds-section-arrow">{{ expandedSection === 'docker' ? '▾' : '▸' }}</span>
+      </div>
+      <div v-if="expandedSection === 'docker'" class="ds-section-body">
+        <div v-if="dockerItems.length === 0" class="ds-empty">{{ t('noDocker') }}</div>
+        <div v-for="item in dockerItems" :key="item.name" class="ds-item ds-docker-item">
+          <span class="ds-item-name" :title="item.name">{{ item.name }}</span>
+          <span class="ds-item-detail" v-if="item.imageSize">
+            <span class="ds-item-tag">{{ t('image') }}: {{ formatSize(item.imageSize) }}</span>
+          </span>
+          <span class="ds-item-size">{{ formatSize(item.size) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Data -->
+    <div class="ds-section" :class="{ 'ds-expanded': expandedSection === 'data' }">
+      <div class="ds-section-header" @click="toggleSection('data')">
+        <span class="ds-section-icon">📂</span>
+        <span class="ds-section-name">{{ t('data') }}</span>
+        <span class="ds-section-size">{{ formatSize(dataTotal) }}</span>
+        <span class="ds-section-arrow">{{ expandedSection === 'data' ? '▾' : '▸' }}</span>
+      </div>
+      <div v-if="expandedSection === 'data'" class="ds-section-body">
+        <div v-if="dataItems.length === 0" class="ds-empty">{{ t('empty') }}</div>
+        <div v-for="item in dataItems" :key="item.name" class="ds-item">
+          <span class="ds-item-name" :title="item.name">{{ item.name }}</span>
+          <span class="ds-item-size">{{ formatSize(item.size) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Backups -->
+    <div class="ds-section" :class="{ 'ds-expanded': expandedSection === 'backups' }">
+      <div class="ds-section-header" @click="toggleSection('backups')">
+        <span class="ds-section-icon">💼</span>
+        <span class="ds-section-name">{{ t('backups') }}</span>
+        <span class="ds-section-size">{{ formatSize(backupsTotal) }}</span>
+        <span class="ds-section-arrow">{{ expandedSection === 'backups' ? '▾' : '▸' }}</span>
+      </div>
+      <div v-if="expandedSection === 'backups'" class="ds-section-body">
+        <div v-if="backupsItems.length === 0" class="ds-empty">{{ t('empty') }}</div>
+        <div v-for="item in backupsItems" :key="item.name" class="ds-item">
+          <span class="ds-item-name" :title="item.name">{{ item.name }}</span>
+          <span class="ds-item-size">{{ formatSize(item.size) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

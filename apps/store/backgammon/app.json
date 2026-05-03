@@ -1,0 +1,68 @@
+{
+  "id": "backgammon",
+  "name": "Backgammon",
+  "icon": "🎲",
+  "color": "linear-gradient(135deg,#5d4037,#795548)",
+  "type": "internal",
+  "size": {
+    "w": 900,
+    "h": 650
+  },
+  "global": false,
+  "description": "Klasik Tavla oyunu - 2 kişilik ve bilgisayara karşı",
+  "lang": {
+    "tr": {
+      "name": "Tavla",
+      "description": "Klasik Tavla oyunu - 2 kişilik ve bilgisayara karşı"
+    },
+    "en": {
+      "name": "Backgammon",
+      "description": "Classic Backgammon - 2 player and vs computer"
+    },
+    "de": {
+      "name": "Backgammon",
+      "description": "Klassisches Backgammon - 2 Spieler und gegen Computer"
+    },
+    "fr": {
+      "name": "Backgammon",
+      "description": "Backgammon classique - 2 joueurs et contre l'ordinateur"
+    },
+    "es": {
+      "name": "Backgammon",
+      "description": "Backgammon clásico - 2 jugadores y contra la computadora"
+    },
+    "ru": {
+      "name": "Нарды",
+      "description": "Классические нарды - 2 игрока и против компьютера"
+    },
+    "zh": {
+      "name": "西洋双陆棋",
+      "description": "经典西洋双陆棋 - 双人和对战电脑"
+    },
+    "ja": {
+      "name": "バックギャモン",
+      "description": "クラシックバックギャモン - 2人対戦とコンピュータ対戦"
+    },
+    "it": {
+      "name": "Backgammon",
+      "description": "Backgammon classico - 2 giocatori e contro il computer"
+    },
+    "ar": {
+      "name": "طاولة زهر",
+      "description": "لعبة الطاولة الكلاسيكية - لاعبين ومقابل الكمبيوتر"
+    },
+    "ko": {
+      "name": "백개먼",
+      "description": "클래식 백개먼 - 2인 대전 및 컴퓨터 대전"
+    },
+    "hi": {
+      "name": "बैकगैमन",
+      "description": "क्लासिक बैकगैमन - 2 खिलाड़ी और कंप्यूटर के विरुद्ध"
+    },
+    "pt": {
+      "name": "Gamão",
+      "description": "Gamão clássico - 2 jogadores e contra o computador"
+    }
+  },
+  "category": "games"
+}

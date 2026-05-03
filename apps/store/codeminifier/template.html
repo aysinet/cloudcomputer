@@ -1,0 +1,75 @@
+<div class="codeminifier-app">
+  <!-- Header -->
+  <div class="cm-header">
+    <span class="cm-title">🗜️ {{ t('title') }}</span>
+    <span class="cm-hint">{{ t('supportedTypes') }}</span>
+  </div>
+
+  <!-- File Select Area -->
+  <div class="cm-body">
+    <div class="cm-select-area" @click="selectFile">
+      <template v-if="!selectedFile">
+        <div class="cm-dropzone">
+          <span class="cm-dropzone-icon">📂</span>
+          <span class="cm-dropzone-text">{{ t('selectFile') }}</span>
+          <span class="cm-dropzone-hint">{{ t('supportedTypes') }}</span>
+        </div>
+      </template>
+      <template v-else>
+        <div class="cm-file-info">
+          <span class="cm-file-icon">{{ getFileIcon(selectedFile.name) }}</span>
+          <div class="cm-file-details">
+            <span class="cm-file-name">{{ selectedFile.name }}</span>
+            <span class="cm-file-path">{{ selectedFile.path }}</span>
+          </div>
+          <span class="cm-file-size">{{ formatSize(selectedFile.size) }}</span>
+        </div>
+      </template>
+    </div>
+
+    <!-- Action Button -->
+    <div class="cm-actions">
+      <el-button type="primary" size="default" @click="minifyFile"
+        :loading="loading" :disabled="!selectedFile || loading"
+        style="width:100%;">
+        <el-icon v-if="!loading"><Compress /></el-icon>
+        {{ loading ? t('minifying') : t('minify') }}
+      </el-button>
+    </div>
+
+    <!-- Result -->
+    <div class="cm-result" v-if="result">
+      <div class="cm-result-header">✅ {{ t('success') }}</div>
+      <div class="cm-stats">
+        <div class="cm-stat-row">
+          <span class="cm-stat-label">{{ t('original') }}</span>
+          <span class="cm-stat-value">{{ formatSize(result.originalSize) }}</span>
+        </div>
+        <div class="cm-stat-row">
+          <span class="cm-stat-label">{{ t('minified') }}</span>
+          <span class="cm-stat-value cm-stat-green">{{ formatSize(result.minifiedSize) }}</span>
+        </div>
+        <div class="cm-stat-divider"></div>
+        <div class="cm-stat-row">
+          <span class="cm-stat-label">{{ t('saved') }}</span>
+          <span class="cm-stat-value cm-stat-orange">
+            {{ formatSize(savedBytes) }} ({{ savedPercent }}% {{ t('reduction') }})
+          </span>
+        </div>
+        <div class="cm-stat-row">
+          <span class="cm-stat-label">{{ t('outputPath') }}</span>
+          <span class="cm-stat-value cm-stat-path">{{ result.outputPath }}</span>
+        </div>
+      </div>
+      <!-- Progress bar -->
+      <div class="cm-progress-bar">
+        <div class="cm-progress-original"></div>
+        <div class="cm-progress-minified" :style="{ width: (100 - parseFloat(savedPercent)) + '%' }"></div>
+      </div>
+      <div class="cm-progress-labels">
+        <span>{{ t('original') }} (100%)</span>
+        <span>{{ t('minified') }} ({{ (100 - parseFloat(savedPercent)).toFixed(1) }}%)</span>
+      </div>
+    </div>
+  </div>
+</div>

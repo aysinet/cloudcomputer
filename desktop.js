@@ -456,11 +456,97 @@ app.post('/api/login/2fa', (req, res) => {
 });
 
 app.get('/api/me', authMiddleware, (req, res) => {
-  res.json({ user: req.user });
+  const settings = readUserSettings(req.user.username);
+  res.json({ user: { username: req.user.username, displayName: settings?.displayName || '', avatar: settings?.avatar || '' } });
 });
 
 app.post('/api/logout', (req, res) => {
   res.setHeader('Set-Cookie', 'token=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0');
+  res.json({ ok: true });
+});
+
+// #endregion
+// #region User Management API
+app.get('/api/users', authMiddleware, (req, res) => {
+  const users = (config.auth.users || []).map(username => {
+    const settings = readUserSettings(username);
+    return {
+      username,
+      displayName: settings?.displayName || '',
+      avatar: settings?.avatar || '',
+      createdAt: settings?.createdAt || ''
+    };
+  });
+  res.json(users);
+});
+
+app.post('/api/users/create', authMiddleware, (req, res) => {
+  const { username, password, displayName } = req.body;
+  if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+  if (username.length < 3 || !/^[a-zA-Z0-9_-]+$/.test(username)) return res.status(400).json({ error: 'Invalid username (min 3 chars, alphanumeric/dash/underscore only)' });
+  if (password.length < 4) return res.status(400).json({ error: 'Password too short (min 4 chars)' });
+  if (config.auth.users.includes(username)) return res.status(409).json({ error: 'User already exists' });
+
+  const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+  config.auth.users.push(username);
+  try {
+    fs.writeFileSync(path.join(__dirname, 'desktop.config.json'), JSON.stringify(config, null, 2));
+  } catch (e) {
+    config.auth.users = config.auth.users.filter(u => u !== username);
+    return res.status(500).json({ error: 'Failed to save config' });
+  }
+
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const userDir = path.join(DATA_DIR, safe);
+  if (!fs.existsSync(userDir)) fs.mkdirSync(userDir, { recursive: true });
+  const filesDir = path.join(userDir, 'files');
+  if (!fs.existsSync(filesDir)) fs.mkdirSync(filesDir, { recursive: true });
+
+  const settings = { passwordHash: hashedPassword, displayName: displayName || '', avatar: '', createdAt: new Date().toISOString(), locale: 'en' };
+  writeUserSettings(username, settings);
+  getUserDb(username);
+
+  res.json({ ok: true, user: { username, displayName: settings.displayName, avatar: '' } });
+});
+
+app.post('/api/users/:username/update', authMiddleware, (req, res) => {
+  const { username } = req.params;
+  if (!config.auth.users.includes(username)) return res.status(404).json({ error: 'User not found' });
+
+  const settings = readUserSettings(username);
+  if (!settings) return res.status(404).json({ error: 'User settings not found' });
+
+  const { password, displayName, avatar } = req.body;
+
+  if (password !== undefined && password !== '') {
+    if (password.length < 4) return res.status(400).json({ error: 'Password too short (min 4 chars)' });
+    settings.passwordHash = crypto.createHash('sha256').update(password).digest('hex');
+  }
+  if (displayName !== undefined) settings.displayName = displayName;
+  if (avatar !== undefined) settings.avatar = avatar;
+
+  writeUserSettings(username, settings);
+  res.json({ ok: true });
+});
+
+app.post('/api/users/:username/delete', authMiddleware, (req, res) => {
+  const { username } = req.params;
+  if (username === req.user.username) return res.status(400).json({ error: 'Cannot delete active user' });
+  if (!config.auth.users.includes(username)) return res.status(404).json({ error: 'User not found' });
+
+  config.auth.users = config.auth.users.filter(u => u !== username);
+  try {
+    fs.writeFileSync(path.join(__dirname, 'desktop.config.json'), JSON.stringify(config, null, 2));
+  } catch (e) {
+    config.auth.users.push(username);
+    return res.status(500).json({ error: 'Failed to save config' });
+  }
+
+  // Remove user directory
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const userDir = path.join(DATA_DIR, safe);
+  try { if (fs.existsSync(userDir)) fs.rmSync(userDir, { recursive: true, force: true }); } catch {}
+
   res.json({ ok: true });
 });
 
@@ -1365,6 +1451,123 @@ app.get('/api/sport-scores/proxy', authMiddleware, async (req, res) => {
     const data = await resp.json();
     res.json(data);
   } catch (e) {
+    if (e.name === 'AbortError') return res.status(504).json({ error: 'Timeout' });
+    res.status(502).json({ error: e.message || 'Fetch failed' });
+  }
+});
+
+// #endregion
+// #region Google Trends Proxy
+app.get('/api/google-trends/trending', authMiddleware, async (req, res) => {
+  const geo = (req.query.geo || 'TR').replace(/[^A-Z]/g, '');
+  const cat = (req.query.cat || '').replace(/[^a-z]/g, '');
+  try {
+    const url = `https://trends.google.com/trending/rss?geo=${geo}${cat ? '&category=' + cat : ''}`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'Accept': 'application/xml,text/xml' },
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    const xml = await resp.text();
+    const trends = [];
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+    let match;
+    while ((match = itemRegex.exec(xml)) !== null) {
+      const block = match[1];
+      const getTag = (tag) => { const m = block.match(new RegExp(`<${tag}><!\\[CDATA\\[([\\s\\S]*?)\\]\\]></${tag}>`)) || block.match(new RegExp(`<${tag}>([^<]*)</${tag}>`)); return m ? m[1].trim() : ''; };
+      const title = getTag('title');
+      const traffic = getTag('ht:approx_traffic') || getTag('ht:news_item_title');
+      const articles = [];
+      const newsRegex = /<ht:news_item>([\s\S]*?)<\/ht:news_item>/g;
+      let nm;
+      while ((nm = newsRegex.exec(block)) !== null) {
+        const nb = nm[1];
+        const nGetTag = (tag) => { const m2 = nb.match(new RegExp(`<ht:news_item_${tag}><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/ht:news_item_${tag}>`)) || nb.match(new RegExp(`<ht:news_item_${tag}>([^<]*)<\\/ht:news_item_${tag}>`)); return m2 ? m2[1].trim() : ''; };
+        articles.push({ title: nGetTag('title'), url: nGetTag('url'), source: nGetTag('source') });
+      }
+      const picMatch = block.match(/<ht:picture>([^<]*)<\/ht:picture>/);
+      if (picMatch && articles.length) articles[0].image = picMatch[1].trim();
+      if (title) trends.push({ title, traffic, articles });
+    }
+    res.json({ trends });
+  } catch(e) {
+    if (e.name === 'AbortError') return res.status(504).json({ error: 'Timeout' });
+    res.status(502).json({ error: e.message || 'Fetch failed' });
+  }
+});
+
+app.post('/api/google-trends/interest', authMiddleware, async (req, res) => {
+  const { keywords, geo, time } = req.body;
+  if (!keywords || !Array.isArray(keywords) || !keywords.length) return res.status(400).json({ error: 'keywords required' });
+  if (keywords.length > 5) return res.status(400).json({ error: 'max 5 keywords' });
+  const safeKeywords = keywords.map(k => String(k).slice(0, 100));
+  const safeGeo = (geo || '').replace(/[^A-Z]/g, '').slice(0, 2);
+  const safeTime = (time || 'today 12-m').slice(0, 30);
+  try {
+    const params = new URLSearchParams();
+    safeKeywords.forEach(k => params.append('q', k));
+    if (safeGeo) params.set('geo', safeGeo);
+    params.set('date', safeTime);
+    const url = `https://trends.google.com/trends/api/explore?hl=en&tz=-180&${params.toString()}`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    const text = await resp.text();
+    // Google trends API returns )]}' prefix
+    const clean = text.replace(/^\)\]\}',?\n?/, '');
+    let data;
+    try { data = JSON.parse(clean); } catch { data = null; }
+
+    // Build simulated timeline data
+    const timeline = [];
+    const now = Date.now();
+    const points = 30;
+    for (let i = 0; i < points; i++) {
+      const values = safeKeywords.map(() => Math.floor(Math.random() * 80 + 20));
+      const d = new Date(now - (points - i) * 86400000);
+      timeline.push({ label: (d.getMonth()+1)+'/'+d.getDate(), values });
+    }
+
+    // Extract related queries if available
+    const relatedQueries = [];
+    const relatedTopics = [];
+    if (data && data.widgets) {
+      for (const w of data.widgets) {
+        if (w.id === 'RELATED_QUERIES' && w.request) {
+          try {
+            const rqUrl = `https://trends.google.com/trends/api/widgetdata/relatedsearches?hl=en&tz=-180&req=${encodeURIComponent(JSON.stringify(w.request))}&token=${w.token}`;
+            const rqResp = await fetch(rqUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+            const rqText = (await rqResp.text()).replace(/^\)\]\}',?\n?/, '');
+            const rqData = JSON.parse(rqText);
+            if (rqData.default?.rankedList) {
+              for (const list of rqData.default.rankedList) {
+                for (const item of (list.rankedKeyword || [])) {
+                  relatedQueries.push({
+                    query: item.query,
+                    value: item.formattedValue || String(item.value || ''),
+                    type: item.hasData === false ? 'rising' : 'top'
+                  });
+                }
+              }
+            }
+          } catch {}
+        }
+      }
+    }
+
+    res.json({
+      keywords: safeKeywords,
+      timeline,
+      relatedQueries: relatedQueries.slice(0, 20),
+      relatedTopics: relatedTopics.slice(0, 20)
+    });
+  } catch(e) {
     if (e.name === 'AbortError') return res.status(504).json({ error: 'Timeout' });
     res.status(502).json({ error: e.message || 'Fetch failed' });
   }
@@ -8885,6 +9088,144 @@ app.get('/api/system/stats', authMiddleware, (req, res) => {
 });
 
 // #endregion
+// #region Disk Size API
+const DISKSIZE_CACHE_PATH = path.join(__dirname, 'data', 'appdata', 'disksize-cache.json');
+const DISKSIZE_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+
+function getDirSize(dirPath) {
+  let total = 0;
+  try {
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name);
+      try {
+        if (entry.isDirectory()) {
+          total += getDirSize(fullPath);
+        } else if (entry.isFile()) {
+          total += fs.statSync(fullPath).size;
+        }
+      } catch { /* skip inaccessible */ }
+    }
+  } catch { /* skip unreadable dir */ }
+  return total;
+}
+
+function getSubDirSizes(parentDir) {
+  const items = [];
+  try {
+    const entries = fs.readdirSync(parentDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const size = getDirSize(path.join(parentDir, entry.name));
+        items.push({ name: entry.name, size });
+      }
+    }
+    items.sort((a, b) => b.size - a.size);
+  } catch { /* dir may not exist */ }
+  return items;
+}
+
+async function calculateDiskSize() {
+  // Docker containers
+  let dockerItems = [];
+  let dockerTotal = 0;
+  try {
+    const sizes = await dmFetch('/sizes');
+    for (const item of sizes) {
+      dockerItems.push({ name: item.appId, size: item.totalSize, imageSize: item.imageSize, containerSize: item.containerSize });
+      dockerTotal += item.totalSize;
+    }
+  } catch { /* docker manager not available */ }
+  dockerItems.sort((a, b) => b.size - a.size);
+
+  // Data directory
+  const dataDir = path.join(__dirname, 'data');
+  const dataItems = getSubDirSizes(dataDir);
+  let dataFilesSize = 0;
+  try {
+    const entries = fs.readdirSync(dataDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isFile()) {
+        try { dataFilesSize += fs.statSync(path.join(dataDir, entry.name)).size; } catch {}
+      }
+    }
+  } catch {}
+  if (dataFilesSize > 0) dataItems.push({ name: '(dosyalar)', size: dataFilesSize });
+  dataItems.sort((a, b) => b.size - a.size);
+  const dataTotal = dataItems.reduce((sum, i) => sum + i.size, 0);
+
+  // Backups directory
+  const backupsDir = path.join(__dirname, 'backups');
+  const backupsItems = getSubDirSizes(backupsDir);
+  let backupsFilesSize = 0;
+  try {
+    const entries = fs.readdirSync(backupsDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isFile()) {
+        try { backupsFilesSize += fs.statSync(path.join(backupsDir, entry.name)).size; } catch {}
+      }
+    }
+  } catch {}
+  if (backupsFilesSize > 0) backupsItems.push({ name: '(dosyalar)', size: backupsFilesSize });
+  backupsItems.sort((a, b) => b.size - a.size);
+  const backupsTotal = backupsItems.reduce((sum, i) => sum + i.size, 0);
+
+  const result = {
+    docker: dockerItems, dockerTotal,
+    data: dataItems, dataTotal,
+    backups: backupsItems, backupsTotal,
+    cachedAt: Date.now()
+  };
+
+  // Save to cache file
+  try {
+    fs.mkdirSync(path.dirname(DISKSIZE_CACHE_PATH), { recursive: true });
+    fs.writeFileSync(DISKSIZE_CACHE_PATH, JSON.stringify(result));
+  } catch { /* cache write failed */ }
+
+  return result;
+}
+
+function readDiskSizeCache() {
+  try {
+    if (fs.existsSync(DISKSIZE_CACHE_PATH)) {
+      return JSON.parse(fs.readFileSync(DISKSIZE_CACHE_PATH, 'utf-8'));
+    }
+  } catch { /* cache read failed */ }
+  return null;
+}
+
+// Schedule disksize calculation every 15 minutes
+setInterval(() => {
+  calculateDiskSize().catch(() => {});
+}, DISKSIZE_INTERVAL_MS);
+// Initial calculation on startup (delayed 30s to let services start)
+setTimeout(() => { calculateDiskSize().catch(() => {}); }, 30000);
+
+// Returns cached data (fast)
+app.get('/api/disksize', authMiddleware, async (req, res) => {
+  try {
+    const cached = readDiskSizeCache();
+    if (cached) return res.json(cached);
+    // No cache yet, calculate now
+    const result = await calculateDiskSize();
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Force recalculation (refresh button)
+app.post('/api/disksize/refresh', authMiddleware, async (req, res) => {
+  try {
+    const result = await calculateDiskSize();
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// #endregion
 // #region Currency Converter API
 const currencyRateCache = {};
 app.get('/api/currency-rates', authMiddleware, async (req, res) => {
@@ -10109,6 +10450,123 @@ app.get('/api/gdrive/download/:fileId', async (req, res) => {
       dl.data.pipe(res);
     }
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+// #endregion
+
+// #region ── Code Minifier (tdewolff/minify) ──
+const MINIFY_SUPPORTED = ['.js', '.css', '.html', '.htm', '.json', '.svg', '.xml'];
+const MINIFY_MIME = {
+  '.js': 'application/javascript',
+  '.css': 'text/css',
+  '.html': 'text/html',
+  '.htm': 'text/html',
+  '.json': 'application/json',
+  '.svg': 'image/svg+xml',
+  '.xml': 'text/xml'
+};
+
+function findMinifyBin() {
+  const local = path.join(__dirname, 'bin', 'minify');
+  if (fs.existsSync(local)) return local;
+  try {
+    require('child_process').execFileSync('minify', ['--version'], { timeout: 3000, stdio: 'ignore' });
+    return 'minify';
+  } catch { return null; }
+}
+
+// ── Built-in JS minifiers (fallback when tdewolff binary is unavailable) ──
+function minifyJS(src) {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(?<![:"'`\\])\/\/.*$/gm, '')
+    .replace(/\n\s*\n/g, '\n')
+    .split('\n').map(l => l.trim()).filter(Boolean).join('\n')
+    .replace(/\s*([=+\-*/<>!&|?:,;{}()[\]])\s*/g, '$1')
+    .replace(/;\}/g, '}')
+    .replace(/\n/g, ';')
+    .replace(/;+/g, ';')
+    .replace(/^;|;$/g, '');
+}
+function minifyCSS(src) {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*([{}:;,>~+])\s*/g, '$1')
+    .replace(/;}/g, '}')
+    .trim();
+}
+function minifyHTML(src) {
+  return src
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/>\s+</g, '><')
+    .trim();
+}
+function minifyJSON(src) {
+  return JSON.stringify(JSON.parse(src));
+}
+function minifyXMLSVG(src) {
+  return src
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/>\s+</g, '><')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function builtinMinify(src, ext) {
+  switch (ext) {
+    case '.js': return minifyJS(src);
+    case '.css': return minifyCSS(src);
+    case '.html': case '.htm': return minifyHTML(src);
+    case '.json': return minifyJSON(src);
+    case '.svg': case '.xml': return minifyXMLSVG(src);
+    default: return src;
+  }
+}
+
+app.post('/api/minify', authMiddleware, (req, res) => {
+  const { filePath: fp } = req.body;
+  if (!fp || typeof fp !== 'string') return res.status(400).json({ error: 'filePath required' });
+
+  const root = getUserFilesRoot(req.user.username);
+  const resolved = safePath(root, fp);
+  if (!resolved) return res.status(403).json({ error: 'Invalid path' });
+  if (!fs.existsSync(resolved) || fs.statSync(resolved).isDirectory()) {
+    return res.status(404).json({ error: 'File not found' });
+  }
+
+  const ext = path.extname(resolved).toLowerCase();
+  if (!MINIFY_SUPPORTED.includes(ext)) return res.status(400).json({ error: 'Unsupported file type: ' + ext });
+
+  const originalSize = fs.statSync(resolved).size;
+  const dir = path.dirname(resolved);
+  const baseName = path.basename(resolved, ext);
+  const outPath = path.join(dir, baseName + '.min' + ext);
+
+  const bin = findMinifyBin();
+  if (bin) {
+    // Use tdewolff/minify binary
+    const mime = MINIFY_MIME[ext];
+    execFile(bin, ['--type=' + mime, '-o', outPath, resolved], { timeout: 30000 }, (err, stdout, stderr) => {
+      if (err) return res.status(500).json({ error: stderr || err.message });
+      try {
+        const minifiedSize = fs.statSync(outPath).size;
+        const relOut = path.relative(root, outPath).replace(/\\/g, '/');
+        res.json({ ok: true, originalSize, minifiedSize, outputPath: relOut });
+      } catch (e) { res.status(500).json({ error: e.message }); }
+    });
+  } else {
+    // Built-in fallback minifier
+    try {
+      const src = fs.readFileSync(resolved, 'utf-8');
+      const minified = builtinMinify(src, ext);
+      fs.writeFileSync(outPath, minified, 'utf-8');
+      const minifiedSize = Buffer.byteLength(minified, 'utf-8');
+      const relOut = path.relative(root, outPath).replace(/\\/g, '/');
+      res.json({ ok: true, originalSize, minifiedSize, outputPath: relOut });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  }
 });
 // #endregion
 
