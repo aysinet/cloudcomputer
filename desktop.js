@@ -1495,6 +1495,34 @@ app.get('/api/browser/proxy', authMiddleware, async (req, res) => {
   }
 });
 
+// Browser Bookmarks API
+app.get('/api/browser/bookmarks', authMiddleware, (req, res) => {
+  const settings = getUserSettings(req.user.username);
+  res.json({ bookmarks: Array.isArray(settings.browserBookmarks) ? settings.browserBookmarks : [] });
+});
+
+app.post('/api/browser/bookmarks', authMiddleware, (req, res) => {
+  const { url, title } = req.body;
+  if (!url || typeof url !== 'string') return res.status(400).json({ error: 'url required' });
+  const settings = getUserSettings(req.user.username);
+  const bookmarks = Array.isArray(settings.browserBookmarks) ? settings.browserBookmarks : [];
+  if (bookmarks.find(b => b.url === url)) return res.json({ ok: true, message: 'Already bookmarked', bookmarks });
+  const bm = { url, title: (typeof title === 'string' && title.trim()) ? title.trim().slice(0, 200) : url };
+  bookmarks.push(bm);
+  saveUserSettings(req.user.username, { ...settings, browserBookmarks: bookmarks });
+  res.json({ ok: true, bookmarks });
+});
+
+app.delete('/api/browser/bookmarks', authMiddleware, (req, res) => {
+  const { url } = req.body;
+  if (!url || typeof url !== 'string') return res.status(400).json({ error: 'url required' });
+  const settings = getUserSettings(req.user.username);
+  let bookmarks = Array.isArray(settings.browserBookmarks) ? settings.browserBookmarks : [];
+  bookmarks = bookmarks.filter(b => b.url !== url);
+  saveUserSettings(req.user.username, { ...settings, browserBookmarks: bookmarks });
+  res.json({ ok: true, bookmarks });
+});
+
 // #endregion
 // #region RabbitMQ Management API Proxy
 app.post('/api/rabbitmq/proxy', authMiddleware, async (req, res) => {
@@ -2542,7 +2570,9 @@ Rules:
 - For conversational messages (greetings, opinions, creative writing), respond directly without tools
 - EMAIL: When the user asks to send an email, use the post_mail_send tool directly with to, subject, and text. The system uses the default/active mail account automatically — do NOT ask the user which account to use. If no account is configured the API will return an error, then tell the user to add an account in the Mail app settings.
 - WEATHER: When the user asks about weather/temperature, call the get_weather tool directly with NO parameters. The API reads the user's location (city, latitude, longitude) from their saved settings automatically — do NOT ask the user for location or coordinates.
-- SETTINGS: User preferences (city, country, latitude, longitude, timezone, locale, theme, etc.) are stored in settings.json and accessible via get_settings. Use this when you need user context like location.`;
+- SETTINGS: User preferences (city, country, latitude, longitude, timezone, locale, theme, etc.) are stored in settings.json and accessible via get_settings. Use this when you need user context like location.
+- BROWSER: When the user mentions "browser", "tarayıcı", "web browser" or similar, they mean the Cloud Computer's built-in Browser app — NOT external browsers like Chrome, Firefox, Safari. Use browser tools (get_browser_bookmarks, post_browser_bookmarks, delete_browser_bookmarks) to manage bookmarks/favorites. To add a bookmark, use post_browser_bookmarks with url and title.
+- APPS: All app names (browser, calendar, notepad, file manager, etc.) refer to Cloud Computer's own built-in/installed apps. Never give instructions for external software — always use the appropriate tools to interact with Cloud Computer apps directly.`;
 }
 
 function parseSkillMd(appId, content) {
@@ -2794,7 +2824,7 @@ const AI_DOMAIN_KEYWORDS = {
   communication: ['email','mail','notification','bildirim','mesaj','message','inbox','posta'],
   developer: ['code','github','api','debug','repo','commit','pull','push','rabbitmq','branch'],
   creative: ['spreadsheet','excel','presentation','sunum','formula','word cloud','ascii','qr','3d','wiki','book','kitap','tablo','slayt'],
-  web: ['browser','wikipedia','youtube','google','sport','rss','map','harita','haber','news','arama','search','skor','score','trend'],
+  web: ['browser','wikipedia','youtube','google','sport','rss','map','harita','haber','news','arama','search','skor','score','trend','bookmark','bookmarks','favori','favoriler','yer imi','yer imleri','fav','tarayıcı','tarayici','web site','website','site'],
   system: ['setting','ayar','password','şifre','weather','hava','pet','stopwatch','kronometre','monitor','cpu','ram','sistem','system','sıcaklık','derece']
 };
 
