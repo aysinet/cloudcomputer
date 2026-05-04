@@ -11,6 +11,14 @@
     ru: { title:'Нарды', vsAI:'Против ПК', vs2P:'2 Игрока', subtitle:'Классические нарды', black:'Чёрные', white:'Белые', you:'Вы', computer:'Компьютер', roll:'Бросить', selectChecker:'Выберите шашку', noMoves:'Нет ходов — пропуск...', newGame:'Новая игра', menu:'Меню', endTurn:'Конец хода', blackWins:'Чёрные победили!', whiteWins:'Белые победили!', player1:'Игрок 1', player2:'Игрок 2' }
   };
 
+  I18N.zh = { ...I18N.en, title:'西洋双陆棋' };
+  I18N.ja = { ...I18N.en, title:'バックギャモン' };
+  I18N.it = { ...I18N.en, title:'Backgammon' };
+  I18N.ar = { ...I18N.en, title:'طاولة زهر' };
+  I18N.ko = { ...I18N.en, title:'백개먼' };
+  I18N.hi = { ...I18N.en, title:'बैकगैमन' };
+  I18N.pt = { ...I18N.en, title:'Gamão' };
+
   function getLocale() {
     try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; }
   }

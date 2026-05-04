@@ -95,6 +95,15 @@ const LANGS = {
   }
 };
 
+LANGS.ru = { ...LANGS.en, title:'LoopStudio' };
+LANGS.zh = { ...LANGS.en, title:'LoopStudio' };
+LANGS.ja = { ...LANGS.en, title:'LoopStudio' };
+LANGS.it = { ...LANGS.en, title:'LoopStudio' };
+LANGS.ar = { ...LANGS.en, title:'LoopStudio' };
+LANGS.ko = { ...LANGS.en, title:'LoopStudio' };
+LANGS.hi = { ...LANGS.en, title:'LoopStudio' };
+LANGS.pt = { ...LANGS.en, title:'LoopStudio' };
+
 function getToken() { return localStorage.getItem('auth_token') || ''; }
 function authHeaders() { return { 'Authorization': 'Bearer ' + getToken() }; }
 function getLang() {

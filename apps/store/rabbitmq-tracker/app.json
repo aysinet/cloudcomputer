@@ -50,6 +50,18 @@
     "ar": {
       "name": "RabbitMQ Tracker",
       "description": "مراقبة طوابير RabbitMQ وتتبع عدد الرسائل بيانياً والحصول على تنبيهات عند تجاوز الحدود"
+    },
+    "ko": {
+      "name": "RabbitMQ Tracker",
+      "description": "RabbitMQ 큐를 모니터링하고 그래프로 메시지 수를 추적하며 한도 초과 시 경고를 받습니다"
+    },
+    "hi": {
+      "name": "RabbitMQ Tracker",
+      "description": "RabbitMQ कतारों की निगरानी करें, ग्राफ़ के साथ संदेश संख्या ट्रैक करें और सीमा पार होने पर अलर्ट पाएं"
+    },
+    "pt": {
+      "name": "RabbitMQ Tracker",
+      "description": "Monitore filas do RabbitMQ, acompanhe a contagem de mensagens com gráficos e receba alertas quando os limites forem excedidos"
     }
   },
   "category": "development"

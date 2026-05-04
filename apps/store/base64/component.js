@@ -113,6 +113,16 @@
       }
     };
 
+    LANGS.es = { ...LANGS.en, title: 'Base64 Codificador' };
+    LANGS.ru = { ...LANGS.en, title: 'Base64 Кодировщик' };
+    LANGS.zh = { ...LANGS.en, title: 'Base64 编码器' };
+    LANGS.ja = { ...LANGS.en, title: 'Base64 エンコーダー' };
+    LANGS.it = { ...LANGS.en, title: 'Base64 Codificatore' };
+    LANGS.ar = { ...LANGS.en, title: 'Base64 مشفر' };
+    LANGS.ko = { ...LANGS.en, title: 'Base64 인코더' };
+    LANGS.hi = { ...LANGS.en, title: 'Base64 एन्कोडर' };
+    LANGS.pt = { ...LANGS.en, title: 'Base64 Codificador' };
+
     const lang = ref((window.__CLOUD_LANG__ || 'tr').toLowerCase());
     const L = (key) => (LANGS[lang.value] || LANGS['en'])?.[key] || LANGS['en'][key] || key;
 

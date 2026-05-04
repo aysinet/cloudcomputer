@@ -6,6 +6,13 @@ const fs = require('fs');
 const path = require('path');
 
 const storeDir = path.join(__dirname, 'apps', 'store');
+const TARGET_LANGS = ['ar', 'ko', 'hi', 'pt'];
+const requestedAppIds = process.argv.slice(2).filter(Boolean);
+const requestedAppSet = requestedAppIds.length ? new Set(requestedAppIds) : null;
+
+function shouldProcessApp(appId) {
+  return !requestedAppSet || requestedAppSet.has(appId);
+}
 
 // ============================================================
 // APP.JSON TRANSLATIONS (name + description for each app)
@@ -160,6 +167,12 @@ const appJsonTranslations = {
     ko: { name: "메일", description: "이메일 보내기 및 받기 — SMTP 및 POP3 지원" },
     hi: { name: "मेल", description: "ईमेल भेजें और प्राप्त करें — SMTP और POP3 समर्थन" },
     pt: { name: "Correio", description: "Enviar e receber e-mails — suporte SMTP e POP3" }
+  },
+  "memory-match": {
+    ar: { name: "لعبة الذاكرة", description: "لعبة مطابقة بطاقات الذاكرة الكلاسيكية — اقلب البطاقات واعثر على الأزواج" },
+    ko: { name: "메모리 매치", description: "클래식 메모리 카드 맞추기 게임 — 카드를 뒤집고 짝을 찾으세요" },
+    hi: { name: "मेमोरी मैच", description: "क्लासिक मेमोरी कार्ड मैचिंग गेम — कार्ड पलटें और जोड़ियाँ खोजें" },
+    pt: { name: "Jogo da Memória", description: "Jogo clássico de combinação de cartas da memória — vire as cartas e encontre os pares" }
   },
   "mandala-maker": {
     ar: { name: "صانع الماندالا", description: "أداة رسم ماندالا متماثلة — تناظر شعاعي، لوحة ألوان، حجم الفرشاة" },
@@ -433,12 +446,186 @@ const appJsonTranslations = {
   }
 };
 
+function parseLangsBlock(content) {
+  const match = content.match(/(^\s*)(const|let|var)\s+LANGS\s*=\s*\{([\s\S]*?)\n(\s*)\};/m);
+  if (!match) return null;
+  return {
+    fullMatch: match[0],
+    constIndent: match[1],
+    decl: match[2],
+    inner: match[3],
+    closingIndent: match[4],
+    langs: Function('return ({' + match[3] + '\n})')()
+  };
+}
+
+function isPlainObject(value) {
+  return value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function ensureCounter(map, key) {
+  let counter = map.get(key);
+  if (!counter) {
+    counter = new Map();
+    map.set(key, counter);
+  }
+  return counter;
+}
+
+function addCounterValue(map, key, value) {
+  const counter = ensureCounter(map, key);
+  counter.set(value, (counter.get(value) || 0) + 1);
+}
+
+function chooseMostCommon(counter) {
+  let bestValue = null;
+  let bestCount = -1;
+  for (const [value, count] of counter.entries()) {
+    if (count > bestCount) {
+      bestValue = value;
+      bestCount = count;
+    }
+  }
+  return bestValue;
+}
+
+function buildTranslationMemory() {
+  const memory = {
+    byKeyAndValue: new Map(),
+    byKey: new Map(),
+    byValue: new Map()
+  };
+
+  for (const dir of fs.readdirSync(storeDir)) {
+    const componentPath = path.join(storeDir, dir, 'component.js');
+    if (!fs.existsSync(componentPath)) continue;
+
+    let parsed;
+    try {
+      parsed = parseLangsBlock(fs.readFileSync(componentPath, 'utf8'));
+    } catch {
+      continue;
+    }
+    if (!parsed) continue;
+
+    const base = isPlainObject(parsed.langs.en) ? parsed.langs.en : (isPlainObject(parsed.langs.tr) ? parsed.langs.tr : null);
+    if (!base) continue;
+
+    for (const langCode of TARGET_LANGS) {
+      const target = parsed.langs[langCode];
+      if (!isPlainObject(target)) continue;
+
+      for (const [key, baseValue] of Object.entries(base)) {
+        const targetValue = target[key];
+        if (typeof baseValue !== 'string' || typeof targetValue !== 'string') continue;
+        addCounterValue(memory.byKeyAndValue, `${langCode}\u0000${key}\u0000${baseValue}`, targetValue);
+        addCounterValue(memory.byKey, `${langCode}\u0000${key}`, targetValue);
+        addCounterValue(memory.byValue, `${langCode}\u0000${baseValue}`, targetValue);
+      }
+    }
+  }
+
+  return memory;
+}
+
+function lookupTranslation(memory, langCode, key, baseValue) {
+  if (typeof baseValue !== 'string') return baseValue;
+
+  const exact = memory.byKeyAndValue.get(`${langCode}\u0000${key}\u0000${baseValue}`);
+  if (exact) return chooseMostCommon(exact);
+
+  const byKey = memory.byKey.get(`${langCode}\u0000${key}`);
+  if (byKey && byKey.size === 1) return chooseMostCommon(byKey);
+
+  const byValue = memory.byValue.get(`${langCode}\u0000${baseValue}`);
+  if (byValue) return chooseMostCommon(byValue);
+
+  return baseValue;
+}
+
+function readAppLangMeta(appId) {
+  const appJsonPath = path.join(storeDir, appId, 'app.json');
+  if (!fs.existsSync(appJsonPath)) return {};
+  try {
+    const raw = JSON.parse(fs.readFileSync(appJsonPath, 'utf8'));
+    return raw.lang || {};
+  } catch {
+    return {};
+  }
+}
+
+function buildLocaleObject(appId, langCode, baseLocale, existingLocale, memory, appLangMeta) {
+  const nextLocale = {};
+  const currentLocale = isPlainObject(existingLocale) ? existingLocale : {};
+
+  for (const [key, baseValue] of Object.entries(baseLocale)) {
+    if (Object.prototype.hasOwnProperty.call(currentLocale, key)) {
+      nextLocale[key] = currentLocale[key];
+      continue;
+    }
+
+    if (key === 'title' && appLangMeta[langCode] && typeof appLangMeta[langCode].name === 'string') {
+      nextLocale[key] = appLangMeta[langCode].name;
+      continue;
+    }
+
+    nextLocale[key] = lookupTranslation(memory, langCode, key, baseValue);
+  }
+
+  for (const [key, value] of Object.entries(currentLocale)) {
+    if (!Object.prototype.hasOwnProperty.call(nextLocale, key)) {
+      nextLocale[key] = value;
+    }
+  }
+
+  return nextLocale;
+}
+
+function escapeJsString(value) {
+  return value
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\r/g, '\\r')
+    .replace(/\n/g, '\\n');
+}
+
+function formatJsKey(key) {
+  return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key) ? key : `'${escapeJsString(String(key))}'`;
+}
+
+function formatJsValue(value, indent, childIndent) {
+  if (typeof value === 'string') return `'${escapeJsString(value)}'`;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return `[${value.map((item) => formatJsValue(item, childIndent, childIndent + '  ')).join(', ')}]`;
+  if (isPlainObject(value)) {
+    const entries = Object.entries(value);
+    if (!entries.length) return '{}';
+    return `{
+${entries.map(([nestedKey, nestedValue]) => `${childIndent}${formatJsKey(nestedKey)}:${formatJsValue(nestedValue, childIndent, childIndent + '  ')}`).join(',\n')}
+${indent}}`;
+  }
+  return `'${escapeJsString(String(value))}'`;
+}
+
+function renderLangsBlock(parsed) {
+  const localeIndentMatch = parsed.inner.match(/\n(\s+)[A-Za-z_$][A-Za-z0-9_$]*\s*:\s*\{/);
+  const localeIndent = localeIndentMatch ? localeIndentMatch[1] : (parsed.constIndent + '  ');
+  const childIndent = localeIndent + '  ';
+  const entries = Object.entries(parsed.langs).map(([langCode, localeObj]) => {
+    return `${localeIndent}${langCode}: ${formatJsValue(localeObj, localeIndent, childIndent)}`;
+  });
+  return `${parsed.constIndent}${parsed.decl} LANGS = {\n${entries.join(',\n')}\n${parsed.closingIndent}};`;
+}
+
 // Process all app.json files
 const appDirs = fs.readdirSync(storeDir);
 let appUpdated = 0;
 let appSkipped = 0;
 
 for (const dir of appDirs) {
+  if (!shouldProcessApp(dir)) continue;
+
   const jsonPath = path.join(storeDir, dir, 'app.json');
   if (!fs.existsSync(jsonPath)) continue;
 
@@ -459,7 +646,7 @@ for (const dir of appDirs) {
   }
 
   let changed = false;
-  for (const langCode of ['ar', 'ko', 'hi', 'pt']) {
+  for (const langCode of TARGET_LANGS) {
     if (!app.lang[langCode] && trans[langCode]) {
       app.lang[langCode] = trans[langCode];
       changed = true;
@@ -477,3 +664,62 @@ for (const dir of appDirs) {
 }
 
 console.log(`\n=== APP.JSON RESULTS: ${appUpdated} updated, ${appSkipped} skipped ===\n`);
+
+const translationMemory = buildTranslationMemory();
+let componentUpdated = 0;
+let componentSkipped = 0;
+
+for (const dir of appDirs) {
+  if (!shouldProcessApp(dir)) continue;
+
+  const componentPath = path.join(storeDir, dir, 'component.js');
+  if (!fs.existsSync(componentPath)) continue;
+
+  let content;
+  let parsed;
+  try {
+    content = fs.readFileSync(componentPath, 'utf8');
+    parsed = parseLangsBlock(content);
+  } catch (error) {
+    console.log(`SKIP component.js (read/parse error): ${dir} (${error.message})`);
+    componentSkipped++;
+    continue;
+  }
+
+  if (!parsed) {
+    console.log(`SKIP component.js (no LANGS): ${dir}`);
+    componentSkipped++;
+    continue;
+  }
+
+  const baseLocale = isPlainObject(parsed.langs.en) ? parsed.langs.en : (isPlainObject(parsed.langs.tr) ? parsed.langs.tr : null);
+  if (!baseLocale) {
+    console.log(`SKIP component.js (no base locale): ${dir}`);
+    componentSkipped++;
+    continue;
+  }
+
+  const appLangMeta = readAppLangMeta(dir);
+  let changed = false;
+
+  for (const langCode of TARGET_LANGS) {
+    const existingLocale = parsed.langs[langCode];
+    const nextLocale = buildLocaleObject(dir, langCode, baseLocale, existingLocale, translationMemory, appLangMeta);
+    if (JSON.stringify(existingLocale || {}) !== JSON.stringify(nextLocale)) {
+      parsed.langs[langCode] = nextLocale;
+      changed = true;
+    }
+  }
+
+  if (!changed) {
+    console.log(`ALREADY HAS component.js: ${dir}`);
+    componentSkipped++;
+    continue;
+  }
+
+  fs.writeFileSync(componentPath, content.replace(parsed.fullMatch, renderLangsBlock(parsed)), 'utf8');
+  componentUpdated++;
+  console.log(`UPDATED component.js: ${dir}`);
+}
+
+console.log(`\n=== COMPONENT.JS RESULTS: ${componentUpdated} updated, ${componentSkipped} skipped ===`);

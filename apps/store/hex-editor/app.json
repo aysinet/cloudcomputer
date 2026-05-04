@@ -24,7 +24,9 @@
     "ar": { "name": "محرر Hex", "description": "محرر سداسي عشري — فتح الملفات، عرض/تحرير hex و ASCII، بحث، رفع إلى الخادم" },
     "zh": { "name": "十六进制编辑器", "description": "十六进制编辑器 — 打开文件、查看/编辑十六进制和ASCII、搜索、上传到服务器" },
     "ja": { "name": "Hexエディタ", "description": "16進エディタ — ファイルを開く、Hex/ASCII表示・編集、検索、サーバーにアップロード" },
-    "ko": { "name": "Hex 편집기", "description": "16진수 편집기 — 파일 열기, Hex/ASCII 보기 및 편집, 검색, 서버에 업로드" }
+    "it": { "name": "Editor Hex", "description": "Editor esadecimale — apri file, visualizza/modifica hex e ASCII, cerca, carica sul server" },
+    "ko": { "name": "Hex 편집기", "description": "16진수 편집기 — 파일 열기, Hex/ASCII 보기 및 편집, 검색, 서버에 업로드" },
+    "hi": { "name": "Hex एडिटर", "description": "Hex एडिटर — फ़ाइल खोलें, Hex/ASCII देखें और संपादित करें, खोजें, सर्वर पर अपलोड करें" }
   },
   "category": "development"
 }

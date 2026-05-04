@@ -59,6 +59,10 @@
     "it": {
       "name": "Google Calendar",
       "description": "Gestisci, crea e sincronizza i tuoi eventi con il tuo account Google"
+    },
+    "hi": {
+      "name": "Google कैलेंडर",
+      "description": "अपने Google खाते के साथ अपने इवेंट प्रबंधित करें, बनाएं और सिंक करें"
     }
   }
 }

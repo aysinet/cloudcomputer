@@ -51,6 +51,18 @@
     "ar": {
       "name": "Requestly",
       "description": "أداة اختبار API مثل Postman — إرسال الطلبات، المجموعات، استيراد Postman"
+    },
+    "ko": {
+      "name": "Requestly",
+      "description": "Postman 스타일 API 테스트 도구 — 요청 전송, 컬렉션, Postman 가져오기"
+    },
+    "hi": {
+      "name": "Requestly",
+      "description": "Postman जैसा API परीक्षण उपकरण — अनुरोध भेजें, कलेक्शन, Postman आयात"
+    },
+    "pt": {
+      "name": "Requestly",
+      "description": "Ferramenta de teste de API tipo Postman — enviar requisições, coleções e importar Postman"
     }
   }
 }

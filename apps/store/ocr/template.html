@@ -1,0 +1,111 @@
+<div class="ocr-root">
+  <div class="ocr-topbar">
+    <div>
+      <div class="ocr-title-row">
+        <span class="ocr-icon">🧾</span>
+        <div>
+          <h2>{{ L('title') }}</h2>
+          <p>{{ L('serviceInfo') }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="ocr-status-card">
+      <div class="ocr-status-label">{{ L('status') }}</div>
+      <div class="ocr-status-badge" :class="status">
+        {{ status === 'running' ? L('running') : status === 'stopped' ? L('stopped') : status === 'loading' ? L('loading') : status === 'not-installed' ? L('notInstalled') : 'Error' }}
+      </div>
+      <div class="ocr-topbar-actions">
+        <button class="ocr-ghost-btn" @click="loadStatus">{{ L('refresh') }}</button>
+        <button class="ocr-primary-btn" @click="restartService" :disabled="busy || status === 'not-installed'">{{ L('restart') }}</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="status === 'not-installed'" class="ocr-banner warn">{{ L('installHint') }}</div>
+  <div v-if="errorMsg" class="ocr-banner error">{{ errorMsg }}</div>
+
+  <div class="ocr-layout">
+    <div class="ocr-panel ocr-controls">
+      <div class="ocr-section-title">{{ L('source') }}</div>
+      <div class="ocr-source-buttons">
+        <button class="ocr-ghost-btn" @click="pickServerImage">{{ L('pickServer') }}</button>
+        <button class="ocr-ghost-btn" @click="pickClientImage">{{ L('pickClient') }}</button>
+      </div>
+
+      <div class="ocr-field">
+        <label>{{ L('path') }}</label>
+        <div class="ocr-path-box">{{ selectedSourcePath || uploadLabel || L('selectSource') }}</div>
+        <div class="ocr-field-help">{{ uploadLabel ? L('uploadSaved') : L('ready') }}</div>
+      </div>
+
+      <div class="ocr-field">
+        <label>{{ L('output') }}</label>
+        <div class="ocr-path-actions">
+          <div class="ocr-path-box">{{ outputPath || L('outputAuto') }}</div>
+          <button class="ocr-ghost-btn small" @click="chooseOutput">{{ L('saveAs') }}</button>
+        </div>
+      </div>
+
+      <div class="ocr-field">
+        <label>{{ L('language') }}</label>
+        <select v-model="selectedLang" class="ocr-select">
+          <option v-for="item in OCR_LANGS" :value="item.value">{{ item.label }}</option>
+        </select>
+      </div>
+
+      <button class="ocr-run-btn" @click="runScan" :disabled="!canScan">
+        {{ busy ? '...' : L('scan') }}
+      </button>
+    </div>
+
+    <div class="ocr-panel ocr-preview">
+      <div class="ocr-section-head">
+        <div class="ocr-section-title">{{ L('preview') }}</div>
+        <div v-if="selectedJob">{{ selectedJob.charCount || 0 }} {{ L('chars') }}</div>
+      </div>
+      <textarea class="ocr-preview-box" :value="previewText" readonly></textarea>
+
+      <div v-if="selectedJob" class="ocr-meta-grid">
+        <div>
+          <span>{{ L('source') }}</span>
+          <strong>{{ selectedJob.sourcePath }}</strong>
+        </div>
+        <div>
+          <span>{{ L('output') }}</span>
+          <strong>{{ selectedJob.outputPath }}</strong>
+        </div>
+        <div>
+          <span>{{ L('language') }}</span>
+          <strong>{{ selectedJob.lang }}</strong>
+        </div>
+        <div>
+          <span>Type</span>
+          <strong>{{ selectedJob.sourceType === 'upload' ? L('sourceTypeUpload') : L('sourceTypeServer') }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="ocr-panel ocr-history">
+      <div class="ocr-section-head">
+        <div class="ocr-section-title">{{ L('history') }}</div>
+        <div>{{ jobs.length }}</div>
+      </div>
+
+      <div v-if="!jobs.length" class="ocr-empty">{{ L('noJobs') }}</div>
+
+      <button
+        v-for="job in jobs"
+        :key="job.id"
+        class="ocr-job"
+        :class="{ active: selectedJob && selectedJob.id === job.id }"
+        @click="openJob(job)">
+        <div class="ocr-job-head">
+          <span>{{ job.sourceName }}</span>
+          <span>{{ job.lang }}</span>
+        </div>
+        <div class="ocr-job-path">{{ job.outputPath }}</div>
+        <div class="ocr-job-preview">{{ job.textPreview }}</div>
+      </button>
+    </div>
+  </div>
+</div>

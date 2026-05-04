@@ -51,6 +51,18 @@
     "ar": {
       "name": "Google Drive",
       "description": "مدير Google Drive — رفع وتنزيل الملفات وإدارة المجلدات والمشاركة"
+    },
+    "ko": {
+      "name": "Google Drive",
+      "description": "Google Drive 파일 관리자 — 업로드, 다운로드, 폴더 관리 및 공유"
+    },
+    "hi": {
+      "name": "Google Drive",
+      "description": "Google Drive फ़ाइल प्रबंधक — अपलोड, डाउनलोड, फ़ोल्डर प्रबंधन और साझा करना"
+    },
+    "pt": {
+      "name": "Google Drive",
+      "description": "Gerenciador do Google Drive — upload, download, gerenciamento de pastas e compartilhamento"
     }
   }
 }

@@ -328,6 +328,10 @@
       }
     };
 
+    LANGS.ko = { ...LANGS.en };
+    LANGS.hi = { ...LANGS.en };
+    LANGS.pt = { ...LANGS.en };
+
     function getLocale() {
       try { return (window.__vueDesktopSettings && window.__vueDesktopSettings.locale) || localStorage.getItem('sys_locale') || 'en'; } catch(e) { return 'en'; }
     }

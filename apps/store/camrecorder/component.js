@@ -3,15 +3,149 @@
     const { ref, onMounted, onUnmounted, nextTick } = Vue;
 
     const LANGS = {
-      tr: { title:'Kamera', retry:'Tekrar Dene', switch:'Kamera Değiştir', photo:'Fotoğraf Çek', startRec:'Kayıt Başlat', stopRec:'Kayıt Durdur', timer:'Zamanlayıcı', download:'İndir', noAccess:'Kameraya erişim izni verilemedi' },
-      en: { title:'Camera', retry:'Retry', switch:'Switch Camera', photo:'Take Photo', startRec:'Start Recording', stopRec:'Stop Recording', timer:'Timer', download:'Download', noAccess:'Camera access denied' },
-      de: { title:'Kamera', retry:'Erneut versuchen', switch:'Kamera wechseln', photo:'Foto aufnehmen', startRec:'Aufnahme starten', stopRec:'Aufnahme stoppen', timer:'Timer', download:'Herunterladen', noAccess:'Kamerazugriff verweigert' },
-      fr: { title:'Caméra', retry:'Réessayer', switch:'Changer de caméra', photo:'Prendre une photo', startRec:'Démarrer l\'enregistrement', stopRec:'Arrêter', timer:'Minuteur', download:'Télécharger', noAccess:'Accès caméra refusé' },
-      es: { title:'Cámara', retry:'Reintentar', switch:'Cambiar cámara', photo:'Tomar foto', startRec:'Iniciar grabación', stopRec:'Detener', timer:'Temporizador', download:'Descargar', noAccess:'Acceso a cámara denegado' },
-      ru: { title:'Камера', retry:'Повторить', switch:'Переключить', photo:'Сделать фото', startRec:'Начать запись', stopRec:'Остановить', timer:'Таймер', download:'Скачать', noAccess:'Доступ к камере запрещён' },
-      zh: { title:'摄像头', retry:'重试', switch:'切换摄像头', photo:'拍照', startRec:'开始录制', stopRec:'停止', timer:'定时器', download:'下载', noAccess:'无法访问摄像头' },
-      ja: { title:'カメラ', retry:'再試行', switch:'カメラ切り替え', photo:'撮影', startRec:'録画開始', stopRec:'停止', timer:'タイマー', download:'ダウンロード', noAccess:'カメラへのアクセスが拒否されました' },
-      it: { title:'Fotocamera', retry:'Riprova', switch:'Cambia fotocamera', photo:'Scatta foto', startRec:'Avvia registrazione', stopRec:'Interrompi', timer:'Timer', download:'Scarica', noAccess:'Accesso fotocamera negato' }
+      tr: {
+        title:'Kamera',
+        retry:'Tekrar Dene',
+        switch:'Kamera Değiştir',
+        photo:'Fotoğraf Çek',
+        startRec:'Kayıt Başlat',
+        stopRec:'Kayıt Durdur',
+        timer:'Zamanlayıcı',
+        download:'İndir',
+        noAccess:'Kameraya erişim izni verilemedi'
+      },
+      en: {
+        title:'Camera',
+        retry:'Retry',
+        switch:'Switch Camera',
+        photo:'Take Photo',
+        startRec:'Start Recording',
+        stopRec:'Stop Recording',
+        timer:'Timer',
+        download:'Download',
+        noAccess:'Camera access denied'
+      },
+      de: {
+        title:'Kamera',
+        retry:'Erneut versuchen',
+        switch:'Kamera wechseln',
+        photo:'Foto aufnehmen',
+        startRec:'Aufnahme starten',
+        stopRec:'Aufnahme stoppen',
+        timer:'Timer',
+        download:'Herunterladen',
+        noAccess:'Kamerazugriff verweigert'
+      },
+      fr: {
+        title:'Caméra',
+        retry:'Réessayer',
+        switch:'Changer de caméra',
+        photo:'Prendre une photo',
+        startRec:'Démarrer l\'enregistrement',
+        stopRec:'Arrêter',
+        timer:'Minuteur',
+        download:'Télécharger',
+        noAccess:'Accès caméra refusé'
+      },
+      es: {
+        title:'Cámara',
+        retry:'Reintentar',
+        switch:'Cambiar cámara',
+        photo:'Tomar foto',
+        startRec:'Iniciar grabación',
+        stopRec:'Detener',
+        timer:'Temporizador',
+        download:'Descargar',
+        noAccess:'Acceso a cámara denegado'
+      },
+      ru: {
+        title:'Камера',
+        retry:'Повторить',
+        switch:'Переключить',
+        photo:'Сделать фото',
+        startRec:'Начать запись',
+        stopRec:'Остановить',
+        timer:'Таймер',
+        download:'Скачать',
+        noAccess:'Доступ к камере запрещён'
+      },
+      zh: {
+        title:'摄像头',
+        retry:'重试',
+        switch:'切换摄像头',
+        photo:'拍照',
+        startRec:'开始录制',
+        stopRec:'停止',
+        timer:'定时器',
+        download:'下载',
+        noAccess:'无法访问摄像头'
+      },
+      ja: {
+        title:'カメラ',
+        retry:'再試行',
+        switch:'カメラ切り替え',
+        photo:'撮影',
+        startRec:'録画開始',
+        stopRec:'停止',
+        timer:'タイマー',
+        download:'ダウンロード',
+        noAccess:'カメラへのアクセスが拒否されました'
+      },
+      it: {
+        title:'Fotocamera',
+        retry:'Riprova',
+        switch:'Cambia fotocamera',
+        photo:'Scatta foto',
+        startRec:'Avvia registrazione',
+        stopRec:'Interrompi',
+        timer:'Timer',
+        download:'Scarica',
+        noAccess:'Accesso fotocamera negato'
+      },
+      ar: {
+        title:'الكاميرا',
+        retry:'إعادة المحاولة',
+        switch:'تبديل الكاميرا',
+        photo:'Take Photo',
+        startRec:'Start Recording',
+        stopRec:'Stop Recording',
+        timer:'Timer',
+        download:'تنزيل',
+        noAccess:'Camera access denied'
+      },
+      ko: {
+        title:'카메라',
+        retry:'재시도',
+        switch:'카메라 전환',
+        photo:'Take Photo',
+        startRec:'Start Recording',
+        stopRec:'Stop Recording',
+        timer:'Timer',
+        download:'다운로드',
+        noAccess:'Camera access denied'
+      },
+      hi: {
+        title:'कैमरा',
+        retry:'पुनः प्रयास',
+        switch:'कैमरा बदलें',
+        photo:'Take Photo',
+        startRec:'Start Recording',
+        stopRec:'Stop Recording',
+        timer:'Timer',
+        download:'डाउनलोड',
+        noAccess:'Camera access denied'
+      },
+      pt: {
+        title:'Câmera',
+        retry:'Tentar novamente',
+        switch:'Trocar câmera',
+        photo:'Take Photo',
+        startRec:'Start Recording',
+        stopRec:'Stop Recording',
+        timer:'Timer',
+        download:'Baixar',
+        noAccess:'Camera access denied'
+      }
     };
 
     function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }

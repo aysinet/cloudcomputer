@@ -319,6 +319,26 @@ app.post('/stop', authCheck, async (req, res) => {
   }
 });
 
+app.post('/exec', authCheck, async (req, res) => {
+  const { appId, cmd, timeout } = req.body || {};
+  console.log(`[EXEC] Request: appId=${appId} cmd=${Array.isArray(cmd) ? cmd.join(' ') : '(invalid)'}`);
+  if (!appId || !/^[a-zA-Z0-9_-]+$/.test(appId)) {
+    return res.status(400).json({ error: 'Invalid appId' });
+  }
+  if (!Array.isArray(cmd) || !cmd.length || cmd.some(part => typeof part !== 'string' || !part.length)) {
+    return res.status(400).json({ error: 'cmd array required' });
+  }
+
+  const containerName = `cloudpc-${appId}`;
+  try {
+    const stdout = await dockerExec(['exec', containerName, ...cmd], Math.max(parseInt(timeout || '120000', 10), 1000));
+    res.json({ ok: true, stdout });
+  } catch (e) {
+    console.error(`[EXEC] FAILED: ${containerName} — ${e.message}`);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── Container status ──
 app.get('/status/:appId', authCheck, async (req, res) => {
   const appId = req.params.appId.replace(/[^a-zA-Z0-9_-]/g, '');

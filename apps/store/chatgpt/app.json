@@ -51,6 +51,18 @@
     "ar": {
       "name": "ChatGPT",
       "description": "ChatGPT — مساعد دردشة بالذكاء الاصطناعي"
+    },
+    "ko": {
+      "name": "ChatGPT",
+      "description": "ChatGPT — AI 채팅 도우미"
+    },
+    "hi": {
+      "name": "ChatGPT",
+      "description": "ChatGPT — AI चैट सहायक"
+    },
+    "pt": {
+      "name": "ChatGPT",
+      "description": "ChatGPT — assistente de chat com IA"
     }
   }
 }

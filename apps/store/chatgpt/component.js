@@ -199,6 +199,10 @@
     }
   };
 
+  LANGS.ko = { ...LANGS.en };
+  LANGS.hi = { ...LANGS.en };
+  LANGS.pt = { ...LANGS.en };
+
   const QUICK_PROVIDERS = [
     { id: 'openai', name: 'OpenAI', icon: '🟢', defaultModel: 'gpt-4o' },
     { id: 'anthropic', name: 'Anthropic', icon: '🟠', defaultModel: 'claude-sonnet-4-20250514' },

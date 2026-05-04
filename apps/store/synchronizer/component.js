@@ -106,6 +106,18 @@
     }
   };
 
+  LANGS.de = { ...LANGS.en, title: 'Synchronisierung' };
+  LANGS.fr = { ...LANGS.en, title: 'Synchronisation' };
+  LANGS.es = { ...LANGS.en, title: 'Sincronización' };
+  LANGS.ru = { ...LANGS.en, title: 'Синхронизация' };
+  LANGS.zh = { ...LANGS.en, title: '同步' };
+  LANGS.ja = { ...LANGS.en, title: '同期' };
+  LANGS.it = { ...LANGS.en, title: 'Sincronizzazione' };
+  LANGS.ar = { ...LANGS.en, title: 'مزامنة' };
+  LANGS.ko = { ...LANGS.en, title: '동기화' };
+  LANGS.hi = { ...LANGS.en, title: 'सिंक' };
+  LANGS.pt = { ...LANGS.en, title: 'Sincronização' };
+
   return {
     template: '#SynchronizerApp',
     props: { appWindow: Object },

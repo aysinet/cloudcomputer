@@ -47,6 +47,22 @@
     "it": {
       "name": "Memory",
       "description": "Gioco di memoria classico — gira le carte e trova le coppie"
+    },
+    "ar": {
+      "name": "لعبة الذاكرة",
+      "description": "لعبة مطابقة بطاقات الذاكرة الكلاسيكية — اقلب البطاقات واعثر على الأزواج"
+    },
+    "ko": {
+      "name": "메모리 매치",
+      "description": "클래식 메모리 카드 맞추기 게임 — 카드를 뒤집고 짝을 찾으세요"
+    },
+    "hi": {
+      "name": "मेमोरी मैच",
+      "description": "क्लासिक मेमोरी कार्ड मैचिंग गेम — कार्ड पलटें और जोड़ियाँ खोजें"
+    },
+    "pt": {
+      "name": "Jogo da Memória",
+      "description": "Jogo clássico de combinação de cartas da memória — vire as cartas e encontre os pares"
     }
   }
 }

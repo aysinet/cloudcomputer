@@ -168,6 +168,14 @@
       }
     };
 
+    LANGS.zh = { ...LANGS.en, title:'Solana钱包' };
+    LANGS.ja = { ...LANGS.en, title:'Solanaウォレット' };
+    LANGS.it = { ...LANGS.en, title:'Portafoglio Solana' };
+    LANGS.ar = { ...LANGS.en, title:'محفظة سولانا' };
+    LANGS.ko = { ...LANGS.en, title:'Solana 지갑' };
+    LANGS.hi = { ...LANGS.en, title:'सोलाना वॉलेट' };
+    LANGS.pt = { ...LANGS.en, title:'Carteira Solana' };
+
     function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
     const locale = ref(getLocale());
     function L(k) { return (LANGS[locale.value] || LANGS.tr)[k] || LANGS.tr[k] || k; }

@@ -103,6 +103,14 @@
       }
     };
 
+    LANGS.zh = { ...LANGS.en, title:'Gmail' };
+    LANGS.ja = { ...LANGS.en, title:'Gmail' };
+    LANGS.it = { ...LANGS.en, title:'Gmail' };
+    LANGS.ar = { ...LANGS.en, title:'Gmail' };
+    LANGS.ko = { ...LANGS.en, title:'Gmail' };
+    LANGS.hi = { ...LANGS.en, title:'Gmail' };
+    LANGS.pt = { ...LANGS.en, title:'Gmail' };
+
     function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
     const locale = ref(getLocale());
     function L(k) { return (LANGS[locale.value] || LANGS.tr)[k] || LANGS.tr[k] || k; }

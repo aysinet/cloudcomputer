@@ -46,6 +46,15 @@
       }
     };
 
+    LANGS.ru = { ...LANGS.en };
+    LANGS.zh = { ...LANGS.en };
+    LANGS.ja = { ...LANGS.en };
+    LANGS.it = { ...LANGS.en };
+    LANGS.ar = { ...LANGS.en };
+    LANGS.ko = { ...LANGS.en };
+    LANGS.hi = { ...LANGS.en };
+    LANGS.pt = { ...LANGS.en };
+
     function getLocale() { try { return (window.__vueDesktopSettings && window.__vueDesktopSettings.locale) || localStorage.getItem('sys_locale') || 'en'; } catch(e) { return 'en'; } }
     var locale = ref(getLocale());
     function t(key) { return (LANGS[locale.value] || LANGS.en)[key] || (LANGS.en[key] || key); }

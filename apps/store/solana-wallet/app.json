@@ -51,6 +51,18 @@
     "ar": {
       "name": "محفظة سولانا",
       "description": "محفظة سولانا — الرصيد، الإرسال، سجل المعاملات"
+    },
+    "ko": {
+      "name": "Solana 지갑",
+      "description": "Solana 지갑 — 잔액, 전송, 거래 내역"
+    },
+    "hi": {
+      "name": "सोलाना वॉलेट",
+      "description": "सोलाना वॉलेट — बैलेंस, ट्रांसफर, ट्रांज़ैक्शन इतिहास"
+    },
+    "pt": {
+      "name": "Carteira Solana",
+      "description": "Carteira Solana — saldo, transferência e histórico de transações"
     }
   }
 }

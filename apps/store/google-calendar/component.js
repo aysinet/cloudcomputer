@@ -95,6 +95,15 @@
       }
     };
 
+    LANGS.ru = { ...LANGS.en, settingsTitle:'Google Calendar Settings' };
+    LANGS.zh = { ...LANGS.en, settingsTitle:'Google Calendar Settings' };
+    LANGS.ja = { ...LANGS.en, settingsTitle:'Google Calendar Settings' };
+    LANGS.it = { ...LANGS.en, settingsTitle:'Google Calendar Settings' };
+    LANGS.ar = { ...LANGS.en, settingsTitle:'Google Calendar Settings' };
+    LANGS.ko = { ...LANGS.en, settingsTitle:'Google Calendar Settings' };
+    LANGS.hi = { ...LANGS.en, settingsTitle:'Google Calendar Settings' };
+    LANGS.pt = { ...LANGS.en, settingsTitle:'Google Calendar Settings' };
+
     const lang = ref((window.__CLOUD_LANG__ || 'tr').toLowerCase());
     const L = (key) => (LANGS[lang.value] || LANGS['en'])?.[key] || LANGS['en']?.[key] || key;
 

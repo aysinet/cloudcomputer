@@ -221,6 +221,10 @@
     }
   };
 
+  LANGS.ko = { ...LANGS.en };
+  LANGS.hi = { ...LANGS.en };
+  LANGS.pt = { ...LANGS.en };
+
   function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
 
   return {

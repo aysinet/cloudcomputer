@@ -49,6 +49,18 @@
       }
     };
 
+    LANGS.de = { ...LANGS.en, title: 'Code-Minifier' };
+    LANGS.fr = { ...LANGS.en, title: 'Minifieur de code' };
+    LANGS.es = { ...LANGS.en, title: 'Minificador de código' };
+    LANGS.ru = { ...LANGS.en, title: 'Минификатор кода' };
+    LANGS.zh = { ...LANGS.en, title: '代码压缩器' };
+    LANGS.ja = { ...LANGS.en, title: 'コード圧縮' };
+    LANGS.it = { ...LANGS.en, title: 'Minificatore codice' };
+    LANGS.ar = { ...LANGS.en, title: 'ضاغط الأكواد' };
+    LANGS.ko = { ...LANGS.en, title: '코드 압축기' };
+    LANGS.hi = { ...LANGS.en, title: 'कोड मिनीफायर' };
+    LANGS.pt = { ...LANGS.en, title: 'Minificador de código' };
+
     function getLocale() { return localStorage.getItem('sys_locale') || 'tr'; }
     var locale = ref(getLocale());
     var t = function(k) { return (LANGS[locale.value] && LANGS[locale.value][k]) || LANGS.en[k] || k; };

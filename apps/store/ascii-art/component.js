@@ -51,6 +51,15 @@
     }
   };
 
+  LANGS.ru = { ...LANGS.en };
+  LANGS.zh = { ...LANGS.en };
+  LANGS.ja = { ...LANGS.en };
+  LANGS.it = { ...LANGS.en };
+  LANGS.ar = { ...LANGS.en };
+  LANGS.ko = { ...LANGS.en };
+  LANGS.hi = { ...LANGS.en };
+  LANGS.pt = { ...LANGS.en };
+
   function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
 
   return {

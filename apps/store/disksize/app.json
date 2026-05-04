@@ -23,6 +23,7 @@
     "ja": { "name": "ディスクサイズ", "description": "Docker、AppData、ユーザーディレクトリのディスク使用量" },
     "ko": { "name": "디스크 크기", "description": "Docker, AppData 및 사용자 디렉터리의 디스크 사용량" },
     "ar": { "name": "حجم القرص", "description": "استخدام القرص لحاويات Docker ومجلدات AppData والمستخدمين" }
+    ,"hi": { "name": "डिस्क आकार", "description": "Docker, AppData और उपयोगकर्ता निर्देशिकाओं के डिस्क उपयोग की जानकारी" }
   },
   "category": "tools"
 }

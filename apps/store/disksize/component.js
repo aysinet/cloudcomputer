@@ -68,6 +68,16 @@
     }
   };
 
+  LANGS.es = { ...LANGS.en, title: 'Tamaño de disco' };
+  LANGS.ru = { ...LANGS.en, title: 'Размер диска' };
+  LANGS.zh = { ...LANGS.en, title: '磁盘大小' };
+  LANGS.ja = { ...LANGS.en, title: 'ディスクサイズ' };
+  LANGS.it = { ...LANGS.en, title: 'Dimensione disco' };
+  LANGS.ar = { ...LANGS.en, title: 'حجم القرص' };
+  LANGS.ko = { ...LANGS.en, title: '디스크 크기' };
+  LANGS.hi = { ...LANGS.en, title: 'डिस्क आकार' };
+  LANGS.pt = { ...LANGS.en, title: 'Tamanho do disco' };
+
   function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
 
   function formatSize(bytes) {

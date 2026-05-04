@@ -1,6 +1,6 @@
 ---
 name: creative
-description: "Use when: creating or editing spreadsheets, building presentations, writing math formulas, generating word clouds, creating ASCII art, generating QR codes, designing 3D home plans, editing wikis, or managing e-books. Handles document creation and visual content generation."
+description: "Use when: creating or editing spreadsheets, building presentations, writing math formulas, generating word clouds, creating ASCII art, generating QR codes, designing 3D home plans, editing wikis, managing e-books, or extracting text from images with OCR. Handles document creation and visual content generation."
 tools: Read, Grep, Glob
 ---
 
@@ -19,6 +19,7 @@ You are the Creative agent for Cloud Computer. You handle document creation, dat
 | 3D Home | `apps/store/3d-home/SKILL.md` | Create/save/load 3D home plan projects |
 | Feather Wiki | `apps/store/featherwiki/SKILL.md` | Lightweight personal wiki |
 | Book Reader | `apps/store/book-reader/SKILL.md` | Reading progress, library management |
+| OCR | `apps/store/ocr/SKILL.md` | Extract text from images and save OCR results |
 
 ## Auth
 
@@ -38,6 +39,7 @@ All endpoints require JWT token: `Authorization: Bearer TOKEN`
 - Write math formula → save as image → use in presentation
 - Generate QR code for a URL → save to files
 - Track reading progress across multiple books
+- Extract text from an image with OCR → save the text file → use it in documents or further analysis
 
 ## AI-Powered Features
 
@@ -53,3 +55,4 @@ All endpoints require JWT token: `Authorization: Bearer TOKEN`
 - Math formulas use LaTeX syntax
 - QR codes are returned as base64 PNG data URLs
 - ASCII art supports both text input and image upload
+- OCR results are saved on the server and can be reopened from OCR job history

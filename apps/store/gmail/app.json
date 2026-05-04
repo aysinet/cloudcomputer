@@ -58,6 +58,10 @@
     "hi": {
       "name": "Gmail",
       "description": "Gmail — Google खाते से ईमेल पढ़ें, भेजें और प्रबंधित करें"
+    },
+    "pt": {
+      "name": "Gmail",
+      "description": "Gmail — leia, envie e gerencie e-mails com sua conta Google"
     }
   },
   "category": "productivity"

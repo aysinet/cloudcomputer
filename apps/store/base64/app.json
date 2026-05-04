@@ -58,6 +58,10 @@
     "it": {
       "name": "Base64 Codificatore",
       "description": "Codifica e decodifica testo e file in formato Base64"
+    },
+    "hi": {
+      "name": "Base64 एन्कोडर",
+      "description": "पाठ और फ़ाइलों को Base64 प्रारूप में एन्कोड और डिकोड करें"
     }
   },
   "category": "utilities"

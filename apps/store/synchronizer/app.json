@@ -51,6 +51,18 @@
     "ar": {
       "name": "مزامنة",
       "description": "مزامنة البيانات والملفات بين نسختين من CloudComputer"
+    },
+    "ko": {
+      "name": "동기화",
+      "description": "두 CloudComputer 인스턴스 간에 사용자 데이터와 파일을 동기화합니다"
+    },
+    "hi": {
+      "name": "सिंक",
+      "description": "दो CloudComputer इंस्टेंस के बीच उपयोगकर्ता डेटा और फ़ाइलें सिंक करें"
+    },
+    "pt": {
+      "name": "Sincronização",
+      "description": "Sincronize dados e arquivos do usuário entre duas instâncias do CloudComputer"
     }
   }
 }

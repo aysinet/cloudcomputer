@@ -317,6 +317,10 @@ function seedAppConfigs(appId) {
 // #region Resolve cmd template from installConfig; returns null if any var missing
 function resolveCmd(cmdTemplate, installConfig) {
   if (!Array.isArray(cmdTemplate) || cmdTemplate.length === 0) return null;
+  const hasPlaceholders = cmdTemplate.some(part => typeof part === 'string' && /\$\{[A-Za-z_][A-Za-z0-9_]*\}/.test(part));
+  if (!hasPlaceholders) {
+    return cmdTemplate.filter(part => typeof part === 'string' && part.length > 0);
+  }
   if (!installConfig) return null;
   const resolved = [];
   for (const part of cmdTemplate) {
@@ -1161,6 +1165,234 @@ app.get('/api/services/:id', authMiddleware, async (req, res) => {
   } catch {}
 
   res.json({ ...cfg, id: serviceId, running });
+});
+
+// #endregion
+// #region OCR API
+const OCR_APP_ID = 'ocr';
+const OCR_ALLOWED_EXTS = new Set(['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.tif', '.tiff', '.gif']);
+const OCR_MIME_EXT = {
+  'image/png': '.png',
+  'image/jpeg': '.jpg',
+  'image/jpg': '.jpg',
+  'image/webp': '.webp',
+  'image/bmp': '.bmp',
+  'image/tiff': '.tiff',
+  'image/gif': '.gif'
+};
+const OCR_UPLOAD = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
+
+function getUserOcrDataDir(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe, 'ocr');
+  ensureDir(dir);
+  return dir;
+}
+
+function getUserOcrHistoryPath(username) {
+  return path.join(getUserOcrDataDir(username), 'history.json');
+}
+
+function getUserOcrHistory(username) {
+  const filePath = getUserOcrHistoryPath(username);
+  if (!fs.existsSync(filePath)) return [];
+  try {
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveUserOcrHistory(username, history) {
+  fs.writeFileSync(getUserOcrHistoryPath(username), JSON.stringify(history, null, 2));
+}
+
+function sanitizeFileName(name, fallback) {
+  const clean = String(name || '')
+    .replace(/[<>:"|?*\\/]+/g, '_')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return clean || fallback;
+}
+
+function getOcrDefaultOutputPath(sourceName) {
+  const safeName = sanitizeFileName(sourceName || 'scan', 'scan');
+  const base = safeName.replace(/\.[^.]+$/, '') || 'scan';
+  return path.join('OCR', 'results', base + '.ocr.txt').replace(/\\/g, '/');
+}
+
+function getOcrWorkspaceDir() {
+  const dir = path.join(APPDATA_HOST_DIR, OCR_APP_ID);
+  ensureDir(dir);
+  return dir;
+}
+
+function normalizeOcrLang(lang) {
+  const raw = String(lang || 'eng').trim().toLowerCase();
+  const parts = raw.split('+').map(part => part.trim()).filter(Boolean);
+  const valid = [];
+  const seen = new Set();
+  for (const part of parts) {
+    if (!/^[a-z_]{3,12}$/.test(part)) continue;
+    if (seen.has(part)) continue;
+    seen.add(part);
+    valid.push(part);
+  }
+  return valid.length ? valid : ['eng'];
+}
+
+async function ensureOcrServiceReady(username) {
+  const services = getServiceConfigs(username);
+  const cfg = services[OCR_APP_ID];
+  if (!cfg) throw new Error('OCR service is not installed');
+  const status = await dmFetch('/status/' + OCR_APP_ID);
+  if (!status.running) throw new Error('OCR service is not running');
+  return status;
+}
+
+async function ensureOcrLanguages(langParts) {
+  const tessDir = path.join(getOcrWorkspaceDir(), 'tessdata');
+  ensureDir(tessDir);
+  for (const code of langParts) {
+    if (code === 'eng') continue;
+    const trainedData = path.join(tessDir, code + '.traineddata');
+    if (fs.existsSync(trainedData)) continue;
+    await dmFetch('/exec', {
+      method: 'POST',
+      body: JSON.stringify({ appId: OCR_APP_ID, cmd: ['train-lang', code, '--fast'], timeout: 600000 }),
+      timeout: 610000
+    });
+  }
+}
+
+async function runOcrScan(username, options) {
+  const userRoot = getUserFilesRoot(username);
+  const langParts = normalizeOcrLang(options.lang);
+  const workspaceDir = getOcrWorkspaceDir();
+  const jobsDir = path.join(workspaceDir, 'jobs');
+  ensureDir(jobsDir);
+  ensureDir(path.join(userRoot, 'OCR', 'uploads'));
+  ensureDir(path.join(userRoot, 'OCR', 'results'));
+
+  let sourceRelPath = '';
+  let sourceBuffer = null;
+  let sourceName = '';
+  let sourceType = 'server';
+
+  if (options.sourcePath) {
+    const resolvedSource = safePath(userRoot, options.sourcePath);
+    if (!resolvedSource) throw new Error('Invalid source path');
+    if (!fs.existsSync(resolvedSource) || fs.statSync(resolvedSource).isDirectory()) throw new Error('Source image not found');
+    const ext = path.extname(resolvedSource).toLowerCase();
+    if (!OCR_ALLOWED_EXTS.has(ext)) throw new Error('Unsupported image type');
+    sourceBuffer = fs.readFileSync(resolvedSource);
+    sourceName = path.basename(resolvedSource);
+    sourceRelPath = path.relative(userRoot, resolvedSource).replace(/\\/g, '/');
+  } else if (options.uploadFile) {
+    const uploadFile = options.uploadFile;
+    const fallbackExt = OCR_MIME_EXT[uploadFile.mimetype] || path.extname(uploadFile.originalname || '').toLowerCase() || '.png';
+    if (!OCR_ALLOWED_EXTS.has(fallbackExt)) throw new Error('Unsupported upload image type');
+    sourceName = sanitizeFileName(uploadFile.originalname || ('upload' + fallbackExt), 'upload' + fallbackExt);
+    const stampedName = Date.now() + '-' + sourceName;
+    const relUpload = path.join('OCR', 'uploads', stampedName).replace(/\\/g, '/');
+    const resolvedUpload = safePath(userRoot, relUpload);
+    sourceBuffer = uploadFile.buffer;
+    fs.writeFileSync(resolvedUpload, sourceBuffer);
+    sourceRelPath = relUpload;
+    sourceType = 'upload';
+  } else {
+    throw new Error('Source image required');
+  }
+
+  const outputRelPath = options.outputPath || getOcrDefaultOutputPath(sourceName);
+  const resolvedOutput = safePath(userRoot, outputRelPath);
+  if (!resolvedOutput) throw new Error('Invalid output path');
+
+  await ensureOcrServiceReady(username);
+  await ensureOcrLanguages(langParts);
+
+  const sourceExt = path.extname(sourceName).toLowerCase() || '.png';
+  const jobId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const jobDir = path.join(jobsDir, jobId);
+  ensureDir(jobDir);
+  const workspaceInput = path.join(jobDir, 'input' + sourceExt);
+  fs.writeFileSync(workspaceInput, sourceBuffer);
+
+  const execData = await dmFetch('/exec', {
+    method: 'POST',
+    body: JSON.stringify({
+      appId: OCR_APP_ID,
+      cmd: ['tesseract', '/workspace/jobs/' + jobId + '/input' + sourceExt, 'stdout', '-l', langParts.join('+')],
+      timeout: 600000
+    }),
+    timeout: 610000
+  });
+
+  ensureDir(path.dirname(resolvedOutput));
+  fs.writeFileSync(resolvedOutput, execData.stdout || '', 'utf-8');
+
+  const entry = {
+    id: jobId,
+    sourcePath: sourceRelPath,
+    outputPath: path.relative(userRoot, resolvedOutput).replace(/\\/g, '/'),
+    sourceType,
+    sourceName,
+    lang: langParts.join('+'),
+    textPreview: String(execData.stdout || '').slice(0, 500),
+    charCount: String(execData.stdout || '').length,
+    createdAt: new Date().toISOString()
+  };
+
+  const history = getUserOcrHistory(username);
+  history.unshift(entry);
+  saveUserOcrHistory(username, history.slice(0, 200));
+
+  return {
+    ok: true,
+    job: entry,
+    text: execData.stdout || ''
+  };
+}
+
+app.get('/api/ocr/jobs', authMiddleware, (req, res) => {
+  res.json({ jobs: getUserOcrHistory(req.user.username) });
+});
+
+app.get('/api/ocr/jobs/:id', authMiddleware, (req, res) => {
+  const userRoot = getUserFilesRoot(req.user.username);
+  const jobId = req.params.id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const history = getUserOcrHistory(req.user.username);
+  const job = history.find(item => item.id === jobId);
+  if (!job) return res.status(404).json({ error: 'OCR job not found' });
+  const outputFile = safePath(userRoot, job.outputPath);
+  let text = '';
+  if (outputFile && fs.existsSync(outputFile) && !fs.statSync(outputFile).isDirectory()) {
+    try { text = fs.readFileSync(outputFile, 'utf-8'); } catch {}
+  }
+  res.json({ ...job, text });
+});
+
+app.post('/api/ocr/scan', authMiddleware, async (req, res) => {
+  const { sourcePath, lang, outputPath } = req.body || {};
+  try {
+    const result = await runOcrScan(req.user.username, { sourcePath, lang, outputPath });
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.post('/api/ocr/scan-upload', authMiddleware, OCR_UPLOAD.single('file'), async (req, res) => {
+  const lang = req.body ? req.body.lang : '';
+  const outputPath = req.body ? req.body.outputPath : '';
+  if (!req.file) return res.status(400).json({ error: 'file required' });
+  try {
+    const result = await runOcrScan(req.user.username, { uploadFile: req.file, lang, outputPath });
+    res.json(result);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
 });
 
 // #endregion
@@ -2042,6 +2274,24 @@ app.post('/api/docker/stop', authMiddleware, async (req, res) => {
   }
 });
 
+app.post('/api/docker/exec', authMiddleware, async (req, res) => {
+  const { appId, cmd, timeout } = req.body || {};
+  if (!appId || !/^[a-zA-Z0-9_-]+$/.test(appId)) return res.status(400).json({ error: 'Invalid appId' });
+  if (!Array.isArray(cmd) || !cmd.length || cmd.some(part => typeof part !== 'string' || !part.length)) {
+    return res.status(400).json({ error: 'cmd array required' });
+  }
+  try {
+    const data = await dmFetch('/exec', {
+      method: 'POST',
+      body: JSON.stringify({ appId, cmd, timeout: Number(timeout) || 120000 }),
+      timeout: Math.max(Number(timeout) || 120000, 120000) + 10000
+    });
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get('/api/docker/status/:appId', authMiddleware, async (req, res) => {
   const appId = req.params.appId.replace(/[^a-zA-Z0-9_-]/g, '');
   try {
@@ -2811,7 +3061,7 @@ const AI_DOMAIN_APPS = {
   media: ['music-player','photos','audio-recorder','audio-editor','loopstudio'],
   communication: ['mail-app','notifications'],
   developer: ['codeeditor','github','requestly','rabbitmq-tracker'],
-  creative: ['spreadsheet','presentation','math-formula','wordcloud','ascii-art','qrcode-maker','3d-home','featherwiki','book-reader'],
+  creative: ['spreadsheet','presentation','math-formula','wordcloud','ascii-art','qrcode-maker','3d-home','featherwiki','book-reader','ocr'],
   web: ['browser','wikipedia','youtube','google-trends','sport-scores','rss-reader','map'],
   system: ['settings','weather','petcarely','stopwatch','password-manager']
 };
@@ -2823,7 +3073,7 @@ const AI_DOMAIN_KEYWORDS = {
   media: ['music','müzik','photo','fotoğraf','video','audio','ses','record','kayıt','şarkı','song','album','çal','play'],
   communication: ['email','mail','notification','bildirim','mesaj','message','inbox','posta'],
   developer: ['code','github','api','debug','repo','commit','pull','push','rabbitmq','branch'],
-  creative: ['spreadsheet','excel','presentation','sunum','formula','word cloud','ascii','qr','3d','wiki','book','kitap','tablo','slayt'],
+  creative: ['spreadsheet','excel','presentation','sunum','formula','word cloud','ascii','qr','3d','wiki','book','kitap','tablo','slayt','ocr','optical character recognition','scan text','text extraction','metin çıkar','metin cikar','görüntüden yazı','goruntuden yazi','resimden yazı','resimden yazi','tarama'],
   web: ['browser','wikipedia','youtube','google','sport','rss','map','harita','haber','news','arama','search','skor','score','trend','bookmark','bookmarks','favori','favoriler','yer imi','yer imleri','fav','tarayıcı','tarayici','web site','website','site'],
   system: ['setting','ayar','password','şifre','weather','hava','pet','stopwatch','kronometre','monitor','cpu','ram','sistem','system','sıcaklık','derece']
 };

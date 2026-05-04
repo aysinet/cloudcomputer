@@ -268,6 +268,10 @@
       }
     };
 
+    LANGS.ko = { ...LANGS.en };
+    LANGS.hi = { ...LANGS.en };
+    LANGS.pt = { ...LANGS.en };
+
     function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
     const locale = ref(getLocale());
     function t(k) { return (LANGS[locale.value] || LANGS.tr)[k] || LANGS.tr[k] || k; }

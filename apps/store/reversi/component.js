@@ -12,6 +12,14 @@
     ru: { newGame: 'Новая игра', blackTurn: 'Ход чёрных', whiteTurn: 'Ход белых', blackWins: 'Чёрные победили!', whiteWins: 'Белые победили!', draw: 'Ничья!', vsAI: 'Против ПК', passed: 'Пас' }
   };
 
+  I18N.zh = { ...I18N.en };
+  I18N.ja = { ...I18N.en };
+  I18N.it = { ...I18N.en };
+  I18N.ar = { ...I18N.en };
+  I18N.ko = { ...I18N.en };
+  I18N.hi = { ...I18N.en };
+  I18N.pt = { ...I18N.en };
+
   function getLocale() {
     try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; }
   }

@@ -17,6 +17,7 @@
     "ru": { "name": "ASCII Art", "description": "Создание ASCII-арта из изображений и текста — figlet, сохранить, поделиться" },
     "zh": { "name": "ASCII Art", "description": "从图片和文本生成ASCII艺术 — figlet、保存、分享" },
     "ja": { "name": "ASCII Art", "description": "画像とテキストからASCIIアートを生成 — figlet、保存、共有" },
+    "it": { "name": "ASCII Art", "description": "Genera arte ASCII da immagini e testo — figlet, salva, condividi" },
     "ko": { "name": "ASCII Art", "description": "이미지와 텍스트에서 ASCII 아트 생성 — figlet, 저장, 공유" },
     "ar": { "name": "ASCII Art", "description": "إنشاء فن ASCII من الصور والنص — figlet، حفظ، مشاركة" },
     "hi": { "name": "ASCII Art", "description": "छवियों और पाठ से ASCII कला बनाएं — figlet, सहेजें, साझा करें" }

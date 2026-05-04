@@ -1,0 +1,44 @@
+{
+  "id": "ocr",
+  "name": "OCR",
+  "icon": "🧾",
+  "color": "linear-gradient(135deg,#2E7D32,#F9A825)",
+  "type": "service",
+  "size": {
+    "w": 920,
+    "h": 700
+  },
+  "global": false,
+  "description": "Docker tabanlı OCR servisi - resimlerden metin çıkarır ve sonucu sunucuya kaydeder",
+  "lang": {
+    "tr": { "name": "OCR", "description": "Docker tabanlı OCR servisi - resimlerden metin çıkarır ve sonucu sunucuya kaydeder" },
+    "en": { "name": "OCR", "description": "Docker-based OCR service - extracts text from images and saves results on the server" },
+    "de": { "name": "OCR", "description": "Docker-basierter OCR-Dienst - extrahiert Text aus Bildern und speichert Ergebnisse auf dem Server" },
+    "fr": { "name": "OCR", "description": "Service OCR base sur Docker - extrait le texte des images et enregistre les resultats sur le serveur" },
+    "es": { "name": "OCR", "description": "Servicio OCR basado en Docker - extrae texto de imagenes y guarda resultados en el servidor" },
+    "ru": { "name": "OCR", "description": "OCR сервис на Docker - извлекает текст из изображений и сохраняет результат на сервере" },
+    "zh": { "name": "OCR", "description": "基于 Docker 的 OCR 服务 - 从图像中提取文本并将结果保存到服务器" },
+    "ja": { "name": "OCR", "description": "Docker ベースの OCR サービス - 画像からテキストを抽出してサーバーに保存します" },
+    "it": { "name": "OCR", "description": "Servizio OCR basato su Docker - estrae testo dalle immagini e salva i risultati sul server" },
+    "ar": { "name": "OCR", "description": "خدمة OCR معتمدة على Docker - تستخرج النص من الصور وتحفظ النتيجة على الخادم" },
+    "ko": { "name": "OCR", "description": "Docker 기반 OCR 서비스 - 이미지에서 텍스트를 추출하고 결과를 서버에 저장합니다" },
+    "hi": { "name": "OCR", "description": "Docker आधारित OCR सेवा - इमेज से टेक्स्ट निकालकर सर्वर पर सहेजती है" },
+    "pt": { "name": "OCR", "description": "Servico OCR baseado em Docker - extrai texto de imagens e salva os resultados no servidor" }
+  },
+  "category": "creative",
+  "docker": {
+    "image": "jitesoft/tesseract-ocr:5-5.5.2",
+    "containerPort": 9999,
+    "volumes": [
+      "${APPDATA_DIR}:/workspace",
+      "${APPDATA_DIR}/tessdata:/usr/local/share/tessdata"
+    ],
+    "env": [],
+    "cmd": [
+      "sh",
+      "-lc",
+      "trap 'exit 0' TERM INT; while true; do sleep 3600; done"
+    ],
+    "restart": "always"
+  }
+}

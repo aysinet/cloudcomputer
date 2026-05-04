@@ -3,15 +3,149 @@
     const { ref, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
 
     const LANGS = {
-      tr: { start:'Büyüteci Başlat', stop:'Durdur', size:'Boyut', freeze:'Dondur', hint:'Büyüteci başlatın, ardından fare imlecini ekranda gezdirin.', activeHint:'Büyüteç aktif — fare imlecini gezdirin', zoomIn:'Yakınlaştır', zoomOut:'Uzaklaştır', trayTitle:'Büyüteç' },
-      en: { start:'Start Magnifier', stop:'Stop', size:'Size', freeze:'Freeze', hint:'Start the magnifier, then move your cursor around the screen.', activeHint:'Magnifier active — move your cursor', zoomIn:'Zoom In', zoomOut:'Zoom Out', trayTitle:'Magnifier' },
-      de: { start:'Lupe starten', stop:'Stopp', size:'Größe', freeze:'Einfrieren', hint:'Starten Sie die Lupe und bewegen Sie den Cursor.', activeHint:'Lupe aktiv — Cursor bewegen', zoomIn:'Vergrößern', zoomOut:'Verkleinern', trayTitle:'Lupe' },
-      fr: { start:'Démarrer la loupe', stop:'Arrêter', size:'Taille', freeze:'Geler', hint:'Démarrez la loupe puis déplacez le curseur.', activeHint:'Loupe active — déplacez le curseur', zoomIn:'Agrandir', zoomOut:'Réduire', trayTitle:'Loupe' },
-      es: { start:'Iniciar lupa', stop:'Detener', size:'Tamaño', freeze:'Congelar', hint:'Inicie la lupa y mueva el cursor por la pantalla.', activeHint:'Lupa activa — mueva el cursor', zoomIn:'Acercar', zoomOut:'Alejar', trayTitle:'Lupa' },
-      ru: { start:'Запустить лупу', stop:'Остановить', size:'Размер', freeze:'Заморозить', hint:'Запустите лупу и двигайте курсор по экрану.', activeHint:'Лупа активна — двигайте курсор', zoomIn:'Увеличить', zoomOut:'Уменьшить', trayTitle:'Лупа' },
-      zh: { start:'启动放大镜', stop:'停止', size:'大小', freeze:'冻结', hint:'启动放大镜，然后在屏幕上移动光标。', activeHint:'放大镜已激活 — 移动光标', zoomIn:'放大', zoomOut:'缩小', trayTitle:'放大镜' },
-      ja: { start:'拡大鏡を開始', stop:'停止', size:'サイズ', freeze:'フリーズ', hint:'拡大鏡を開始し、カーソルを動かしてください。', activeHint:'拡大鏡アクティブ — カーソルを動かす', zoomIn:'拡大', zoomOut:'縮小', trayTitle:'拡大鏡' },
-      it: { start:'Avvia lente', stop:'Ferma', size:'Dimensione', freeze:'Congela', hint:'Avvia la lente e muovi il cursore sullo schermo.', activeHint:'Lente attiva — muovi il cursore', zoomIn:'Ingrandisci', zoomOut:'Riduci', trayTitle:'Lente' }
+      tr: {
+        start:'Büyüteci Başlat',
+        stop:'Durdur',
+        size:'Boyut',
+        freeze:'Dondur',
+        hint:'Büyüteci başlatın, ardından fare imlecini ekranda gezdirin.',
+        activeHint:'Büyüteç aktif — fare imlecini gezdirin',
+        zoomIn:'Yakınlaştır',
+        zoomOut:'Uzaklaştır',
+        trayTitle:'Büyüteç'
+      },
+      en: {
+        start:'Start Magnifier',
+        stop:'Stop',
+        size:'Size',
+        freeze:'Freeze',
+        hint:'Start the magnifier, then move your cursor around the screen.',
+        activeHint:'Magnifier active — move your cursor',
+        zoomIn:'Zoom In',
+        zoomOut:'Zoom Out',
+        trayTitle:'Magnifier'
+      },
+      de: {
+        start:'Lupe starten',
+        stop:'Stopp',
+        size:'Größe',
+        freeze:'Einfrieren',
+        hint:'Starten Sie die Lupe und bewegen Sie den Cursor.',
+        activeHint:'Lupe aktiv — Cursor bewegen',
+        zoomIn:'Vergrößern',
+        zoomOut:'Verkleinern',
+        trayTitle:'Lupe'
+      },
+      fr: {
+        start:'Démarrer la loupe',
+        stop:'Arrêter',
+        size:'Taille',
+        freeze:'Geler',
+        hint:'Démarrez la loupe puis déplacez le curseur.',
+        activeHint:'Loupe active — déplacez le curseur',
+        zoomIn:'Agrandir',
+        zoomOut:'Réduire',
+        trayTitle:'Loupe'
+      },
+      es: {
+        start:'Iniciar lupa',
+        stop:'Detener',
+        size:'Tamaño',
+        freeze:'Congelar',
+        hint:'Inicie la lupa y mueva el cursor por la pantalla.',
+        activeHint:'Lupa activa — mueva el cursor',
+        zoomIn:'Acercar',
+        zoomOut:'Alejar',
+        trayTitle:'Lupa'
+      },
+      ru: {
+        start:'Запустить лупу',
+        stop:'Остановить',
+        size:'Размер',
+        freeze:'Заморозить',
+        hint:'Запустите лупу и двигайте курсор по экрану.',
+        activeHint:'Лупа активна — двигайте курсор',
+        zoomIn:'Увеличить',
+        zoomOut:'Уменьшить',
+        trayTitle:'Лупа'
+      },
+      zh: {
+        start:'启动放大镜',
+        stop:'停止',
+        size:'大小',
+        freeze:'冻结',
+        hint:'启动放大镜，然后在屏幕上移动光标。',
+        activeHint:'放大镜已激活 — 移动光标',
+        zoomIn:'放大',
+        zoomOut:'缩小',
+        trayTitle:'放大镜'
+      },
+      ja: {
+        start:'拡大鏡を開始',
+        stop:'停止',
+        size:'サイズ',
+        freeze:'フリーズ',
+        hint:'拡大鏡を開始し、カーソルを動かしてください。',
+        activeHint:'拡大鏡アクティブ — カーソルを動かす',
+        zoomIn:'拡大',
+        zoomOut:'縮小',
+        trayTitle:'拡大鏡'
+      },
+      it: {
+        start:'Avvia lente',
+        stop:'Ferma',
+        size:'Dimensione',
+        freeze:'Congela',
+        hint:'Avvia la lente e muovi il cursore sullo schermo.',
+        activeHint:'Lente attiva — muovi il cursore',
+        zoomIn:'Ingrandisci',
+        zoomOut:'Riduci',
+        trayTitle:'Lente'
+      },
+      ar: {
+        start:'Start Magnifier',
+        stop:'إيقاف',
+        size:'الحجم',
+        freeze:'تجميد',
+        hint:'تلميح',
+        activeHint:'Magnifier active — move your cursor',
+        zoomIn:'تكبير',
+        zoomOut:'تصغير',
+        trayTitle:'Magnifier'
+      },
+      ko: {
+        start:'시작',
+        stop:'정지',
+        size:'크기',
+        freeze:'틀 고정',
+        hint:'힌트',
+        activeHint:'Magnifier active — move your cursor',
+        zoomIn:'확대',
+        zoomOut:'축소',
+        trayTitle:'Magnifier'
+      },
+      hi: {
+        start:'Start Magnifier',
+        stop:'रोकें',
+        size:'आकार',
+        freeze:'फ्रीज',
+        hint:'Start the magnifier, then move your cursor around the screen.',
+        activeHint:'Magnifier active — move your cursor',
+        zoomIn:'ज़ूम इन',
+        zoomOut:'ज़ूम आउट',
+        trayTitle:'Magnifier'
+      },
+      pt: {
+        start:'Start Magnifier',
+        stop:'Parar',
+        size:'Porte',
+        freeze:'Congelar',
+        hint:'Dica',
+        activeHint:'Magnifier active — move your cursor',
+        zoomIn:'Ampliar',
+        zoomOut:'Reduzir',
+        trayTitle:'Magnifier'
+      }
     };
 
     function getLocale() {

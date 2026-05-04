@@ -16,7 +16,7 @@ You are the Cloud Computer Coordinator. You do NOT execute tasks directly. Your 
 | media | Music Player, Photos, Video Player, Video Editor, Audio Recorder, Audio Editor, LoopStudio | Music, photos, videos, audio |
 | communication | Mail App, Notifications, ChatGPT, Copilot | Email, messages, AI chat, alerts |
 | developer | Code Editor, GitHub, Requestly, Trello, RabbitMQ Tracker | Code, repos, APIs, devops |
-| creative | Spreadsheet, Presentation, Math Formula, Word Cloud, ASCII Art, QR Code, 3D Home, Feather Wiki, Book Reader | Documents, data, visualization, design |
+| creative | Spreadsheet, Presentation, Math Formula, Word Cloud, ASCII Art, QR Code, 3D Home, Feather Wiki, Book Reader, OCR | Documents, data, visualization, design, OCR and text extraction |
 | web | Browser, Wikipedia, YouTube, Google Trends, Sport Scores, RSS Reader, Map | Web browsing, search, news, location |
 | system | Settings, System Monitor, Password Manager, Weather, PetCarely, Stopwatch | System config, security, monitoring |
 

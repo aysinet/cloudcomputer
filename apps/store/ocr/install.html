@@ -1,0 +1,62 @@
+<div class="ocr-install-form">
+  <div class="ocr-install-header">
+    <span class="ocr-install-icon">🧾</span>
+    <h3>OCR</h3>
+    <p class="ocr-install-subtitle" data-i18n="subtitle">Tesseract OCR container indirilecek ve arka planda hazir tutulacak.</p>
+  </div>
+  <div class="ocr-install-body">
+    <p class="ocr-install-text" data-i18n="body1">Bu servis, sunucudaki bir resmi veya istemciden yuklenen resmi OCR taramasindan gecirir.</p>
+    <p class="ocr-install-text" data-i18n="body2">Ek OCR dilleri gerektiginde container icinde otomatik olarak yuklenir ve sunucuda kalici tutulur.</p>
+  </div>
+  <div class="ocr-install-footer">
+    <button class="ocr-cancel-btn" onclick="cancelServiceInstall()" data-i18n="cancel">Iptal</button>
+    <button class="ocr-install-btn" onclick="confirmServiceInstall()" data-i18n="installBtn">Kur ve Baslat</button>
+  </div>
+</div>
+
+<script>
+  const OCR_INSTALL_I18N = {
+    tr: { subtitle: 'Tesseract OCR container indirilecek ve arka planda hazir tutulacak.', body1: 'Bu servis, sunucudaki bir resmi veya istemciden yuklenen resmi OCR taramasindan gecirir.', body2: 'Ek OCR dilleri gerektiginde container icinde otomatik olarak yuklenir ve sunucuda kalici tutulur.', cancel: 'Iptal', installBtn: 'Kur ve Baslat' },
+    en: { subtitle: 'The Tesseract OCR container will be downloaded and kept ready in the background.', body1: 'This service runs OCR on a server-side image or an image uploaded from the client.', body2: 'Additional OCR languages are installed on demand inside the container and persisted on the server.', cancel: 'Cancel', installBtn: 'Install & Start' },
+    de: { subtitle: 'Der Tesseract-OCR-Container wird heruntergeladen und im Hintergrund bereitgehalten.', body1: 'Dieser Dienst fuehrt OCR fuer ein Bild auf dem Server oder ein vom Client hochgeladenes Bild aus.', body2: 'Zusaetzliche OCR-Sprachen werden bei Bedarf im Container installiert und auf dem Server gespeichert.', cancel: 'Abbrechen', installBtn: 'Installieren & Starten' },
+    fr: { subtitle: 'Le conteneur Tesseract OCR sera telecharge et garde pret en arriere-plan.', body1: 'Ce service execute l OCR sur une image cote serveur ou telechargee depuis le client.', body2: 'Les langues OCR supplementaires sont installees a la demande dans le conteneur et conservees sur le serveur.', cancel: 'Annuler', installBtn: 'Installer et Demarrer' },
+    es: { subtitle: 'El contenedor Tesseract OCR se descargara y quedara listo en segundo plano.', body1: 'Este servicio ejecuta OCR sobre una imagen del servidor o subida desde el cliente.', body2: 'Los idiomas OCR adicionales se instalan bajo demanda dentro del contenedor y se conservan en el servidor.', cancel: 'Cancelar', installBtn: 'Instalar e Iniciar' },
+    ru: { subtitle: 'Контейнер Tesseract OCR будет загружен и подготовлен в фоне.', body1: 'Сервис выполняет OCR для изображения на сервере или загруженного с клиента.', body2: 'Дополнительные языки OCR устанавливаются по запросу внутри контейнера и сохраняются на сервере.', cancel: 'Отмена', installBtn: 'Установить и Запустить' },
+    zh: { subtitle: 'Tesseract OCR 容器将被下载并在后台保持就绪。', body1: '此服务可对服务器上的图像或从客户端上传的图像执行 OCR。', body2: '需要时会在容器内自动安装额外 OCR 语言，并持久保存在服务器上。', cancel: '取消', installBtn: '安装并启动' },
+    ja: { subtitle: 'Tesseract OCR コンテナをダウンロードしてバックグラウンドで待機させます。', body1: 'このサービスはサーバー上の画像またはクライアントからアップロードした画像に OCR を実行します。', body2: '追加の OCR 言語は必要時にコンテナ内へ自動インストールされ、サーバーへ永続化されます。', cancel: 'キャンセル', installBtn: 'インストールして開始' },
+    it: { subtitle: 'Il container Tesseract OCR verra scaricato e mantenuto pronto in background.', body1: 'Questo servizio esegue OCR su un immagine lato server o caricata dal client.', body2: 'Le lingue OCR aggiuntive vengono installate su richiesta nel container e mantenute sul server.', cancel: 'Annulla', installBtn: 'Installa e Avvia' },
+    ar: { subtitle: 'سيتم تنزيل حاوية Tesseract OCR وتجهيزها في الخلفية.', body1: 'تقوم هذه الخدمة بتنفيذ OCR على صورة موجودة على الخادم او مرفوعة من العميل.', body2: 'يتم تثبيت لغات OCR الاضافية عند الحاجة داخل الحاوية مع حفظها على الخادم.', cancel: 'الغاء', installBtn: 'تثبيت وتشغيل' },
+    ko: { subtitle: 'Tesseract OCR 컨테이너를 다운로드해 백그라운드에서 준비 상태로 유지합니다.', body1: '이 서비스는 서버 이미지 또는 클라이언트에서 업로드한 이미지에 OCR을 실행합니다.', body2: '추가 OCR 언어는 필요 시 컨테이너 안에 설치되고 서버에 유지됩니다.', cancel: '취소', installBtn: '설치 및 시작' },
+    hi: { subtitle: 'Tesseract OCR कंटेनर डाउनलोड होकर बैकग्राउंड में तैयार रखा जाएगा।', body1: 'यह सेवा सर्वर की इमेज या क्लाइंट से अपलोड की गई इमेज पर OCR चलाती है।', body2: 'अतिरिक्त OCR भाषाएं जरूरत पड़ने पर कंटेनर के अंदर इंस्टॉल होकर सर्वर पर सुरक्षित रहती हैं।', cancel: 'रद्द', installBtn: 'इंस्टॉल और शुरू करें' },
+    pt: { subtitle: 'O container Tesseract OCR sera baixado e mantido pronto em segundo plano.', body1: 'Este servico executa OCR em uma imagem do servidor ou enviada pelo cliente.', body2: 'Idiomas OCR adicionais sao instalados sob demanda dentro do container e persistidos no servidor.', cancel: 'Cancelar', installBtn: 'Instalar e Iniciar' }
+  };
+
+  function getInstallConfig() {
+    return {};
+  }
+
+  (function applyOcrInstallI18n() {
+    var locale = window.__serviceInstallLocale || 'tr';
+    var dict = OCR_INSTALL_I18N[locale] || OCR_INSTALL_I18N.tr;
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+      var key = el.getAttribute('data-i18n');
+      if (dict[key]) el.textContent = dict[key];
+    });
+  })();
+</script>
+
+<style>
+  .ocr-install-form { padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #eef3e8; }
+  .ocr-install-header { text-align: center; margin-bottom: 18px; }
+  .ocr-install-icon { font-size: 48px; display: block; margin-bottom: 10px; }
+  .ocr-install-header h3 { margin: 0 0 6px; font-size: 20px; color: #fff; }
+  .ocr-install-subtitle { margin: 0; color: #b8c6ab; font-size: 13px; }
+  .ocr-install-body { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; }
+  .ocr-install-text { margin: 0 0 10px; font-size: 13px; line-height: 1.5; color: #dce7d3; }
+  .ocr-install-text:last-child { margin-bottom: 0; }
+  .ocr-install-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+  .ocr-cancel-btn, .ocr-install-btn { border-radius: 8px; padding: 10px 18px; font-size: 13px; cursor: pointer; }
+  .ocr-cancel-btn { background: transparent; color: #dce7d3; border: 1px solid rgba(255,255,255,0.18); }
+  .ocr-install-btn { border: none; color: #17321d; background: linear-gradient(135deg, #d4e157, #66bb6a); font-weight: 700; }
+  .ocr-cancel-btn:hover, .ocr-install-btn:hover { opacity: 0.92; }
+</style>
