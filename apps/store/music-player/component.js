@@ -489,7 +489,51 @@
         vizResizeHandler = () => resizeVizCanvas();
         window.addEventListener('resize', vizResizeHandler);
         window.addEventListener('locale-changed', onLocaleChanged);
+        window.addEventListener('app-action:music-player', onAppAction);
+        // Check for pending action (app opened by AI/WS)
+        const pending = window.__pendingAppAction && window.__pendingAppAction['music-player'];
+        if (pending) {
+          delete window.__pendingAppAction['music-player'];
+          handleMusicAction(pending);
+        }
       });
+
+      function handleMusicAction(payload) {
+        if (!payload || payload.action !== 'play') return;
+        const d = payload.data || {};
+        const trackName = (d.trackName || '').toLowerCase();
+        const trackUrl = d.trackUrl || '';
+        if (trackUrl) {
+          // Direct URL play
+          let name = trackUrl;
+          try { name = decodeURIComponent(trackUrl.split('/').pop().split('?')[0].replace(/\.[^.]+$/, '')); } catch {}
+          const existIdx = tracks.value.findIndex(t => t.url === trackUrl);
+          if (existIdx >= 0) { play(existIdx); return; }
+          tracks.value.push({ title: name || 'AI Track', filename: '', url: trackUrl, source: 'url', icon: '🤖' });
+          savePlaylist();
+          play(tracks.value.length - 1);
+          return;
+        }
+        if (trackName) {
+          // Search in current playlist
+          const plIdx = tracks.value.findIndex(t => t.title.toLowerCase().includes(trackName));
+          if (plIdx >= 0) { play(plIdx); return; }
+          // Search in available files
+          const allFiles = [...(availableFiles.value.public || []), ...(availableFiles.value.user || [])];
+          const match = allFiles.find(f => f.name.toLowerCase().includes(trackName));
+          if (match) {
+            addToPlaylist(match, match.source || 'public');
+            nextTick(() => play(tracks.value.length - 1));
+            return;
+          }
+          // If nothing found, just toggle play
+          if (tracks.value.length) toggle();
+        }
+      }
+
+      function onAppAction(e) {
+        handleMusicAction(e.detail);
+      }
 
       // ── URL link ──
       const linkUrl = ref('');
@@ -513,6 +557,7 @@
         if (audioCtx) { audioCtx.close().catch(() => {}); audioCtx = null; }
         if (volStore && mediaHandlers) volStore.unregisterMedia(mediaHandlers);
         window.removeEventListener('locale-changed', onLocaleChanged);
+        window.removeEventListener('app-action:music-player', onAppAction);
       });
 
       return {

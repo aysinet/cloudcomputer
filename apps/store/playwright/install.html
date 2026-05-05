@@ -1,0 +1,97 @@
+<div class="pw-install-form">
+  <div class="pw-install-header">
+    <span class="pw-install-icon">🎭</span>
+    <h3>Playwright</h3>
+    <p class="pw-install-subtitle" data-i18n="subtitle">Tarayıcı otomasyon servisi ayarları</p>
+  </div>
+  <div class="pw-install-body">
+    <label data-i18n="maxPagesLabel">Maksimum Eşzamanlı Sayfa</label>
+    <input type="number" id="pw-max-pages" value="10" min="1" max="50" />
+    <p class="pw-install-hint" data-i18n="maxPagesHint">Aynı anda açılabilecek maksimum tarayıcı sayfası sayısı.</p>
+
+    <label data-i18n="timeoutLabel" style="margin-top:14px">Sayfa Zaman Aşımı (ms)</label>
+    <input type="number" id="pw-timeout" value="30000" min="5000" max="120000" step="1000" />
+    <p class="pw-install-hint" data-i18n="timeoutHint">Bir sayfanın yüklenmesi için maksimum bekleme süresi (milisaniye).</p>
+
+    <div class="pw-install-error" id="pg-install-error" style="display:none"></div>
+  </div>
+  <div class="pw-install-footer">
+    <button class="pw-cancel-btn" onclick="cancelServiceInstall()" data-i18n="cancel">İptal</button>
+    <button class="pw-install-btn" onclick="confirmServiceInstall()" data-i18n="installBtn">Kur ve Başlat</button>
+  </div>
+</div>
+
+<script>
+  const PW_I18N = {
+    tr: { subtitle:'Tarayıcı otomasyon servisi ayarları', maxPagesLabel:'Maksimum Eşzamanlı Sayfa', maxPagesHint:'Aynı anda açılabilecek maksimum tarayıcı sayfası sayısı.', timeoutLabel:'Sayfa Zaman Aşımı (ms)', timeoutHint:'Bir sayfanın yüklenmesi için maksimum bekleme süresi (milisaniye).', cancel:'İptal', installBtn:'Kur ve Başlat', errorPages:'Sayfa sayısı 1-50 arasında olmalı', errorTimeout:'Zaman aşımı 5000-120000 ms arasında olmalı' },
+    en: { subtitle:'Browser automation service settings', maxPagesLabel:'Max Concurrent Pages', maxPagesHint:'Maximum number of browser pages open at the same time.', timeoutLabel:'Page Timeout (ms)', timeoutHint:'Maximum time to wait for a page to load (milliseconds).', cancel:'Cancel', installBtn:'Install & Start', errorPages:'Page count must be between 1-50', errorTimeout:'Timeout must be between 5000-120000 ms' },
+    de: { subtitle:'Browser-Automatisierungsdienst Einstellungen', maxPagesLabel:'Max. gleichzeitige Seiten', maxPagesHint:'Maximale Anzahl gleichzeitig geöffneter Browserseiten.', timeoutLabel:'Seiten-Timeout (ms)', timeoutHint:'Maximale Wartezeit für das Laden einer Seite (Millisekunden).', cancel:'Abbrechen', installBtn:'Installieren & Starten', errorPages:'Seitenzahl muss zwischen 1-50 liegen', errorTimeout:'Timeout muss zwischen 5000-120000 ms liegen' },
+    fr: { subtitle:'Paramètres du service d\'automatisation', maxPagesLabel:'Pages simultanées max.', maxPagesHint:'Nombre maximum de pages ouvertes simultanément.', timeoutLabel:'Délai d\'expiration (ms)', timeoutHint:'Temps maximum d\'attente pour le chargement d\'une page (millisecondes).', cancel:'Annuler', installBtn:'Installer & Démarrer', errorPages:'Le nombre de pages doit être entre 1-50', errorTimeout:'Le délai doit être entre 5000-120000 ms' },
+    es: { subtitle:'Configuración del servicio de automatización', maxPagesLabel:'Páginas simultáneas máx.', maxPagesHint:'Número máximo de páginas abiertas simultáneamente.', timeoutLabel:'Tiempo de espera (ms)', timeoutHint:'Tiempo máximo de espera para cargar una página (milisegundos).', cancel:'Cancelar', installBtn:'Instalar e Iniciar', errorPages:'El número de páginas debe estar entre 1-50', errorTimeout:'El tiempo de espera debe estar entre 5000-120000 ms' }
+  };
+
+  function getPwLocale() {
+    try { return window.__serviceInstallLocale || 'tr'; } catch { return 'tr'; }
+  }
+
+  function getPwI18n(key) {
+    const loc = getPwLocale();
+    return (PW_I18N[loc] || PW_I18N.tr)[key] || (PW_I18N.tr)[key] || key;
+  }
+
+  // Apply i18n
+  (function() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const val = getPwI18n(key);
+      if (val) el.textContent = val;
+    });
+  })();
+
+  function getInstallConfig() {
+    const maxPages = parseInt(document.getElementById('pw-max-pages').value);
+    const timeout = parseInt(document.getElementById('pw-timeout').value);
+    const errEl = document.getElementById('pg-install-error');
+
+    if (isNaN(maxPages) || maxPages < 1 || maxPages > 50) {
+      errEl.textContent = getPwI18n('errorPages');
+      errEl.style.display = 'block';
+      return null;
+    }
+    if (isNaN(timeout) || timeout < 5000 || timeout > 120000) {
+      errEl.textContent = getPwI18n('errorTimeout');
+      errEl.style.display = 'block';
+      return null;
+    }
+    errEl.style.display = 'none';
+    return { MAX_PAGES: String(maxPages), PAGE_TIMEOUT: String(timeout) };
+  }
+</script>
+
+<style>
+  .pw-install-form { padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; }
+  .pw-install-header { text-align: center; margin-bottom: 20px; }
+  .pw-install-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+  .pw-install-header h3 { margin: 0 0 4px; font-size: 20px; color: #fff; }
+  .pw-install-subtitle { margin: 0; font-size: 13px; color: #aaa; }
+  .pw-install-body label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #ccc; }
+  .pw-install-body input[type="number"] {
+    width: 100%; padding: 10px 12px; border: 1px solid #444; border-radius: 6px;
+    background: #1e1e2e; color: #fff; font-size: 14px; outline: none; box-sizing: border-box;
+  }
+  .pw-install-body input[type="number"]:focus { border-color: #2EAD33; }
+  .pw-install-hint { font-size: 11px; color: #888; margin: 4px 0 0; }
+  .pw-install-error { color: #ff6b6b; font-size: 12px; margin-top: 8px; padding: 6px 10px; background: rgba(255,0,0,0.1); border-radius: 4px; }
+  .pw-install-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .pw-cancel-btn {
+    padding: 8px 20px; border: 1px solid #555; border-radius: 6px; background: transparent;
+    color: #ccc; cursor: pointer; font-size: 13px;
+  }
+  .pw-cancel-btn:hover { background: #333; }
+  .pw-install-btn {
+    padding: 8px 24px; border: none; border-radius: 6px;
+    background: linear-gradient(135deg, #2EAD33, #1D8348); color: #fff;
+    cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  .pw-install-btn:hover { opacity: 0.9; }
+</style>

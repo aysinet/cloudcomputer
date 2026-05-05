@@ -1547,7 +1547,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
         </div>
       </div>
       <iframe v-else-if="iframeSrc" ref="iframeRef" :src="iframeSrc" class="browser-iframe"
-        sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+        sandbox="allow-same-origin allow-scripts allow-forms"
         @load="onIframeLoad"></iframe>
     </div>
 
@@ -5357,12 +5357,19 @@ const BrowserApp = {
       } catch { bookmarks.value = []; }
     }
 
-    onMounted(() => { loadBookmarks(); showBookmarks.value = !!localStorage.getItem('browser_bookmarks_open'); window.addEventListener('browser-open-url', onBrowserOpenUrl); });
-    onUnmounted(() => { window.removeEventListener('browser-open-url', onBrowserOpenUrl); });
+    onMounted(() => { loadBookmarks(); showBookmarks.value = !!localStorage.getItem('browser_bookmarks_open'); window.addEventListener('browser-open-url', onBrowserOpenUrl); window.addEventListener('message', onIframeMessage); });
+    onUnmounted(() => { window.removeEventListener('browser-open-url', onBrowserOpenUrl); window.removeEventListener('message', onIframeMessage); });
+
+    function onIframeMessage(e) {
+      if (e.data && e.data.type === 'browser-navigate' && e.data.url) {
+        if (currentUrl.value) newTab();
+        loadUrl(e.data.url);
+      }
+    }
 
     function onBrowserOpenUrl(e) {
       const url = e.detail;
-      if (url) loadUrl(url);
+      if (url) { if (currentUrl.value) newTab(); loadUrl(url); }
     }
 
     return {
@@ -5976,10 +5983,10 @@ createApp({
     }
 
     async function doLogout() {
-      try { await fetch('/api/logout', { method: 'POST' }); } catch {}
       localStorage.removeItem('token');
       localStorage.removeItem('auth_token');
-      location.href = '/login.html';
+      try { await fetch('/api/logout', { method: 'POST' }); } catch {}
+      location.replace('/login.html');
     }
 
     const notifCount = ref(0);
@@ -6448,6 +6455,25 @@ createApp({
             const schApp = apps.value.find(a => a.id === msg.data.appId);
             if (schApp) openApp(schApp);
           }
+          if (msg.type === 'open-app' && msg.data && msg.data.appId) {
+            const targetApp = apps.value.find(a => a.id === msg.data.appId);
+            if (targetApp) {
+              const actionPayload = { action: msg.data.action || null, data: msg.data.data || null };
+              const existing = openWindows.value.find(w => w.id === targetApp.id);
+              if (existing) {
+                focusWindow(existing);
+                if (actionPayload.action) {
+                  window.dispatchEvent(new CustomEvent('app-action:' + targetApp.id, { detail: actionPayload }));
+                }
+              } else {
+                if (actionPayload.action) {
+                  window.__pendingAppAction = window.__pendingAppAction || {};
+                  window.__pendingAppAction[targetApp.id] = actionPayload;
+                }
+                openApp(targetApp);
+              }
+            }
+          }
         } catch {}
       };
       wsConn.onclose = () => { setTimeout(connectWS, 5000); };
@@ -6553,6 +6579,17 @@ createApp({
       }
     }
 
+    // ── Open URL in built-in browser ──
+    function openUrlInBrowser(url) {
+      if (!url) return;
+      const browserApp = apps.value.find(a => a.id === 'browser');
+      if (!browserApp) return;
+      openApp(browserApp);
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('browser-open-url', { detail: url }));
+      }, 300);
+    }
+
     onMounted(() => {
       updateClock();
       updateNotifCount();
@@ -6576,6 +6613,24 @@ createApp({
         autoOpenPostits();
       });
       connectWS();
+      // Override window.open to route URLs to built-in browser
+      const _origOpen = window.open;
+      window.open = function(url) {
+        if (url && typeof url === 'string') {
+          try { new URL(url); openUrlInBrowser(url); return null; } catch {}
+        }
+        return _origOpen.apply(window, arguments);
+      };
+      // Intercept link clicks with target=_blank on the main document
+      document.addEventListener('click', function(e) {
+        const a = e.target.closest('a[href]');
+        if (!a) return;
+        const href = a.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+        if (a.target === '_blank' || a.target === '_new' || e.ctrlKey || e.metaKey) {
+          try { new URL(href); e.preventDefault(); e.stopPropagation(); openUrlInBrowser(href); } catch {}
+        }
+      }, true);
     });
     onUnmounted(() => {
       clearInterval(clockTimer);

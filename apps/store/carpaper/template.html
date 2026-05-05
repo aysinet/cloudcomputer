@@ -1,0 +1,390 @@
+<div class="carpaper-root">
+  <!-- HEADER -->
+  <div class="carpaper-header">
+    <div class="carpaper-title-area">
+      <span class="carpaper-icon">🚗</span>
+      <span class="carpaper-title">{{ L('title') }}</span>
+    </div>
+    <div class="carpaper-header-actions">
+      <el-select v-model="selectedVehicleId" size="small" style="width:180px" :placeholder="L('allVehicles')" clearable>
+        <el-option :value="null" :label="L('allVehicles')" />
+        <el-option v-for="v in vehicles" :key="v.id" :value="v.id" :label="v.plate || (v.brand + ' ' + v.model)" />
+      </el-select>
+      <el-button type="primary" size="small" @click="openVehicleForm()">+ {{ L('addVehicle') }}</el-button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="carpaper-tabs">
+    <div :class="['cp-tab', activeTab === 'summary' && 'cp-tab-active']" @click="activeTab='summary'">📊 {{ L('summary') }}</div>
+    <div :class="['cp-tab', activeTab === 'inspection' && 'cp-tab-active']" @click="activeTab='inspection'">🔧 {{ L('inspection') }}</div>
+    <div :class="['cp-tab', activeTab === 'tax' && 'cp-tab-active']" @click="activeTab='tax'">💵 {{ L('tax') }}</div>
+    <div :class="['cp-tab', activeTab === 'fuel' && 'cp-tab-active']" @click="activeTab='fuel'">⛽ {{ L('fuel') }}</div>
+    <div :class="['cp-tab', activeTab === 'accident' && 'cp-tab-active']" @click="activeTab='accident'">🚨 {{ L('accident') }}</div>
+    <div :class="['cp-tab', activeTab === 'insurance' && 'cp-tab-active']" @click="activeTab='insurance'">🛡️ {{ L('insurance') }}</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="carpaper-content">
+
+    <!-- ═══ SUMMARY TAB ═══ -->
+    <div v-if="activeTab === 'summary'" class="cp-summary">
+      <!-- Vehicle Cards -->
+      <div class="cp-vehicle-cards" v-if="vehicles.length">
+        <div v-for="v in vehicles" :key="v.id" :class="['cp-vehicle-card', selectedVehicleId === v.id && 'cp-vehicle-selected']" @click="selectedVehicleId = v.id">
+          <div class="cp-vc-top">
+            <div class="cp-vc-plate">{{ v.plate || '—' }}</div>
+            <div class="cp-vc-actions">
+              <el-button size="small" text @click.stop="openVehicleForm(v)">✏️</el-button>
+              <el-button size="small" text @click.stop="deleteVehicle(v.id)">🗑️</el-button>
+            </div>
+          </div>
+          <div class="cp-vc-name">{{ v.brand }} {{ v.model }}</div>
+          <div class="cp-vc-meta">{{ v.year }} · {{ v.km ? v.km.toLocaleString() + ' km' : '' }} · {{ L(v.fuel_type || 'gasoline') }}</div>
+        </div>
+      </div>
+      <div v-else class="cp-empty">{{ L('noVehicles') }}</div>
+
+      <!-- Summary Stats -->
+      <div class="cp-stats" v-if="vehicles.length">
+        <div class="cp-stat-card">
+          <div class="cp-stat-label">{{ L('totalExpenses') }}</div>
+          <div class="cp-stat-value cp-stat-expense">{{ formatCurrency(totalExpenses) }}</div>
+        </div>
+        <div class="cp-stat-card">
+          <div class="cp-stat-label">{{ L('avgConsumption') }}</div>
+          <div class="cp-stat-value">{{ avgConsumption || '—' }} <small v-if="avgConsumption">{{ L('ltPer100km') }}</small></div>
+        </div>
+        <div class="cp-stat-card" v-if="nextInspectionInfo">
+          <div class="cp-stat-label">{{ L('nextInspection') }}</div>
+          <div :class="['cp-stat-value', nextInspectionInfo.overdue ? 'cp-stat-overdue' : 'cp-stat-ok']">
+            {{ formatDate(nextInspectionInfo.date) }}
+            <small>{{ nextInspectionInfo.overdue ? Math.abs(nextInspectionInfo.days) + ' ' + L('daysAgo') : nextInspectionInfo.days + ' ' + L('daysLeft') }}</small>
+          </div>
+        </div>
+        <div class="cp-stat-card" v-if="nextTaxInfo">
+          <div class="cp-stat-label">{{ L('nextTax') }}</div>
+          <div :class="['cp-stat-value', nextTaxInfo.overdue ? 'cp-stat-overdue' : 'cp-stat-ok']">
+            {{ formatDate(nextTaxInfo.date) }}
+            <small>{{ nextTaxInfo.overdue ? Math.abs(nextTaxInfo.days) + ' ' + L('daysAgo') : nextTaxInfo.days + ' ' + L('daysLeft') }}</small>
+          </div>
+        </div>
+        <div class="cp-stat-card" v-if="nextInsuranceInfo">
+          <div class="cp-stat-label">🛡️ {{ L('insurance') }}</div>
+          <div :class="['cp-stat-value', nextInsuranceInfo.overdue ? 'cp-stat-overdue' : 'cp-stat-ok']">
+            {{ formatDate(nextInsuranceInfo.date) }}
+            <small>{{ nextInsuranceInfo.overdue ? Math.abs(nextInsuranceInfo.days) + ' ' + L('daysAgo') : nextInsuranceInfo.days + ' ' + L('daysLeft') }}</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Expense Chart -->
+      <div class="cp-chart-section" v-if="monthlyChartData.length">
+        <div class="cp-chart-title">{{ L('monthlyExpenses') }}</div>
+        <div class="cp-chart">
+          <div class="cp-chart-bars">
+            <div v-for="([month, data], idx) in monthlyChartData" :key="idx" class="cp-chart-col">
+              <div class="cp-chart-bar-wrap">
+                <div class="cp-chart-bar cp-bar-inspection" :style="{height: (data.inspection / maxMonthlyTotal * 100) + '%'}" :title="L('inspection') + ': ' + formatCurrency(data.inspection)"></div>
+                <div class="cp-chart-bar cp-bar-tax" :style="{height: (data.tax / maxMonthlyTotal * 100) + '%'}" :title="L('tax') + ': ' + formatCurrency(data.tax)"></div>
+                <div class="cp-chart-bar cp-bar-fuel" :style="{height: (data.fuel / maxMonthlyTotal * 100) + '%'}" :title="L('fuel') + ': ' + formatCurrency(data.fuel)"></div>
+                <div class="cp-chart-bar cp-bar-accident" :style="{height: (data.accident / maxMonthlyTotal * 100) + '%'}" :title="L('accident') + ': ' + formatCurrency(data.accident)"></div>
+                <div class="cp-chart-bar cp-bar-insurance" :style="{height: (data.insurance / maxMonthlyTotal * 100) + '%'}" :title="L('insurance') + ': ' + formatCurrency(data.insurance)"></div>
+              </div>
+              <div class="cp-chart-label">{{ month.slice(5) }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="cp-chart-legend">
+          <span class="cp-legend-item"><span class="cp-legend-dot cp-bar-inspection"></span>{{ L('inspection') }}</span>
+          <span class="cp-legend-item"><span class="cp-legend-dot cp-bar-tax"></span>{{ L('tax') }}</span>
+          <span class="cp-legend-item"><span class="cp-legend-dot cp-bar-fuel"></span>{{ L('fuel') }}</span>
+          <span class="cp-legend-item"><span class="cp-legend-dot cp-bar-accident"></span>{{ L('accident') }}</span>
+          <span class="cp-legend-item"><span class="cp-legend-dot cp-bar-insurance"></span>{{ L('insurance') }}</span>
+        </div>
+      </div>
+
+      <!-- Fuel consumption chart -->
+      <div class="cp-chart-section" v-if="fuelChartData.length > 1">
+        <div class="cp-chart-title">{{ L('fuelHistory') }} ({{ L('ltPer100km') }})</div>
+        <div class="cp-chart">
+          <div class="cp-chart-bars">
+            <div v-for="(d, idx) in fuelChartData" :key="idx" class="cp-chart-col">
+              <div class="cp-chart-bar-wrap">
+                <div class="cp-chart-bar cp-bar-fuel" :style="{height: (parseFloat(d.consumption) / maxConsumption * 100) + '%'}" :title="d.consumption + ' lt/100km'"></div>
+              </div>
+              <div class="cp-chart-label">{{ d.date.slice(5) }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ INSPECTION TAB ═══ -->
+    <div v-if="activeTab === 'inspection'" class="cp-records-tab">
+      <div class="cp-records-header">
+        <span class="cp-records-title">🔧 {{ L('inspections') }}</span>
+        <el-button type="primary" size="small" @click="openRecordForm('inspection')" :disabled="!vehicles.length">+ {{ L('addInspection') }}</el-button>
+      </div>
+      <div v-if="!inspections.length" class="cp-empty">{{ L('noRecords') }}</div>
+      <div v-for="r in inspections" :key="r.id" class="cp-record-item">
+        <div class="cp-rec-left">
+          <div class="cp-rec-title">{{ getVehicleName(r.vehicle_id) }}</div>
+          <div class="cp-rec-meta">{{ formatDate(r.date) }} · <span :class="r.result === 'passed' ? 'cp-pass' : 'cp-fail'">{{ L(r.result) }}</span></div>
+          <div class="cp-rec-meta" v-if="r.next_date">{{ L('nextDate') }}: {{ formatDate(r.next_date) }}</div>
+          <div class="cp-rec-notes" v-if="r.notes">{{ r.notes }}</div>
+        </div>
+        <div class="cp-rec-amount">{{ formatCurrency(r.amount) }}</div>
+        <div class="cp-rec-actions">
+          <el-button size="small" text @click="setupInspectionReminder(r)" title="Set Reminder">⏰</el-button>
+          <el-button size="small" text @click="exportToBudget(r, L('inspection'))" title="Export">💰</el-button>
+          <el-button size="small" text @click="openRecordForm('inspection', r)">✏️</el-button>
+          <el-button size="small" text type="danger" @click="deleteRecord('inspection', r.id)">🗑️</el-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAX TAB ═══ -->
+    <div v-if="activeTab === 'tax'" class="cp-records-tab">
+      <div class="cp-records-header">
+        <span class="cp-records-title">💵 {{ L('taxes') }}</span>
+        <el-button type="primary" size="small" @click="openRecordForm('tax')" :disabled="!vehicles.length">+ {{ L('addTax') }}</el-button>
+      </div>
+      <div v-if="!taxes.length" class="cp-empty">{{ L('noRecords') }}</div>
+      <div v-for="r in taxes" :key="r.id" class="cp-record-item">
+        <div class="cp-rec-left">
+          <div class="cp-rec-title">{{ getVehicleName(r.vehicle_id) }}</div>
+          <div class="cp-rec-meta">{{ formatDate(r.date) }}</div>
+          <div class="cp-rec-meta" v-if="r.next_date">{{ L('nextDate') }}: {{ formatDate(r.next_date) }}</div>
+          <div class="cp-rec-notes" v-if="r.description">{{ r.description }}</div>
+        </div>
+        <div class="cp-rec-amount">{{ formatCurrency(r.amount) }}</div>
+        <div class="cp-rec-actions">
+          <el-button size="small" text @click="setupTaxReminder(r)" title="Set Reminder">⏰</el-button>
+          <el-button size="small" text @click="exportToBudget(r, L('tax'))" title="Export">💰</el-button>
+          <el-button size="small" text @click="openRecordForm('tax', r)">✏️</el-button>
+          <el-button size="small" text type="danger" @click="deleteRecord('tax', r.id)">🗑️</el-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ FUEL TAB ═══ -->
+    <div v-if="activeTab === 'fuel'" class="cp-records-tab">
+      <div class="cp-records-header">
+        <span class="cp-records-title">⛽ {{ L('fuelLogs') }}</span>
+        <el-button type="primary" size="small" @click="openRecordForm('fuel')" :disabled="!vehicles.length">+ {{ L('addFuel') }}</el-button>
+      </div>
+      <div v-if="!fuelLogs.length" class="cp-empty">{{ L('noRecords') }}</div>
+      <div v-for="r in fuelLogs" :key="r.id" class="cp-record-item">
+        <div class="cp-rec-left">
+          <div class="cp-rec-title">{{ getVehicleName(r.vehicle_id) }} <span class="cp-rec-station" v-if="r.station">· {{ r.station }}</span></div>
+          <div class="cp-rec-meta">{{ formatDate(r.date) }} · {{ r.liters }}L · {{ formatCurrency(r.price_per_liter) }}/Lt · {{ r.total_km ? r.total_km.toLocaleString() + ' km' : '' }}</div>
+          <div class="cp-rec-notes" v-if="r.notes">{{ r.notes }}</div>
+        </div>
+        <div class="cp-rec-amount">{{ formatCurrency(r.amount) }}</div>
+        <div class="cp-rec-actions">
+          <el-button size="small" text @click="exportToBudget(r, L('fuel'))" title="Export">💰</el-button>
+          <el-button size="small" text @click="openRecordForm('fuel', r)">✏️</el-button>
+          <el-button size="small" text type="danger" @click="deleteRecord('fuel', r.id)">🗑️</el-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ACCIDENT/FINE TAB ═══ -->
+    <div v-if="activeTab === 'accident'" class="cp-records-tab">
+      <div class="cp-records-header">
+        <span class="cp-records-title">🚨 {{ L('accidents') }}</span>
+        <el-button type="primary" size="small" @click="openRecordForm('accident')" :disabled="!vehicles.length">+ {{ L('addAccident') }}</el-button>
+      </div>
+      <div v-if="!accidents.length" class="cp-empty">{{ L('noRecords') }}</div>
+      <div v-for="r in accidents" :key="r.id" class="cp-record-item">
+        <div class="cp-rec-left">
+          <div class="cp-rec-title">{{ getVehicleName(r.vehicle_id) }} · <el-tag size="small" :type="r.type === 'accident' ? 'danger' : 'warning'">{{ L(r.type + 'Type') }}</el-tag></div>
+          <div class="cp-rec-meta">{{ formatDate(r.date) }}</div>
+          <div class="cp-rec-notes" v-if="r.description">{{ r.description }}</div>
+        </div>
+        <div class="cp-rec-amount">{{ formatCurrency(r.amount) }}</div>
+        <div class="cp-rec-actions">
+          <el-button size="small" text @click="exportToBudget(r, L('accident'))" title="Export">💰</el-button>
+          <el-button size="small" text @click="openRecordForm('accident', r)">✏️</el-button>
+          <el-button size="small" text type="danger" @click="deleteRecord('accident', r.id)">🗑️</el-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ INSURANCE TAB ═══ -->
+    <div v-if="activeTab === 'insurance'" class="cp-records-tab">
+      <div class="cp-records-header">
+        <span class="cp-records-title">🛡️ {{ L('insurances') }}</span>
+        <el-button type="primary" size="small" @click="openRecordForm('insurance')" :disabled="!vehicles.length">+ {{ L('addInsurance') }}</el-button>
+      </div>
+      <div v-if="!insurances.length" class="cp-empty">{{ L('noRecords') }}</div>
+      <div v-for="r in insurances" :key="r.id" class="cp-record-item">
+        <div class="cp-rec-left">
+          <div class="cp-rec-title">{{ getVehicleName(r.vehicle_id) }} · <el-tag size="small">{{ L(r.insurance_type) }}</el-tag></div>
+          <div class="cp-rec-meta">{{ formatDate(r.date) }} → {{ formatDate(r.expiry_date) }}</div>
+          <div class="cp-rec-meta" v-if="r.provider">{{ r.provider }} <span v-if="r.policy_no">· #{{ r.policy_no }}</span></div>
+        </div>
+        <div class="cp-rec-amount">{{ formatCurrency(r.amount) }}</div>
+        <div class="cp-rec-actions">
+          <el-button size="small" text @click="setupInsuranceReminder(r)" title="Set Reminder">⏰</el-button>
+          <el-button size="small" text @click="exportToBudget(r, L('insurance'))" title="Export">💰</el-button>
+          <el-button size="small" text @click="openRecordForm('insurance', r)">✏️</el-button>
+          <el-button size="small" text type="danger" @click="deleteRecord('insurance', r.id)">🗑️</el-button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ VEHICLE DIALOG ═══ -->
+  <el-dialog v-model="showVehicleDialog" :title="editingVehicle ? L('editVehicle') : L('addVehicle')" width="440px" append-to-body>
+    <el-form label-position="top" size="small">
+      <el-form-item :label="L('plate')">
+        <el-input v-model="vehicleForm.plate" placeholder="34 ABC 123" />
+      </el-form-item>
+      <div style="display:flex;gap:8px">
+        <el-form-item :label="L('brand')" style="flex:1">
+          <el-input v-model="vehicleForm.brand" />
+        </el-form-item>
+        <el-form-item :label="L('model')" style="flex:1">
+          <el-input v-model="vehicleForm.model" />
+        </el-form-item>
+      </div>
+      <div style="display:flex;gap:8px">
+        <el-form-item :label="L('year')" style="flex:1">
+          <el-input v-model.number="vehicleForm.year" type="number" />
+        </el-form-item>
+        <el-form-item :label="L('color')" style="flex:1">
+          <el-input v-model="vehicleForm.color" />
+        </el-form-item>
+      </div>
+      <div style="display:flex;gap:8px">
+        <el-form-item :label="L('km')" style="flex:1">
+          <el-input v-model.number="vehicleForm.km" type="number" />
+        </el-form-item>
+        <el-form-item :label="L('fuelType')" style="flex:1">
+          <el-select v-model="vehicleForm.fuel_type" style="width:100%">
+            <el-option value="gasoline" :label="L('gasoline')" />
+            <el-option value="diesel" :label="L('diesel')" />
+            <el-option value="lpg" :label="L('lpg')" />
+            <el-option value="electric" :label="L('electric')" />
+            <el-option value="hybrid" :label="L('hybrid')" />
+          </el-select>
+        </el-form-item>
+      </div>
+      <el-form-item :label="L('engineSize')">
+        <el-input v-model="vehicleForm.engine_size" placeholder="1600" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="showVehicleDialog = false">{{ L('cancel') }}</el-button>
+      <el-button type="primary" @click="saveVehicle">{{ L('save') }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ═══ RECORD DIALOG ═══ -->
+  <el-dialog v-model="showRecordDialog" :title="editingRecord ? L('editRecord') : (recordDialogType === 'inspection' ? L('addInspection') : recordDialogType === 'tax' ? L('addTax') : recordDialogType === 'fuel' ? L('addFuel') : recordDialogType === 'insurance' ? L('addInsurance') : L('addAccident'))" width="440px" append-to-body>
+    <el-form label-position="top" size="small">
+      <!-- Vehicle selector (if no vehicle selected) -->
+      <el-form-item v-if="!selectedVehicleId && vehicles.length > 1" label="Araç">
+        <el-select v-model="selectedVehicleId" style="width:100%">
+          <el-option v-for="v in vehicles" :key="v.id" :value="v.id" :label="v.plate || (v.brand + ' ' + v.model)" />
+        </el-select>
+      </el-form-item>
+
+      <!-- Common: date, amount -->
+      <div style="display:flex;gap:8px">
+        <el-form-item :label="L('date')" style="flex:1">
+          <el-input v-model="recordForm.date" type="date" />
+        </el-form-item>
+        <el-form-item :label="L('amount')" style="flex:1">
+          <el-input v-model.number="recordForm.amount" type="number" :min="0" />
+        </el-form-item>
+      </div>
+
+      <!-- Inspection fields -->
+      <template v-if="recordDialogType === 'inspection'">
+        <el-form-item :label="L('result')">
+          <el-select v-model="recordForm.result" style="width:100%">
+            <el-option value="passed" :label="L('passed')" />
+            <el-option value="failed" :label="L('failed')" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="L('nextDate')">
+          <el-input v-model="recordForm.next_date" type="date" />
+        </el-form-item>
+      </template>
+
+      <!-- Tax fields -->
+      <template v-if="recordDialogType === 'tax'">
+        <el-form-item :label="L('nextDate')">
+          <el-input v-model="recordForm.next_date" type="date" />
+        </el-form-item>
+        <el-form-item :label="L('description')">
+          <el-input v-model="recordForm.description" />
+        </el-form-item>
+      </template>
+
+      <!-- Fuel fields -->
+      <template v-if="recordDialogType === 'fuel'">
+        <el-form-item :label="L('station')">
+          <el-input v-model="recordForm.station" />
+        </el-form-item>
+        <div style="display:flex;gap:8px">
+          <el-form-item :label="L('liters')" style="flex:1">
+            <el-input v-model.number="recordForm.liters" type="number" :min="0" @input="recordForm.amount = (recordForm.liters * recordForm.price_per_liter).toFixed(2)" />
+          </el-form-item>
+          <el-form-item :label="L('pricePerLiter')" style="flex:1">
+            <el-input v-model.number="recordForm.price_per_liter" type="number" :min="0" step="0.01" @input="recordForm.amount = (recordForm.liters * recordForm.price_per_liter).toFixed(2)" />
+          </el-form-item>
+        </div>
+        <el-form-item :label="L('totalKm')">
+          <el-input v-model.number="recordForm.total_km" type="number" :min="0" />
+        </el-form-item>
+      </template>
+
+      <!-- Accident fields -->
+      <template v-if="recordDialogType === 'accident'">
+        <el-form-item :label="L('type')">
+          <el-select v-model="recordForm.type" style="width:100%">
+            <el-option value="accident" :label="L('accidentType')" />
+            <el-option value="fine" :label="L('fineType')" />
+            <el-option value="other" :label="L('otherType')" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="L('description')">
+          <el-input v-model="recordForm.description" type="textarea" rows="2" />
+        </el-form-item>
+      </template>
+
+      <!-- Insurance fields -->
+      <template v-if="recordDialogType === 'insurance'">
+        <el-form-item :label="L('insuranceType')">
+          <el-select v-model="recordForm.insurance_type" style="width:100%">
+            <el-option value="kasko" :label="L('kasko')" />
+            <el-option value="traffic" :label="L('traffic')" />
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="L('provider')">
+          <el-input v-model="recordForm.provider" />
+        </el-form-item>
+        <el-form-item :label="L('policyNo')">
+          <el-input v-model="recordForm.policy_no" />
+        </el-form-item>
+        <el-form-item :label="L('expiryDate')">
+          <el-input v-model="recordForm.expiry_date" type="date" />
+        </el-form-item>
+      </template>
+
+      <!-- Common: notes -->
+      <el-form-item :label="L('notes')">
+        <el-input v-model="recordForm.notes" type="textarea" rows="2" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="showRecordDialog = false">{{ L('cancel') }}</el-button>
+      <el-button type="primary" @click="saveRecord">{{ L('save') }}</el-button>
+    </template>
+  </el-dialog>
+</div>

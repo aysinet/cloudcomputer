@@ -3,7 +3,7 @@
   <div class="rss-toolbar">
     <button v-if="view!=='feeds'" class="rss-back" @click="goBack">← {{L('back')}}</button>
     <span class="rss-toolbar-title" v-if="view==='feeds'">📰 {{L('title')}}</span>
-    <span class="rss-toolbar-title" v-else-if="view==='items' && selectedFeed">{{selectedFeed.name}}</span>
+    <span class="rss-toolbar-title" v-else-if="view==='items' && selectedFeed">{{selectedFeed.name}} <span v-if="feedUnread(selectedFeed)>0" class="rss-toolbar-badge">{{feedUnread(selectedFeed)}}</span></span>
     <span class="rss-toolbar-title" v-else-if="view==='reader' && selectedItem">{{L('article')}}</span>
     <span class="rss-toolbar-spacer"></span>
     <span v-if="totalUnread>0 && view==='feeds'" class="rss-unread-badge">{{totalUnread}} {{L('unread')}}</span>

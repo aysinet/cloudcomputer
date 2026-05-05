@@ -1,0 +1,68 @@
+{
+  "id": "carpaper",
+  "name": "CarPaper",
+  "icon": "🚗",
+  "color": "linear-gradient(135deg,#2c3e50,#3498db)",
+  "type": "internal",
+  "size": {
+    "w": 1020,
+    "h": 700
+  },
+  "global": false,
+  "category": "finance",
+  "description": "Araç yönetimi — muayene, vergi, yakıt, kaza/ceza takibi ve hatırlatıcılar",
+  "lang": {
+    "tr": {
+      "name": "CarPaper",
+      "description": "Araç yönetimi — muayene, vergi, yakıt, kaza/ceza takibi ve hatırlatıcılar"
+    },
+    "en": {
+      "name": "CarPaper",
+      "description": "Vehicle management — inspection, tax, fuel, accident/fine tracking & reminders"
+    },
+    "de": {
+      "name": "CarPaper",
+      "description": "Fahrzeugverwaltung — TÜV, Steuer, Kraftstoff, Unfall/Bußgeld & Erinnerungen"
+    },
+    "fr": {
+      "name": "CarPaper",
+      "description": "Gestion de véhicule — contrôle technique, taxe, carburant, accident/amende & rappels"
+    },
+    "es": {
+      "name": "CarPaper",
+      "description": "Gestión de vehículos — inspección, impuestos, combustible, accidentes/multas y recordatorios"
+    },
+    "ru": {
+      "name": "CarPaper",
+      "description": "Управление автомобилем — ТО, налог, топливо, ДТП/штрафы и напоминания"
+    },
+    "zh": {
+      "name": "CarPaper",
+      "description": "车辆管理 — 年检、税务、油耗、事故/罚款跟踪与提醒"
+    },
+    "ja": {
+      "name": "CarPaper",
+      "description": "車両管理 — 車検、税金、燃費、事故/違反の追跡とリマインダー"
+    },
+    "it": {
+      "name": "CarPaper",
+      "description": "Gestione veicolo — revisione, tasse, carburante, incidenti/multe e promemoria"
+    },
+    "ar": {
+      "name": "CarPaper",
+      "description": "إدارة المركبات — الفحص والضرائب والوقود والحوادث/المخالفات والتذكيرات"
+    },
+    "ko": {
+      "name": "CarPaper",
+      "description": "차량 관리 — 검사, 세금, 연료, 사고/벌금 추적 및 알림"
+    },
+    "hi": {
+      "name": "CarPaper",
+      "description": "वाहन प्रबंधन — निरीक्षण, कर, ईंधन, दुर्घटना/जुर्माना ट्रैकिंग और रिमाइंडर"
+    },
+    "pt": {
+      "name": "CarPaper",
+      "description": "Gestão de veículos — inspeção, impostos, combustível, acidentes/multas e lembretes"
+    }
+  }
+}

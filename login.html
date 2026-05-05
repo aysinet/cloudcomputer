@@ -210,11 +210,27 @@
       if (token) {
         try {
           const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token } });
-          if (res.ok) { window.location.href = '/'; return; }
+          if (res.ok) {
+            // Redirect loop guard: if we were redirected here within the last 3 seconds,
+            // the cookie is missing/expired while localStorage token is still valid.
+            // Clear stale localStorage token and show login form instead of looping.
+            const now = Date.now();
+            const last = parseInt(sessionStorage.getItem('_loginRedirectTs') || '0');
+            if (last && (now - last) < 3000) {
+              sessionStorage.removeItem('_loginRedirectTs');
+              localStorage.removeItem('token');
+              localStorage.removeItem('auth_token');
+            } else {
+              sessionStorage.setItem('_loginRedirectTs', String(now));
+              window.location.href = '/';
+              return;
+            }
+          }
         } catch {}
         localStorage.removeItem('token');
         localStorage.removeItem('auth_token');
       }
+      sessionStorage.removeItem('_loginRedirectTs');
     })();
 
     let pendingTempToken = null;

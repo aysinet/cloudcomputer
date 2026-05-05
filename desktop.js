@@ -369,6 +369,23 @@ app.use((req, res, next) => {
 
 // #endregion
 // #region JWT Helpers
+function parseExpiresInToSeconds(exp) {
+  if (typeof exp === 'number') return exp;
+  const match = String(exp).match(/^(\d+)\s*(s|m|h|d|w)?$/i);
+  if (!match) return 86400;
+  const num = parseInt(match[1]);
+  const unit = (match[2] || 's').toLowerCase();
+  switch (unit) {
+    case 's': return num;
+    case 'm': return num * 60;
+    case 'h': return num * 3600;
+    case 'd': return num * 86400;
+    case 'w': return num * 604800;
+    default: return num;
+  }
+}
+const JWT_COOKIE_MAX_AGE = parseExpiresInToSeconds(config.auth.jwtExpiresIn);
+
 function signToken(user) {
   return jwt.sign({ username: user.username }, config.auth.jwtSecret, { expiresIn: config.auth.jwtExpiresIn });
 }
@@ -666,7 +683,7 @@ app.post('/api/login', (req, res) => {
       return res.json({ ok: true, requires2FA: true, tempToken });
     }
     const token = signToken({ username });
-    res.setHeader('Set-Cookie', `token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400`);
+    res.setHeader('Set-Cookie', `token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${JWT_COOKIE_MAX_AGE}`);
     res.json({ ok: true, token, user: { username } });
   } else {
     res.status(401).json({ error: 'Invalid username or password' });
@@ -695,7 +712,7 @@ app.post('/api/login/2fa', (req, res) => {
 
   pending2FATokens.delete(tempToken);
   const token = signToken({ username: pending.username });
-  res.setHeader('Set-Cookie', `token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400`);
+  res.setHeader('Set-Cookie', `token=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${JWT_COOKIE_MAX_AGE}`);
   res.json({ ok: true, token, user: { username: pending.username } });
 });
 
@@ -1716,6 +1733,23 @@ app.get('/api/browser/proxy', authMiddleware, async (req, res) => {
       const baseHref = baseUrl.origin + baseUrl.pathname.replace(/\/[^/]*$/, '/');
       // Inject <base> tag right after <head>
       html = html.replace(/(<head[^>]*>)/i, '$1<base href="' + baseHref + '">');
+      // Inject script to intercept link clicks and window.open inside iframe
+      const interceptScript = `<script>(function(){
+        var origOpen=window.open;
+        window.open=function(url){
+          if(url){try{var u=new URL(url,location.href);parent.postMessage({type:'browser-navigate',url:u.href},'*');}catch(e){}}return null;};
+        document.addEventListener('click',function(e){
+          var a=e.target.closest('a');
+          if(!a)return;
+          var href=a.getAttribute('href');
+          if(!href||href.startsWith('#')||href.startsWith('javascript:'))return;
+          if(a.target==='_blank'||a.target==='_new'||e.ctrlKey||e.metaKey){
+            e.preventDefault();e.stopPropagation();
+            try{var u=new URL(href,location.href);parent.postMessage({type:'browser-navigate',url:u.href},'*');}catch(ex){}
+          }
+        },true);
+      })();<\/script>`;
+      html = html.replace(/(<head[^>]*>)/i, '$1' + interceptScript);
       res.send(html);
     } else {
       const buffer = Buffer.from(await resp.arrayBuffer());
@@ -2822,7 +2856,9 @@ Rules:
 - WEATHER: When the user asks about weather/temperature, call the get_weather tool directly with NO parameters. The API reads the user's location (city, latitude, longitude) from their saved settings automatically — do NOT ask the user for location or coordinates.
 - SETTINGS: User preferences (city, country, latitude, longitude, timezone, locale, theme, etc.) are stored in settings.json and accessible via get_settings. Use this when you need user context like location.
 - BROWSER: When the user mentions "browser", "tarayıcı", "web browser" or similar, they mean the Cloud Computer's built-in Browser app — NOT external browsers like Chrome, Firefox, Safari. Use browser tools (get_browser_bookmarks, post_browser_bookmarks, delete_browser_bookmarks) to manage bookmarks/favorites. To add a bookmark, use post_browser_bookmarks with url and title.
-- APPS: All app names (browser, calendar, notepad, file manager, etc.) refer to Cloud Computer's own built-in/installed apps. Never give instructions for external software — always use the appropriate tools to interact with Cloud Computer apps directly.`;
+- APPS: All app names (browser, calendar, notepad, file manager, etc.) refer to Cloud Computer's own built-in/installed apps. Never give instructions for external software — always use the appropriate tools to interact with Cloud Computer apps directly.
+- OPEN APP: You can open any application on the user's desktop using the open_app tool. Use this when the user asks to open/launch an app, or when your action requires opening an app visually (e.g. opening the music player to play music, opening the browser to show a webpage). Common app IDs: browser, calendar, todo, codeeditor, fileman, notepad, paint, settings, weather, calc, contacts, terminal, music-player, photos, mail-app, pdf-viewer, aichat, clock, screenshot.
+- MUSIC: When the user asks to play music/a song, use the play_music tool with the track name. This will open the music player and start playing. You can also first query available tracks via get_music_files and then use play_music with a matching trackName.`;
 }
 
 function parseSkillMd(appId, content) {
@@ -2967,9 +3003,31 @@ function buildToolRegistry() {
   console.log('[AI Tools] Registry built: ' + Object.keys(AI_TOOL_REGISTRY).length + ' tools from SKILL.md files');
 }
 
-async function executeToolCall(toolName, args, authToken) {
+async function executeToolCall(toolName, args, authToken, username) {
   const tool = AI_TOOL_REGISTRY[toolName];
   if (!tool) { console.error('[AI Tool] Unknown tool:', toolName); return { error: 'Unknown tool: ' + toolName }; }
+
+  // Handle virtual tools (WS-based, no HTTP)
+  if (tool.virtual) {
+    if (toolName === 'open_app') {
+      const appId = String(args.appId || '').replace(/[^a-zA-Z0-9_-]/g, '');
+      if (!appId) return { error: 'appId is required' };
+      if (username) {
+        sendUserWS(username, { type: 'open-app', data: { appId, action: args.action || null, data: args.data || null } });
+      }
+      return { ok: true, message: 'App ' + appId + ' open command sent' };
+    }
+    if (toolName === 'play_music') {
+      const trackName = args.trackName || '';
+      const trackUrl = args.trackUrl || '';
+      if (username) {
+        sendUserWS(username, { type: 'open-app', data: { appId: 'music-player', action: 'play', data: { trackName, trackUrl } } });
+      }
+      return { ok: true, message: trackName ? 'Playing: ' + trackName : 'Music player opened' };
+    }
+    return { error: 'Unknown virtual tool' };
+  }
+
   const port = config.server.port || 8080;
   let urlPath = tool.path;
   for (const param of (tool.pathParams || [])) {
@@ -3053,11 +3111,58 @@ async function executeToolCall(toolName, args, authToken) {
 
 buildToolRegistry();
 
+// ── Virtual AI tools — open apps & trigger actions via WS ──
+AI_TOOL_REGISTRY['open_app'] = {
+  name: 'open_app',
+  appId: '_system',
+  method: 'VIRTUAL',
+  path: '',
+  description: 'Open an application on the user\'s desktop. Use this when the user asks to open/launch an app, or when an action requires opening an app (e.g. playing music, editing a file). The app will be opened in a new window.',
+  parameters: {
+    type: 'object',
+    properties: {
+      appId: { type: 'string', description: 'The app ID to open (e.g. music-player, calendar, todo, codeeditor, browser, fileman, notepad, paint, settings, weather, calculator, photos, mail-app, pdf-viewer, contacts, terminal, etc.)' },
+      action: { type: 'string', description: 'Optional action for the app to perform after opening (e.g. play, open-file, navigate, search)' },
+      data: { type: 'object', description: 'Optional data for the action (e.g. { trackName: "song name" } for music, { url: "https://..." } for browser, { path: "/files/doc.txt" } for file actions)' }
+    },
+    required: ['appId']
+  },
+  pathParams: [],
+  virtual: true
+};
+
+AI_TOOL_REGISTRY['play_music'] = {
+  name: 'play_music',
+  appId: 'music-player',
+  method: 'VIRTUAL',
+  path: '',
+  description: 'Open the music player and play a specific track by name, or just open the player. Searches in user\'s uploaded files and public music library.',
+  parameters: {
+    type: 'object',
+    properties: {
+      trackName: { type: 'string', description: 'Name or partial name of the track to play (e.g. "Rosey - Love", "beethoven")' },
+      trackUrl: { type: 'string', description: 'Direct URL of the audio file to play (use if you know the exact streaming URL from music API)' }
+    }
+  },
+  pathParams: [],
+  virtual: true
+};
+
+function sendUserWS(username, message) {
+  const payload = JSON.stringify(message);
+  wsClients.forEach(ws => {
+    if (ws.readyState !== 1) return;
+    if (ws.user && ws.user.username === username) {
+      ws.send(payload);
+    }
+  });
+}
+
 // Domain → App mapping (from coordinator agent)
 const AI_DOMAIN_APPS = {
   files: ['fileman','archiver','backup-restore','disksize','gdrive','ftp-client','synchronizer'],
   organizer: ['calendar','todo','kanban','reminder','scheduler','keepnote','postit','contacts'],
-  finance: ['budget','coin-tracker','stock-tracker','currency-converter','eth-wallet','solana-wallet'],
+  finance: ['budget','coin-tracker','stock-tracker','currency-converter','eth-wallet','solana-wallet','carpaper'],
   media: ['music-player','photos','audio-recorder','audio-editor','loopstudio'],
   communication: ['mail-app','notifications'],
   developer: ['codeeditor','github','requestly','rabbitmq-tracker'],
@@ -3069,7 +3174,7 @@ const AI_DOMAIN_APPS = {
 const AI_DOMAIN_KEYWORDS = {
   files: ['disk','dosya','file','storage','backup','yedek','ftp','gdrive','archive','sync','boyut','alan','depolama','yer','kapa','klasör','folder','directory','sil','delete','upload','download','indirme','kopyala','taşı'],
   organizer: ['todo','task','calendar','takvim','reminder','hatırlat','note','not','contact','kişi','kanban','schedule','görev','plan','toplantı','meeting','etkinlik','event','ajanda','randevu'],
-  finance: ['budget','bütçe','crypto','coin','currency','döviz','stock','hisse','wallet','cüzdan','para','gelir','gider','harcama','fiyat','kur','borsa','finans','expense','income'],
+  finance: ['budget','bütçe','crypto','coin','currency','döviz','stock','hisse','wallet','cüzdan','para','gelir','gider','harcama','fiyat','kur','borsa','finans','expense','income','araç','araba','car','vehicle','muayene','inspection','vergi','tax','yakıt','fuel','benzin','gasoline','ceza','fine','kaza','accident','sigorta','insurance','plaka','plate','carpaper'],
   media: ['music','müzik','photo','fotoğraf','video','audio','ses','record','kayıt','şarkı','song','album','çal','play'],
   communication: ['email','mail','notification','bildirim','mesaj','message','inbox','posta'],
   developer: ['code','github','api','debug','repo','commit','pull','push','rabbitmq','branch'],
@@ -3250,7 +3355,7 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
           const toolResults = [];
           for (const tu of toolUseBlocks) {
             console.log('[AI Chat] Tool call (Anthropic) round', round, ':', tu.name, JSON.stringify(tu.input || {}).slice(0, 200));
-            const toolResult = await executeToolCall(tu.name, tu.input || {}, authToken);
+            const toolResult = await executeToolCall(tu.name, tu.input || {}, authToken, req.user.username);
             console.log('[AI Chat] Tool result:', tu.name, JSON.stringify(toolResult).slice(0, 200));
             toolResults.push({ type: 'tool_result', tool_use_id: tu.id, content: JSON.stringify(toolResult) });
           }
@@ -3313,7 +3418,7 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
             let args = {};
             try { args = JSON.parse(tc.function.arguments || '{}'); } catch {}
             console.log('[AI Chat] Tool call (OpenAI) round', round, ':', tc.function.name, JSON.stringify(args).slice(0, 200));
-            const toolResult = await executeToolCall(tc.function.name, args, authToken);
+            const toolResult = await executeToolCall(tc.function.name, args, authToken, req.user.username);
             console.log('[AI Chat] Tool result:', tc.function.name, JSON.stringify(toolResult).slice(0, 200));
             conversationMsgs.push({
               role: 'tool',
@@ -3857,6 +3962,88 @@ function getUserDb(username) {
       updated_at TEXT DEFAULT (datetime('now'))
     );
     CREATE INDEX IF NOT EXISTS idx_pets_name ON pets(name);
+
+    CREATE TABLE IF NOT EXISTS carpaper_vehicles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      plate TEXT DEFAULT '',
+      brand TEXT DEFAULT '',
+      model TEXT DEFAULT '',
+      year INTEGER DEFAULT 0,
+      color TEXT DEFAULT '',
+      km INTEGER DEFAULT 0,
+      fuel_type TEXT DEFAULT 'gasoline',
+      engine_size TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS carpaper_inspections (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      vehicle_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      next_date TEXT DEFAULT '',
+      amount REAL DEFAULT 0,
+      result TEXT DEFAULT 'passed',
+      notes TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_cp_insp_vid ON carpaper_inspections(vehicle_id);
+
+    CREATE TABLE IF NOT EXISTS carpaper_taxes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      vehicle_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      next_date TEXT DEFAULT '',
+      amount REAL DEFAULT 0,
+      description TEXT DEFAULT '',
+      notes TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_cp_tax_vid ON carpaper_taxes(vehicle_id);
+
+    CREATE TABLE IF NOT EXISTS carpaper_fuellogs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      vehicle_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      station TEXT DEFAULT '',
+      liters REAL DEFAULT 0,
+      price_per_liter REAL DEFAULT 0,
+      amount REAL DEFAULT 0,
+      total_km INTEGER DEFAULT 0,
+      notes TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_cp_fuel_vid ON carpaper_fuellogs(vehicle_id);
+
+    CREATE TABLE IF NOT EXISTS carpaper_accidents (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      vehicle_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      type TEXT DEFAULT 'fine',
+      amount REAL DEFAULT 0,
+      description TEXT DEFAULT '',
+      notes TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_cp_acc_vid ON carpaper_accidents(vehicle_id);
+
+    CREATE TABLE IF NOT EXISTS carpaper_insurances (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      vehicle_id INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      amount REAL DEFAULT 0,
+      provider TEXT DEFAULT '',
+      policy_no TEXT DEFAULT '',
+      expiry_date TEXT DEFAULT '',
+      insurance_type TEXT DEFAULT 'kasko',
+      notes TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_cp_ins_vid ON carpaper_insurances(vehicle_id);
   `);
 
   /* Seed default budget categories if empty */
@@ -5149,6 +5336,151 @@ app.delete('/api/budget/entries/:id', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
   db.prepare('DELETE FROM budget_entries WHERE id=?').run(req.params.id);
   res.json({ ok: true });
+});
+
+// #endregion
+// #region CarPaper API
+
+// ── Vehicles ──
+app.get('/api/carpaper/vehicles', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  res.json(db.prepare('SELECT * FROM carpaper_vehicles ORDER BY created_at DESC').all());
+});
+
+app.post('/api/carpaper/vehicles', authMiddleware, (req, res) => {
+  const { plate, brand, model, year, color, km, fuel_type, engine_size } = req.body;
+  if (!plate && !brand) return res.status(400).json({ error: 'plate or brand required' });
+  const db = getUserDb(req.user.username);
+  const info = db.prepare('INSERT INTO carpaper_vehicles (plate,brand,model,year,color,km,fuel_type,engine_size) VALUES (?,?,?,?,?,?,?,?)').run(
+    String(plate || '').slice(0, 20), String(brand || '').slice(0, 50), String(model || '').slice(0, 50),
+    Number(year) || 0, String(color || '').slice(0, 30), Number(km) || 0,
+    String(fuel_type || 'gasoline').slice(0, 20), String(engine_size || '').slice(0, 10)
+  );
+  res.json({ ok: true, id: info.lastInsertRowid });
+});
+
+app.put('/api/carpaper/vehicles/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  const fields = []; const vals = [];
+  const allowed = { plate: 20, brand: 50, model: 50, color: 30, fuel_type: 20, engine_size: 10 };
+  for (const [k, maxLen] of Object.entries(allowed)) {
+    if (req.body[k] !== undefined) { fields.push(k + '=?'); vals.push(String(req.body[k]).slice(0, maxLen)); }
+  }
+  if (req.body.year !== undefined) { fields.push('year=?'); vals.push(Number(req.body.year) || 0); }
+  if (req.body.km !== undefined) { fields.push('km=?'); vals.push(Number(req.body.km) || 0); }
+  if (!fields.length) return res.status(400).json({ error: 'no fields' });
+  vals.push(req.params.id);
+  db.prepare('UPDATE carpaper_vehicles SET ' + fields.join(', ') + ' WHERE id=?').run(...vals);
+  res.json({ ok: true });
+});
+
+app.delete('/api/carpaper/vehicles/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  const id = req.params.id;
+  db.prepare('DELETE FROM carpaper_inspections WHERE vehicle_id=?').run(id);
+  db.prepare('DELETE FROM carpaper_taxes WHERE vehicle_id=?').run(id);
+  db.prepare('DELETE FROM carpaper_fuellogs WHERE vehicle_id=?').run(id);
+  db.prepare('DELETE FROM carpaper_accidents WHERE vehicle_id=?').run(id);
+  db.prepare('DELETE FROM carpaper_insurances WHERE vehicle_id=?').run(id);
+  db.prepare('DELETE FROM carpaper_vehicles WHERE id=?').run(id);
+  res.json({ ok: true });
+});
+
+// ── Helper: generic CRUD for carpaper sub-tables ──
+function cpCrudRoutes(tableName, requiredFields, allFields) {
+  const table = 'carpaper_' + tableName;
+
+  app.get('/api/carpaper/' + tableName, authMiddleware, (req, res) => {
+    const db = getUserDb(req.user.username);
+    let sql = 'SELECT * FROM ' + table + ' WHERE 1=1';
+    const params = [];
+    if (req.query.vehicle_id) { sql += ' AND vehicle_id=?'; params.push(Number(req.query.vehicle_id)); }
+    sql += ' ORDER BY date DESC, id DESC';
+    res.json(db.prepare(sql).all(...params));
+  });
+
+  app.post('/api/carpaper/' + tableName, authMiddleware, (req, res) => {
+    const { vehicle_id } = req.body;
+    if (!vehicle_id) return res.status(400).json({ error: 'vehicle_id required' });
+    for (const f of requiredFields) { if (!req.body[f]) return res.status(400).json({ error: f + ' required' }); }
+    const db = getUserDb(req.user.username);
+    const cols = ['vehicle_id', ...allFields];
+    const placeholders = cols.map(() => '?').join(',');
+    const values = cols.map(c => {
+      const v = req.body[c];
+      if (c === 'vehicle_id' || c === 'total_km') return Number(v) || 0;
+      if (c === 'amount' || c === 'liters' || c === 'price_per_liter') return Number(v) || 0;
+      return String(v || '').slice(0, 500);
+    });
+    const info = db.prepare('INSERT INTO ' + table + ' (' + cols.join(',') + ') VALUES (' + placeholders + ')').run(...values);
+    res.json({ ok: true, id: info.lastInsertRowid });
+  });
+
+  app.put('/api/carpaper/' + tableName + '/:id', authMiddleware, (req, res) => {
+    const db = getUserDb(req.user.username);
+    const fields = []; const vals = [];
+    for (const c of allFields) {
+      if (req.body[c] !== undefined) {
+        if (['amount', 'liters', 'price_per_liter'].includes(c)) { fields.push(c + '=?'); vals.push(Number(req.body[c]) || 0); }
+        else if (['vehicle_id', 'total_km'].includes(c)) { fields.push(c + '=?'); vals.push(Number(req.body[c]) || 0); }
+        else { fields.push(c + '=?'); vals.push(String(req.body[c]).slice(0, 500)); }
+      }
+    }
+    if (!fields.length) return res.status(400).json({ error: 'no fields' });
+    vals.push(req.params.id);
+    db.prepare('UPDATE ' + table + ' SET ' + fields.join(', ') + ' WHERE id=?').run(...vals);
+    res.json({ ok: true });
+  });
+
+  app.delete('/api/carpaper/' + tableName + '/:id', authMiddleware, (req, res) => {
+    const db = getUserDb(req.user.username);
+    db.prepare('DELETE FROM ' + table + ' WHERE id=?').run(req.params.id);
+    res.json({ ok: true });
+  });
+}
+
+cpCrudRoutes('inspections', ['date'], ['vehicle_id', 'date', 'next_date', 'amount', 'result', 'notes']);
+cpCrudRoutes('taxes', ['date'], ['vehicle_id', 'date', 'next_date', 'amount', 'description', 'notes']);
+cpCrudRoutes('fuellogs', ['date'], ['vehicle_id', 'date', 'station', 'liters', 'price_per_liter', 'amount', 'total_km', 'notes']);
+cpCrudRoutes('accidents', ['date'], ['vehicle_id', 'date', 'type', 'amount', 'description', 'notes']);
+cpCrudRoutes('insurances', ['date'], ['vehicle_id', 'date', 'amount', 'provider', 'policy_no', 'expiry_date', 'insurance_type', 'notes']);
+
+// ── Summary ──
+app.get('/api/carpaper/summary', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  const vid = req.query.vehicle_id ? Number(req.query.vehicle_id) : null;
+  const where = vid ? ' WHERE vehicle_id=?' : '';
+  const params = vid ? [vid] : [];
+  const sum = (t) => (db.prepare('SELECT COALESCE(SUM(amount),0) as total FROM carpaper_' + t + where).get(...params)).total;
+  const inspTotal = sum('inspections');
+  const taxTotal = sum('taxes');
+  const fuelTotal = sum('fuellogs');
+  const accTotal = sum('accidents');
+  const insTotal = sum('insurances');
+
+  // Avg consumption
+  const logs = db.prepare('SELECT liters, total_km FROM carpaper_fuellogs' + where + ' ORDER BY total_km ASC').all(...params);
+  let avgConsumption = 0;
+  if (logs.length >= 2) {
+    const totalLiters = logs.reduce((s, r) => s + r.liters, 0);
+    const kmDiff = logs[logs.length - 1].total_km - logs[0].total_km;
+    if (kmDiff > 0) avgConsumption = parseFloat(((totalLiters / kmDiff) * 100).toFixed(1));
+  }
+
+  // Next inspection
+  const nextInsp = db.prepare('SELECT next_date FROM carpaper_inspections' + where + ' AND next_date != \'\' ORDER BY next_date DESC LIMIT 1').get(...params);
+  // Next tax
+  const nextTax = db.prepare('SELECT next_date FROM carpaper_taxes' + where + ' AND next_date != \'\' ORDER BY next_date DESC LIMIT 1').get(...params);
+
+  const vehicleCount = db.prepare('SELECT COUNT(*) as c FROM carpaper_vehicles').get().c;
+
+  res.json({
+    totalExpenses: inspTotal + taxTotal + fuelTotal + accTotal + insTotal,
+    inspectionTotal: inspTotal, taxTotal, fuelTotal, accidentTotal: accTotal, insuranceTotal: insTotal,
+    avgConsumption, vehicleCount,
+    nextInspection: nextInsp ? { date: nextInsp.next_date, days: Math.ceil((new Date(nextInsp.next_date) - new Date()) / 86400000) } : null,
+    nextTax: nextTax ? { date: nextTax.next_date, days: Math.ceil((new Date(nextTax.next_date) - new Date()) / 86400000) } : null
+  });
 });
 
 // #endregion

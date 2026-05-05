@@ -25,7 +25,7 @@
     "hi": { "name": "OCR", "description": "Docker आधारित OCR सेवा - इमेज से टेक्स्ट निकालकर सर्वर पर सहेजती है" },
     "pt": { "name": "OCR", "description": "Servico OCR baseado em Docker - extrai texto de imagens e salva os resultados no servidor" }
   },
-  "category": "creative",
+  "category": "utilities",
   "docker": {
     "image": "jitesoft/tesseract-ocr:5-5.5.2",
     "containerPort": 9999,
