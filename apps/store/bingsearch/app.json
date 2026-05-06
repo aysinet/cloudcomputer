@@ -1,0 +1,67 @@
+{
+  "id": "bingsearch",
+  "name": "Bing Search",
+  "icon": "🔍",
+  "color": "linear-gradient(135deg,#00809d,#005a6e)",
+  "type": "internal",
+  "size": {
+    "w": 1000,
+    "h": 650
+  },
+  "global": false,
+  "description": "Bing arama motoruna hızlı erişim",
+  "lang": {
+    "tr": {
+      "name": "Bing Arama",
+      "description": "Bing arama motoruna hızlı erişim"
+    },
+    "en": {
+      "name": "Bing Search",
+      "description": "Quick access to Bing search engine"
+    },
+    "de": {
+      "name": "Bing Suche",
+      "description": "Schneller Zugriff auf die Bing-Suchmaschine"
+    },
+    "fr": {
+      "name": "Bing Recherche",
+      "description": "Accès rapide au moteur de recherche Bing"
+    },
+    "es": {
+      "name": "Bing Búsqueda",
+      "description": "Acceso rápido al motor de búsqueda Bing"
+    },
+    "ru": {
+      "name": "Bing Поиск",
+      "description": "Быстрый доступ к поисковой системе Bing"
+    },
+    "zh": {
+      "name": "Bing 搜索",
+      "description": "快速访问Bing搜索引擎"
+    },
+    "ja": {
+      "name": "Bing 検索",
+      "description": "Bing検索エンジンへのクイックアクセス"
+    },
+    "it": {
+      "name": "Bing Ricerca",
+      "description": "Accesso rapido al motore di ricerca Bing"
+    },
+    "ar": {
+      "name": "بحث بينغ",
+      "description": "وصول سريع إلى محرك بحث بينغ"
+    },
+    "ko": {
+      "name": "Bing 검색",
+      "description": "Bing 검색 엔진에 빠르게 접근"
+    },
+    "hi": {
+      "name": "Bing खोज",
+      "description": "Bing खोज इंजन तक त्वरित पहुँच"
+    },
+    "pt": {
+      "name": "Bing Pesquisa",
+      "description": "Acesso rápido ao motor de busca Bing"
+    }
+  }
+}

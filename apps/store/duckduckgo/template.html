@@ -1,0 +1,48 @@
+<div class="duckduckgo-app">
+  <!-- Toolbar -->
+  <div class="ddg-toolbar">
+    <span class="ddg-toolbar-title">🦆 DuckDuckGo</span>
+    <div class="ddg-toolbar-actions">
+      <button class="ddg-btn" @click="navigateHome" :title="t.home">🏠</button>
+      <div class="ddg-separator"></div>
+      <button class="ddg-btn" :class="{ 'ddg-btn-active': isFavorite() }" @click="toggleFavorite" :title="isFavorite() ? t.removeFav : t.addFav">
+        {{ isFavorite() ? '★' : '☆' }}
+      </button>
+      <button class="ddg-btn" @click="showFavPanel = !showFavPanel" :title="t.favorites">
+        📑 <span class="ddg-badge" v-if="favorites.length">{{ favorites.length }}</span>
+      </button>
+      <div class="ddg-separator"></div>
+      <button class="ddg-btn" @click="shareLink" :title="t.share">📤</button>
+      <button class="ddg-btn" @click="openExternal" :title="t.openTab">🔗</button>
+    </div>
+  </div>
+
+  <!-- Favorites Panel -->
+  <div class="ddg-fav-panel" v-if="showFavPanel">
+    <div class="ddg-fav-header">
+      <span>★ {{ t.favorites }}</span>
+      <button class="ddg-btn ddg-btn-sm" @click="showFavPanel = false">✕</button>
+    </div>
+    <div class="ddg-fav-list" v-if="favorites.length">
+      <div class="ddg-fav-item" v-for="(fav, idx) in favorites" :key="fav.url">
+        <div class="ddg-fav-info" @click="openFavorite(fav)">
+          <span class="ddg-fav-title">{{ fav.title || fav.url }}</span>
+        </div>
+        <button class="ddg-fav-del" @click="deleteFavorite(idx)" :title="t.delete">🗑</button>
+      </div>
+    </div>
+    <div class="ddg-fav-empty" v-else>{{ t.noFavs }}</div>
+  </div>
+
+  <!-- Toast -->
+  <div class="ddg-toast" v-if="toast">{{ toast }}</div>
+
+  <!-- DuckDuckGo iframe -->
+  <iframe
+    :src="iframeSrc"
+    class="ddg-iframe"
+    frameborder="0"
+    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+    referrerpolicy="no-referrer"
+  ></iframe>
+</div>

@@ -708,7 +708,7 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
         </div>
       </div>
       <iframe v-else-if="iframeSrc" ref="iframeRef" :src="iframeSrc" class="browser-iframe"
-        sandbox="allow-same-origin allow-scripts allow-forms"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
         @load="onIframeLoad"></iframe>
     </div>
 

@@ -1,0 +1,24 @@
+<div class="bingsearch-app">
+  <!-- Toolbar -->
+  <div class="bing-toolbar">
+    <span class="bing-toolbar-title">🔍 Bing Search</span>
+    <div class="bing-toolbar-actions">
+      <button class="bing-btn" @click="navigateHome" :title="t.home">🏠</button>
+      <button class="bing-btn" @click="goBack" :title="t.back">◀</button>
+      <button class="bing-btn" @click="goForward" :title="t.forward">▶</button>
+      <button class="bing-btn" @click="refresh" :title="t.refresh">🔄</button>
+      <div class="bing-separator"></div>
+      <button class="bing-btn" @click="openExternal" :title="t.openTab">🔗</button>
+    </div>
+  </div>
+
+  <!-- Bing iframe -->
+  <iframe
+    :src="iframeSrc"
+    class="bing-frame"
+    ref="bingFrame"
+    frameborder="0"
+    allow="fullscreen"
+    sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox"
+  ></iframe>
+</div>

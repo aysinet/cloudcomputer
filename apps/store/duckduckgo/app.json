@@ -1,0 +1,68 @@
+{
+  "id": "duckduckgo",
+  "name": "DuckDuckGo",
+  "icon": "🦆",
+  "color": "linear-gradient(135deg,#de5833,#1a1a2e)",
+  "type": "internal",
+  "size": {
+    "w": 950,
+    "h": 620
+  },
+  "global": false,
+  "description": "DuckDuckGo gizlilik odaklı arama motoruna hızlı erişim",
+  "lang": {
+    "tr": {
+      "name": "DuckDuckGo",
+      "description": "DuckDuckGo gizlilik odaklı arama motoruna hızlı erişim"
+    },
+    "en": {
+      "name": "DuckDuckGo",
+      "description": "Quick access to DuckDuckGo privacy-focused search engine"
+    },
+    "de": {
+      "name": "DuckDuckGo",
+      "description": "Schneller Zugriff auf die datenschutzorientierte Suchmaschine DuckDuckGo"
+    },
+    "fr": {
+      "name": "DuckDuckGo",
+      "description": "Accès rapide au moteur de recherche DuckDuckGo axé sur la confidentialité"
+    },
+    "es": {
+      "name": "DuckDuckGo",
+      "description": "Acceso rápido al motor de búsqueda DuckDuckGo centrado en la privacidad"
+    },
+    "ru": {
+      "name": "DuckDuckGo",
+      "description": "Быстрый доступ к поисковой системе DuckDuckGo с защитой конфиденциальности"
+    },
+    "zh": {
+      "name": "DuckDuckGo",
+      "description": "快速访问DuckDuckGo隐私搜索引擎"
+    },
+    "ja": {
+      "name": "DuckDuckGo",
+      "description": "プライバシー重視の検索エンジンDuckDuckGoへのクイックアクセス"
+    },
+    "it": {
+      "name": "DuckDuckGo",
+      "description": "Accesso rapido al motore di ricerca DuckDuckGo incentrato sulla privacy"
+    },
+    "ar": {
+      "name": "DuckDuckGo",
+      "description": "وصول سريع إلى محرك البحث DuckDuckGo الذي يركز على الخصوصية"
+    },
+    "ko": {
+      "name": "DuckDuckGo",
+      "description": "개인정보 보호 검색엔진 DuckDuckGo 빠른 접속"
+    },
+    "hi": {
+      "name": "DuckDuckGo",
+      "description": "गोपनीयता-केंद्रित खोज इंजन DuckDuckGo तक त्वरित पहुँच"
+    },
+    "pt": {
+      "name": "DuckDuckGo",
+      "description": "Acesso rápido ao motor de busca DuckDuckGo focado em privacidade"
+    }
+  },
+  "category": "internet"
+}
