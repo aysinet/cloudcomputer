@@ -1,0 +1,63 @@
+{
+  "id": "googlesearch",
+  "name": "Google Search",
+  "icon": "🔎",
+  "color": "linear-gradient(135deg,#4285F4,#34A853)",
+  "type": "internal",
+  "size": {
+    "w": 1000,
+    "h": 650
+  },
+  "global": false,
+  "description": "Google arama motoruna hızlı erişim",
+  "lang": {
+    "tr": {
+      "name": "Google Arama",
+      "description": "Google arama motoruna hızlı erişim"
+    },
+    "en": {
+      "name": "Google Search",
+      "description": "Quick access to Google search engine"
+    },
+    "de": {
+      "name": "Google Suche",
+      "description": "Schneller Zugriff auf die Google-Suchmaschine"
+    },
+    "fr": {
+      "name": "Google Recherche",
+      "description": "Accès rapide au moteur de recherche Google"
+    },
+    "es": {
+      "name": "Google Búsqueda",
+      "description": "Acceso rápido al motor de búsqueda Google"
+    },
+    "ru": {
+      "name": "Google Поиск",
+      "description": "Быстрый доступ к поисковой системе Google"
+    },
+    "zh": {
+      "name": "Google 搜索",
+      "description": "快速访问Google搜索引擎"
+    },
+    "ja": {
+      "name": "Google 検索",
+      "description": "Google検索エンジンへのクイックアクセス"
+    },
+    "it": {
+      "name": "Google Ricerca",
+      "description": "Accesso rapido al motore di ricerca Google"
+    },
+    "ar": {
+      "name": "بحث جوجل",
+      "description": "الوصول السريع إلى محرك بحث جوجل"
+    },
+    "pt": {
+      "name": "Google Pesquisa",
+      "description": "Acesso rápido ao motor de busca Google"
+    },
+    "ko": {
+      "name": "Google 검색",
+      "description": "Google 검색 엔진에 빠르게 액세스"
+    }
+  }
+}

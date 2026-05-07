@@ -1,89 +1,189 @@
 (function(Vue) {
-  const { ref, onMounted } = Vue;
+  const { ref, computed, onMounted, onBeforeUnmount } = Vue;
+
+  const BASE_URL = 'https://www.linkedin.com';
 
   const LANGS = {
     tr: {
-      opened:'LinkedIn yeni sekmede açıldı.',
-      open:'Tekrar Aç',
-      info:'Yeni sekmeniz açılmadıysa, lütfen pop-up engelleyiciyi devre dışı bırakın.'
+      home: 'Ana Sayfa', back: 'Geri', forward: 'İleri',
+      refresh: 'Yenile', openTab: 'Yeni Sekmede Aç',
+      feed: 'Akış', network: 'Ağım', jobs: 'İş İlanları',
+      messaging: 'Mesajlar', notifications: 'Bildirimler'
     },
     en: {
-      opened:'LinkedIn opened in a new tab.',
-      open:'Open Again',
-      info:'If a new tab did not open, please disable your pop-up blocker.'
+      home: 'Home', back: 'Back', forward: 'Forward',
+      refresh: 'Refresh', openTab: 'Open in New Tab',
+      feed: 'Feed', network: 'My Network', jobs: 'Jobs',
+      messaging: 'Messaging', notifications: 'Notifications'
     },
     de: {
-      opened:'LinkedIn in neuem Tab geöffnet.',
-      open:'Erneut öffnen',
-      info:'Falls kein neuer Tab geöffnet wurde, deaktivieren Sie den Pop-up-Blocker.'
+      home: 'Startseite', back: 'Zurück', forward: 'Vorwärts',
+      refresh: 'Aktualisieren', openTab: 'In neuem Tab öffnen',
+      feed: 'Feed', network: 'Netzwerk', jobs: 'Jobs',
+      messaging: 'Nachrichten', notifications: 'Benachrichtigungen'
     },
     fr: {
-      opened:'LinkedIn ouvert dans un nouvel onglet.',
-      open:'Rouvrir',
-      info:'Si un nouvel onglet ne s\'est pas ouvert, désactivez le bloqueur de pop-ups.'
+      home: 'Accueil', back: 'Retour', forward: 'Suivant',
+      refresh: 'Actualiser', openTab: 'Ouvrir dans un nouvel onglet',
+      feed: 'Fil', network: 'Réseau', jobs: 'Emplois',
+      messaging: 'Messagerie', notifications: 'Notifications'
     },
     es: {
-      opened:'LinkedIn abierto en una nueva pestaña.',
-      open:'Abrir de nuevo',
-      info:'Si no se abrió una nueva pestaña, desactive el bloqueador de ventanas emergentes.'
+      home: 'Inicio', back: 'Atrás', forward: 'Adelante',
+      refresh: 'Actualizar', openTab: 'Abrir en nueva pestaña',
+      feed: 'Feed', network: 'Mi Red', jobs: 'Empleos',
+      messaging: 'Mensajes', notifications: 'Notificaciones'
     },
     ru: {
-      opened:'LinkedIn открыт в новой вкладке.',
-      open:'Открыть снова',
-      info:'Если новая вкладка не открылась, отключите блокировщик всплывающих окон.'
+      home: 'Главная', back: 'Назад', forward: 'Вперёд',
+      refresh: 'Обновить', openTab: 'Открыть в новой вкладке',
+      feed: 'Лента', network: 'Сеть', jobs: 'Вакансии',
+      messaging: 'Сообщения', notifications: 'Уведомления'
     },
     zh: {
-      opened:'LinkedIn已在新标签页中打开。',
-      open:'重新打开',
-      info:'如果新标签页未打开，请禁用弹出窗口拦截器。'
+      home: '首页', back: '后退', forward: '前进',
+      refresh: '刷新', openTab: '新标签页打开',
+      feed: '动态', network: '人脉', jobs: '职位',
+      messaging: '消息', notifications: '通知'
     },
     ja: {
-      opened:'LinkedInが新しいタブで開きました。',
-      open:'再度開く',
-      info:'新しいタブが開かない場合は、ポップアップブロッカーを無効にしてください。'
+      home: 'ホーム', back: '戻る', forward: '進む',
+      refresh: '更新', openTab: '新しいタブで開く',
+      feed: 'フィード', network: 'ネットワーク', jobs: '求人',
+      messaging: 'メッセージ', notifications: '通知'
     },
     it: {
-      opened:'LinkedIn aperto in una nuova scheda.',
-      open:'Apri di nuovo',
-      info:'Se non si è aperta una nuova scheda, disabilita il blocco popup.'
+      home: 'Home', back: 'Indietro', forward: 'Avanti',
+      refresh: 'Aggiorna', openTab: 'Apri in nuova scheda',
+      feed: 'Feed', network: 'Rete', jobs: 'Lavoro',
+      messaging: 'Messaggi', notifications: 'Notifiche'
     },
     ar: {
-      opened:'LinkedIn opened in a new tab.',
-      open:'Open Again',
-      info:'معلومات'
+      home: 'الرئيسية', back: 'رجوع', forward: 'تقدم',
+      refresh: 'تحديث', openTab: 'فتح في علامة تبويب جديدة',
+      feed: 'الخلاصة', network: 'شبكتي', jobs: 'وظائف',
+      messaging: 'الرسائل', notifications: 'الإشعارات'
     },
     ko: {
-      opened:'LinkedIn opened in a new tab.',
-      open:'Open Again',
-      info:'정보'
+      home: '홈', back: '뒤로', forward: '앞으로',
+      refresh: '새로고침', openTab: '새 탭에서 열기',
+      feed: '피드', network: '네트워크', jobs: '채용',
+      messaging: '메시지', notifications: '알림'
     },
     hi: {
-      opened:'LinkedIn opened in a new tab.',
-      open:'Open Again',
-      info:'जानकारी'
+      home: 'होम', back: 'पीछे', forward: 'आगे',
+      refresh: 'रीफ़्रेश', openTab: 'नई टैब में खोलें',
+      feed: 'फ़ीड', network: 'नेटवर्क', jobs: 'नौकरियाँ',
+      messaging: 'संदेश', notifications: 'सूचनाएं'
     },
     pt: {
-      opened:'LinkedIn opened in a new tab.',
-      open:'Open Again',
-      info:'Info'
+      home: 'Início', back: 'Voltar', forward: 'Avançar',
+      refresh: 'Atualizar', openTab: 'Abrir em nova aba',
+      feed: 'Feed', network: 'Rede', jobs: 'Vagas',
+      messaging: 'Mensagens', notifications: 'Notificações'
     }
   };
 
-  const URL = 'https://www.linkedin.com/';
-
   return {
-    setup(props) {
-      const lang = (props.settings && props.settings.lang) || 'en';
-      const L = LANGS[lang] || LANGS.en;
-      const t = (k) => L[k] || k;
+    setup() {
+      const locale = ref(localStorage.getItem('sys_locale') || 'en');
+      const t = computed(() => LANGS[locale.value] || LANGS.en);
+      const linkedinFrame = ref(null);
 
-      function openLinkedIn() {
-        window.open(URL, '_blank', 'noopener,noreferrer');
+      function proxyUrl(url) {
+        return '/api/browser/proxy?url=' + encodeURIComponent(url);
       }
 
-      onMounted(() => { openLinkedIn(); });
+      function getRealUrl() {
+        const src = iframeSrc.value;
+        try {
+          const u = new URL(src, location.origin);
+          return u.searchParams.get('url') || src;
+        } catch { return src; }
+      }
 
-      return { t, openLinkedIn };
+      const iframeSrc = ref(proxyUrl(BASE_URL + '/'));
+
+      const shortcuts = computed(() => [
+        { key: 'feed',          icon: '📰', path: '/feed/' },
+        { key: 'network',       icon: '👥', path: '/mynetwork/' },
+        { key: 'jobs',          icon: '💼', path: '/jobs/' },
+        { key: 'messaging',     icon: '💬', path: '/messaging/' },
+        { key: 'notifications', icon: '🔔', path: '/notifications/' }
+      ]);
+
+      function navigateHome() {
+        iframeSrc.value = proxyUrl(BASE_URL + '/');
+      }
+
+      function navigateTo(path) {
+        iframeSrc.value = proxyUrl(BASE_URL + path);
+      }
+
+      function goBack() {
+        try {
+          if (linkedinFrame.value) linkedinFrame.value.contentWindow.history.back();
+        } catch(e) {}
+      }
+
+      function goForward() {
+        try {
+          if (linkedinFrame.value) linkedinFrame.value.contentWindow.history.forward();
+        } catch(e) {}
+      }
+
+      function refresh() {
+        const src = iframeSrc.value;
+        iframeSrc.value = '';
+        setTimeout(() => { iframeSrc.value = src; }, 50);
+      }
+
+      function openExternal() {
+        window.open(getRealUrl(), '_blank');
+      }
+
+      function onIframeMessage(e) {
+        if (e.data && e.data.type === 'browser-navigate' && e.data.url) {
+          const url = e.data.url;
+          if (url.includes('linkedin.com')) {
+            iframeSrc.value = proxyUrl(url);
+          } else {
+            window.dispatchEvent(new CustomEvent('open-app-action', { detail: { app: 'browser' } }));
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('browser-open-url', { detail: url }));
+            }, 300);
+          }
+        }
+      }
+
+      function onLocaleChanged(e) {
+        if (e.detail && e.detail.locale) {
+          locale.value = e.detail.locale;
+        }
+      }
+
+      onMounted(() => {
+        window.addEventListener('locale-changed', onLocaleChanged);
+        window.addEventListener('message', onIframeMessage);
+      });
+
+      onBeforeUnmount(() => {
+        window.removeEventListener('locale-changed', onLocaleChanged);
+        window.removeEventListener('message', onIframeMessage);
+      });
+
+      return {
+        t,
+        iframeSrc,
+        linkedinFrame,
+        shortcuts,
+        navigateHome,
+        navigateTo,
+        goBack,
+        goForward,
+        refresh,
+        openExternal
+      };
     }
   };
 })(Vue);

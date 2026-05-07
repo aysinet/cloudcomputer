@@ -1,0 +1,185 @@
+<div class="ssh-app">
+  <!-- Connection Bar -->
+  <div class="ssh-conn-bar">
+    <div class="ssh-conn-fields">
+      <div class="ssh-field">
+        <label>{{ t('host') }}</label>
+        <el-input v-model="connForm.host" :placeholder="t('host')" size="small" :disabled="isConnected" />
+      </div>
+      <div class="ssh-field ssh-field-sm">
+        <label>{{ t('port') }}</label>
+        <el-input-number v-model="connForm.port" :min="1" :max="65535" size="small" :disabled="isConnected" controls-position="right" />
+      </div>
+      <div class="ssh-field">
+        <label>{{ t('username') }}</label>
+        <el-input v-model="connForm.username" :placeholder="t('username')" size="small" :disabled="isConnected" />
+      </div>
+      <div class="ssh-field ssh-field-sm">
+        <label>{{ t('authMethod') }}</label>
+        <el-select v-model="connForm.authMethod" size="small" :disabled="isConnected">
+          <el-option :label="t('passwordAuth')" value="password" />
+          <el-option :label="t('keyAuth')" value="key" />
+        </el-select>
+      </div>
+      <div class="ssh-field" v-if="connForm.authMethod === 'password'">
+        <label>{{ t('password') }}</label>
+        <el-input v-model="connForm.password" :placeholder="t('password')" size="small" type="password" show-password :disabled="isConnected" />
+      </div>
+      <div class="ssh-field ssh-field-lg" v-if="connForm.authMethod === 'key'">
+        <label>{{ t('privateKey') }}</label>
+        <el-input v-model="connForm.privateKey" :placeholder="t('privateKey')" size="small" type="textarea" :rows="1" :disabled="isConnected" />
+      </div>
+      <div class="ssh-conn-actions">
+        <el-button type="primary" size="small" @click="connect" :loading="isConnecting" :disabled="isConnected">
+          {{ isConnected ? t('connected') : t('quickConnect') }}
+        </el-button>
+        <el-button type="danger" size="small" @click="disconnect" :disabled="!isConnected" plain>
+          {{ t('disconnect') }}
+        </el-button>
+        <el-button size="small" @click="saveConn" :title="t('save')">💾</el-button>
+        <el-button size="small" @click="showSavedPanel = !showSavedPanel" :title="t('savedConnections')">
+          📋 <span v-if="savedConns.length" class="ssh-badge">{{ savedConns.length }}</span>
+        </el-button>
+      </div>
+    </div>
+
+    <!-- Saved Connections Dropdown -->
+    <div class="ssh-saved-panel" v-if="showSavedPanel">
+      <div class="ssh-saved-header">
+        <span class="ssh-saved-title">{{ t('savedConnections') }} <small v-if="savedConns.length">({{ savedConns.length }} {{ t('serverCount') }})</small></span>
+        <el-button size="small" text type="danger" @click="deleteAllConns" v-if="savedConns.length">🗑️</el-button>
+      </div>
+      <div v-if="!savedConns.length" class="ssh-saved-empty">{{ t('noSaved') }}</div>
+      <div v-for="(c, i) in savedConns" :key="i" class="ssh-saved-item">
+        <span class="ssh-saved-name" @click="loadConn(c)">🔐 {{ c.name }} <small>({{ c.username }}@{{ c.host }}:{{ c.port }})</small></span>
+        <el-button type="danger" size="small" text @click="deleteConn(i)">✗</el-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Tabs -->
+  <div class="ssh-view-tabs">
+    <el-radio-group v-model="activeView" size="small">
+      <el-radio-button value="terminal">💻 {{ t('terminal') }}</el-radio-button>
+      <el-radio-button value="files">📁 {{ t('fileManager') }}</el-radio-button>
+    </el-radio-group>
+    <span class="ssh-cwd" v-if="isConnected && activeView === 'terminal'">📂 {{ cwd }}</span>
+  </div>
+
+  <!-- Terminal View -->
+  <div class="ssh-main" v-show="activeView === 'terminal'">
+    <div class="ssh-terminal">
+      <div class="ssh-terminal-output" ref="terminalOutputEl">
+        <div v-for="(line, i) in terminalOutput" :key="i" class="ssh-term-line" :class="'term-' + line.type">{{ line.text }}</div>
+        <div v-if="!terminalOutput.length && !isConnected" class="ssh-term-placeholder">
+          🔐 NexSSH — {{ t('connecting') === t('connecting') ? 'Connect to start' : '' }}
+        </div>
+      </div>
+      <div class="ssh-terminal-input" v-if="isConnected">
+        <span class="ssh-prompt">{{ connForm.username }}@{{ connForm.host }}:{{ cwd }}$</span>
+        <input
+          v-model="currentCommand"
+          @keydown="onTerminalKeydown"
+          :disabled="commandRunning"
+          :placeholder="t('command')"
+          class="ssh-cmd-input"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <el-button type="primary" size="small" @click="executeCommand" :loading="commandRunning" :disabled="!currentCommand.trim()">
+          {{ t('execute') }}
+        </el-button>
+        <el-button size="small" @click="clearTerminal" :title="t('clear')">🗑️</el-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- File Manager View -->
+  <div class="ssh-main" v-show="activeView === 'files'">
+    <div class="ssh-panel ssh-remote">
+      <div class="ssh-panel-header">
+        <span class="ssh-panel-title">🌐 {{ t('remoteFiles') }}</span>
+        <div class="ssh-panel-toolbar">
+          <el-button size="small" text @click="remoteUp" :disabled="!isConnected" :title="t('parentDir')">⬆️</el-button>
+          <el-button size="small" text @click="loadRemoteDir" :disabled="!isConnected" :title="t('refresh')">🔄</el-button>
+          <el-button size="small" text @click="sftpMkdir" :disabled="!isConnected" :title="t('newFolder')">📁+</el-button>
+          <el-button size="small" text @click="sftpUpload" :disabled="!isConnected" :title="t('sftpUpload')">⬆️📄</el-button>
+          <el-button size="small" text @click="sftpDownload" :disabled="!isConnected || !remoteSelected.length" :title="t('download')">⬇️</el-button>
+          <el-button size="small" text @click="sftpCopy" :disabled="!isConnected || remoteSelected.length !== 1" :title="t('copy')">📋</el-button>
+          <el-button size="small" text @click="sftpMove" :disabled="!isConnected || remoteSelected.length !== 1" :title="t('move')">📦</el-button>
+          <el-button size="small" text @click="sftpRename" :disabled="!isConnected || remoteSelected.length !== 1" :title="t('rename')">✏️</el-button>
+          <el-button size="small" text @click="sftpChmod" :disabled="!isConnected || remoteSelected.length !== 1" :title="t('chmod')">🔒</el-button>
+          <el-button size="small" text type="danger" @click="sftpDelete" :disabled="!isConnected || !remoteSelected.length" :title="t('delete')">🗑️</el-button>
+        </div>
+      </div>
+      <div class="ssh-path-bar">
+        <span class="ssh-path-label">{{ t('path') }}:</span>
+        <el-input v-model="remotePath" size="small" class="ssh-path-input" @keyup.enter="loadRemoteDir" />
+        <el-button size="small" @click="loadRemoteDir" :disabled="!isConnected">{{ t('ok') }}</el-button>
+      </div>
+      <div class="ssh-file-list" v-loading="remoteLoading">
+        <div class="ssh-file-header">
+          <span class="ssh-col-name">{{ t('name') }}</span>
+          <span class="ssh-col-size">{{ t('size') }}</span>
+          <span class="ssh-col-perm">{{ t('permissions') }}</span>
+          <span class="ssh-col-owner">{{ t('owner') }}</span>
+          <span class="ssh-col-date">{{ t('modified') }}</span>
+          <span class="ssh-col-actions"></span>
+        </div>
+        <div v-for="item in remoteFiles" :key="item.name"
+          class="ssh-file-row"
+          :class="{ selected: isRemoteSelected(item), dir: item.isDir }"
+          @click="toggleRemoteSelect(item)"
+          @dblclick="item.isDir ? remoteEnter(item) : editFile(item)">
+          <span class="ssh-col-name"><span class="ssh-icon">{{ fileIcon(item) }}</span> {{ item.name }}</span>
+          <span class="ssh-col-size">{{ item.isDir ? '' : formatSize(item.size) }}</span>
+          <span class="ssh-col-perm">{{ item.permissions || '' }}</span>
+          <span class="ssh-col-owner">{{ item.owner || '' }}</span>
+          <span class="ssh-col-date">{{ item.modified ? new Date(item.modified).toLocaleString() : '' }}</span>
+          <span class="ssh-col-actions">
+            <el-button v-if="!item.isDir" size="small" text @click.stop="editFile(item)" :title="t('edit')">📝</el-button>
+          </span>
+        </div>
+      </div>
+      <div class="ssh-status-bar" v-if="remoteSelectionInfo">{{ remoteSelectionInfo }}</div>
+    </div>
+  </div>
+
+  <!-- File Editor Dialog -->
+  <div class="ssh-editor-overlay" v-if="editorVisible" @click.self="closeEditor">
+    <div class="ssh-editor-dialog">
+      <div class="ssh-editor-header">
+        <span>📝 {{ t('editor') }} — {{ editorFilePath }}</span>
+        <div>
+          <el-button type="primary" size="small" @click="saveEditorFile" :loading="editorSaving">{{ t('saveFile') }}</el-button>
+          <el-button size="small" @click="closeEditor">{{ t('closeEditor') }}</el-button>
+        </div>
+      </div>
+      <textarea class="ssh-editor-textarea" v-model="editorContent" spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <!-- Transfer Status -->
+  <div class="ssh-transfer-bar" v-if="transferring">
+    <span class="ssh-transfer-spinner">⟳</span>
+    <span>{{ transferText || t('transferring') }}</span>
+  </div>
+
+  <!-- Log Panel -->
+  <div class="ssh-log" v-show="showLog">
+    <div class="ssh-log-header">
+      <span>📋 {{ t('log') }}</span>
+      <div>
+        <el-button size="small" text @click="logMessages = []">{{ t('clearLog') }}</el-button>
+        <el-button size="small" text @click="showLog = false">✕</el-button>
+      </div>
+    </div>
+    <div class="ssh-log-body">
+      <div v-for="(l, i) in logMessages" :key="i" class="ssh-log-line" :class="'log-' + l.type">
+        <span class="ssh-log-ts">{{ l.ts }}</span>
+        <span class="ssh-log-msg">{{ l.msg }}</span>
+      </div>
+    </div>
+  </div>
+  <div class="ssh-log-toggle" v-if="!showLog" @click="showLog = true">📋 {{ t('log') }}</div>
+</div>

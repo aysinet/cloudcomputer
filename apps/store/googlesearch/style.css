@@ -1,0 +1,70 @@
+.googlesearch-app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a2e;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+  position: relative;
+}
+
+.google-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+  background: #1a237e;
+  border-bottom: 1px solid #283593;
+  min-height: 36px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.google-toolbar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e0e0e0;
+  white-space: nowrap;
+}
+
+.google-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.google-separator {
+  width: 1px;
+  height: 20px;
+  background: #283593;
+  margin: 0 2px;
+}
+
+.google-btn {
+  background: #283593;
+  border: 1px solid #3949ab;
+  color: #e0e0e0;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.google-btn:hover {
+  background: #3949ab;
+  transform: scale(1.05);
+}
+
+.google-btn:active {
+  transform: scale(0.96);
+}
+
+.google-frame {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}

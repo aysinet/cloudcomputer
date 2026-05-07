@@ -7,11 +7,10 @@
     "jwtSecret": "62cc267bce025bfe314d22028b6a064741ace4caa5a214718543c794ae25ebde",
     "jwtExpiresIn": "240h",
     "users": [
-      "test"
     ]
   },
   "docker": {
-    "managerUrl": "http://localhost:9800",
+    "managerUrl": "http://localhost:8081",
     "secret": "cloudpc-docker-manager-secret",
     "network": "cloudpc-net",
     "portRange": {
@@ -23,9 +22,5 @@
     "pingInterval": 30000
   },
   "weather": {
-    "city": "İstanbul",
-    "country": "Türkiye",
-    "latitude": 41.0082,
-    "longitude": 28.9784
   }
 }

@@ -1,0 +1,143 @@
+<div class="winpc-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="wp-status-screen">
+    <div class="wp-spinner"></div>
+    <div class="wp-icon-large">🖥️</div>
+    <div class="wp-status-text">{{ pullProgress }}</div>
+    <div class="wp-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting / Restarting State -->
+  <div v-else-if="status === 'starting' || status === 'restarting'" class="wp-status-screen">
+    <div class="wp-spinner"></div>
+    <div class="wp-icon-large">🖥️</div>
+    <div class="wp-status-text">{{ status === 'restarting' ? 'Windows yeniden başlatılıyor...' : 'Windows başlatılıyor...' }}</div>
+    <div class="wp-sub-text">Sanal bilgisayar hazırlanıyor, lütfen bekleyin</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="wp-status-screen wp-error">
+    <div class="wp-icon-large">⚠️</div>
+    <div class="wp-status-text">Bir hata oluştu</div>
+    <div class="wp-error-msg">{{ errorMsg }}</div>
+    <div class="wp-actions">
+      <button class="wp-btn wp-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+      <button class="wp-btn" @click="showSetup = true; status = 'idle'">⚙️ Ayarlar</button>
+    </div>
+    <div class="wp-sub-text">Docker'ın yüklü ve KVM desteğinin aktif olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="wp-running">
+    <div class="wp-toolbar">
+      <span class="wp-info">🖥️ Windows PC — Port: {{ port }}</span>
+      <div class="wp-toolbar-actions">
+        <button class="wp-btn wp-btn-small" @click="toggleRdpInfo" title="RDP Bilgisi">🔌</button>
+        <button class="wp-btn wp-btn-small" @click="openInNewTab" title="Yeni Sekmede Aç">🔗</button>
+        <button class="wp-btn wp-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="wp-btn wp-btn-small wp-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+
+    <!-- RDP Info Panel -->
+    <div v-if="showRdpInfo" class="wp-rdp-panel">
+      <div class="wp-rdp-title">📡 Uzak Masaüstü Bağlantısı (RDP)</div>
+      <div class="wp-rdp-row"><span class="wp-rdp-label">Adres:</span><code>localhost:{{ rdpPort || '—' }}</code></div>
+      <div class="wp-rdp-row"><span class="wp-rdp-label">Kullanıcı:</span><code>Docker</code></div>
+      <div class="wp-rdp-row"><span class="wp-rdp-label">Şifre:</span><code>admin</code></div>
+      <div class="wp-rdp-hint">Windows'ta <code>mstsc</code> komutu ile bağlanabilirsiniz.</div>
+    </div>
+
+    <iframe :src="iframeSrc" class="wp-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle / Setup State -->
+  <div v-else class="wp-status-screen">
+    <div v-if="showSetup" class="wp-setup">
+      <div class="wp-setup-header">
+        <span class="wp-setup-icon">🖥️</span>
+        <h3>Windows PC Kurulumu</h3>
+      </div>
+      <div class="wp-setup-form">
+        <div class="wp-form-group">
+          <label>Windows Sürümü</label>
+          <select v-model="config.version" class="wp-select">
+            <option v-for="v in WIN_VERSIONS" :key="v.value" :value="v.value">
+              {{ v.label }} ({{ v.size }})
+            </option>
+          </select>
+        </div>
+
+        <div class="wp-form-row">
+          <div class="wp-form-group wp-form-half">
+            <label>RAM</label>
+            <select v-model="config.ramSize" class="wp-select">
+              <option value="2G">2 GB</option>
+              <option value="4G">4 GB</option>
+              <option value="6G">6 GB</option>
+              <option value="8G">8 GB</option>
+              <option value="12G">12 GB</option>
+              <option value="16G">16 GB</option>
+            </select>
+          </div>
+          <div class="wp-form-group wp-form-half">
+            <label>CPU Çekirdek</label>
+            <select v-model="config.cpuCores" class="wp-select">
+              <option value="1">1 Çekirdek</option>
+              <option value="2">2 Çekirdek</option>
+              <option value="4">4 Çekirdek</option>
+              <option value="6">6 Çekirdek</option>
+              <option value="8">8 Çekirdek</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="wp-form-row">
+          <div class="wp-form-group wp-form-half">
+            <label>Disk Boyutu</label>
+            <select v-model="config.diskSize" class="wp-select">
+              <option value="32G">32 GB</option>
+              <option value="64G">64 GB</option>
+              <option value="128G">128 GB</option>
+              <option value="256G">256 GB</option>
+              <option value="512G">512 GB</option>
+            </select>
+          </div>
+          <div class="wp-form-group wp-form-half">
+            <label>Dil</label>
+            <select v-model="config.language" class="wp-select">
+              <option v-for="lang in LANGUAGES" :key="lang" :value="lang">{{ lang }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="wp-form-row">
+          <div class="wp-form-group wp-form-half">
+            <label>Kullanıcı Adı</label>
+            <input v-model="config.username" type="text" class="wp-input" placeholder="Docker" />
+          </div>
+          <div class="wp-form-group wp-form-half">
+            <label>Şifre</label>
+            <input v-model="config.password" type="password" class="wp-input" placeholder="admin" />
+          </div>
+        </div>
+      </div>
+
+      <div class="wp-setup-footer">
+        <button class="wp-btn wp-btn-primary wp-btn-large" @click="startContainer">
+          ▶ Windows'u Başlat
+        </button>
+        <div class="wp-setup-note">
+          ⚡ KVM desteği gereklidir. İlk kurulum sırasında Windows otomatik olarak yüklenir.
+        </div>
+      </div>
+    </div>
+
+    <div v-else class="wp-welcome">
+      <div class="wp-icon-large">🖥️</div>
+      <div class="wp-status-text">Windows PC</div>
+      <div class="wp-sub-text">Docker üzerinde tam Windows deneyimi</div>
+      <button class="wp-btn wp-btn-primary wp-btn-large" @click="showSetup = true">⚙️ Kuruluma Başla</button>
+    </div>
+  </div>
+</div>

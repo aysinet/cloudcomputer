@@ -1,6 +1,33 @@
 <div class="linkedin-app">
-  <div class="linkedin-icon">💼</div>
-  <p class="linkedin-msg">{{ t('opened') }}</p>
-  <p class="linkedin-info">{{ t('info') }}</p>
-  <el-button type="primary" round @click="openLinkedIn">{{ t('open') }}</el-button>
+  <!-- Toolbar -->
+  <div class="li-toolbar">
+    <span class="li-toolbar-title">💼 LinkedIn</span>
+    <div class="li-toolbar-nav">
+      <button
+        v-for="s in shortcuts"
+        :key="s.key"
+        class="li-nav-btn"
+        @click="navigateTo(s.path)"
+        :title="t[s.key]"
+      >{{ s.icon }} <span class="li-nav-label">{{ t[s.key] }}</span></button>
+    </div>
+    <div class="li-toolbar-actions">
+      <button class="li-btn" @click="navigateHome" :title="t.home">🏠</button>
+      <button class="li-btn" @click="goBack" :title="t.back">◀</button>
+      <button class="li-btn" @click="goForward" :title="t.forward">▶</button>
+      <button class="li-btn" @click="refresh" :title="t.refresh">🔄</button>
+      <div class="li-separator"></div>
+      <button class="li-btn" @click="openExternal" :title="t.openTab">🔗</button>
+    </div>
+  </div>
+
+  <!-- LinkedIn iframe -->
+  <iframe
+    :src="iframeSrc"
+    class="li-iframe"
+    ref="linkedinFrame"
+    frameborder="0"
+    allow="fullscreen"
+    referrerpolicy="no-referrer"
+  ></iframe>
 </div>

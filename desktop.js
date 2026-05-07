@@ -1112,6 +1112,10 @@ app.post('/api/services/install', authMiddleware, async (req, res) => {
     };
     if (cmd) runBody.cmd = cmd;
     if (Array.isArray(dockerConfig.extraPorts)) runBody.extraPorts = dockerConfig.extraPorts;
+    if (Array.isArray(dockerConfig.devices)) runBody.devices = dockerConfig.devices;
+    if (Array.isArray(dockerConfig.capAdd)) runBody.capAdd = dockerConfig.capAdd;
+    if (dockerConfig.privileged === true) runBody.privileged = true;
+    if (dockerConfig.stopTimeout) runBody.stopTimeout = dockerConfig.stopTimeout;
     const runData = await dmFetch('/run', {
       method: 'POST',
       body: JSON.stringify(runBody)
@@ -2258,7 +2262,7 @@ app.post('/api/docker/pull', authMiddleware, async (req, res) => {
 });
 
 app.post('/api/docker/run', authMiddleware, async (req, res) => {
-  const { image, appId, containerPort, volumes, env, restart, cmd } = req.body;
+  const { image, appId, containerPort, volumes, env, restart, cmd, extraPorts, devices, capAdd, privileged, stopTimeout } = req.body;
   if (!image || !appId) return res.status(400).json({ error: 'image and appId required' });
   if (!/^[a-zA-Z0-9_\-./]+:[a-zA-Z0-9_.\-]*$|^[a-zA-Z0-9_\-./]+$/.test(image)) return res.status(400).json({ error: 'Invalid image name' });
   if (!/^[a-zA-Z0-9_-]+$/.test(appId)) return res.status(400).json({ error: 'Invalid appId' });
@@ -2273,6 +2277,11 @@ app.post('/api/docker/run', authMiddleware, async (req, res) => {
     const body = { image, appId, containerPort: containerPort || 80, volumes: resolvedVolumes, env };
     if (restart) body.restart = restart;
     if (Array.isArray(cmd)) body.cmd = cmd;
+    if (Array.isArray(extraPorts)) body.extraPorts = extraPorts;
+    if (Array.isArray(devices)) body.devices = devices;
+    if (Array.isArray(capAdd)) body.capAdd = capAdd;
+    if (privileged === true) body.privileged = true;
+    if (stopTimeout) body.stopTimeout = stopTimeout;
     const data = await dmFetch('/run', {
       method: 'POST',
       body: JSON.stringify(body)
@@ -10640,6 +10649,311 @@ app.post('/api/ftp/rename', authMiddleware, async (req, res) => {
   try {
     await s.client.rename(oldPath, newPath);
     res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// #endregion
+// #region NexSSH API
+const { Client: SSHClient } = require('ssh2');
+const sshSessions = new Map();
+
+function getSSHSession(sessionId) {
+  const s = sshSessions.get(sessionId);
+  if (!s || !s.conn) return null;
+  return s;
+}
+
+function cleanupSSHSession(sessionId) {
+  const s = sshSessions.get(sessionId);
+  if (s) {
+    try { if (s.sftp) s.sftp.end(); } catch {}
+    try { s.conn.end(); } catch {}
+    sshSessions.delete(sessionId);
+  }
+}
+
+// Auto-cleanup idle SSH sessions after 15 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, s] of sshSessions) {
+    if (now - s.lastUsed > 900000) cleanupSSHSession(id);
+  }
+}, 60000);
+
+app.post('/api/ssh/connect', authMiddleware, (req, res) => {
+  const { host, port, username, password, privateKey } = req.body;
+  if (!host) return res.status(400).json({ error: 'Host is required' });
+  if (!username) return res.status(400).json({ error: 'Username is required' });
+
+  const conn = new SSHClient();
+  const connConfig = {
+    host,
+    port: port || 22,
+    username,
+    readyTimeout: 15000,
+    algorithms: {
+      kex: ['ecdh-sha2-nistp256','ecdh-sha2-nistp384','ecdh-sha2-nistp521','diffie-hellman-group-exchange-sha256','diffie-hellman-group14-sha256','diffie-hellman-group14-sha1'],
+      cipher: ['aes128-ctr','aes192-ctr','aes256-ctr','aes128-gcm@openssh.com','aes256-gcm@openssh.com'],
+      hmac: ['hmac-sha2-256','hmac-sha2-512','hmac-sha1']
+    }
+  };
+  if (privateKey) {
+    connConfig.privateKey = privateKey;
+  } else {
+    connConfig.password = password || '';
+  }
+
+  conn.on('ready', () => {
+    const sessionId = crypto.randomUUID();
+    // Get initial cwd
+    conn.exec('pwd', (err, stream) => {
+      let cwdStr = '/';
+      if (!err) {
+        let out = '';
+        stream.on('data', (d) => { out += d.toString(); });
+        stream.on('close', () => {
+          cwdStr = out.trim() || '/';
+          sshSessions.set(sessionId, { conn, sftp: null, user: req.user.username, cwd: cwdStr, lastUsed: Date.now() });
+          res.json({ sessionId, cwd: cwdStr });
+        });
+      } else {
+        sshSessions.set(sessionId, { conn, sftp: null, user: req.user.username, cwd: '/', lastUsed: Date.now() });
+        res.json({ sessionId, cwd: '/' });
+      }
+    });
+  });
+
+  conn.on('error', (err) => {
+    res.status(500).json({ error: err.message || 'SSH connection failed' });
+  });
+
+  conn.connect(connConfig);
+});
+
+app.post('/api/ssh/disconnect', authMiddleware, (req, res) => {
+  const { sessionId } = req.body;
+  cleanupSSHSession(sessionId);
+  res.json({ ok: true });
+});
+
+app.post('/api/ssh/exec', authMiddleware, (req, res) => {
+  const { sessionId, command } = req.body;
+  if (!command) return res.status(400).json({ error: 'Command is required' });
+  const s = getSSHSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+
+  // Wrap command to track cwd changes
+  const wrappedCmd = `cd ${JSON.stringify(s.cwd)} 2>/dev/null; ${command}; echo "___CWD___"; pwd`;
+
+  s.conn.exec(wrappedCmd, (err, stream) => {
+    if (err) return res.status(500).json({ error: err.message });
+    let stdout = '', stderr = '';
+    stream.on('data', (d) => { stdout += d.toString(); });
+    stream.stderr.on('data', (d) => { stderr += d.toString(); });
+    stream.on('close', () => {
+      // Extract cwd from output
+      const cwdMarker = '___CWD___';
+      const cwdIdx = stdout.lastIndexOf(cwdMarker);
+      let newCwd = s.cwd;
+      let cleanStdout = stdout;
+      if (cwdIdx >= 0) {
+        cleanStdout = stdout.substring(0, cwdIdx).trimEnd();
+        newCwd = stdout.substring(cwdIdx + cwdMarker.length).trim() || s.cwd;
+        s.cwd = newCwd;
+      }
+      res.json({ stdout: cleanStdout, stderr, cwd: newCwd });
+    });
+  });
+});
+
+// Helper to get or create SFTP session
+function ensureSFTP(s) {
+  return new Promise((resolve, reject) => {
+    if (s.sftp) return resolve(s.sftp);
+    s.conn.sftp((err, sftp) => {
+      if (err) return reject(err);
+      s.sftp = sftp;
+      resolve(sftp);
+    });
+  });
+}
+
+app.post('/api/ssh/sftp-list', authMiddleware, async (req, res) => {
+  const { sessionId, path: dirPath } = req.body;
+  const s = getSSHSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  try {
+    const sftp = await ensureSFTP(s);
+    sftp.readdir(dirPath || '/', (err, list) => {
+      if (err) return res.status(500).json({ error: err.message });
+      const files = (list || []).map(f => ({
+        name: f.filename,
+        size: f.attrs.size || 0,
+        isDir: (f.attrs.mode & 0o40000) !== 0,
+        modified: f.attrs.mtime ? new Date(f.attrs.mtime * 1000).toISOString() : null,
+        permissions: '0' + (f.attrs.mode & 0o7777).toString(8),
+        owner: f.attrs.uid != null ? String(f.attrs.uid) : ''
+      })).filter(f => f.name !== '.' && f.name !== '..');
+      files.sort((a, b) => {
+        if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      });
+      res.json({ files });
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ssh/sftp-download', authMiddleware, async (req, res) => {
+  const { sessionId, remotePath: rPath, localPath: lPath } = req.body;
+  const s = getSSHSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  const root = getUserFilesRoot(req.user.username);
+  const dest = safePath(root, lPath);
+  if (!dest) return res.status(403).json({ error: 'Invalid local path' });
+  try {
+    const sftp = await ensureSFTP(s);
+    const dir = path.dirname(dest);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    sftp.fastGet(rPath, dest, (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ ok: true });
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ssh/sftp-upload', authMiddleware, async (req, res) => {
+  const { sessionId, localPath: lPath, remotePath: rPath } = req.body;
+  const s = getSSHSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  const root = getUserFilesRoot(req.user.username);
+  const src = safePath(root, lPath);
+  if (!src) return res.status(403).json({ error: 'Invalid local path' });
+  if (!fs.existsSync(src)) return res.status(404).json({ error: 'Local file not found' });
+  try {
+    const sftp = await ensureSFTP(s);
+    sftp.fastPut(src, rPath, (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ ok: true });
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ssh/sftp-mkdir', authMiddleware, async (req, res) => {
+  const { sessionId, path: dirPath } = req.body;
+  const s = getSSHSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  try {
+    const sftp = await ensureSFTP(s);
+    sftp.mkdir(dirPath, (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ ok: true });
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ssh/sftp-delete', authMiddleware, async (req, res) => {
+  const { sessionId, path: filePath, isDir } = req.body;
+  const s = getSSHSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  try {
+    const sftp = await ensureSFTP(s);
+    if (isDir) {
+      // Use exec for recursive directory removal
+      s.conn.exec('rm -rf ' + JSON.stringify(filePath), (err, stream) => {
+        if (err) return res.status(500).json({ error: err.message });
+        stream.on('close', () => res.json({ ok: true }));
+        stream.on('data', () => {});
+        stream.stderr.on('data', () => {});
+      });
+    } else {
+      sftp.unlink(filePath, (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ ok: true });
+      });
+    }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ssh/sftp-rename', authMiddleware, async (req, res) => {
+  const { sessionId, oldPath, newPath } = req.body;
+  const s = getSSHSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  try {
+    const sftp = await ensureSFTP(s);
+    sftp.rename(oldPath, newPath, (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ ok: true });
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ssh/sftp-chmod', authMiddleware, async (req, res) => {
+  const { sessionId, path: filePath, mode } = req.body;
+  const s = getSSHSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  try {
+    const sftp = await ensureSFTP(s);
+    const modeNum = parseInt(mode, 8);
+    if (isNaN(modeNum)) return res.status(400).json({ error: 'Invalid mode' });
+    sftp.chmod(filePath, modeNum, (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ ok: true });
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ssh/sftp-read', authMiddleware, async (req, res) => {
+  const { sessionId, path: filePath } = req.body;
+  const s = getSSHSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  try {
+    const sftp = await ensureSFTP(s);
+    const chunks = [];
+    const readStream = sftp.createReadStream(filePath, { encoding: 'utf8' });
+    readStream.on('data', (chunk) => chunks.push(chunk));
+    readStream.on('end', () => res.json({ content: chunks.join('') }));
+    readStream.on('error', (err) => res.status(500).json({ error: err.message }));
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/ssh/sftp-write', authMiddleware, async (req, res) => {
+  const { sessionId, path: filePath, content } = req.body;
+  const s = getSSHSession(sessionId);
+  if (!s || s.user !== req.user.username) return res.status(400).json({ error: 'Invalid session' });
+  s.lastUsed = Date.now();
+  try {
+    const sftp = await ensureSFTP(s);
+    const writeStream = sftp.createWriteStream(filePath);
+    writeStream.on('close', () => res.json({ ok: true }));
+    writeStream.on('error', (err) => res.status(500).json({ error: err.message }));
+    writeStream.end(content || '');
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

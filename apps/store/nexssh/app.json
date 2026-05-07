@@ -1,0 +1,68 @@
+{
+  "id": "nexssh",
+  "name": "NexSSH",
+  "icon": "🔐",
+  "color": "linear-gradient(135deg,#1b5e20,#004d40)",
+  "type": "internal",
+  "size": {
+    "w": 1060,
+    "h": 680
+  },
+  "global": false,
+  "description": "SSH istemcisi — uzak sunuculara bağlan, terminal kullan, dosya kopyala/sil/yönet",
+  "lang": {
+    "tr": {
+      "name": "NexSSH",
+      "description": "SSH istemcisi — uzak sunuculara bağlan, terminal kullan, dosya kopyala/sil/yönet"
+    },
+    "en": {
+      "name": "NexSSH",
+      "description": "SSH client — connect to remote servers, use terminal, copy/delete/manage files"
+    },
+    "de": {
+      "name": "NexSSH",
+      "description": "SSH-Client — mit Remote-Servern verbinden, Terminal nutzen, Dateien kopieren/löschen/verwalten"
+    },
+    "fr": {
+      "name": "NexSSH",
+      "description": "Client SSH — connexion aux serveurs distants, terminal, copier/supprimer/gérer les fichiers"
+    },
+    "es": {
+      "name": "NexSSH",
+      "description": "Cliente SSH — conectar a servidores remotos, terminal, copiar/eliminar/gestionar archivos"
+    },
+    "ru": {
+      "name": "NexSSH",
+      "description": "SSH-клиент — подключение к удалённым серверам, терминал, копирование/удаление/управление файлами"
+    },
+    "zh": {
+      "name": "NexSSH",
+      "description": "SSH客户端 — 连接远程服务器、终端、复制/删除/管理文件"
+    },
+    "ja": {
+      "name": "NexSSH",
+      "description": "SSHクライアント — リモートサーバー接続、ターミナル、ファイルのコピー/削除/管理"
+    },
+    "it": {
+      "name": "NexSSH",
+      "description": "Client SSH — connessione a server remoti, terminale, copia/elimina/gestisci file"
+    },
+    "ar": {
+      "name": "NexSSH",
+      "description": "عميل SSH — الاتصال بالخوادم البعيدة، الطرفية، نسخ/حذف/إدارة الملفات"
+    },
+    "ko": {
+      "name": "NexSSH",
+      "description": "SSH 클라이언트 — 원격 서버 연결, 터미널, 파일 복사/삭제/관리"
+    },
+    "hi": {
+      "name": "NexSSH",
+      "description": "SSH क्लाइंट — रिमोट सर्वर से कनेक्ट, टर्मिनल, फ़ाइल कॉपी/डिलीट/प्रबंधन"
+    },
+    "pt": {
+      "name": "NexSSH",
+      "description": "Cliente SSH — conectar a servidores remotos, terminal, copiar/excluir/gerenciar arquivos"
+    }
+  },
+  "category": "internet"
+}

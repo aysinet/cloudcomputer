@@ -1,0 +1,24 @@
+<div class="googlesearch-app">
+  <!-- Toolbar -->
+  <div class="google-toolbar">
+    <span class="google-toolbar-title">🔎 Google Search</span>
+    <div class="google-toolbar-actions">
+      <button class="google-btn" @click="navigateHome" :title="t.home">🏠</button>
+      <button class="google-btn" @click="goBack" :title="t.back">◀</button>
+      <button class="google-btn" @click="goForward" :title="t.forward">▶</button>
+      <button class="google-btn" @click="refresh" :title="t.refresh">🔄</button>
+      <div class="google-separator"></div>
+      <button class="google-btn" @click="openExternal" :title="t.openTab">🔗</button>
+    </div>
+  </div>
+
+  <!-- Google iframe -->
+  <iframe
+    :src="iframeSrc"
+    class="google-frame"
+    ref="googleFrame"
+    frameborder="0"
+    allow="fullscreen"
+    referrerpolicy="no-referrer"
+  ></iframe>
+</div>

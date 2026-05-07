@@ -19,7 +19,7 @@ app.use(express.json());
 
 // ── Config: ENV override > default ──
 const NETWORK_NAME = process.env.DOCKER_NETWORK || 'cloudpc-net';
-const PORT = parseInt(process.env.DM_PORT || '9800', 10);
+const PORT = parseInt(process.env.DM_PORT || '8081W', 10);
 const PORT_START = parseInt(process.env.DM_PORT_START || '9000', 10);
 const PORT_END = parseInt(process.env.DM_PORT_END || '9999', 10);
 const PORTS_FILE = process.env.DM_PORTS_FILE || '/data/docker-ports.json';
@@ -181,7 +181,7 @@ app.post('/pull', authCheck, async (req, res) => {
 
 // ── Run container ──
 app.post('/run', authCheck, async (req, res) => {
-  const { image, appId, containerPort, network, volumes, env, restart, cmd, extraPorts } = req.body;
+  const { image, appId, containerPort, network, volumes, env, restart, cmd, extraPorts, devices, capAdd, privileged, stopTimeout } = req.body;
   console.log(`[RUN] Request: appId=${appId} image=${image} containerPort=${containerPort} extraPorts=${JSON.stringify(extraPorts || [])}`);
   console.log(`[RUN] Volumes:`, volumes || '(none)');
   console.log(`[RUN] Env:`, env || '(none)');
@@ -277,6 +277,43 @@ app.post('/run', authCheck, async (req, res) => {
           console.log(`[RUN] Env SKIPPED (invalid): ${e}`);
         }
       }
+    }
+
+    // Add device mounts (validated: only /dev/* paths)
+    if (Array.isArray(devices)) {
+      for (const d of devices) {
+        if (typeof d === 'string' && /^\/dev\/[a-zA-Z0-9_\-\/]+$/.test(d) && !d.includes('..')) {
+          args.push('--device', d);
+          console.log(`[RUN] Device: ${d}`);
+        } else {
+          console.log(`[RUN] Device SKIPPED (invalid): ${d}`);
+        }
+      }
+    }
+
+    // Add Linux capabilities (validated: whitelist)
+    if (Array.isArray(capAdd)) {
+      const validCaps = ['NET_ADMIN','SYS_ADMIN','NET_RAW','SYS_PTRACE','IPC_LOCK','SYS_RESOURCE','DAC_OVERRIDE','FOWNER','CHOWN','SETUID','SETGID','MKNOD','AUDIT_WRITE','NET_BIND_SERVICE'];
+      for (const c of capAdd) {
+        if (typeof c === 'string' && validCaps.includes(c.toUpperCase())) {
+          args.push('--cap-add', c.toUpperCase());
+          console.log(`[RUN] Cap add: ${c.toUpperCase()}`);
+        } else {
+          console.log(`[RUN] Cap SKIPPED (invalid): ${c}`);
+        }
+      }
+    }
+
+    // Add privileged mode
+    if (privileged === true) {
+      args.push('--privileged');
+      console.log(`[RUN] Privileged mode enabled`);
+    }
+
+    // Add stop timeout
+    if (stopTimeout && Number.isInteger(stopTimeout) && stopTimeout > 0 && stopTimeout <= 600) {
+      args.push('--stop-timeout', String(stopTimeout));
+      console.log(`[RUN] Stop timeout: ${stopTimeout}s`);
     }
 
     args.push(image);

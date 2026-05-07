@@ -1,0 +1,83 @@
+{
+  "id": "windows-pc",
+  "name": "Windows PC",
+  "icon": "🖥️",
+  "color": "linear-gradient(135deg,#0078d4,#003087)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Docker tabanlı Windows sanal bilgisayar — tam Windows deneyimi",
+  "lang": {
+    "tr": {
+      "name": "Windows PC",
+      "description": "Docker tabanlı Windows sanal bilgisayar — tam Windows deneyimi"
+    },
+    "en": {
+      "name": "Windows PC",
+      "description": "Docker-based Windows virtual computer — full Windows experience"
+    },
+    "de": {
+      "name": "Windows PC",
+      "description": "Docker-basierter virtueller Windows-Computer — volles Windows-Erlebnis"
+    },
+    "fr": {
+      "name": "Windows PC",
+      "description": "Ordinateur virtuel Windows basé sur Docker — expérience Windows complète"
+    },
+    "es": {
+      "name": "Windows PC",
+      "description": "Computadora virtual Windows basada en Docker — experiencia Windows completa"
+    },
+    "ru": {
+      "name": "Windows ПК",
+      "description": "Виртуальный компьютер Windows на базе Docker — полноценный Windows"
+    },
+    "zh": {
+      "name": "Windows 电脑",
+      "description": "基于Docker的Windows虚拟电脑 — 完整的Windows体验"
+    },
+    "ja": {
+      "name": "Windows PC",
+      "description": "Dockerベースの仮想Windowsコンピュータ"
+    },
+    "it": {
+      "name": "Windows PC",
+      "description": "Computer virtuale Windows basato su Docker — esperienza Windows completa"
+    },
+    "ar": {
+      "name": "ويندوز بي سي",
+      "description": "كمبيوتر Windows افتراضي قائم على Docker — تجربة Windows كاملة"
+    },
+    "ko": {
+      "name": "Windows PC",
+      "description": "Docker 기반 Windows 가상 컴퓨터 — 완전한 Windows 경험"
+    },
+    "hi": {
+      "name": "Windows PC",
+      "description": "Docker-आधारित Windows वर्चुअल कंप्यूटर — पूर्ण Windows अनुभव"
+    },
+    "pt": {
+      "name": "Windows PC",
+      "description": "Computador virtual Windows baseado em Docker — experiência Windows completa"
+    }
+  },
+  "category": "utilities",
+  "docker": {
+    "image": "dockurr/windows",
+    "containerPort": 8006,
+    "extraPorts": [3389],
+    "devices": ["/dev/kvm", "/dev/net/tun"],
+    "capAdd": ["NET_ADMIN"],
+    "stopTimeout": 120,
+    "volumes": [
+      "${APP_VOLUME}:/storage"
+    ],
+    "env": [
+      "VERSION=11"
+    ]
+  }
+}

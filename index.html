@@ -857,7 +857,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
               <label class="settings-toggle" style="margin-left:auto"><input type="checkbox" v-model="p.enabled"><span class="settings-slider"></span></label>
               <button v-if="p.custom" class="ai-remove-btn" @click="removeProvider(i)" :title="t('aiRemove')">✕</button>
             </div>
-            <div class="ai-provider-body">
+            <div class="ai-provider-body" v-show="p.enabled">
               <div v-if="!p.system" class="ai-field">
                 <label class="ai-field-label">{{t('aiApiKey')}}</label>
                 <div class="ai-key-row">

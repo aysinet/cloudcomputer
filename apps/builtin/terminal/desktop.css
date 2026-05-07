@@ -5,8 +5,8 @@
 .term-line{margin-bottom:1px}
 .term-prompt{color:#50fa7b}
 .term-cmd{color:#f8f8f2}
-.term-res{color:#aaa}
-.term-err{color:#ff5555}
+.term-res{color:#aaa;white-space:pre-wrap}
+.term-err{color:#ff5555;white-space:pre-wrap}
 .term-input-row{display:flex;align-items:center;padding:8px 12px;background:#16162a;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0;gap:6px}
 .term-ps{color:#50fa7b;font-size:13px;flex-shrink:0}
 .term-input-row input{flex:1;background:transparent;border:none;outline:none;color:#f8f8f2;font-family:'Courier New',monospace;font-size:13px;caret-color:#50fa7b}
