@@ -1,0 +1,68 @@
+{
+  "id": "xox",
+  "name": "XOX",
+  "icon": "❌⭕",
+  "color": "linear-gradient(135deg,#6a1b9a,#4a148c)",
+  "type": "internal",
+  "size": {
+    "w": 820,
+    "h": 680
+  },
+  "global": false,
+  "category": "games",
+  "description": "XOX (Tic-Tac-Toe) — tek ve 3 tahtalı mod, bilgisayara karşı veya 2 oyunculu",
+  "lang": {
+    "tr": {
+      "name": "XOX",
+      "description": "XOX (Tic-Tac-Toe) — tek ve 3 tahtalı mod, bilgisayara karşı veya 2 oyunculu"
+    },
+    "en": {
+      "name": "XOX",
+      "description": "Tic-Tac-Toe — single and 3-board mode, vs computer or 2 players"
+    },
+    "de": {
+      "name": "XOX",
+      "description": "Tic-Tac-Toe — Einzel- und 3-Brett-Modus, gegen Computer oder 2 Spieler"
+    },
+    "fr": {
+      "name": "XOX",
+      "description": "Morpion — mode simple et 3 plateaux, contre l'ordinateur ou 2 joueurs"
+    },
+    "es": {
+      "name": "XOX",
+      "description": "Tres en raya — modo simple y 3 tableros, contra ordenador o 2 jugadores"
+    },
+    "ru": {
+      "name": "XOX",
+      "description": "Крестики-нолики — одно и 3 поля, против компьютера или 2 игрока"
+    },
+    "zh": {
+      "name": "XOX",
+      "description": "井字棋 — 单板和3板模式，对战电脑或2人对战"
+    },
+    "ja": {
+      "name": "XOX",
+      "description": "三目並べ — シングル＆3ボードモード、コンピュータ対戦または2人対戦"
+    },
+    "it": {
+      "name": "XOX",
+      "description": "Tris — modalità singola e 3 tavole, contro il computer o 2 giocatori"
+    },
+    "ar": {
+      "name": "XOX",
+      "description": "إكس أو — وضع لوح واحد و3 ألواح، ضد الكمبيوتر أو لاعبين"
+    },
+    "ko": {
+      "name": "XOX",
+      "description": "틱택토 — 단일 및 3보드 모드, 컴퓨터 대전 또는 2인 대전"
+    },
+    "hi": {
+      "name": "XOX",
+      "description": "टिक-टैक-टो — सिंगल और 3 बोर्ड मोड, कंप्यूटर या 2 खिलाड़ी"
+    },
+    "pt": {
+      "name": "XOX",
+      "description": "Jogo da velha — modo simples e 3 tabuleiros, contra computador ou 2 jogadores"
+    }
+  }
+}

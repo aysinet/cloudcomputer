@@ -1,0 +1,55 @@
+<div class="photoprism-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="pp-status-screen">
+    <div class="pp-spinner"></div>
+    <div class="pp-icon-large">📸</div>
+    <div class="pp-status-text">{{ pullProgress }}</div>
+    <div class="pp-sub-text">PhotoPrism image'ı oldukça büyüktür, ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="pp-status-screen">
+    <div class="pp-spinner"></div>
+    <div class="pp-icon-large">📸</div>
+    <div class="pp-status-text">PhotoPrism başlatılıyor...</div>
+    <div class="pp-sub-text">AI modelleri ve fotoğraf indeksleme servisi hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="pp-status-screen pp-error">
+    <div class="pp-icon-large">⚠️</div>
+    <div class="pp-status-text">Bir hata oluştu</div>
+    <div class="pp-error-msg">{{ errorMsg }}</div>
+    <div class="pp-actions">
+      <button class="pp-btn pp-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="pp-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="pp-running">
+    <div class="pp-toolbar">
+      <span class="pp-info">📸 PhotoPrism — Port: {{ port }}</span>
+      <div class="pp-toolbar-actions">
+        <button class="pp-btn pp-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="pp-btn pp-btn-small pp-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="pp-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="pp-status-screen">
+    <div class="pp-icon-large">📸</div>
+    <div class="pp-status-text">PhotoPrism</div>
+    <div class="pp-sub-text">AI destekli fotoğraf ve video yönetim uygulaması</div>
+    <div class="pp-feature-list">
+      <div class="pp-feature">🔍 Akıllı arama ve filtreleme</div>
+      <div class="pp-feature">👤 Yüz tanıma</div>
+      <div class="pp-feature">🏷️ Otomatik etiketleme</div>
+      <div class="pp-feature">🗺️ Harita görünümü</div>
+      <div class="pp-feature">📱 Mobil uyumlu arayüz</div>
+    </div>
+    <button class="pp-btn pp-btn-primary pp-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

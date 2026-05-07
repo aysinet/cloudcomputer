@@ -1,0 +1,55 @@
+<div class="vaultwarden-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="vw-status-screen">
+    <div class="vw-spinner"></div>
+    <div class="vw-icon-large">🔐</div>
+    <div class="vw-status-text">{{ pullProgress }}</div>
+    <div class="vw-sub-text">Vaultwarden image'ı indiriliyor, lütfen bekleyin...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="vw-status-screen">
+    <div class="vw-spinner"></div>
+    <div class="vw-icon-large">🔐</div>
+    <div class="vw-status-text">Vaultwarden başlatılıyor...</div>
+    <div class="vw-sub-text">Şifre kasası sunucusu hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="vw-status-screen vw-error">
+    <div class="vw-icon-large">⚠️</div>
+    <div class="vw-status-text">Bir hata oluştu</div>
+    <div class="vw-error-msg">{{ errorMsg }}</div>
+    <div class="vw-actions">
+      <button class="vw-btn vw-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="vw-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="vw-running">
+    <div class="vw-toolbar">
+      <span class="vw-info">🔐 Vaultwarden — Port: {{ port }}</span>
+      <div class="vw-toolbar-actions">
+        <button class="vw-btn vw-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="vw-btn vw-btn-small vw-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="vw-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="vw-status-screen">
+    <div class="vw-icon-large">🔐</div>
+    <div class="vw-status-text">Vaultwarden</div>
+    <div class="vw-sub-text">Self-hosted şifre yöneticisi — Bitwarden uyumlu</div>
+    <div class="vw-feature-list">
+      <div class="vw-feature">🔑 Şifre kasası ve otomatik doldurma</div>
+      <div class="vw-feature">🏢 Organizasyon ve paylaşım desteği</div>
+      <div class="vw-feature">📎 Dosya ekleri desteği</div>
+      <div class="vw-feature">🔒 İki faktörlü doğrulama (TOTP, U2F, YubiKey)</div>
+      <div class="vw-feature">📱 Bitwarden mobil ve masaüstü istemcileri ile uyumlu</div>
+    </div>
+    <button class="vw-btn vw-btn-primary vw-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

@@ -1,0 +1,192 @@
+<div class="spe-root">
+  <!-- TOP TOOLBAR -->
+  <div class="spe-toolbar">
+    <div class="spe-tb-group">
+      <el-button size="small" @click="newProject" :title="L('newProject')">📄 {{ L('new') }}</el-button>
+      <el-button size="small" @click="openProject" :title="L('openProject')">📂 {{ L('open') }}</el-button>
+      <el-button size="small" @click="saveProject" :title="L('saveProject')">💾 {{ L('save') }}</el-button>
+      <el-button size="small" @click="saveProjectAs" :title="L('saveAs')">📋 {{ L('saveAs') }}</el-button>
+    </div>
+    <div class="spe-tb-sep"></div>
+    <div class="spe-tb-group">
+      <el-button size="small" @click="exportSprite" :title="L('exportPng')">📥 {{ L('export') }}</el-button>
+      <el-button size="small" @click="exportSpriteSheet" :title="L('exportSheet')">🗂️ {{ L('spriteSheet') }}</el-button>
+      <el-button size="small" @click="exportGif" :title="L('exportGif')">🎞️ GIF</el-button>
+    </div>
+    <div class="spe-tb-sep"></div>
+    <div class="spe-tb-group">
+      <el-button size="small" @click="undo" :disabled="historyIdx<=0" title="Undo">↩️</el-button>
+      <el-button size="small" @click="redo" :disabled="historyIdx>=historyStack.length-1" title="Redo">↪️</el-button>
+    </div>
+    <div class="spe-tb-sep"></div>
+    <div class="spe-tb-group">
+      <span class="spe-label">{{ L('canvasSize') }}:</span>
+      <el-select v-model="canvasSize" size="small" style="width:110px" @change="onCanvasSizeChange">
+        <el-option v-for="s in canvasSizes" :key="s.value" :label="s.label" :value="s.value"></el-option>
+      </el-select>
+      <el-button size="small" @click="showCustomSize=true" :title="L('customSize')">📐</el-button>
+    </div>
+    <div class="spe-tb-sep"></div>
+    <div class="spe-tb-group">
+      <span class="spe-label">{{ L('zoom') }}:</span>
+      <el-slider v-model="zoom" :min="1" :max="32" :step="1" style="width:100px" size="small" :show-tooltip="true"></el-slider>
+      <span class="spe-zoom-val">{{ zoom }}x</span>
+    </div>
+    <div class="spe-tb-group" style="margin-left:auto">
+      <el-checkbox v-model="showGrid" size="small">{{ L('grid') }}</el-checkbox>
+    </div>
+  </div>
+
+  <!-- MAIN BODY -->
+  <div class="spe-body">
+    <!-- LEFT TOOLS PANEL -->
+    <div class="spe-tools-panel">
+      <div class="spe-tool-section">
+        <button v-for="t in tools" :key="t.id" :class="['spe-tool-btn', tool===t.id&&'active']"
+          @click="tool=t.id" :title="L(t.id)">{{ t.icon }}</button>
+      </div>
+      <div class="spe-tool-divider"></div>
+      <div class="spe-color-section">
+        <div class="spe-color-current">
+          <div class="spe-color-fg" :style="{background:fgColor}" @click="pickFg" :title="L('foreground')"></div>
+          <div class="spe-color-bg" :style="{background:bgColor}" @click="pickBg" :title="L('background')"></div>
+          <button class="spe-swap-btn" @click="swapColors" title="⇄">⇄</button>
+        </div>
+        <input type="color" ref="fgPicker" :value="fgColor" @input="fgColor=$event.target.value" style="display:none" />
+        <input type="color" ref="bgPicker" :value="bgColor" @input="bgColor=$event.target.value" style="display:none" />
+        <div class="spe-palette">
+          <div v-for="c in palette" :key="c" class="spe-palette-swatch"
+            :style="{background:c}" :class="{active:fgColor===c}"
+            @click="fgColor=c" @contextmenu.prevent="bgColor=c"></div>
+        </div>
+      </div>
+      <div class="spe-tool-divider"></div>
+      <div class="spe-brush-section">
+        <span class="spe-label">{{ L('brushSize') }}: {{ brushSize }}</span>
+        <el-slider v-model="brushSize" :min="1" :max="8" :step="1" size="small"></el-slider>
+      </div>
+      <div class="spe-tool-divider" v-if="tool==='rect'||tool==='ellipse'"></div>
+      <div class="spe-brush-section" v-if="tool==='rect'||tool==='ellipse'">
+        <el-checkbox v-model="shapeFill" size="small">{{ L('filled') }}</el-checkbox>
+      </div>
+    </div>
+
+    <!-- CENTER CANVAS -->
+    <div class="spe-canvas-area" ref="canvasArea">
+      <div class="spe-canvas-container" :style="{width:(spriteW*zoom)+'px',height:(spriteH*zoom)+'px'}">
+        <canvas ref="mainCanvas"
+          @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp" @mouseleave="onMouseUp"
+          @contextmenu.prevent
+          :width="spriteW" :height="spriteH"
+          :style="{width:(spriteW*zoom)+'px',height:(spriteH*zoom)+'px'}"
+        ></canvas>
+        <canvas ref="gridCanvas" class="spe-grid-canvas"
+          v-show="showGrid && zoom>=4"
+          :width="spriteW*zoom" :height="spriteH*zoom"
+          :style="{width:(spriteW*zoom)+'px',height:(spriteH*zoom)+'px'}"
+        ></canvas>
+        <canvas ref="previewCanvas" class="spe-preview-canvas"
+          :width="spriteW" :height="spriteH"
+          :style="{width:(spriteW*zoom)+'px',height:(spriteH*zoom)+'px'}"
+        ></canvas>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="spe-right-panel">
+      <!-- PREVIEW -->
+      <div class="spe-section">
+        <div class="spe-section-title">{{ L('preview') }}</div>
+        <div class="spe-preview-box">
+          <canvas ref="previewAnimCanvas" :width="spriteW" :height="spriteH"
+            :style="{width:Math.min(spriteW*2,128)+'px',height:Math.min(spriteH*2,128)+'px',imageRendering:'pixelated'}">
+          </canvas>
+        </div>
+        <div class="spe-preview-controls">
+          <el-button size="small" circle @click="togglePlay">{{ playing ? '⏸' : '▶️' }}</el-button>
+          <span class="spe-label">FPS:</span>
+          <el-input-number v-model="fps" :min="1" :max="60" size="small" style="width:80px" controls-position="right"></el-input-number>
+        </div>
+      </div>
+
+      <!-- FRAMES -->
+      <div class="spe-section spe-frames-section">
+        <div class="spe-section-title">{{ L('frames') }} ({{ frames.length }})</div>
+        <div class="spe-frames-list">
+          <div v-for="(f, i) in frames" :key="f.id"
+            :class="['spe-frame-item', currentFrame===i&&'active']"
+            @click="selectFrame(i)"
+            draggable="true"
+            @dragstart="onFrameDragStart(i, $event)"
+            @dragover.prevent="onFrameDragOver(i, $event)"
+            @drop="onFrameDrop(i, $event)">
+            <canvas :ref="el => { if(el) frameThumbs[i] = el }"
+              :width="spriteW" :height="spriteH"
+              class="spe-frame-thumb"></canvas>
+            <span class="spe-frame-num">#{{ i+1 }}</span>
+            <button class="spe-frame-del" @click.stop="deleteFrame(i)" v-if="frames.length>1" :title="L('deleteFrame')">✕</button>
+          </div>
+        </div>
+        <div class="spe-frame-actions">
+          <el-button size="small" @click="addFrame">＋ {{ L('addFrame') }}</el-button>
+          <el-button size="small" @click="duplicateFrame">📋 {{ L('duplicate') }}</el-button>
+        </div>
+      </div>
+
+      <!-- LAYERS (optional onion skin) -->
+      <div class="spe-section">
+        <el-checkbox v-model="onionSkin" size="small">{{ L('onionSkin') }}</el-checkbox>
+        <div v-if="onionSkin" class="spe-onion-options">
+          <span class="spe-label">{{ L('opacity') }}:</span>
+          <el-slider v-model="onionOpacity" :min="5" :max="80" :step="5" size="small"></el-slider>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="spe-statusbar">
+    <span>{{ mouseX }}, {{ mouseY }}</span>
+    <span>{{ spriteW }}×{{ spriteH }}</span>
+    <span>{{ L('frame') }}: {{ currentFrame + 1 }}/{{ frames.length }}</span>
+    <span v-if="currentFilePath" style="color:#a6e3a1">📁 {{ currentFileName }}</span>
+  </div>
+
+  <!-- Custom Size Dialog -->
+  <el-dialog v-model="showCustomSize" :title="L('customSize')" width="320px" append-to-body>
+    <div class="spe-dialog-form">
+      <div class="spe-dialog-row">
+        <span>{{ L('width') }}:</span>
+        <el-input-number v-model="customW" :min="1" :max="512" size="small"></el-input-number>
+      </div>
+      <div class="spe-dialog-row">
+        <span>{{ L('height') }}:</span>
+        <el-input-number v-model="customH" :min="1" :max="512" size="small"></el-input-number>
+      </div>
+    </div>
+    <template #footer>
+      <el-button size="small" @click="showCustomSize=false">{{ L('cancel') }}</el-button>
+      <el-button size="small" type="primary" @click="applyCustomSize">{{ L('apply') }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- New Project Dialog -->
+  <el-dialog v-model="showNewProject" :title="L('newProject')" width="340px" append-to-body>
+    <div class="spe-dialog-form">
+      <div class="spe-dialog-row">
+        <span>{{ L('projectName') }}:</span>
+        <el-input v-model="newProjectName" size="small" placeholder="my-sprite"></el-input>
+      </div>
+      <div class="spe-dialog-row">
+        <span>{{ L('canvasSize') }}:</span>
+        <el-select v-model="newProjectSize" size="small" style="width:140px">
+          <el-option v-for="s in canvasSizes" :key="s.value" :label="s.label" :value="s.value"></el-option>
+        </el-select>
+      </div>
+    </div>
+    <template #footer>
+      <el-button size="small" @click="showNewProject=false">{{ L('cancel') }}</el-button>
+      <el-button size="small" type="primary" @click="createNewProject">{{ L('create') }}</el-button>
+    </template>
+  </el-dialog>
+</div>

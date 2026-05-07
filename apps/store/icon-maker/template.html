@@ -1,0 +1,120 @@
+<div class="iconmaker-root">
+  <!-- LEFT: Toolbar -->
+  <div class="iconmaker-sidebar">
+    <div class="iconmaker-section">
+      <div class="iconmaker-section-title">{{ L('canvasSize') }}</div>
+      <el-select v-model="canvasSize" size="small" style="width:100%" @change="onSizeChange">
+        <el-option v-for="s in sizeOptions" :key="s" :label="s + ' × ' + s" :value="s"></el-option>
+      </el-select>
+    </div>
+
+    <div class="iconmaker-section">
+      <div class="iconmaker-section-title">{{ L('tools') }}</div>
+      <div class="iconmaker-tools">
+        <el-tooltip v-for="t in toolList" :key="t.id" :content="L(t.id)" placement="right" :show-after="400">
+          <button :class="['iconmaker-tool-btn', activeTool === t.id && 'active']" @click="activeTool = t.id">
+            {{ t.icon }}
+          </button>
+        </el-tooltip>
+      </div>
+    </div>
+
+    <div class="iconmaker-section">
+      <div class="iconmaker-section-title">{{ L('color') }}</div>
+      <el-color-picker v-model="currentColor" show-alpha size="small" />
+      <div class="iconmaker-palette">
+        <div v-for="c in palette" :key="c" class="iconmaker-swatch"
+          :style="{ background: c }" :class="{ active: currentColor === c }"
+          @click="currentColor = c"></div>
+      </div>
+    </div>
+
+    <div class="iconmaker-section">
+      <el-checkbox v-model="showGrid" size="small">{{ L('showGrid') }}</el-checkbox>
+    </div>
+
+    <div class="iconmaker-section iconmaker-actions">
+      <el-button size="small" @click="clearCanvas" type="danger" plain>{{ L('clear') }}</el-button>
+      <el-button size="small" @click="undo" :disabled="historyIdx <= 0" plain>↩ {{ L('undo') }}</el-button>
+      <el-button size="small" @click="redo" :disabled="historyIdx >= historyStack.length - 1" plain>↪ {{ L('redo') }}</el-button>
+    </div>
+
+    <div class="iconmaker-section iconmaker-actions">
+      <el-button size="small" @click="saveToServer" type="primary">💾 {{ L('save') }}</el-button>
+      <el-button size="small" @click="loadFromServer" type="success" plain>📂 {{ L('load') }}</el-button>
+    </div>
+
+    <div class="iconmaker-section iconmaker-actions">
+      <el-button size="small" @click="downloadPng" plain>📥 {{ L('downloadPng') }}</el-button>
+      <el-button size="small" @click="downloadIco" plain>📥 {{ L('downloadIco') }}</el-button>
+    </div>
+
+    <div class="iconmaker-section iconmaker-actions">
+      <el-button size="small" @click="importImage" plain>📤 {{ L('import') }}</el-button>
+      <input type="file" ref="fileInput" accept="image/*" style="display:none" @change="onImportFile" />
+    </div>
+  </div>
+
+  <!-- CENTER: Canvas -->
+  <div class="iconmaker-canvas-area">
+    <div class="iconmaker-canvas-header">
+      <span class="iconmaker-file-name">{{ currentFileName || L('untitled') }}</span>
+      <span class="iconmaker-dim">{{ canvasSize }}×{{ canvasSize }}px</span>
+    </div>
+    <div class="iconmaker-canvas-wrap" ref="canvasWrap">
+      <canvas ref="pixelCanvas"
+        :width="canvasSize" :height="canvasSize"
+        :style="{ width: displaySize + 'px', height: displaySize + 'px', cursor: canvasCursor }"
+        @mousedown="onCanvasMouseDown"
+        @mousemove="onCanvasMouseMove"
+        @mouseup="onCanvasMouseUp"
+        @mouseleave="onCanvasMouseUp"
+        @contextmenu.prevent
+      ></canvas>
+      <!-- Grid overlay -->
+      <canvas v-if="showGrid" ref="gridCanvas"
+        :width="canvasSize" :height="canvasSize"
+        :style="{ width: displaySize + 'px', height: displaySize + 'px' }"
+        class="iconmaker-grid-canvas"
+      ></canvas>
+    </div>
+  </div>
+
+  <!-- RIGHT: Preview -->
+  <div class="iconmaker-preview-panel">
+    <div class="iconmaker-section-title">{{ L('preview') }}</div>
+    <div class="iconmaker-previews">
+      <div v-for="ps in previewSizes" :key="ps" class="iconmaker-preview-box">
+        <canvas :ref="el => setPreviewRef(el, ps)" :width="ps" :height="ps"
+          :style="{ width: ps + 'px', height: ps + 'px' }"></canvas>
+        <span class="iconmaker-preview-label">{{ ps }}px</span>
+      </div>
+    </div>
+
+    <div class="iconmaker-section-title" style="margin-top:12px">{{ L('savedIcons') }}</div>
+    <div class="iconmaker-saved-list" v-loading="loadingIcons">
+      <div v-for="ic in savedIcons" :key="ic.id" class="iconmaker-saved-item" @click="loadIcon(ic)">
+        <img :src="ic.thumbnail" class="iconmaker-saved-thumb" />
+        <div class="iconmaker-saved-info">
+          <span class="iconmaker-saved-name">{{ ic.name }}</span>
+          <span class="iconmaker-saved-size">{{ ic.size }}×{{ ic.size }}</span>
+        </div>
+        <el-button size="small" type="danger" text circle @click.stop="deleteIcon(ic.id)">✕</el-button>
+      </div>
+      <div v-if="!loadingIcons && savedIcons.length === 0" class="iconmaker-empty">{{ L('noIcons') }}</div>
+    </div>
+  </div>
+
+  <!-- Save Dialog -->
+  <el-dialog v-model="showSaveDialog" :title="L('saveIcon')" width="360px" append-to-body>
+    <el-form label-position="top">
+      <el-form-item :label="L('iconName')">
+        <el-input v-model="saveName" :placeholder="L('iconNamePlaceholder')" maxlength="100" />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="showSaveDialog = false">{{ L('cancel') }}</el-button>
+      <el-button type="primary" @click="confirmSave" :disabled="!saveName.trim()">{{ L('save') }}</el-button>
+    </template>
+  </el-dialog>
+</div>

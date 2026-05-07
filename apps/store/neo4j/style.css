@@ -1,0 +1,27 @@
+.neo4j-service-root { padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; height: 100%; box-sizing: border-box; background: #1a1a2e; }
+.neo4j-service-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.neo4j-service-icon { font-size: 36px; }
+.neo4j-service-header h3 { margin: 0; font-size: 18px; color: #fff; flex: 1; }
+.neo4j-status-badge { font-size: 12px; padding: 4px 12px; border-radius: 12px; font-weight: 600; }
+.neo4j-status-badge.running { background: rgba(82,196,26,0.15); color: #52c41a; }
+.neo4j-status-badge.stopped { background: rgba(255,77,79,0.15); color: #ff4d4f; }
+.neo4j-status-badge.loading, .neo4j-status-badge.restarting { background: rgba(24,144,255,0.15); color: #1890ff; }
+.neo4j-status-badge.error { background: rgba(255,77,79,0.15); color: #ff4d4f; }
+
+.neo4j-conn-info { background: #222238; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.neo4j-conn-info h4 { margin: 0 0 12px; font-size: 14px; color: #aaa; }
+.neo4j-conn-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; }
+.neo4j-conn-label { color: #888; min-width: 130px; }
+.neo4j-conn-row code { background: #1a1a2e; padding: 2px 8px; border-radius: 4px; color: #018BFF; font-size: 13px; }
+
+.neo4j-actions { display: flex; gap: 10px; }
+.neo4j-restart-btn, .neo4j-refresh-btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.neo4j-restart-btn { background: linear-gradient(135deg, #018BFF, #00529B); color: #fff; }
+.neo4j-restart-btn:hover { opacity: 0.9; }
+.neo4j-restart-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.neo4j-refresh-btn { background: #2a2a3a; color: #ccc; border: 1px solid #444; }
+.neo4j-refresh-btn:hover { background: #333; }
+
+.neo4j-error { background: rgba(255,0,0,0.1); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.neo4j-error p { margin: 0 0 8px; color: #ff6b6b; font-size: 13px; }
+.neo4j-error button { padding: 6px 14px; border: none; border-radius: 4px; background: #018BFF; color: #fff; cursor: pointer; font-size: 12px; }

@@ -1,0 +1,102 @@
+{
+  "id": "photoprism",
+  "name": "PhotoPrism",
+  "icon": "📸",
+  "color": "linear-gradient(135deg,#1a1a2e,#16213e)",
+  "type": "internal",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Docker tabanlı AI destekli fotoğraf yönetim uygulaması (PhotoPrism)",
+  "lang": {
+    "tr": {
+      "name": "PhotoPrism",
+      "description": "AI destekli fotoğraf ve video yönetim uygulaması"
+    },
+    "en": {
+      "name": "PhotoPrism",
+      "description": "AI-powered photo and video management app"
+    },
+    "de": {
+      "name": "PhotoPrism",
+      "description": "KI-gestützte Foto- und Videoverwaltungs-App"
+    },
+    "fr": {
+      "name": "PhotoPrism",
+      "description": "Application de gestion de photos et vidéos propulsée par l'IA"
+    },
+    "es": {
+      "name": "PhotoPrism",
+      "description": "Aplicación de gestión de fotos y vídeos con IA"
+    },
+    "ru": {
+      "name": "PhotoPrism",
+      "description": "Приложение для управления фото и видео с ИИ"
+    },
+    "zh": {
+      "name": "PhotoPrism",
+      "description": "AI驱动的照片和视频管理应用"
+    },
+    "ja": {
+      "name": "PhotoPrism",
+      "description": "AI搭載の写真・動画管理アプリ"
+    },
+    "it": {
+      "name": "PhotoPrism",
+      "description": "App di gestione foto e video basata su IA"
+    },
+    "ar": {
+      "name": "فوتو بريزم",
+      "description": "تطبيق إدارة الصور والفيديو المدعوم بالذكاء الاصطناعي"
+    },
+    "ko": {
+      "name": "포토프리즘",
+      "description": "AI 기반 사진 및 동영상 관리 앱"
+    },
+    "hi": {
+      "name": "फोटोप्रिज्म",
+      "description": "AI-संचालित फोटो और वीडियो प्रबंधन ऐप"
+    },
+    "pt": {
+      "name": "PhotoPrism",
+      "description": "Aplicativo de gerenciamento de fotos e vídeos com IA"
+    }
+  },
+  "category": "media",
+  "docker": {
+    "image": "photoprism/photoprism:latest",
+    "containerPort": 2342,
+    "volumes": [
+      "${DATA_VOLUME}:/photoprism/originals:ro",
+      "${APP_VOLUME}:/photoprism/storage"
+    ],
+    "env": [
+      "PHOTOPRISM_ADMIN_USER=admin",
+      "PHOTOPRISM_ADMIN_PASSWORD=cloudcomputer",
+      "PHOTOPRISM_AUTH_MODE=password",
+      "PHOTOPRISM_SITE_TITLE=PhotoPrism",
+      "PHOTOPRISM_SITE_CAPTION=AI-Powered Photos App",
+      "PHOTOPRISM_LOG_LEVEL=info",
+      "PHOTOPRISM_READONLY=false",
+      "PHOTOPRISM_EXPERIMENTAL=false",
+      "PHOTOPRISM_DISABLE_TLS=true",
+      "PHOTOPRISM_DEFAULT_TLS=false",
+      "PHOTOPRISM_DISABLE_WEBDAV=false",
+      "PHOTOPRISM_DISABLE_SETTINGS=false",
+      "PHOTOPRISM_DISABLE_TENSORFLOW=false",
+      "PHOTOPRISM_DISABLE_FACES=false",
+      "PHOTOPRISM_DISABLE_CLASSIFICATION=false",
+      "PHOTOPRISM_DISABLE_VECTORS=false",
+      "PHOTOPRISM_DISABLE_RAW=false",
+      "PHOTOPRISM_DETECT_NSFW=false",
+      "PHOTOPRISM_UPLOAD_NSFW=true",
+      "PHOTOPRISM_DATABASE_DRIVER=sqlite",
+      "PHOTOPRISM_HTTP_COMPRESSION=gzip",
+      "PHOTOPRISM_DEFAULT_LOCALE=en",
+      "PHOTOPRISM_ORIGINALS_LIMIT=5000",
+      "PHOTOPRISM_UPLOAD_LIMIT=5000"
+    ]
+  }
+}

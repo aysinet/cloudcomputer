@@ -1,0 +1,259 @@
+<div class="wp-app">
+  <!-- Tabs -->
+  <div class="wp-header">
+    <div class="wp-tabs">
+      <button class="wp-tab" :class="{active: activeTab==='gantt'}" @click="activeTab='gantt'">📊 {{ t('gantt') }}</button>
+      <button class="wp-tab" :class="{active: activeTab==='board'}" @click="activeTab='board'">👥 {{ t('board') }}</button>
+      <button class="wp-tab" :class="{active: activeTab==='flow'}" @click="activeTab='flow'">🔀 {{ t('flow') }}</button>
+    </div>
+    <div class="wp-header-actions">
+      <el-select v-model="activeProjectId" size="small" style="width:180px" :placeholder="t('selectProject')" @change="loadProject">
+        <el-option v-for="p in projects" :key="p.id" :label="p.name" :value="p.id"></el-option>
+      </el-select>
+      <el-button size="small" type="primary" @click="addProject">+ {{ t('newProject') }}</el-button>
+      <el-button size="small" @click="showMembers=true">👥 {{ t('members') }}</el-button>
+      <el-button v-if="activeProjectId" size="small" type="danger" text @click="deleteProject">🗑️</el-button>
+    </div>
+  </div>
+
+  <!-- GANTT VIEW -->
+  <div v-if="activeTab==='gantt' && activeProjectId" class="wp-gantt-container">
+    <div class="wp-gantt-toolbar">
+      <el-button size="small" @click="addTask">+ {{ t('addTask') }}</el-button>
+      <el-button-group size="small">
+        <el-button :type="ganttScale==='day'?'primary':''" @click="ganttScale='day'">{{ t('day') }}</el-button>
+        <el-button :type="ganttScale==='week'?'primary':''" @click="ganttScale='week'">{{ t('week') }}</el-button>
+        <el-button :type="ganttScale==='month'?'primary':''" @click="ganttScale='month'">{{ t('month') }}</el-button>
+      </el-button-group>
+    </div>
+    <div class="wp-gantt" ref="ganttRef">
+      <!-- Timeline Header -->
+      <div class="wp-gantt-header">
+        <div class="wp-gantt-sidebar-header">{{ t('taskName') }}</div>
+        <div class="wp-gantt-timeline-header">
+          <div v-for="d in timelineDates" :key="d.key" class="wp-gantt-date-cell" :class="{weekend: d.isWeekend, today: d.isToday}" :style="{width: cellWidth+'px'}">
+            {{ d.label }}
+          </div>
+        </div>
+      </div>
+      <!-- Task Rows -->
+      <div class="wp-gantt-body">
+        <div v-for="task in tasks" :key="task.id" class="wp-gantt-row">
+          <div class="wp-gantt-sidebar-cell" @click="editTask(task)">
+            <span class="wp-task-name">{{ task.name }}</span>
+            <span v-if="task.assignee_name" class="wp-task-assignee">👤 {{ task.assignee_name }}</span>
+          </div>
+          <div class="wp-gantt-timeline-row">
+            <div class="wp-gantt-grid">
+              <div v-for="d in timelineDates" :key="d.key" class="wp-gantt-grid-cell" :class="{weekend: d.isWeekend, today: d.isToday}" :style="{width: cellWidth+'px'}"></div>
+            </div>
+            <div v-if="task.start_date && task.end_date" class="wp-gantt-bar" :style="getBarStyle(task)"
+              :title="task.name + ' (' + task.start_date + ' → ' + task.end_date + ')'"
+              @click="editTask(task)">
+              <div class="wp-gantt-bar-progress" :style="{width: task.progress+'%'}"></div>
+              <span class="wp-gantt-bar-label">{{ task.name }} ({{ task.progress }}%)</span>
+            </div>
+          </div>
+        </div>
+        <div v-if="!tasks.length" class="wp-empty">{{ t('noTasks') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOARD VIEW (Task Assignment) -->
+  <div v-if="activeTab==='board' && activeProjectId" class="wp-board-container">
+    <div class="wp-board-toolbar">
+      <el-button size="small" @click="addTask">+ {{ t('addTask') }}</el-button>
+      <el-select v-model="boardFilter" size="small" clearable :placeholder="t('filterByMember')">
+        <el-option :label="t('all')" value=""></el-option>
+        <el-option v-for="m in members" :key="m.id" :label="m.name" :value="m.id"></el-option>
+      </el-select>
+    </div>
+    <div class="wp-board">
+      <div v-for="status in STATUSES" :key="status.id" class="wp-board-col"
+        @dragover.prevent @drop="onDropBoard($event, status.id)">
+        <div class="wp-board-col-header" :style="{borderTopColor: status.color}">
+          <span>{{ t(status.id) || status.label }}</span>
+          <span class="wp-board-count">{{ filteredTasksByStatus(status.id).length }}</span>
+        </div>
+        <div class="wp-board-cards">
+          <div v-for="task in filteredTasksByStatus(status.id)" :key="task.id"
+            class="wp-board-card" draggable="true"
+            @dragstart="onDragStart($event, task)"
+            @click="editTask(task)">
+            <div class="wp-card-title">{{ task.name }}</div>
+            <div class="wp-card-meta">
+              <span v-if="task.assignee_name" class="wp-card-assignee">👤 {{ task.assignee_name }}</span>
+              <span v-if="task.priority" class="wp-card-priority" :style="{color: priorityColor(task.priority)}">● {{ t('p'+task.priority) }}</span>
+            </div>
+            <div class="wp-card-dates" v-if="task.start_date">
+              📅 {{ task.start_date }} → {{ task.end_date }}
+            </div>
+            <div class="wp-card-progress">
+              <div class="wp-progress-bar"><div class="wp-progress-fill" :style="{width: task.progress+'%'}"></div></div>
+              <span>{{ task.progress }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW VIEW (Visio-like) -->
+  <div v-if="activeTab==='flow' && activeProjectId" class="wp-flow-container">
+    <div class="wp-flow-toolbar">
+      <el-button-group size="small">
+        <el-button :type="flowTool==='select'?'primary':''" @click="flowTool='select'">🖱️ {{ t('select') }}</el-button>
+        <el-button :type="flowTool==='pan'?'primary':''" @click="flowTool='pan'">✋ {{ t('pan') }}</el-button>
+        <el-button :type="flowTool==='connect'?'primary':''" @click="flowTool='connect'">🔗 {{ t('connect') }}</el-button>
+      </el-button-group>
+      <el-divider direction="vertical"></el-divider>
+      <el-button size="small" @click="addFlowNode('task')">📋 {{ t('addTaskNode') }}</el-button>
+      <el-button size="small" @click="addFlowNode('decision')">◇ {{ t('decision') }}</el-button>
+      <el-button size="small" @click="addFlowNode('start')">⬤ {{ t('start') }}</el-button>
+      <el-button size="small" @click="addFlowNode('end')">⏹️ {{ t('end') }}</el-button>
+      <el-divider direction="vertical"></el-divider>
+      <el-button size="small" type="danger" :disabled="!selectedNode && !selectedEdge" @click="deleteFlowItem">🗑️ {{ t('delete') }}</el-button>
+      <el-button size="small" @click="autoLayout">⚡ {{ t('autoLayout') }}</el-button>
+    </div>
+    <div class="wp-flow-canvas-wrap" ref="canvasWrap"
+      @mousedown="onCanvasMouseDown" @mousemove="onCanvasMouseMove" @mouseup="onCanvasMouseUp"
+      @wheel="onCanvasWheel">
+      <svg class="wp-flow-svg" :style="{transform: `translate(${panX}px,${panY}px) scale(${zoom})`}" :viewBox="svgViewBox">
+        <!-- Edges -->
+        <g v-for="edge in flowEdges" :key="edge.id">
+          <line :x1="edgeCoords(edge).x1" :y1="edgeCoords(edge).y1"
+            :x2="edgeCoords(edge).x2" :y2="edgeCoords(edge).y2"
+            class="wp-flow-edge" :class="{selected: selectedEdge===edge.id}"
+            @click.stop="selectEdge(edge)" marker-end="url(#arrowhead)"/>
+          <text v-if="edge.label" :x="(edgeCoords(edge).x1+edgeCoords(edge).x2)/2"
+            :y="(edgeCoords(edge).y1+edgeCoords(edge).y2)/2 - 8" class="wp-flow-edge-label">{{ edge.label }}</text>
+        </g>
+        <!-- Connection line preview -->
+        <line v-if="connectingFrom" :x1="connectingFrom.x" :y1="connectingFrom.y"
+          :x2="connectPreviewX" :y2="connectPreviewY" class="wp-flow-connect-preview"/>
+        <!-- Arrow marker -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#94a3b8"/>
+          </marker>
+        </defs>
+      </svg>
+      <!-- Nodes -->
+      <div class="wp-flow-nodes" :style="{transform: `translate(${panX}px,${panY}px) scale(${zoom})`}">
+        <div v-for="node in flowNodes" :key="node.id"
+          class="wp-flow-node" :class="[`wp-node-${node.type}`, {selected: selectedNode===node.id}]"
+          :style="{left: node.x+'px', top: node.y+'px'}"
+          @mousedown.stop="onNodeMouseDown($event, node)"
+          @dblclick.stop="editFlowNode(node)">
+          <div class="wp-node-icon">{{ nodeIcon(node.type) }}</div>
+          <div class="wp-node-label">{{ node.label }}</div>
+          <div v-if="node.assignee_name" class="wp-node-assignee">👤 {{ node.assignee_name }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty: no project selected -->
+  <div v-if="!activeProjectId" class="wp-empty-full">
+    <div class="wp-empty-icon">📊</div>
+    <div>{{ t('selectOrCreate') }}</div>
+  </div>
+
+  <!-- TASK DIALOG -->
+  <el-dialog v-model="showTaskDialog" :title="editingTask.id ? t('editTask') : t('addTask')" width="480px" append-to-body>
+    <el-form label-position="top" size="small">
+      <el-form-item :label="t('taskName')">
+        <el-input v-model="editingTask.name" :placeholder="t('taskName')"></el-input>
+      </el-form-item>
+      <el-form-item :label="t('assignee')">
+        <el-select v-model="editingTask.assignee_id" clearable :placeholder="t('selectMember')" style="width:100%">
+          <el-option v-for="m in members" :key="m.id" :label="m.name" :value="m.id"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-row :gutter="12">
+        <el-col :span="12">
+          <el-form-item :label="t('startDate')">
+            <el-date-picker v-model="editingTask.start_date" type="date" value-format="YYYY-MM-DD" style="width:100%"></el-date-picker>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item :label="t('endDate')">
+            <el-date-picker v-model="editingTask.end_date" type="date" value-format="YYYY-MM-DD" style="width:100%"></el-date-picker>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="12">
+        <el-col :span="12">
+          <el-form-item :label="t('priority')">
+            <el-select v-model="editingTask.priority" style="width:100%">
+              <el-option :label="t('p0')" :value="0"></el-option>
+              <el-option :label="t('p1')" :value="1"></el-option>
+              <el-option :label="t('p2')" :value="2"></el-option>
+              <el-option :label="t('p3')" :value="3"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item :label="t('progress')">
+            <el-slider v-model="editingTask.progress" :min="0" :max="100" :step="5"></el-slider>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-form-item :label="t('status')">
+        <el-select v-model="editingTask.status" style="width:100%">
+          <el-option v-for="s in STATUSES" :key="s.id" :label="t(s.id)||s.label" :value="s.id"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item :label="t('description')">
+        <el-input v-model="editingTask.description" type="textarea" :rows="3"></el-input>
+      </el-form-item>
+      <el-form-item :label="t('dependencies')">
+        <el-select v-model="editingTask.depends_on" multiple :placeholder="t('selectDeps')" style="width:100%">
+          <el-option v-for="t2 in tasks.filter(x=>x.id!==editingTask.id)" :key="t2.id" :label="t2.name" :value="t2.id"></el-option>
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="showTaskDialog=false">{{ t('cancel') }}</el-button>
+      <el-button v-if="editingTask.id" type="danger" @click="deleteTask(editingTask.id)">{{ t('delete') }}</el-button>
+      <el-button type="primary" @click="saveTask">{{ t('save') }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- MEMBERS DIALOG -->
+  <el-dialog v-model="showMembers" :title="t('members')" width="400px" append-to-body>
+    <div class="wp-members-list">
+      <div v-for="m in members" :key="m.id" class="wp-member-row">
+        <span class="wp-member-avatar" :style="{background: m.color}">{{ m.name.charAt(0) }}</span>
+        <span class="wp-member-name">{{ m.name }}</span>
+        <span class="wp-member-role">{{ m.role }}</span>
+        <el-button size="small" text type="danger" @click="deleteMember(m.id)">✕</el-button>
+      </div>
+      <div v-if="!members.length" class="wp-empty-small">{{ t('noMembers') }}</div>
+    </div>
+    <div class="wp-member-add">
+      <el-input v-model="newMemberName" :placeholder="t('memberName')" size="small" style="flex:1" @keyup.enter="addMember"></el-input>
+      <el-input v-model="newMemberRole" :placeholder="t('role')" size="small" style="width:120px"></el-input>
+      <el-button size="small" type="primary" @click="addMember">+</el-button>
+    </div>
+  </el-dialog>
+
+  <!-- NODE EDIT DIALOG -->
+  <el-dialog v-model="showNodeDialog" :title="t('editNode')" width="380px" append-to-body>
+    <el-form label-position="top" size="small">
+      <el-form-item :label="t('label')">
+        <el-input v-model="editingNode.label"></el-input>
+      </el-form-item>
+      <el-form-item :label="t('assignee')">
+        <el-select v-model="editingNode.assignee_id" clearable style="width:100%">
+          <el-option v-for="m in members" :key="m.id" :label="m.name" :value="m.id"></el-option>
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="showNodeDialog=false">{{ t('cancel') }}</el-button>
+      <el-button type="primary" @click="saveFlowNode">{{ t('save') }}</el-button>
+    </template>
+  </el-dialog>
+</div>

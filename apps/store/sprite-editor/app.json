@@ -1,0 +1,68 @@
+{
+  "id": "sprite-editor",
+  "name": "Sprite Editor",
+  "icon": "🎮",
+  "color": "linear-gradient(135deg,#6c5ce7,#00cec9)",
+  "type": "internal",
+  "size": {
+    "w": 1050,
+    "h": 700
+  },
+  "global": false,
+  "description": "Pixel tabanlı sprite düzenleyici — animasyon, çerçeve yönetimi, sunucuya kayıt",
+  "lang": {
+    "tr": {
+      "name": "Sprite Editörü",
+      "description": "Pixel tabanlı sprite düzenleyici — animasyon, çerçeve yönetimi, sunucuya kayıt"
+    },
+    "en": {
+      "name": "Sprite Editor",
+      "description": "Pixel-based sprite editor — animation, frame management, server save"
+    },
+    "de": {
+      "name": "Sprite-Editor",
+      "description": "Pixelbasierter Sprite-Editor — Animation, Frame-Verwaltung, Serverspeicherung"
+    },
+    "fr": {
+      "name": "Éditeur de Sprites",
+      "description": "Éditeur de sprites basé sur les pixels — animation, gestion des frames, sauvegarde serveur"
+    },
+    "es": {
+      "name": "Editor de Sprites",
+      "description": "Editor de sprites basado en píxeles — animación, gestión de cuadros, guardar en servidor"
+    },
+    "ru": {
+      "name": "Редактор спрайтов",
+      "description": "Пиксельный редактор спрайтов — анимация, управление кадрами, сохранение на сервере"
+    },
+    "zh": {
+      "name": "精灵编辑器",
+      "description": "基于像素的精灵编辑器 — 动画、帧管理、服务器保存"
+    },
+    "ja": {
+      "name": "スプライトエディタ",
+      "description": "ピクセルベースのスプライトエディタ — アニメーション、フレーム管理、サーバー保存"
+    },
+    "it": {
+      "name": "Editor Sprite",
+      "description": "Editor sprite basato su pixel — animazione, gestione frame, salvataggio server"
+    },
+    "ar": {
+      "name": "محرر الرسوم المتحركة",
+      "description": "محرر رسوم متحركة بالبكسل — رسوم متحركة، إدارة الإطارات، حفظ على الخادم"
+    },
+    "ko": {
+      "name": "스프라이트 편집기",
+      "description": "픽셀 기반 스프라이트 편집기 — 애니메이션, 프레임 관리, 서버 저장"
+    },
+    "hi": {
+      "name": "स्प्राइट एडिटर",
+      "description": "पिक्सेल आधारित स्प्राइट एडिटर — एनिमेशन, फ्रेम प्रबंधन, सर्वर सेव"
+    },
+    "pt": {
+      "name": "Editor de Sprites",
+      "description": "Editor de sprites baseado em pixels — animação, gerenciamento de quadros, salvar no servidor"
+    }
+  },
+  "category": "productivity"
+}

@@ -1,0 +1,197 @@
+<div class="tm-root">
+  <!-- TOP TOOLBAR -->
+  <div class="tm-toolbar">
+    <div class="tm-tb-group">
+      <el-button size="small" @click="newTile" :title="L('newTile')">📄</el-button>
+      <el-button size="small" @click="saveProject" :title="L('save')">💾</el-button>
+      <el-button size="small" @click="loadProject" :title="L('load')">📂</el-button>
+      <el-button size="small" @click="exportPng" type="success" :title="L('exportPng')">🖼️ PNG</el-button>
+      <el-button size="small" @click="exportTileset" type="success" :title="L('exportTileset')">🗂️</el-button>
+    </div>
+    <div class="tm-tb-sep"></div>
+    <div class="tm-tb-group">
+      <el-button size="small" @click="undo" :disabled="historyIdx<=0" circle :title="L('undo')">↩</el-button>
+      <el-button size="small" @click="redo" :disabled="historyIdx>=history.length-1" circle :title="L('redo')">↪</el-button>
+    </div>
+    <div class="tm-tb-sep"></div>
+    <div class="tm-tb-group">
+      <el-button size="small" @click="rotate90" :title="L('rotate90')">🔄</el-button>
+      <el-button size="small" @click="flipHorizontal" :title="L('flipH')">↔️</el-button>
+      <el-button size="small" @click="flipVertical" :title="L('flipV')">↕️</el-button>
+      <el-button size="small" @click="confirmClear" type="danger" :title="L('clear')">🗑️</el-button>
+    </div>
+    <div class="tm-tb-sep"></div>
+    <!-- Mode -->
+    <div class="tm-tb-group">
+      <el-radio-group v-model="tileMode" size="small">
+        <el-radio-button value="flat">{{L('flat')}}</el-radio-button>
+        <el-radio-button value="isometric">{{L('isometric')}}</el-radio-button>
+      </el-radio-group>
+    </div>
+    <div class="tm-tb-sep"></div>
+    <!-- Size presets -->
+    <div class="tm-tb-group">
+      <el-select v-model="selectedPreset" @change="onPresetChange" size="small" style="width:110px" :placeholder="L('presets')">
+        <el-option v-for="p in SIZE_PRESETS" :key="p.label" :label="p.label" :value="p.label"></el-option>
+      </el-select>
+    </div>
+    <div class="tm-tb-group tm-custom-size">
+      <el-input-number v-model="customW" :min="1" :max="256" size="small" style="width:72px" controls-position="right"></el-input-number>
+      <span class="tm-size-x">×</span>
+      <el-input-number v-model="customH" :min="1" :max="256" size="small" style="width:72px" controls-position="right"></el-input-number>
+      <el-button size="small" @click="applyCustomSize" type="primary">✓</el-button>
+    </div>
+  </div>
+
+  <div class="tm-body">
+    <!-- LEFT: Tools + Palette -->
+    <div class="tm-sidebar">
+      <!-- Tools -->
+      <div class="tm-panel">
+        <div class="tm-panel-title">🛠️</div>
+        <div class="tm-tools-grid">
+          <button class="tm-tool-btn" :class="{active: tool==='pencil'}" @click="tool='pencil'" :title="L('pencil')">✏️</button>
+          <button class="tm-tool-btn" :class="{active: tool==='eraser'}" @click="tool='eraser'" :title="L('eraser')">🧹</button>
+          <button class="tm-tool-btn" :class="{active: tool==='fill'}" @click="tool='fill'" :title="L('fill')">🪣</button>
+          <button class="tm-tool-btn" :class="{active: tool==='picker'}" @click="tool='picker'" :title="L('picker')">💧</button>
+          <button class="tm-tool-btn" :class="{active: tool==='line'}" @click="tool='line'" :title="L('line')">📏</button>
+          <button class="tm-tool-btn" :class="{active: tool==='rect'}" @click="tool='rect'" :title="L('rect')">⬜</button>
+          <button class="tm-tool-btn" :class="{active: tool==='ellipse'}" @click="tool='ellipse'" :title="L('ellipse')">⭕</button>
+        </div>
+      </div>
+
+      <!-- Mirror -->
+      <div class="tm-panel">
+        <div class="tm-panel-title">{{L('mirror')}}</div>
+        <div class="tm-mirror-row">
+          <el-checkbox v-model="mirrorH" :label="L('mirrorH')" size="small"></el-checkbox>
+          <el-checkbox v-model="mirrorV" :label="L('mirrorV')" size="small"></el-checkbox>
+        </div>
+      </div>
+
+      <!-- Color -->
+      <div class="tm-panel">
+        <div class="tm-panel-title">{{L('color')}}</div>
+        <div class="tm-color-row">
+          <el-color-picker v-model="fgColor" size="small" show-alpha></el-color-picker>
+          <div class="tm-color-swatch" :style="{background: fgColor}" @click="addToPalette(fgColor)"></div>
+        </div>
+      </div>
+
+      <!-- Palette -->
+      <div class="tm-panel">
+        <div class="tm-panel-title">{{L('palette')}}</div>
+        <div class="tm-palette">
+          <div v-for="(c, i) in palette" :key="i" class="tm-palette-swatch" :style="{background: c}"
+               :class="{selected: c === fgColor}" @click="fgColor=c" @contextmenu.prevent="removeFromPalette(i)"></div>
+        </div>
+      </div>
+
+      <!-- Options -->
+      <div class="tm-panel">
+        <div class="tm-opt-row">
+          <el-checkbox v-model="showGrid" :label="L('grid')" size="small"></el-checkbox>
+        </div>
+        <div class="tm-opt-row">
+          <el-checkbox v-model="showPreview" :label="L('preview')" size="small"></el-checkbox>
+        </div>
+        <div class="tm-opt-row">
+          <el-checkbox v-model="showTiledPreview" :label="L('tiledPreview')" size="small"></el-checkbox>
+        </div>
+        <div class="tm-opt-row" v-if="showTiledPreview">
+          <span class="tm-opt-label">{{L('copies')}}</span>
+          <el-input-number v-model="tiledCopies" :min="2" :max="10" size="small" style="width:80px" controls-position="right"></el-input-number>
+        </div>
+        <div class="tm-opt-row">
+          <span class="tm-opt-label">{{L('zoom')}}</span>
+          <el-slider v-model="zoom" :min="2" :max="64" :step="2" style="width:100px" size="small" @input="render"></el-slider>
+          <span class="tm-opt-val">{{zoom}}x</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: Canvas -->
+    <div class="tm-center">
+      <div class="tm-canvas-wrap" @wheel.prevent="onWheel">
+        <canvas ref="editorCanvas"
+          @mousedown="onCanvasDown" @mousemove="onCanvasMove" @mouseup="onCanvasUp"
+          @mouseleave="onCanvasUp" @contextmenu="onContextMenu"></canvas>
+      </div>
+
+      <!-- Previews Row -->
+      <div class="tm-preview-row" v-if="showPreview || showTiledPreview || tileMode==='isometric'">
+        <div class="tm-preview-box" v-if="showPreview">
+          <div class="tm-preview-label">{{L('preview')}}</div>
+          <canvas ref="previewCanvas"></canvas>
+        </div>
+        <div class="tm-preview-box" v-if="tileMode==='isometric'">
+          <div class="tm-preview-label">{{L('isoPreview')}}</div>
+          <canvas ref="isoCanvas"></canvas>
+        </div>
+        <div class="tm-preview-box" v-if="showTiledPreview">
+          <div class="tm-preview-label">{{L('tilePreview')}}</div>
+          <canvas ref="tiledCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Layers + Animation -->
+    <div class="tm-sidebar tm-sidebar-right">
+      <!-- Layers -->
+      <div class="tm-panel">
+        <div class="tm-panel-title">{{L('layers')}}</div>
+        <div class="tm-layers-list">
+          <div v-for="(l, i) in layers" :key="i" class="tm-layer-item"
+               :class="{active: i === activeLayerIdx}" @click="activeLayerIdx=i">
+            <el-checkbox v-model="l.visible" size="small" @change="render" @click.stop></el-checkbox>
+            <span class="tm-layer-name">{{l.name}}</span>
+            <div class="tm-layer-actions">
+              <button class="tm-sm-btn" @click.stop="moveLayerUp(i)" :disabled="i>=layers.length-1" title="▲">▲</button>
+              <button class="tm-sm-btn" @click.stop="moveLayerDown(i)" :disabled="i<=0" title="▼">▼</button>
+              <button class="tm-sm-btn" @click.stop="removeLayer(i)" :disabled="layers.length<=1" title="✖">✖</button>
+            </div>
+          </div>
+        </div>
+        <div class="tm-layer-btns">
+          <el-button size="small" @click="addLayer">+ {{L('addLayer')}}</el-button>
+          <el-button size="small" @click="mergeDown(activeLayerIdx)" :disabled="activeLayerIdx<=0">{{L('mergeDown')}}</el-button>
+        </div>
+      </div>
+
+      <!-- Animation -->
+      <div class="tm-panel">
+        <div class="tm-panel-title" @click="showAnimPanel=!showAnimPanel" style="cursor:pointer">
+          {{L('animation')}} <span style="font-size:10px">{{showAnimPanel?'▲':'▼'}}</span>
+        </div>
+        <div v-if="showAnimPanel" class="tm-anim-content">
+          <div class="tm-frames-list">
+            <div v-for="(f, i) in frames" :key="i" class="tm-frame-item"
+                 :class="{active: i === activeFrameIdx}" @click="switchFrame(i)">
+              {{L('frame')}} {{i+1}}
+              <button class="tm-sm-btn" @click.stop="deleteFrame(i)" :disabled="frames.length<=1">✖</button>
+            </div>
+          </div>
+          <div class="tm-anim-btns">
+            <el-button size="small" @click="addFrame">+ {{L('addFrame')}}</el-button>
+            <el-button size="small" @click="duplicateFrame">{{L('duplicateFrame')}}</el-button>
+          </div>
+          <div class="tm-anim-controls">
+            <el-button size="small" @click="playAnim" :disabled="animPlaying || frames.length<=1" type="success">▶ {{L('play')}}</el-button>
+            <el-button size="small" @click="stopAnim" :disabled="!animPlaying" type="danger">⏹ {{L('stop')}}</el-button>
+            <span class="tm-opt-label">{{L('fps')}}</span>
+            <el-input-number v-model="animFps" :min="1" :max="30" size="small" style="width:70px" controls-position="right"></el-input-number>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clear confirm dialog -->
+  <el-dialog v-model="showClearDialog" :title="L('clear')" width="360px" append-to-body>
+    <p>{{L('clearConfirm')}}</p>
+    <template #footer>
+      <el-button @click="showClearDialog=false">{{L('cancel')}}</el-button>
+      <el-button type="danger" @click="doClear">{{L('confirm')}}</el-button>
+    </template>
+  </el-dialog>
+</div>

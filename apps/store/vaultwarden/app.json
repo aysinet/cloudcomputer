@@ -1,0 +1,83 @@
+{
+  "id": "vaultwarden",
+  "name": "Vaultwarden",
+  "icon": "🔐",
+  "color": "linear-gradient(135deg,#175DDC,#1a1a2e)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Docker tabanlı self-hosted şifre yöneticisi (Bitwarden uyumlu)",
+  "lang": {
+    "tr": {
+      "name": "Vaultwarden",
+      "description": "Self-hosted şifre yöneticisi — Bitwarden uyumlu"
+    },
+    "en": {
+      "name": "Vaultwarden",
+      "description": "Self-hosted password manager — Bitwarden compatible"
+    },
+    "de": {
+      "name": "Vaultwarden",
+      "description": "Selbst gehosteter Passwort-Manager — Bitwarden-kompatibel"
+    },
+    "fr": {
+      "name": "Vaultwarden",
+      "description": "Gestionnaire de mots de passe auto-hébergé — compatible Bitwarden"
+    },
+    "es": {
+      "name": "Vaultwarden",
+      "description": "Gestor de contraseñas auto-alojado — compatible con Bitwarden"
+    },
+    "ru": {
+      "name": "Vaultwarden",
+      "description": "Самостоятельный менеджер паролей — совместим с Bitwarden"
+    },
+    "zh": {
+      "name": "Vaultwarden",
+      "description": "自托管密码管理器 — 兼容 Bitwarden"
+    },
+    "ja": {
+      "name": "Vaultwarden",
+      "description": "セルフホスト型パスワードマネージャー — Bitwarden互換"
+    },
+    "it": {
+      "name": "Vaultwarden",
+      "description": "Gestore di password self-hosted — compatibile con Bitwarden"
+    },
+    "ar": {
+      "name": "فولت واردن",
+      "description": "مدير كلمات مرور مستضاف ذاتيًا — متوافق مع Bitwarden"
+    },
+    "ko": {
+      "name": "볼트워든",
+      "description": "셀프 호스팅 비밀번호 관리자 — Bitwarden 호환"
+    },
+    "hi": {
+      "name": "वॉल्टवार्डन",
+      "description": "स्व-होस्टेड पासवर्ड प्रबंधक — Bitwarden संगत"
+    },
+    "pt": {
+      "name": "Vaultwarden",
+      "description": "Gerenciador de senhas auto-hospedado — compatível com Bitwarden"
+    }
+  },
+  "category": "tools",
+  "docker": {
+    "image": "vaultwarden/server:latest",
+    "containerPort": 80,
+    "volumes": [
+      "${APP_VOLUME}:/data/"
+    ],
+    "env": [
+      "DOMAIN=http://localhost",
+      "SIGNUPS_ALLOWED=true",
+      "ADMIN_TOKEN=cloudcomputer",
+      "WEBSOCKET_ENABLED=true",
+      "LOG_LEVEL=info"
+    ]
+  }
+}

@@ -40,11 +40,24 @@
     setup() {
       const locale = ref(localStorage.getItem('sys_locale') || 'en');
       const t = computed(() => LANGS[locale.value] || LANGS.en);
-      const iframeSrc = ref('https://www.bing.com/');
       const bingFrame = ref(null);
 
+      function proxyUrl(url) {
+        return '/api/browser/proxy?url=' + encodeURIComponent(url);
+      }
+
+      function getRealUrl() {
+        const src = iframeSrc.value;
+        try {
+          const u = new URL(src, location.origin);
+          return u.searchParams.get('url') || src;
+        } catch { return src; }
+      }
+
+      const iframeSrc = ref(proxyUrl('https://www.bing.com/'));
+
       function navigateHome() {
-        iframeSrc.value = 'https://www.bing.com/';
+        iframeSrc.value = proxyUrl('https://www.bing.com/');
       }
 
       function goBack() {
@@ -66,7 +79,23 @@
       }
 
       function openExternal() {
-        window.open('https://www.bing.com/', '_blank');
+        window.open(getRealUrl(), '_blank');
+      }
+
+      function onIframeMessage(e) {
+        if (e.data && e.data.type === 'browser-navigate' && e.data.url) {
+          const url = e.data.url;
+          // If it's a Bing internal link, navigate within the app
+          if (url.includes('bing.com')) {
+            iframeSrc.value = proxyUrl(url);
+          } else {
+            // Open external links in the browser app
+            window.dispatchEvent(new CustomEvent('open-app-action', { detail: { app: 'browser' } }));
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('browser-open-url', { detail: url }));
+            }, 300);
+          }
+        }
       }
 
       // Listen for locale changes
@@ -76,6 +105,7 @@
 
       onMounted(() => {
         window.addEventListener('localeChanged', onLocaleChange);
+        window.addEventListener('message', onIframeMessage);
       });
 
       return {

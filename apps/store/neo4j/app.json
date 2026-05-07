@@ -1,0 +1,41 @@
+{
+  "id": "neo4j",
+  "name": "Neo4j",
+  "icon": "🔵",
+  "color": "linear-gradient(135deg,#018BFF,#00529B)",
+  "type": "service",
+  "size": {
+    "w": 520,
+    "h": 440
+  },
+  "global": false,
+  "description": "Neo4j graf veritabanı servisi — ilişkisel graf veritabanı",
+  "lang": {
+    "tr": { "name": "Neo4j", "description": "Neo4j graf veritabanı servisi — ilişkisel graf veritabanı" },
+    "en": { "name": "Neo4j", "description": "Neo4j graph database service — native graph database" },
+    "de": { "name": "Neo4j", "description": "Neo4j Graphdatenbank-Dienst — native Graphdatenbank" },
+    "fr": { "name": "Neo4j", "description": "Service Neo4j — base de données graphe native" },
+    "es": { "name": "Neo4j", "description": "Servicio Neo4j — base de datos de grafos nativa" },
+    "ru": { "name": "Neo4j", "description": "Сервис Neo4j — нативная графовая база данных" },
+    "zh": { "name": "Neo4j", "description": "Neo4j 图数据库服务 — 原生图数据库" },
+    "ja": { "name": "Neo4j", "description": "Neo4j グラフデータベースサービス — ネイティブグラフDB" },
+    "it": { "name": "Neo4j", "description": "Servizio Neo4j — database a grafo nativo" },
+    "ar": { "name": "Neo4j", "description": "خدمة قاعدة بيانات Neo4j — قاعدة بيانات رسومية أصلية" },
+    "ko": { "name": "Neo4j", "description": "Neo4j 그래프 데이터베이스 서비스 — 네이티브 그래프 DB" },
+    "hi": { "name": "Neo4j", "description": "Neo4j ग्राफ डेटाबेस सेवा — नेटिव ग्राफ डेटाबेस" },
+    "pt": { "name": "Neo4j", "description": "Serviço Neo4j — banco de dados de grafos nativo" }
+  },
+  "category": "development",
+  "docker": {
+    "image": "neo4j:latest",
+    "containerPort": 7474,
+    "extraPorts": [7687],
+    "volumes": [
+      "${APP_VOLUME}:/data"
+    ],
+    "env": [
+      "NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}"
+    ],
+    "restart": "always"
+  }
+}

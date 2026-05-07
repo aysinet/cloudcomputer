@@ -1,0 +1,161 @@
+.photoprism-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.pp-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.pp-icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.pp-status-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.pp-sub-text {
+  font-size: 13px;
+  color: #8e99a4;
+  max-width: 360px;
+}
+
+.pp-error-msg {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.pp-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #4fc3f7;
+  border-radius: 50%;
+  animation: pp-spin 0.8s linear infinite;
+}
+
+@keyframes pp-spin {
+  to { transform: rotate(360deg); }
+}
+
+.pp-feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+  text-align: left;
+}
+
+.pp-feature {
+  font-size: 13px;
+  color: #b0bec5;
+  padding: 4px 0;
+}
+
+.pp-btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: all 0.2s;
+  background: #16213e;
+  color: #e0e0e0;
+}
+
+.pp-btn:hover {
+  background: #1a3a5c;
+}
+
+.pp-btn-primary {
+  background: #4fc3f7;
+  color: #0a1628;
+  font-weight: 600;
+}
+
+.pp-btn-primary:hover {
+  background: #81d4fa;
+}
+
+.pp-btn-large {
+  padding: 12px 32px;
+  font-size: 16px;
+  border-radius: 12px;
+}
+
+.pp-btn-small {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.pp-btn-danger {
+  background: #c62828;
+  color: #fff;
+}
+
+.pp-btn-danger:hover {
+  background: #e53935;
+}
+
+.pp-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pp-running {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pp-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: #0f1a2e;
+  border-bottom: 1px solid #16213e;
+  min-height: 32px;
+}
+
+.pp-info {
+  font-size: 12px;
+  color: #4fc3f7;
+}
+
+.pp-toolbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.pp-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}

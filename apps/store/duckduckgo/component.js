@@ -57,7 +57,11 @@
       const locale = ref(localStorage.getItem('sys_locale') || 'en');
       const t = computed(() => LANGS[locale.value] || LANGS.en);
 
-      const iframeSrc = ref('https://www.duckduckgo.com');
+      const iframeSrc = ref(proxyUrl('https://www.duckduckgo.com'));
+
+      function proxyUrl(url) {
+        return '/api/browser/proxy?url=' + encodeURIComponent(url);
+      }
 
       // Favorites
       const favorites = ref([]);
@@ -102,20 +106,30 @@
         } catch {}
       }
 
-      function getCurrentPageInfo() {
+      function getRealUrl() {
         const src = iframeSrc.value;
-        const urlObj = new URL(src);
-        const query = urlObj.searchParams.get('q') || '';
-        return { url: src, title: query || 'DuckDuckGo' };
+        try {
+          const u = new URL(src, location.origin);
+          return u.searchParams.get('url') || src;
+        } catch { return src; }
+      }
+
+      function getCurrentPageInfo() {
+        const realUrl = getRealUrl();
+        try {
+          const urlObj = new URL(realUrl);
+          const query = urlObj.searchParams.get('q') || '';
+          return { url: realUrl, title: query || 'DuckDuckGo' };
+        } catch { return { url: realUrl, title: 'DuckDuckGo' }; }
       }
 
       function isFavorite() {
-        const cur = iframeSrc.value;
+        const cur = getRealUrl();
         return favorites.value.some(f => f.url === cur);
       }
 
       function toggleFavorite() {
-        const cur = iframeSrc.value;
+        const cur = getRealUrl();
         const idx = favorites.value.findIndex(f => f.url === cur);
         if (idx >= 0) {
           favorites.value.splice(idx, 1);
@@ -127,7 +141,7 @@
       }
 
       function openFavorite(fav) {
-        iframeSrc.value = fav.url;
+        iframeSrc.value = proxyUrl(fav.url);
         showFavPanel.value = false;
       }
 
@@ -141,7 +155,7 @@
         const info = getCurrentPageInfo();
         const shareData = {
           text: info.title || 'DuckDuckGo',
-          url: iframeSrc.value,
+          url: getRealUrl(),
           hashtags: ['DuckDuckGo', 'Privacy']
         };
         window.__socialShareData = shareData;
@@ -153,11 +167,27 @@
 
       // ── Navigation ──
       function navigateHome() {
-        iframeSrc.value = 'https://www.duckduckgo.com';
+        iframeSrc.value = proxyUrl('https://www.duckduckgo.com');
       }
 
       function openExternal() {
-        window.open(iframeSrc.value, '_blank');
+        window.open(getRealUrl(), '_blank');
+      }
+
+      function onIframeMessage(e) {
+        if (e.data && e.data.type === 'browser-navigate' && e.data.url) {
+          const url = e.data.url;
+          // If it's a DuckDuckGo internal link, navigate within the app
+          if (url.includes('duckduckgo.com')) {
+            iframeSrc.value = proxyUrl(url);
+          } else {
+            // Open external links in the browser app
+            window.dispatchEvent(new CustomEvent('open-app-action', { detail: { app: 'browser' } }));
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('browser-open-url', { detail: url }));
+            }, 300);
+          }
+        }
       }
 
       function onLocaleChanged(e) {
@@ -168,11 +198,13 @@
 
       onMounted(() => {
         window.addEventListener('locale-changed', onLocaleChanged);
+        window.addEventListener('message', onIframeMessage);
         loadFavorites();
       });
 
       onBeforeUnmount(() => {
         window.removeEventListener('locale-changed', onLocaleChanged);
+        window.removeEventListener('message', onIframeMessage);
         if (toastTimer) clearTimeout(toastTimer);
       });
 

@@ -1,0 +1,30 @@
+<div class="neo4j-service-root">
+  <div class="neo4j-service-header">
+    <span class="neo4j-service-icon">🔵</span>
+    <h3>Neo4j</h3>
+    <span :class="['neo4j-status-badge', status]">
+      {{ status === 'running' ? '● Çalışıyor' : status === 'stopped' ? '○ Durdu' : status === 'loading' ? '◌ Yükleniyor...' : status === 'restarting' ? '◌ Yeniden başlatılıyor...' : '⚠ Hata' }}
+    </span>
+  </div>
+
+  <div v-if="status === 'error'" class="neo4j-error">
+    <p>{{ errorMsg }}</p>
+    <button @click="loadStatus">Tekrar Dene</button>
+  </div>
+
+  <div v-if="connInfo && status === 'running'" class="neo4j-conn-info">
+    <h4>Bağlantı Bilgileri</h4>
+    <div class="neo4j-conn-row"><span class="neo4j-conn-label">Host (harici):</span><code>localhost</code></div>
+    <div class="neo4j-conn-row"><span class="neo4j-conn-label">Host (dahili):</span><code>{{ connInfo.internalHost }}</code></div>
+    <div class="neo4j-conn-row"><span class="neo4j-conn-label">HTTP Port:</span><code>{{ connInfo.port }}</code></div>
+    <div class="neo4j-conn-row"><span class="neo4j-conn-label">Bolt Port:</span><code>{{ connInfo.boltPort || '—' }}</code></div>
+    <div class="neo4j-conn-row"><span class="neo4j-conn-label">Browser URL:</span><code>http://localhost:{{ connInfo.port }}</code></div>
+    <div class="neo4j-conn-row"><span class="neo4j-conn-label">Bolt URI:</span><code>bolt://localhost:{{ connInfo.boltPort || '7687' }}</code></div>
+    <div class="neo4j-conn-row"><span class="neo4j-conn-label">Bolt URI (dahili):</span><code>bolt://{{ connInfo.internalHost }}:7687</code></div>
+  </div>
+
+  <div v-if="status === 'running' || status === 'stopped'" class="neo4j-actions">
+    <button class="neo4j-restart-btn" @click="restart" :disabled="status === 'restarting'">🔄 Yeniden Başlat</button>
+    <button class="neo4j-refresh-btn" @click="loadStatus">↻ Yenile</button>
+  </div>
+</div>

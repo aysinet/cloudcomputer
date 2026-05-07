@@ -1,0 +1,55 @@
+<div class="qbittorrent-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="qbt-status-screen">
+    <div class="qbt-spinner"></div>
+    <div class="qbt-icon-large">🌊</div>
+    <div class="qbt-status-text">{{ pullProgress }}</div>
+    <div class="qbt-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="qbt-status-screen">
+    <div class="qbt-spinner"></div>
+    <div class="qbt-icon-large">🌊</div>
+    <div class="qbt-status-text">qBittorrent başlatılıyor...</div>
+    <div class="qbt-sub-text">Torrent istemcisi hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="qbt-status-screen qbt-error">
+    <div class="qbt-icon-large">⚠️</div>
+    <div class="qbt-status-text">Bir hata oluştu</div>
+    <div class="qbt-error-msg">{{ errorMsg }}</div>
+    <div class="qbt-actions">
+      <button class="qbt-btn qbt-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="qbt-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="qbt-running">
+    <div class="qbt-toolbar">
+      <span class="qbt-info">🌊 qBittorrent — Port: {{ port }}</span>
+      <div class="qbt-toolbar-actions">
+        <button class="qbt-btn qbt-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="qbt-btn qbt-btn-small qbt-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="qbt-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="qbt-status-screen">
+    <div class="qbt-icon-large">🌊</div>
+    <div class="qbt-status-text">qBittorrent</div>
+    <div class="qbt-sub-text">Açık kaynak torrent istemcisi — µTorrent alternatifi</div>
+    <div class="qbt-features">
+      <div class="qbt-feature">📥 Torrent indirme ve yükleme</div>
+      <div class="qbt-feature">🔍 Entegre arama motoru</div>
+      <div class="qbt-feature">📊 Bant genişliği zamanlayıcı</div>
+      <div class="qbt-feature">🌐 Web tabanlı uzaktan kontrol</div>
+      <div class="qbt-feature">🔒 IP filtreleme ve şifreleme</div>
+    </div>
+    <button class="qbt-btn qbt-btn-primary qbt-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

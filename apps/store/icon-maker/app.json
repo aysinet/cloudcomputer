@@ -1,0 +1,68 @@
+{
+  "id": "icon-maker",
+  "name": "Icon Maker",
+  "icon": "🎯",
+  "color": "linear-gradient(135deg,#6c5ce7,#a29bfe)",
+  "type": "internal",
+  "size": {
+    "w": 860,
+    "h": 620
+  },
+  "global": false,
+  "description": "Piksel bazlı ikon düzenleyici — farklı boyutlarda ikon oluşturun",
+  "lang": {
+    "tr": {
+      "name": "İkon Yapıcı",
+      "description": "Piksel bazlı ikon düzenleyici — farklı boyutlarda ikon oluşturun"
+    },
+    "en": {
+      "name": "Icon Maker",
+      "description": "Pixel-based icon editor — create icons in various sizes"
+    },
+    "de": {
+      "name": "Icon Maker",
+      "description": "Pixelbasierter Icon-Editor — Icons in verschiedenen Größen erstellen"
+    },
+    "fr": {
+      "name": "Créateur d'icônes",
+      "description": "Éditeur d'icônes pixel — créez des icônes de différentes tailles"
+    },
+    "es": {
+      "name": "Creador de Iconos",
+      "description": "Editor de iconos basado en píxeles — crea iconos en varios tamaños"
+    },
+    "ru": {
+      "name": "Создатель иконок",
+      "description": "Пиксельный редактор иконок — создавайте иконки разных размеров"
+    },
+    "zh": {
+      "name": "图标制作器",
+      "description": "基于像素的图标编辑器 — 创建各种尺寸的图标"
+    },
+    "ja": {
+      "name": "アイコンメーカー",
+      "description": "ピクセルベースのアイコンエディタ — 様々なサイズのアイコンを作成"
+    },
+    "it": {
+      "name": "Creatore Icone",
+      "description": "Editor di icone basato su pixel — crea icone in varie dimensioni"
+    },
+    "ar": {
+      "name": "صانع الأيقونات",
+      "description": "محرر أيقونات بالبكسل — أنشئ أيقونات بأحجام مختلفة"
+    },
+    "ko": {
+      "name": "아이콘 메이커",
+      "description": "픽셀 기반 아이콘 편집기 — 다양한 크기의 아이콘 생성"
+    },
+    "hi": {
+      "name": "आइकन मेकर",
+      "description": "पिक्सेल आधारित आइकन संपादक — विभिन्न आकारों में आइकन बनाएं"
+    },
+    "pt": {
+      "name": "Criador de Ícones",
+      "description": "Editor de ícones baseado em pixels — crie ícones em vários tamanhos"
+    }
+  },
+  "category": "productivity"
+}

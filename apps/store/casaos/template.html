@@ -1,0 +1,54 @@
+<div class="casaos-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="co-status-screen">
+    <div class="co-spinner"></div>
+    <div class="co-icon-large">🏠</div>
+    <div class="co-status-text">{{ pullProgress }}</div>
+    <div class="co-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="co-status-screen">
+    <div class="co-spinner"></div>
+    <div class="co-icon-large">🏠</div>
+    <div class="co-status-text">CasaOS başlatılıyor...</div>
+    <div class="co-sub-text">Self-hosting platformu hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="co-status-screen co-error">
+    <div class="co-icon-large">⚠️</div>
+    <div class="co-status-text">Bir hata oluştu</div>
+    <div class="co-error-msg">{{ errorMsg }}</div>
+    <div class="co-actions">
+      <button class="co-btn co-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="co-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="co-running">
+    <div class="co-toolbar">
+      <span class="co-info">🏠 CasaOS — Port: {{ port }}</span>
+      <div class="co-toolbar-actions">
+        <button class="co-btn co-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="co-btn co-btn-small co-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="co-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="co-status-screen">
+    <div class="co-icon-large">🏠</div>
+    <div class="co-status-text">CasaOS</div>
+    <div class="co-sub-text">Docker tabanlı self-hosting işletim sistemi — kendi bulut sunucunuz</div>
+    <div class="co-feature-list">
+      <div class="co-feature">🐳 Docker konteyner yönetimi</div>
+      <div class="co-feature">📦 App Store ile kolay kurulum</div>
+      <div class="co-feature">📁 Dosya yönetimi</div>
+      <div class="co-feature">🔒 Güvenli self-hosting</div>
+    </div>
+    <button class="co-btn co-btn-primary co-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

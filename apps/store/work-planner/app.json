@@ -1,0 +1,68 @@
+{
+  "id": "work-planner",
+  "icon": "📊",
+  "name": "WorkPlanner",
+  "lang": {
+    "tr": {
+      "name": "İş Planlayıcı",
+      "description": "Gantt şeması, kişi atama ve Visio benzeri iş akışı planlama aracı"
+    },
+    "en": {
+      "name": "WorkPlanner",
+      "description": "Gantt chart, person assignment and Visio-like workflow planning tool"
+    },
+    "de": {
+      "name": "Arbeitsplaner",
+      "description": "Gantt-Diagramm, Personenzuweisung und Visio-ähnliches Workflow-Planungstool"
+    },
+    "fr": {
+      "name": "Planificateur",
+      "description": "Diagramme de Gantt, affectation et outil de planification de flux de travail"
+    },
+    "es": {
+      "name": "Planificador",
+      "description": "Diagrama de Gantt, asignación de personas y planificación de flujo de trabajo"
+    },
+    "ru": {
+      "name": "Планировщик",
+      "description": "Диаграмма Ганта, назначение исполнителей и планирование рабочих процессов"
+    },
+    "zh": {
+      "name": "工作规划器",
+      "description": "甘特图、人员分配和类似Visio的工作流程规划工具"
+    },
+    "ja": {
+      "name": "ワークプランナー",
+      "description": "ガントチャート、担当者割り当て、Visio風ワークフロー計画ツール"
+    },
+    "it": {
+      "name": "Pianificatore",
+      "description": "Diagramma di Gantt, assegnazione persone e pianificazione flussi di lavoro"
+    },
+    "ar": {
+      "name": "مخطط العمل",
+      "description": "مخطط جانت وتعيين الأشخاص وأداة تخطيط سير العمل"
+    },
+    "ko": {
+      "name": "워크플래너",
+      "description": "간트 차트, 담당자 배정 및 Visio 스타일 워크플로우 계획 도구"
+    },
+    "hi": {
+      "name": "वर्क प्लानर",
+      "description": "गैंट चार्ट, व्यक्ति असाइनमेंट और Visio जैसा वर्कफ़्लो प्लानिंग टूल"
+    },
+    "pt": {
+      "name": "Planejador",
+      "description": "Gráfico de Gantt, atribuição de pessoas e ferramenta de planejamento de fluxo de trabalho"
+    }
+  },
+  "color": "linear-gradient(135deg,#1e88e5,#7c4dff)",
+  "type": "internal",
+  "category": "productivity",
+  "version": "1.0.0",
+  "author": "CloudComputer",
+  "width": 1200,
+  "height": 700,
+  "singleInstance": true,
+  "global": false
+}

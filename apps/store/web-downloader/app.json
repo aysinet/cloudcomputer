@@ -1,0 +1,68 @@
+{
+  "id": "web-downloader",
+  "name": "Web İndirici",
+  "icon": "⬇️",
+  "color": "linear-gradient(135deg,#0277bd,#01579b)",
+  "type": "internal",
+  "size": {
+    "w": 980,
+    "h": 650
+  },
+  "global": false,
+  "description": "Web sitelerini tarayarak sayfa, resim, medya ve metin dosyalarını toplu indirin — derinlik limiti ve filtre desteği",
+  "lang": {
+    "tr": {
+      "name": "Web İndirici",
+      "description": "Web sitelerini tarayarak sayfa, resim, medya ve metin dosyalarını toplu indirin — derinlik limiti ve filtre desteği"
+    },
+    "en": {
+      "name": "Web Downloader",
+      "description": "Crawl websites and batch download pages, images, media and text files — with depth limit and filtering"
+    },
+    "de": {
+      "name": "Web-Downloader",
+      "description": "Websites crawlen und Seiten, Bilder, Medien und Textdateien herunterladen — mit Tiefenlimit und Filterung"
+    },
+    "fr": {
+      "name": "Téléchargeur Web",
+      "description": "Explorer les sites web et télécharger pages, images, médias et fichiers texte — avec limite de profondeur et filtrage"
+    },
+    "es": {
+      "name": "Descargador Web",
+      "description": "Rastrear sitios web y descargar páginas, imágenes, medios y archivos de texto — con límite de profundidad y filtrado"
+    },
+    "ru": {
+      "name": "Веб-загрузчик",
+      "description": "Обход сайтов и пакетная загрузка страниц, изображений, медиа и текстовых файлов — с ограничением глубины и фильтрацией"
+    },
+    "zh": {
+      "name": "网页下载器",
+      "description": "爬取网站并批量下载页面、图片、媒体和文本文件 — 支持深度限制和过滤"
+    },
+    "ja": {
+      "name": "Webダウンローダー",
+      "description": "Webサイトをクロールしてページ、画像、メディア、テキストファイルを一括ダウンロード — 深度制限とフィルタリング対応"
+    },
+    "it": {
+      "name": "Web Downloader",
+      "description": "Esplora siti web e scarica pagine, immagini, media e file di testo — con limite di profondità e filtraggio"
+    },
+    "ar": {
+      "name": "محمّل الويب",
+      "description": "استكشاف المواقع وتنزيل الصفحات والصور والوسائط والملفات النصية — مع حد العمق والتصفية"
+    },
+    "ko": {
+      "name": "웹 다운로더",
+      "description": "웹사이트를 크롤링하여 페이지, 이미지, 미디어 및 텍스트 파일을 일괄 다운로드 — 깊이 제한 및 필터링 지원"
+    },
+    "hi": {
+      "name": "वेब डाउनलोडर",
+      "description": "वेबसाइटों को क्रॉल करें और पेज, इमेज, मीडिया और टेक्स्ट फ़ाइलें बैच डाउनलोड करें — गहराई सीमा और फ़िल्टरिंग के साथ"
+    },
+    "pt": {
+      "name": "Web Downloader",
+      "description": "Rastreie sites e baixe páginas, imagens, mídia e arquivos de texto em lote — com limite de profundidade e filtragem"
+    }
+  },
+  "category": "internet"
+}

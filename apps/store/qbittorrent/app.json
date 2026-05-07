@@ -1,0 +1,83 @@
+{
+  "id": "qbittorrent",
+  "name": "qBittorrent",
+  "icon": "🌊",
+  "color": "linear-gradient(135deg,#2980b9,#1a5276)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Docker tabanlı açık kaynak torrent istemcisi (qBittorrent)",
+  "lang": {
+    "tr": {
+      "name": "qBittorrent",
+      "description": "Docker tabanlı açık kaynak torrent istemcisi — µTorrent alternatifi"
+    },
+    "en": {
+      "name": "qBittorrent",
+      "description": "Docker-based open-source torrent client — µTorrent alternative"
+    },
+    "de": {
+      "name": "qBittorrent",
+      "description": "Docker-basierter Open-Source-Torrent-Client — µTorrent-Alternative"
+    },
+    "fr": {
+      "name": "qBittorrent",
+      "description": "Client torrent open-source basé sur Docker — alternative à µTorrent"
+    },
+    "es": {
+      "name": "qBittorrent",
+      "description": "Cliente torrent de código abierto basado en Docker — alternativa a µTorrent"
+    },
+    "ru": {
+      "name": "qBittorrent",
+      "description": "Торрент-клиент с открытым исходным кодом на Docker — альтернатива µTorrent"
+    },
+    "zh": {
+      "name": "qBittorrent",
+      "description": "基于 Docker 的开源 Torrent 客户端"
+    },
+    "ja": {
+      "name": "qBittorrent",
+      "description": "Docker ベースのオープンソース Torrent クライアント"
+    },
+    "it": {
+      "name": "qBittorrent",
+      "description": "Client torrent open-source basato su Docker"
+    },
+    "ar": {
+      "name": "كيو بت تورنت",
+      "description": "عميل تورنت مفتوح المصدر يعتمد على Docker — بديل µTorrent"
+    },
+    "ko": {
+      "name": "큐비트토렌트",
+      "description": "Docker 기반 오픈소스 토렌트 클라이언트 — µTorrent 대안"
+    },
+    "hi": {
+      "name": "क्यूबिटोरेंट",
+      "description": "Docker-आधारित ओपन-सोर्स टोरेंट क्लाइंट — µTorrent विकल्प"
+    },
+    "pt": {
+      "name": "qBittorrent",
+      "description": "Cliente torrent de código aberto baseado em Docker — alternativa ao µTorrent"
+    }
+  },
+  "category": "tools",
+  "docker": {
+    "image": "lscr.io/linuxserver/qbittorrent:latest",
+    "containerPort": 8080,
+    "volumes": [
+      "${APP_VOLUME}:/config",
+      "${DATA_VOLUME}:/downloads"
+    ],
+    "env": [
+      "PUID=1000",
+      "PGID=1000",
+      "TZ=Etc/UTC",
+      "WEBUI_PORT=8080"
+    ]
+  }
+}

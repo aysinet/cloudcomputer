@@ -181,8 +181,8 @@ app.post('/pull', authCheck, async (req, res) => {
 
 // ── Run container ──
 app.post('/run', authCheck, async (req, res) => {
-  const { image, appId, containerPort, network, volumes, env, restart, cmd } = req.body;
-  console.log(`[RUN] Request: appId=${appId} image=${image} containerPort=${containerPort}`);
+  const { image, appId, containerPort, network, volumes, env, restart, cmd, extraPorts } = req.body;
+  console.log(`[RUN] Request: appId=${appId} image=${image} containerPort=${containerPort} extraPorts=${JSON.stringify(extraPorts || [])}`);
   console.log(`[RUN] Volumes:`, volumes || '(none)');
   console.log(`[RUN] Env:`, env || '(none)');
 
@@ -234,6 +234,21 @@ app.post('/run', authCheck, async (req, res) => {
       '-p', `${hostPort}:${cPort}`
     ];
 
+    // Handle extra port mappings (e.g. Neo4j needs both 7474 and 7687)
+    const extraPortMappings = [];
+    if (Array.isArray(extraPorts)) {
+      for (const ep of extraPorts) {
+        const extraContainerPort = parseInt(ep, 10);
+        if (!extraContainerPort || extraContainerPort < 1 || extraContainerPort > 65535) continue;
+        const extraHostPort = findAvailablePort();
+        portAllocations[appId + ':' + extraContainerPort] = extraHostPort;
+        savePortAllocations();
+        args.push('-p', `${extraHostPort}:${extraContainerPort}`);
+        extraPortMappings.push({ containerPort: extraContainerPort, hostPort: extraHostPort });
+        console.log(`[RUN] Extra port allocated: ${extraHostPort}:${extraContainerPort}`);
+      }
+    }
+
     // Add restart policy
     const validRestart = ['no', 'always', 'unless-stopped', 'on-failure'];
     if (restart && validRestart.includes(restart)) {
@@ -281,7 +296,8 @@ app.post('/run', authCheck, async (req, res) => {
       containerId: containerId.substring(0, 12),
       containerName,
       hostPort,
-      internalUrl: `http://${containerName}:${cPort}`
+      internalUrl: `http://${containerName}:${cPort}`,
+      extraPortMappings
     };
     containers[appId] = info;
 
@@ -310,6 +326,10 @@ app.post('/stop', authCheck, async (req, res) => {
     await dockerExec(['rm', '-f', containerName]);
     delete containers[appId];
     delete portAllocations[appId];
+    // Clean up extra port allocations
+    for (const key of Object.keys(portAllocations)) {
+      if (key.startsWith(appId + ':')) delete portAllocations[key];
+    }
     savePortAllocations();
     console.log(`[STOP] OK: ${containerName} removed`);
     res.json({ ok: true });
@@ -345,19 +365,23 @@ app.get('/status/:appId', authCheck, async (req, res) => {
   const containerName = `cloudpc-${appId}`;
   try {
     const out = await dockerExec(['inspect', '-f',
-      '{{.State.Running}}||{{range $p, $conf := .NetworkSettings.Ports}}{{$p}}={{(index $conf 0).HostPort}}{{end}}||{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}||{{json .Config.ExposedPorts}}',
+      '{{.State.Running}}||{{range $p, $conf := .NetworkSettings.Ports}}{{$p}}={{(index $conf 0).HostPort}},{{end}}||{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}||{{json .Config.ExposedPorts}}',
       containerName]);
     const parts = out.split('||');
     const running = parts[0] === 'true';
 
-    // Extract host port from port bindings (e.g. "4533/tcp=9001")
+    // Extract host port from port bindings (e.g. "7474/tcp=9001,7687/tcp=9002,")
     let hostPort = null;
     let containerPort = 80;
+    const portMappings = {};
     if (parts[1]) {
-      const portMatch = parts[1].match(/(\d+)\/tcp=(\d+)/);
-      if (portMatch) {
-        containerPort = parseInt(portMatch[1], 10);
-        hostPort = parseInt(portMatch[2], 10);
+      const allMatches = [...parts[1].matchAll(/(\d+)\/tcp=(\d+)/g)];
+      if (allMatches.length > 0) {
+        containerPort = parseInt(allMatches[0][1], 10);
+        hostPort = parseInt(allMatches[0][2], 10);
+      }
+      for (const m of allMatches) {
+        portMappings[parseInt(m[1], 10)] = parseInt(m[2], 10);
       }
     }
 
@@ -377,13 +401,14 @@ app.get('/status/:appId', authCheck, async (req, res) => {
       };
     }
 
-    console.log(`[STATUS] ${containerName}: running=${running} hostPort=${hostPort} containerPort=${containerPort}`);
+    console.log(`[STATUS] ${containerName}: running=${running} hostPort=${hostPort} containerPort=${containerPort} portMappings=${JSON.stringify(portMappings)}`);
     res.json({
       running,
       containerId: info.containerId || null,
       containerName,
       hostPort,
-      internalUrl
+      internalUrl,
+      portMappings
     });
   } catch (e) {
     console.log(`[STATUS] ${containerName}: not found (${e.message})`);

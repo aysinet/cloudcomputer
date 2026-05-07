@@ -1,0 +1,231 @@
+.webdl-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.webdl-header {
+  background: #16213e;
+  border-bottom: 1px solid #0f3460;
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+.webdl-url-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.webdl-url-input {
+  flex: 1;
+}
+.webdl-options-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.webdl-opt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.webdl-opt label {
+  font-size: 10px;
+  color: #8899aa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.webdl-filter-select {
+  width: 180px;
+}
+
+/* ── Progress ── */
+.webdl-progress {
+  padding: 8px 12px;
+  background: #0f3460;
+  border-bottom: 1px solid #1a4080;
+}
+.webdl-progress-info {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+.webdl-progress-info strong {
+  color: #4fc3f7;
+}
+.webdl-error-count {
+  color: #ef5350 !important;
+}
+
+/* ── Results ── */
+.webdl-results {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.webdl-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  background: #1e2a4a;
+  border-bottom: 1px solid #0f3460;
+}
+.webdl-count {
+  font-size: 12px;
+  color: #8899aa;
+}
+.webdl-table-wrap {
+  flex: 1;
+  overflow: auto;
+}
+.webdl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.webdl-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.webdl-table th {
+  background: #16213e;
+  color: #8899aa;
+  padding: 6px 8px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #0f3460;
+  white-space: nowrap;
+}
+.webdl-th-check {
+  width: 36px;
+}
+.webdl-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(15,52,96,0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+.webdl-table tr:hover {
+  background: rgba(79,195,247,0.05);
+}
+.webdl-row-done {
+  background: rgba(76,175,80,0.05);
+}
+.webdl-row-err {
+  background: rgba(239,83,80,0.05);
+}
+.webdl-cell-name {
+  max-width: 200px;
+  color: #e0e0e0;
+  font-weight: 500;
+}
+.webdl-cell-url {
+  max-width: 280px;
+  color: #6688aa;
+  font-size: 11px;
+}
+
+/* ── Badges ── */
+.webdl-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.webdl-type-html { background: #1565c0; color: #fff; }
+.webdl-type-images { background: #6a1b9a; color: #fff; }
+.webdl-type-media { background: #e65100; color: #fff; }
+.webdl-type-text { background: #2e7d32; color: #fff; }
+.webdl-type-pdf { background: #c62828; color: #fff; }
+.webdl-type-archives { background: #4e342e; color: #fff; }
+
+/* ── Status ── */
+.webdl-status-done { color: #4caf50; font-weight: bold; }
+.webdl-status-err { color: #ef5350; font-weight: bold; cursor: help; }
+.webdl-status-dl { color: #ffa726; }
+.webdl-status-pending { color: #546e7a; }
+
+/* ── Pagination ── */
+.webdl-pagination {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  border-top: 1px solid #0f3460;
+}
+
+/* ── Empty State ── */
+.webdl-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #546e7a;
+  gap: 8px;
+}
+.webdl-empty-icon {
+  font-size: 48px;
+  opacity: 0.5;
+}
+.webdl-empty p {
+  font-size: 14px;
+  max-width: 320px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ── Log ── */
+.webdl-log {
+  max-height: 120px;
+  border-top: 1px solid #0f3460;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.webdl-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  background: #16213e;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8899aa;
+}
+.webdl-log-body {
+  overflow-y: auto;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  flex: 1;
+}
+.webdl-log-line {
+  padding: 1px 0;
+  display: flex;
+  gap: 8px;
+}
+.webdl-log-time {
+  color: #546e7a;
+  min-width: 60px;
+}
+.webdl-log-info { color: #90a4ae; }
+.webdl-log-success { color: #4caf50; }
+.webdl-log-warning { color: #ffa726; }
+.webdl-log-error { color: #ef5350; }

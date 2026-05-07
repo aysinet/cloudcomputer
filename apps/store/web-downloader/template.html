@@ -1,0 +1,141 @@
+<div class="webdl-app">
+  <!-- Header / Config Bar -->
+  <div class="webdl-header">
+    <div class="webdl-url-row">
+      <el-input v-model="config.url" :placeholder="t('urlPlaceholder')" size="small" class="webdl-url-input" :disabled="crawling" @keyup.enter="startCrawl">
+        <template #prepend>🌐</template>
+      </el-input>
+      <el-button type="primary" size="small" @click="startCrawl" :loading="crawling" :disabled="!config.url.trim()">
+        {{ crawling ? t('crawling') : t('start') }}
+      </el-button>
+      <el-button type="danger" size="small" @click="stopCrawl" :disabled="!crawling" plain>
+        {{ t('stop') }}
+      </el-button>
+      <el-button size="small" @click="clearResults" :disabled="crawling || !results.length" plain>
+        {{ t('clear') }}
+      </el-button>
+    </div>
+
+    <!-- Options Row -->
+    <div class="webdl-options-row">
+      <div class="webdl-opt">
+        <label>{{ t('depthLimit') }}</label>
+        <el-input-number v-model="config.maxDepth" :min="1" :max="10" size="small" controls-position="right" :disabled="crawling" />
+      </div>
+      <div class="webdl-opt">
+        <label>{{ t('maxPages') }}</label>
+        <el-input-number v-model="config.maxPages" :min="1" :max="5000" :step="10" size="small" controls-position="right" :disabled="crawling" />
+      </div>
+      <div class="webdl-opt">
+        <label>{{ t('sameDomain') }}</label>
+        <el-switch v-model="config.sameDomain" size="small" :disabled="crawling" />
+      </div>
+      <div class="webdl-opt">
+        <label>{{ t('fileFilter') }}</label>
+        <el-select v-model="config.filters" multiple collapse-tags size="small" :placeholder="t('allFiles')" :disabled="crawling" class="webdl-filter-select">
+          <el-option value="html" label="HTML" />
+          <el-option value="images" :label="t('images')" />
+          <el-option value="media" :label="t('media')" />
+          <el-option value="text" :label="t('textFiles')" />
+          <el-option value="pdf" label="PDF" />
+          <el-option value="archives" :label="t('archives')" />
+        </el-select>
+      </div>
+      <div class="webdl-opt">
+        <label>{{ t('urlPattern') }}</label>
+        <el-input v-model="config.urlPattern" :placeholder="t('urlPatternHint')" size="small" :disabled="crawling" style="width:180px" />
+      </div>
+      <div class="webdl-opt">
+        <label>{{ t('maxFileSize') }}</label>
+        <el-input-number v-model="config.maxFileSize" :min="0" :max="10240" :step="1" size="small" controls-position="right" :disabled="crawling" :placeholder="t('maxFileSizeHint')" />
+      </div>
+      <div class="webdl-opt">
+        <label>{{ t('saveTo') }}</label>
+        <el-input v-model="config.savePath" size="small" :disabled="crawling" style="width:160px" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="webdl-progress" v-if="crawling || progress.total > 0">
+    <div class="webdl-progress-info">
+      <span>{{ t('scanned') }}: <strong>{{ progress.scanned }}</strong></span>
+      <span>{{ t('found') }}: <strong>{{ progress.total }}</strong></span>
+      <span>{{ t('downloaded') }}: <strong>{{ progress.downloaded }}</strong></span>
+      <span>{{ t('errors') }}: <strong class="webdl-error-count">{{ progress.errors }}</strong></span>
+      <span>{{ t('depth') }}: <strong>{{ progress.currentDepth }}</strong>/{{ config.maxDepth }}</span>
+    </div>
+    <el-progress :percentage="progressPercent" :stroke-width="6" :show-text="false" />
+  </div>
+
+  <!-- Results Table -->
+  <div class="webdl-results">
+    <div class="webdl-toolbar" v-if="results.length">
+      <el-checkbox v-model="selectAll" @change="toggleSelectAll" :indeterminate="isIndeterminate" size="small">{{ t('selectAll') }}</el-checkbox>
+      <span class="webdl-count">{{ selectedCount }}/{{ results.length }} {{ t('selected') }}</span>
+      <el-button size="small" type="success" @click="downloadSelected" :disabled="selectedCount === 0 || downloading" :loading="downloading">
+        ⬇️ {{ t('downloadSelected') }}
+      </el-button>
+      <el-button size="small" @click="exportList" :disabled="!results.length">
+        📋 {{ t('exportList') }}
+      </el-button>
+    </div>
+
+    <div class="webdl-table-wrap" v-if="results.length">
+      <table class="webdl-table">
+        <thead>
+          <tr>
+            <th class="webdl-th-check"><el-checkbox v-model="selectAll" @change="toggleSelectAll" :indeterminate="isIndeterminate" size="small" /></th>
+            <th>{{ t('fileName') }}</th>
+            <th>{{ t('type') }}</th>
+            <th>{{ t('size') }}</th>
+            <th>{{ t('depth') }}</th>
+            <th>{{ t('status') }}</th>
+            <th>URL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(item, idx) in pagedResults" :key="idx" :class="{'webdl-row-err': item.status === 'error', 'webdl-row-done': item.status === 'done'}">
+            <td><el-checkbox v-model="item.selected" size="small" /></td>
+            <td class="webdl-cell-name" :title="item.fileName">{{ item.fileName }}</td>
+            <td><span class="webdl-badge" :class="'webdl-type-' + item.type">{{ item.type }}</span></td>
+            <td>{{ item.sizeStr || '—' }}</td>
+            <td>{{ item.depth }}</td>
+            <td>
+              <span v-if="item.status === 'done'" class="webdl-status-done">✓</span>
+              <span v-else-if="item.status === 'error'" class="webdl-status-err" :title="item.error">✗</span>
+              <span v-else-if="item.status === 'downloading'" class="webdl-status-dl">⏳</span>
+              <span v-else class="webdl-status-pending">●</span>
+            </td>
+            <td class="webdl-cell-url" :title="item.url">{{ item.url }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="webdl-pagination" v-if="results.length > pageSize">
+      <el-pagination small layout="prev, pager, next" :total="results.length" :page-size="pageSize" v-model:current-page="currentPage" />
+    </div>
+
+    <!-- Empty State -->
+    <div class="webdl-empty" v-if="!results.length && !crawling">
+      <div class="webdl-empty-icon">⬇️</div>
+      <p>{{ t('emptyDesc') }}</p>
+    </div>
+  </div>
+
+  <!-- Log Panel -->
+  <div class="webdl-log" v-if="logs.length">
+    <div class="webdl-log-header">
+      <span>{{ t('log') }}</span>
+      <el-button size="small" text @click="logs = []">{{ t('clearLog') }}</el-button>
+    </div>
+    <div class="webdl-log-body">
+      <div v-for="(log, i) in logs.slice(-50)" :key="i" class="webdl-log-line" :class="'webdl-log-' + log.type">
+        <span class="webdl-log-time">{{ log.time }}</span>
+        <span>{{ log.msg }}</span>
+      </div>
+    </div>
+  </div>
+</div>

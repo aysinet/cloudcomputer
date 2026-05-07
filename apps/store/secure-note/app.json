@@ -1,0 +1,26 @@
+{
+  "id": "secure-note",
+  "name": "SecureNote",
+  "icon": "🔒",
+  "color": "linear-gradient(135deg,#0d47a1,#1565c0)",
+  "type": "internal",
+  "size": { "w": 920, "h": 650 },
+  "global": false,
+  "description": "Şifreli not defteri — AES-256 şifreleme, medya desteği, etiketler",
+  "category": "tools",
+  "lang": {
+    "tr": { "name": "SecureNote", "description": "Şifreli not defteri — AES-256 şifreleme, medya desteği, etiketler" },
+    "en": { "name": "SecureNote", "description": "Encrypted notebook — AES-256 encryption, media support, tags" },
+    "de": { "name": "SecureNote", "description": "Verschlüsseltes Notizbuch — AES-256 Verschlüsselung, Medienunterstützung, Tags" },
+    "fr": { "name": "SecureNote", "description": "Notes sécurisées — chiffrement AES-256, support médias, étiquettes" },
+    "es": { "name": "SecureNote", "description": "Notas seguras — cifrado AES-256, soporte multimedia, etiquetas" },
+    "ru": { "name": "SecureNote", "description": "Защищённые заметки — шифрование AES-256, медиа, теги" },
+    "zh": { "name": "SecureNote", "description": "加密笔记 — AES-256加密、媒体支持、标签" },
+    "ja": { "name": "SecureNote", "description": "暗号化ノート — AES-256暗号化、メディアサポート、タグ" },
+    "it": { "name": "SecureNote", "description": "Note sicure — crittografia AES-256, supporto media, tag" },
+    "ar": { "name": "SecureNote", "description": "ملاحظات آمنة — تشفير AES-256، دعم الوسائط، العلامات" },
+    "ko": { "name": "SecureNote", "description": "보안 노트 — AES-256 암호화, 미디어 지원, 태그" },
+    "hi": { "name": "SecureNote", "description": "सुरक्षित नोट्स — AES-256 एन्क्रिप्शन, मीडिया सपोर्ट, टैग" },
+    "pt": { "name": "SecureNote", "description": "Notas seguras — criptografia AES-256, suporte a mídia, tags" }
+  }
+}

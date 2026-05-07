@@ -1,0 +1,68 @@
+{
+  "id": "tile-maker",
+  "name": "TileMaker",
+  "icon": "🧱",
+  "color": "linear-gradient(135deg,#6c5ce7,#00cec9)",
+  "type": "internal",
+  "size": {
+    "w": 960,
+    "h": 680
+  },
+  "global": false,
+  "description": "Pixel tabanlı tile editörü — düz ve izometrik tile oluşturma",
+  "category": "productivity",
+  "lang": {
+    "tr": {
+      "name": "TileMaker",
+      "description": "Pixel tabanlı tile editörü — düz ve izometrik tile oluşturma"
+    },
+    "en": {
+      "name": "TileMaker",
+      "description": "Pixel-based tile editor — flat and isometric tile creation"
+    },
+    "de": {
+      "name": "TileMaker",
+      "description": "Pixelbasierter Tile-Editor — flache und isometrische Tiles erstellen"
+    },
+    "fr": {
+      "name": "TileMaker",
+      "description": "Éditeur de tuiles pixel — création de tuiles plates et isométriques"
+    },
+    "es": {
+      "name": "TileMaker",
+      "description": "Editor de tiles por píxeles — creación de tiles planos e isométricos"
+    },
+    "ru": {
+      "name": "TileMaker",
+      "description": "Пиксельный редактор тайлов — создание плоских и изометрических тайлов"
+    },
+    "zh": {
+      "name": "瓦片制作器",
+      "description": "像素瓦片编辑器 — 创建平面和等距瓦片"
+    },
+    "ja": {
+      "name": "タイルメーカー",
+      "description": "ピクセルベースのタイルエディタ — フラット＆アイソメトリックタイル作成"
+    },
+    "it": {
+      "name": "TileMaker",
+      "description": "Editor di tile pixel — creazione tile piatti e isometrici"
+    },
+    "ar": {
+      "name": "صانع البلاط",
+      "description": "محرر بلاط بكسل — إنشاء بلاط مسطح ومتساوي القياس"
+    },
+    "ko": {
+      "name": "타일메이커",
+      "description": "픽셀 기반 타일 편집기 — 평면 및 아이소메트릭 타일 제작"
+    },
+    "hi": {
+      "name": "टाइलमेकर",
+      "description": "पिक्सेल आधारित टाइल एडिटर — फ्लैट और आइसोमेट्रिक टाइल बनाएं"
+    },
+    "pt": {
+      "name": "TileMaker",
+      "description": "Editor de tiles baseado em pixels — criação de tiles planos e isométricos"
+    }
+  }
+}

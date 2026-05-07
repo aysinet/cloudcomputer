@@ -1,0 +1,111 @@
+.wp-app {
+  display: flex; flex-direction: column; height: 100%; background: #0f1219; color: #e1e4ea; font-family: 'Segoe UI', sans-serif; overflow: hidden;
+}
+.wp-header {
+  display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,.08); background: #161b26; flex-shrink: 0;
+}
+.wp-tabs { display: flex; gap: 4px; }
+.wp-tab {
+  padding: 6px 14px; border-radius: 6px; border: none; background: transparent; color: #94a3b8; cursor: pointer; font-size: 13px; transition: all .15s;
+}
+.wp-tab:hover { background: rgba(255,255,255,.06); color: #e1e4ea; }
+.wp-tab.active { background: #1e88e5; color: #fff; }
+.wp-header-actions { display: flex; gap: 8px; align-items: center; }
+
+/* GANTT */
+.wp-gantt-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.wp-gantt-toolbar { padding: 8px 16px; display: flex; gap: 10px; align-items: center; border-bottom: 1px solid rgba(255,255,255,.06); }
+.wp-gantt { flex: 1; display: flex; flex-direction: column; overflow: auto; }
+.wp-gantt-header { display: flex; position: sticky; top: 0; z-index: 2; background: #161b26; border-bottom: 1px solid rgba(255,255,255,.1); }
+.wp-gantt-sidebar-header { width: 220px; min-width: 220px; padding: 8px 12px; font-size: 12px; font-weight: 600; color: #94a3b8; border-right: 1px solid rgba(255,255,255,.08); }
+.wp-gantt-timeline-header { display: flex; overflow: hidden; }
+.wp-gantt-date-cell { font-size: 10px; text-align: center; padding: 6px 0; color: #64748b; border-right: 1px solid rgba(255,255,255,.03); flex-shrink: 0; }
+.wp-gantt-date-cell.weekend { background: rgba(255,255,255,.02); }
+.wp-gantt-date-cell.today { background: rgba(30,136,229,.15); color: #1e88e5; font-weight: 600; }
+.wp-gantt-body { flex: 1; }
+.wp-gantt-row { display: flex; border-bottom: 1px solid rgba(255,255,255,.04); min-height: 40px; }
+.wp-gantt-sidebar-cell {
+  width: 220px; min-width: 220px; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center;
+  border-right: 1px solid rgba(255,255,255,.08); cursor: pointer; transition: background .15s;
+}
+.wp-gantt-sidebar-cell:hover { background: rgba(255,255,255,.04); }
+.wp-task-name { font-size: 12px; color: #e1e4ea; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wp-task-assignee { font-size: 10px; color: #64748b; margin-top: 2px; }
+.wp-gantt-timeline-row { flex: 1; position: relative; display: flex; overflow: hidden; }
+.wp-gantt-grid { display: flex; position: absolute; inset: 0; }
+.wp-gantt-grid-cell { border-right: 1px solid rgba(255,255,255,.03); flex-shrink: 0; }
+.wp-gantt-grid-cell.weekend { background: rgba(255,255,255,.015); }
+.wp-gantt-grid-cell.today { background: rgba(30,136,229,.08); }
+.wp-gantt-bar {
+  position: absolute; top: 8px; height: 24px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; overflow: hidden; transition: opacity .15s;
+}
+.wp-gantt-bar:hover { opacity: .85; }
+.wp-gantt-bar-progress { position: absolute; left:0; top:0; bottom:0; background: rgba(255,255,255,.2); border-radius: 4px; }
+.wp-gantt-bar-label { position: relative; z-index: 1; padding: 0 8px; font-size: 10px; color: #fff; white-space: nowrap; }
+
+/* BOARD */
+.wp-board-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.wp-board-toolbar { padding: 8px 16px; display: flex; gap: 10px; align-items: center; border-bottom: 1px solid rgba(255,255,255,.06); }
+.wp-board { display: flex; flex: 1; gap: 12px; padding: 12px 16px; overflow-x: auto; }
+.wp-board-col { min-width: 260px; width: 260px; background: #161b26; border-radius: 10px; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,.06); }
+.wp-board-col-header { padding: 10px 14px; font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; border-top: 3px solid #409eff; border-radius: 10px 10px 0 0; }
+.wp-board-count { background: rgba(255,255,255,.08); padding: 2px 8px; border-radius: 10px; font-size: 11px; color: #94a3b8; }
+.wp-board-cards { flex: 1; padding: 8px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; min-height: 80px; }
+.wp-board-card {
+  background: #1e2432; border-radius: 8px; padding: 10px 12px; cursor: pointer; border: 1px solid rgba(255,255,255,.06); transition: all .15s;
+}
+.wp-board-card:hover { border-color: rgba(30,136,229,.4); transform: translateY(-1px); }
+.wp-board-card[draggable] { cursor: grab; }
+.wp-card-title { font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+.wp-card-meta { display: flex; gap: 8px; font-size: 11px; color: #94a3b8; margin-bottom: 4px; }
+.wp-card-dates { font-size: 10px; color: #64748b; margin-bottom: 6px; }
+.wp-card-progress { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #64748b; }
+.wp-progress-bar { flex: 1; height: 4px; background: rgba(255,255,255,.08); border-radius: 2px; overflow: hidden; }
+.wp-progress-fill { height: 100%; background: #1e88e5; border-radius: 2px; transition: width .3s; }
+
+/* FLOW (Visio-like) */
+.wp-flow-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.wp-flow-toolbar { padding: 8px 16px; display: flex; gap: 8px; align-items: center; border-bottom: 1px solid rgba(255,255,255,.06); flex-wrap: wrap; }
+.wp-flow-canvas-wrap { flex: 1; position: relative; overflow: hidden; background: #0a0e17; cursor: default; }
+.wp-flow-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; transform-origin: 0 0; }
+.wp-flow-svg line, .wp-flow-svg text { pointer-events: all; }
+.wp-flow-edge { stroke: #475569; stroke-width: 2; cursor: pointer; }
+.wp-flow-edge.selected { stroke: #1e88e5; stroke-width: 3; }
+.wp-flow-edge-label { fill: #94a3b8; font-size: 11px; text-anchor: middle; }
+.wp-flow-connect-preview { stroke: #1e88e5; stroke-width: 2; stroke-dasharray: 6 3; }
+.wp-flow-nodes { position: absolute; inset: 0; transform-origin: 0 0; }
+.wp-flow-node {
+  position: absolute; width: 140px; min-height: 50px; background: #1e2432; border: 2px solid #334155;
+  border-radius: 8px; padding: 8px 10px; cursor: grab; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; transition: border-color .15s, box-shadow .15s; user-select: none;
+}
+.wp-flow-node:hover { border-color: #475569; }
+.wp-flow-node.selected { border-color: #1e88e5; box-shadow: 0 0 0 3px rgba(30,136,229,.3); }
+.wp-node-task { border-radius: 8px; }
+.wp-node-decision { border-radius: 4px; transform: rotate(0deg); background: #1a2235; border-color: #f59e0b; }
+.wp-node-decision.selected { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.3); }
+.wp-node-start { border-radius: 50%; width: 70px; min-height: 70px; background: #10b981; border-color: #10b981; }
+.wp-node-end { border-radius: 50%; width: 70px; min-height: 70px; background: #ef4444; border-color: #ef4444; }
+.wp-node-icon { font-size: 16px; margin-bottom: 2px; }
+.wp-node-label { font-size: 11px; color: #e1e4ea; text-align: center; word-break: break-word; }
+.wp-node-assignee { font-size: 9px; color: #94a3b8; margin-top: 2px; }
+
+/* Members dialog */
+.wp-members-list { max-height: 300px; overflow-y: auto; margin-bottom: 12px; }
+.wp-member-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.wp-member-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 13px; }
+.wp-member-name { flex: 1; font-size: 13px; }
+.wp-member-role { font-size: 11px; color: #94a3b8; }
+.wp-member-add { display: flex; gap: 8px; align-items: center; }
+
+/* Empty states */
+.wp-empty { padding: 40px; text-align: center; color: #64748b; font-size: 13px; }
+.wp-empty-full { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #64748b; }
+.wp-empty-icon { font-size: 48px; opacity: .5; }
+.wp-empty-small { padding: 16px; text-align: center; color: #64748b; font-size: 12px; }
+
+/* Scrollbars */
+.wp-app ::-webkit-scrollbar { width: 6px; height: 6px; }
+.wp-app ::-webkit-scrollbar-track { background: transparent; }
+.wp-app ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 3px; }
+.wp-app ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.2); }

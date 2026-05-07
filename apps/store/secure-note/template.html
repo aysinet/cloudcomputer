@@ -1,0 +1,325 @@
+<div class="sn-root">
+  <!-- Toast -->
+  <div v-if="toast" class="sn-toast">{{toast}}</div>
+
+  <!-- Lock Screen -->
+  <div v-if="!unlocked" class="sn-lock">
+    <div class="sn-lock-icon">🔒</div>
+    <div class="sn-lock-title">SecureNote</div>
+    <div class="sn-lock-sub" v-if="!vaultExists">{{L('setMaster')}}</div>
+    <div class="sn-lock-sub" v-else>{{L('enterMaster')}}</div>
+    <div class="sn-lock-form">
+      <el-input v-model="masterPass" type="password" show-password :placeholder="L('masterPlaceholder')" @keyup.enter="unlock" style="width:280px;margin-bottom:8px;" />
+      <el-input v-if="!vaultExists" v-model="masterPassConfirm" type="password" show-password :placeholder="L('confirmPlaceholder')" @keyup.enter="unlock" style="width:280px;margin-bottom:8px;" />
+      <div v-if="lockError" class="sn-lock-err">{{lockError}}</div>
+      <el-button type="primary" :loading="loading" @click="unlock" style="width:280px;margin-top:4px;">
+        {{vaultExists ? L('unlockBtn') : L('createBtn')}}
+      </el-button>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <template v-else>
+    <div class="sn-layout">
+      <!-- Sidebar -->
+      <div class="sn-sidebar">
+        <div class="sn-sb-header">
+          <span class="sn-sb-logo">🔒</span>
+          <span class="sn-sb-title">SecureNote</span>
+        </div>
+
+        <!-- View filters -->
+        <div class="sn-sb-section">
+          <div class="sn-sb-item" :class="{active: view==='notes'}" @click="view='notes'; activeTag=''">
+            <span class="sn-sb-icon">📝</span><span class="sn-sb-text">{{L('notes')}}</span>
+            <span class="sn-sb-count">{{notes.length}}</span>
+          </div>
+          <div class="sn-sb-item" :class="{active: view==='media'}" @click="view='media'; activeTag=''">
+            <span class="sn-sb-icon">📎</span><span class="sn-sb-text">{{L('media')}}</span>
+            <span class="sn-sb-count">{{mediaFiles.length}}</span>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="sn-sb-section">
+          <div class="sn-sb-label">{{L('tags')}}</div>
+          <div class="sn-sb-item" :class="{active: activeTag===''}" @click="activeTag=''">
+            <span class="sn-sb-icon">🏷️</span><span class="sn-sb-text">{{L('allTags')}}</span>
+          </div>
+          <div v-for="tag in allTags" :key="tag"
+               class="sn-sb-item" :class="{active: activeTag===tag}" @click="activeTag=tag">
+            <span class="sn-sb-icon">•</span>
+            <span class="sn-sb-text">{{tag}}</span>
+            <span class="sn-sb-count">{{getTagCount(tag)}}</span>
+          </div>
+        </div>
+
+        <!-- Bottom Actions -->
+        <div class="sn-sb-bottom">
+          <div class="sn-sb-item" @click="showImportDialog=true">
+            <span class="sn-sb-icon">📥</span><span class="sn-sb-text">{{L('importBtn')}}</span>
+          </div>
+          <div class="sn-sb-item" @click="showExportDialog=true">
+            <span class="sn-sb-icon">📤</span><span class="sn-sb-text">{{L('exportBtn')}}</span>
+          </div>
+          <div class="sn-sb-item" @click="showChangePw=true">
+            <span class="sn-sb-icon">🔑</span><span class="sn-sb-text">{{L('changePwBtn')}}</span>
+          </div>
+          <div class="sn-sb-item" @click="lockVault">
+            <span class="sn-sb-icon">🔐</span><span class="sn-sb-text">{{L('lockBtn')}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="sn-main">
+        <!-- Toolbar -->
+        <div class="sn-toolbar">
+          <input class="sn-search" v-model="search" :placeholder="L('searchPlaceholder')" />
+          <button class="sn-tb-btn" @click="view==='notes' ? openAddNote() : triggerMediaUpload()" :title="view==='notes' ? L('addNote') : L('addMedia')">
+            ＋
+          </button>
+        </div>
+
+        <!-- Notes View -->
+        <div v-if="view==='notes'" class="sn-content">
+          <div v-if="filteredNotes.length===0" class="sn-empty">
+            <div class="sn-empty-icon">📝</div>
+            <div class="sn-empty-text">{{L('noNotes')}}</div>
+          </div>
+          <div class="sn-notes-grid">
+            <div v-for="note in filteredNotes" :key="note.id" class="sn-card" @click="openNoteDetail(note)">
+              <div class="sn-card-title">{{note.title || L('untitled')}}</div>
+              <div class="sn-card-preview">{{(note.content || '').substring(0, 120)}}</div>
+              <div class="sn-card-tags" v-if="note.tags && note.tags.length">
+                <span v-for="t in note.tags" :key="t" class="sn-tag-badge" @click.stop="activeTag=t">{{t}}</span>
+              </div>
+              <div class="sn-card-date">{{formatDate(note.updatedAt)}}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Media View -->
+        <div v-if="view==='media'" class="sn-content">
+          <div v-if="filteredMedia.length===0" class="sn-empty">
+            <div class="sn-empty-icon">📎</div>
+            <div class="sn-empty-text">{{L('noMedia')}}</div>
+          </div>
+          <div class="sn-media-grid">
+            <div v-for="m in filteredMedia" :key="m.id" class="sn-media-card" @click="openMediaDetail(m)">
+              <div class="sn-media-thumb">
+                <img v-if="m.thumbUrl" :src="m.thumbUrl" class="sn-media-img" />
+                <div v-else class="sn-media-icon">{{getMediaIcon(m.mimeType)}}</div>
+              </div>
+              <div class="sn-media-name" :title="m.name">{{m.name}}</div>
+              <div class="sn-card-tags" v-if="m.tags && m.tags.length">
+                <span v-for="t in m.tags" :key="t" class="sn-tag-badge" @click.stop="activeTag=t">{{t}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Note Editor Dialog -->
+    <el-dialog v-model="showNoteDialog" :title="editingNote.id ? L('editNote') : L('addNote')" width="560px" append-to-body>
+      <div class="sn-form">
+        <div class="sn-form-row">
+          <label class="sn-form-label">{{L('lblTitle')}}</label>
+          <el-input v-model="editingNote.title" :placeholder="L('titlePlaceholder')" maxlength="200" />
+        </div>
+        <div class="sn-form-row">
+          <label class="sn-form-label">{{L('lblContent')}}</label>
+          <el-input v-model="editingNote.content" type="textarea" :rows="8" :placeholder="L('contentPlaceholder')" maxlength="50000" />
+        </div>
+        <div class="sn-form-row">
+          <label class="sn-form-label">{{L('tags')}}</label>
+          <div class="sn-tag-input-area">
+            <span v-for="(t,i) in editingNote.tags" :key="i" class="sn-tag-chip">
+              {{t}} <span class="sn-tag-remove" @click="editingNote.tags.splice(i,1)">×</span>
+            </span>
+            <input class="sn-tag-input" v-model="tagInput" :placeholder="L('tagPlaceholder')" @keydown.enter.prevent="addTag" @keydown.tab.prevent="addTag" />
+          </div>
+          <div v-if="suggestedTags.length" class="sn-tag-suggestions">
+            <span v-for="st in suggestedTags" :key="st" class="sn-tag-suggest" @click="pickTag(st)">{{st}}</span>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <div class="sn-dialog-footer">
+          <el-button v-if="editingNote.id" type="danger" plain @click="deleteNote(editingNote)">{{L('delete')}}</el-button>
+          <el-button v-if="editingNote.id" plain @click="exportNoteTxt(editingNote)" title="TXT">📄</el-button>
+          <el-button v-if="editingNote.id" plain @click="exportNoteJson(editingNote)" title="JSON">📋</el-button>
+          <el-button v-if="editingNote.id" plain @click="openExportToServer('note', editingNote)" :title="L('exportToServer')">🖥️</el-button>
+          <span style="flex:1"></span>
+          <el-button @click="showNoteDialog=false">{{L('cancel')}}</el-button>
+          <el-button type="primary" @click="saveNote">{{L('save')}}</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- Media Detail Dialog -->
+    <el-dialog v-model="showMediaDialog" :title="mediaDetail ? mediaDetail.name : ''" width="620px" append-to-body>
+      <div v-if="mediaDetail" class="sn-media-detail">
+        <div v-if="mediaDetail.dataUrl && isImage(mediaDetail.mimeType)" class="sn-media-preview">
+          <img :src="mediaDetail.dataUrl" class="sn-media-full" />
+        </div>
+        <div v-else-if="mediaDetail.dataUrl && isAudio(mediaDetail.mimeType)" class="sn-media-preview">
+          <audio :src="mediaDetail.dataUrl" controls style="width:100%"></audio>
+        </div>
+        <div v-else-if="mediaDetail.dataUrl && isVideo(mediaDetail.mimeType)" class="sn-media-preview">
+          <video :src="mediaDetail.dataUrl" controls style="width:100%;max-height:360px;"></video>
+        </div>
+        <div v-else class="sn-media-preview sn-media-generic">
+          <div class="sn-media-big-icon">{{getMediaIcon(mediaDetail.mimeType)}}</div>
+          <div>{{mediaDetail.name}}</div>
+          <div class="sn-media-size">{{formatSize(mediaDetail.size)}}</div>
+        </div>
+        <div class="sn-form-row" style="margin-top:12px;">
+          <label class="sn-form-label">{{L('tags')}}</label>
+          <div class="sn-tag-input-area">
+            <span v-for="(t,i) in mediaDetail.tags" :key="i" class="sn-tag-chip">
+              {{t}} <span class="sn-tag-remove" @click="removeMediaTag(i)">×</span>
+            </span>
+            <input class="sn-tag-input" v-model="mediaTagInput" :placeholder="L('tagPlaceholder')" @keydown.enter.prevent="addMediaTag" @keydown.tab.prevent="addMediaTag" />
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <div class="sn-dialog-footer">
+          <el-button type="danger" plain @click="deleteMedia(mediaDetail)">{{L('delete')}}</el-button>
+          <el-button plain @click="openExportToServer('media', mediaDetail)" :title="L('exportToServer')">🖥️</el-button>
+          <span style="flex:1"></span>
+          <el-button @click="showMediaDialog=false">{{L('cancel')}}</el-button>
+          <el-button type="primary" @click="downloadMedia(mediaDetail)">{{L('download')}}</el-button>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- Change Password Dialog -->
+    <el-dialog v-model="showChangePw" :title="L('changePwTitle')" width="400px" append-to-body>
+      <div class="sn-form">
+        <div class="sn-form-row">
+          <label class="sn-form-label">{{L('currentPw')}}</label>
+          <el-input v-model="changePwCurrent" type="password" show-password />
+        </div>
+        <div class="sn-form-row">
+          <label class="sn-form-label">{{L('newPw')}}</label>
+          <el-input v-model="changePwNew" type="password" show-password />
+        </div>
+        <div class="sn-form-row">
+          <label class="sn-form-label">{{L('confirmNewPw')}}</label>
+          <el-input v-model="changePwConfirm" type="password" show-password />
+        </div>
+        <div v-if="changePwError" class="sn-lock-err" style="margin-top:8px;">{{changePwError}}</div>
+      </div>
+      <template #footer>
+        <el-button @click="showChangePw=false">{{L('cancel')}}</el-button>
+        <el-button type="primary" @click="changePassword">{{L('save')}}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- Hidden file input for media upload -->
+    <input type="file" ref="fileInputRef" style="display:none" multiple accept="image/*,audio/*,video/*,.pdf,.doc,.docx,.txt,.zip,.rar" @change="handleFileUpload" />
+
+    <!-- Hidden file input for import -->
+    <input type="file" ref="importFileInputRef" style="display:none" multiple accept=".txt,.md,.json,.html,.csv,.xml,.log,image/*,audio/*,video/*,.pdf,.doc,.docx,.zip,.rar" @change="handleImportFiles" />
+
+    <!-- Import Dialog -->
+    <el-dialog v-model="showImportDialog" :title="L('importBtn')" width="420px" append-to-body>
+      <div class="sn-io-options">
+        <div class="sn-io-option" @click="triggerImportFromDevice()">
+          <span class="sn-io-icon">📱</span>
+          <div class="sn-io-info">
+            <div class="sn-io-title">{{L('importFromDevice')}}</div>
+          </div>
+          <span class="sn-io-arrow">→</span>
+        </div>
+        <div class="sn-io-option" @click="openServerBrowser()">
+          <span class="sn-io-icon">🖥️</span>
+          <div class="sn-io-info">
+            <div class="sn-io-title">{{L('importFromServer')}}</div>
+          </div>
+          <span class="sn-io-arrow">→</span>
+        </div>
+      </div>
+    </el-dialog>
+
+    <!-- Export Dialog -->
+    <el-dialog v-model="showExportDialog" :title="L('exportBtn')" width="420px" append-to-body>
+      <div class="sn-io-options">
+        <div class="sn-io-option" @click="exportAllNotesJson(); showExportDialog=false">
+          <span class="sn-io-icon">💾</span>
+          <div class="sn-io-info">
+            <div class="sn-io-title">{{L('exportAllNotes')}}</div>
+          </div>
+          <span class="sn-io-arrow">→</span>
+        </div>
+        <div class="sn-io-option" @click="openExportToServer('allNotes', null)">
+          <span class="sn-io-icon">🖥️</span>
+          <div class="sn-io-info">
+            <div class="sn-io-title">{{L('exportAllToServer')}}</div>
+          </div>
+          <span class="sn-io-arrow">→</span>
+        </div>
+      </div>
+    </el-dialog>
+
+    <!-- Server File Browser Dialog -->
+    <el-dialog v-model="showServerBrowser" :title="L('serverFiles')" width="560px" append-to-body>
+      <div class="sn-file-browser">
+        <div class="sn-fb-path">
+          <el-button size="small" :disabled="!serverBrowserPath" @click="navigateServerUp()">⬆️</el-button>
+          <span class="sn-fb-pathtext">/{{serverBrowserPath}}</span>
+        </div>
+        <div class="sn-fb-list">
+          <div v-if="serverBrowseLoading" class="sn-empty" style="padding:24px 0">
+            <div class="sn-empty-text">...</div>
+          </div>
+          <div v-else-if="serverBrowserFiles.length === 0" class="sn-empty" style="padding:24px 0">
+            <div class="sn-empty-text">{{L('noFiles')}}</div>
+          </div>
+          <div v-else v-for="item in serverBrowserFiles" :key="item.path"
+               class="sn-fb-item" @click="importServerFile(item)">
+            <span class="sn-fb-icon">{{item.isDir ? '📁' : getFileIcon(item.ext)}}</span>
+            <span class="sn-fb-name">{{item.name}}</span>
+            <span class="sn-fb-size">{{item.isDir ? '' : formatSize(item.size)}}</span>
+          </div>
+        </div>
+      </div>
+    </el-dialog>
+
+    <!-- Export to Server Dialog -->
+    <el-dialog v-model="showExportToServer" :title="L('exportToServer')" width="560px" append-to-body>
+      <div class="sn-form">
+        <div class="sn-form-row">
+          <label class="sn-form-label">{{L('saveFileName')}}</label>
+          <el-input v-model="exportServerFileName" />
+        </div>
+        <div class="sn-form-row">
+          <label class="sn-form-label">📂 /{{exportServerPath}}</label>
+        </div>
+        <div class="sn-file-browser">
+          <div class="sn-fb-path">
+            <el-button size="small" :disabled="!serverBrowserPath" @click="navigateExportUp()">⬆️</el-button>
+            <span class="sn-fb-pathtext">/{{serverBrowserPath}}</span>
+          </div>
+          <div class="sn-fb-list" style="max-height:200px">
+            <div v-if="serverBrowseLoading" class="sn-empty" style="padding:16px 0">
+              <div class="sn-empty-text">...</div>
+            </div>
+            <div v-else v-for="item in serverBrowserFiles.filter(f => f.isDir)" :key="item.path"
+                 class="sn-fb-item" @click="selectExportDir(item)">
+              <span class="sn-fb-icon">📁</span>
+              <span class="sn-fb-name">{{item.name}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showExportToServer=false">{{L('cancel')}}</el-button>
+        <el-button type="primary" @click="executeExportToServer()">{{L('save')}}</el-button>
+      </template>
+    </el-dialog>
+  </template>
+</div>

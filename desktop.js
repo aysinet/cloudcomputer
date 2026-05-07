@@ -1111,6 +1111,7 @@ app.post('/api/services/install', authMiddleware, async (req, res) => {
       restart: 'always'
     };
     if (cmd) runBody.cmd = cmd;
+    if (Array.isArray(dockerConfig.extraPorts)) runBody.extraPorts = dockerConfig.extraPorts;
     const runData = await dmFetch('/run', {
       method: 'POST',
       body: JSON.stringify(runBody)
@@ -1129,6 +1130,7 @@ app.post('/api/services/install', authMiddleware, async (req, res) => {
     serviceConfigs[appId].port = runData.hostPort;
     serviceConfigs[appId].containerName = runData.containerName;
     serviceConfigs[appId].internalUrl = runData.internalUrl;
+    if (runData.extraPortMappings) serviceConfigs[appId].extraPortMappings = runData.extraPortMappings;
     if (cmd) serviceConfigs[appId].cmd = cmd;
     saveServiceConfigs(req.user.username, serviceConfigs);
 
@@ -1177,6 +1179,7 @@ app.get('/api/services/:id', authMiddleware, async (req, res) => {
     if (running && status.hostPort) {
       cfg.port = status.hostPort;
       cfg.internalUrl = status.internalUrl;
+      if (status.portMappings) cfg.portMappings = status.portMappings;
       saveServiceConfigs(req.user.username, serviceConfigs);
     }
   } catch {}
@@ -3161,7 +3164,7 @@ function sendUserWS(username, message) {
 // Domain → App mapping (from coordinator agent)
 const AI_DOMAIN_APPS = {
   files: ['fileman','archiver','backup-restore','disksize','gdrive','ftp-client','synchronizer'],
-  organizer: ['calendar','todo','kanban','reminder','scheduler','keepnote','postit','contacts'],
+  organizer: ['calendar','todo','kanban','reminder','scheduler','keepnote','postit','contacts','work-planner'],
   finance: ['budget','coin-tracker','stock-tracker','currency-converter','eth-wallet','solana-wallet','carpaper'],
   media: ['music-player','photos','audio-recorder','audio-editor','loopstudio'],
   communication: ['mail-app','notifications'],
@@ -3210,7 +3213,7 @@ function getRelevantTools(userMessage, contextAppId) {
     ['files','system','organizer'].forEach(d => (AI_DOMAIN_APPS[d] || []).forEach(a => matchedApps.add(a)));
   }
 
-  const filtered = Object.values(AI_TOOL_REGISTRY).filter(t => matchedApps.has(t.appId));
+  const filtered = Object.values(AI_TOOL_REGISTRY).filter(t => t.virtual || matchedApps.has(t.appId));
   // Cap at 64 tools max
   return filtered.slice(0, 64);
 }
@@ -4044,6 +4047,62 @@ function getUserDb(username) {
       FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
     );
     CREATE INDEX IF NOT EXISTS idx_cp_ins_vid ON carpaper_insurances(vehicle_id);
+
+    CREATE TABLE IF NOT EXISTS wp_projects (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS wp_members (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      role TEXT DEFAULT '',
+      color TEXT DEFAULT '#6366f1',
+      FOREIGN KEY (project_id) REFERENCES wp_projects(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_wp_members_proj ON wp_members(project_id);
+
+    CREATE TABLE IF NOT EXISTS wp_tasks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      assignee_id INTEGER DEFAULT NULL,
+      start_date TEXT DEFAULT '',
+      end_date TEXT DEFAULT '',
+      priority INTEGER DEFAULT 0,
+      progress INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'todo',
+      description TEXT DEFAULT '',
+      depends_on TEXT DEFAULT '[]',
+      sort_order INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (project_id) REFERENCES wp_projects(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_wp_tasks_proj ON wp_tasks(project_id);
+
+    CREATE TABLE IF NOT EXISTS wp_flow_nodes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      type TEXT DEFAULT 'task',
+      label TEXT DEFAULT '',
+      assignee_id INTEGER DEFAULT NULL,
+      x INTEGER DEFAULT 100,
+      y INTEGER DEFAULT 100,
+      FOREIGN KEY (project_id) REFERENCES wp_projects(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_wp_nodes_proj ON wp_flow_nodes(project_id);
+
+    CREATE TABLE IF NOT EXISTS wp_flow_edges (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      from_node INTEGER NOT NULL,
+      to_node INTEGER NOT NULL,
+      label TEXT DEFAULT '',
+      FOREIGN KEY (project_id) REFERENCES wp_projects(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_wp_edges_proj ON wp_flow_edges(project_id);
   `);
 
   /* Seed default budget categories if empty */
@@ -4351,6 +4410,147 @@ app.post('/api/kanban/import-todos', authMiddleware, (req, res) => {
   });
   tr();
   res.json({ imported: todos.length });
+});
+
+// #endregion
+// #region WorkPlanner API
+app.get('/api/workplanner/projects', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  res.json(db.prepare('SELECT * FROM wp_projects ORDER BY id DESC').all());
+});
+
+app.post('/api/workplanner/projects', authMiddleware, (req, res) => {
+  const { name } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: 'name required' });
+  const db = getUserDb(req.user.username);
+  const info = db.prepare('INSERT INTO wp_projects (name) VALUES (?)').run(name.trim().slice(0, 200));
+  res.json({ id: Number(info.lastInsertRowid), name: name.trim() });
+});
+
+app.delete('/api/workplanner/projects/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  const pid = parseInt(req.params.id);
+  db.prepare('DELETE FROM wp_flow_edges WHERE project_id = ?').run(pid);
+  db.prepare('DELETE FROM wp_flow_nodes WHERE project_id = ?').run(pid);
+  db.prepare('DELETE FROM wp_tasks WHERE project_id = ?').run(pid);
+  db.prepare('DELETE FROM wp_members WHERE project_id = ?').run(pid);
+  db.prepare('DELETE FROM wp_projects WHERE id = ?').run(pid);
+  res.json({ ok: true });
+});
+
+app.get('/api/workplanner/projects/:id/tasks', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  const pid = parseInt(req.params.id);
+  const rows = db.prepare(`SELECT t.*, m.name as assignee_name FROM wp_tasks t LEFT JOIN wp_members m ON t.assignee_id = m.id WHERE t.project_id = ? ORDER BY t.sort_order ASC, t.id ASC`).all(pid);
+  res.json(rows);
+});
+
+app.get('/api/workplanner/projects/:id/members', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  res.json(db.prepare('SELECT * FROM wp_members WHERE project_id = ? ORDER BY id ASC').all(parseInt(req.params.id)));
+});
+
+app.get('/api/workplanner/projects/:id/nodes', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  const pid = parseInt(req.params.id);
+  const rows = db.prepare(`SELECT n.*, m.name as assignee_name FROM wp_flow_nodes n LEFT JOIN wp_members m ON n.assignee_id = m.id WHERE n.project_id = ? ORDER BY n.id ASC`).all(pid);
+  res.json(rows);
+});
+
+app.get('/api/workplanner/projects/:id/edges', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  res.json(db.prepare('SELECT * FROM wp_flow_edges WHERE project_id = ? ORDER BY id ASC').all(parseInt(req.params.id)));
+});
+
+app.post('/api/workplanner/tasks', authMiddleware, (req, res) => {
+  const { project_id, name, assignee_id, start_date, end_date, priority, progress, status, description, depends_on } = req.body;
+  if (!project_id || !name || !name.trim()) return res.status(400).json({ error: 'project_id and name required' });
+  const db = getUserDb(req.user.username);
+  const info = db.prepare('INSERT INTO wp_tasks (project_id, name, assignee_id, start_date, end_date, priority, progress, status, description, depends_on) VALUES (?,?,?,?,?,?,?,?,?,?)').run(
+    project_id, name.trim().slice(0,500), assignee_id||null, start_date||'', end_date||'', priority||0, progress||0, status||'todo', (description||'').slice(0,2000), depends_on||'[]'
+  );
+  const task = db.prepare('SELECT t.*, m.name as assignee_name FROM wp_tasks t LEFT JOIN wp_members m ON t.assignee_id = m.id WHERE t.id = ?').get(Number(info.lastInsertRowid));
+  res.json(task);
+});
+
+app.put('/api/workplanner/tasks/:id', authMiddleware, (req, res) => {
+  const { name, assignee_id, start_date, end_date, priority, progress, status, description, depends_on } = req.body;
+  const db = getUserDb(req.user.username);
+  const id = parseInt(req.params.id);
+  if (name !== undefined) db.prepare('UPDATE wp_tasks SET name = ? WHERE id = ?').run(name.slice(0,500), id);
+  if (assignee_id !== undefined) db.prepare('UPDATE wp_tasks SET assignee_id = ? WHERE id = ?').run(assignee_id, id);
+  if (start_date !== undefined) db.prepare('UPDATE wp_tasks SET start_date = ? WHERE id = ?').run(start_date, id);
+  if (end_date !== undefined) db.prepare('UPDATE wp_tasks SET end_date = ? WHERE id = ?').run(end_date, id);
+  if (priority !== undefined) db.prepare('UPDATE wp_tasks SET priority = ? WHERE id = ?').run(priority, id);
+  if (progress !== undefined) db.prepare('UPDATE wp_tasks SET progress = ? WHERE id = ?').run(progress, id);
+  if (status !== undefined) db.prepare('UPDATE wp_tasks SET status = ? WHERE id = ?').run(status, id);
+  if (description !== undefined) db.prepare('UPDATE wp_tasks SET description = ? WHERE id = ?').run((description||'').slice(0,2000), id);
+  if (depends_on !== undefined) db.prepare('UPDATE wp_tasks SET depends_on = ? WHERE id = ?').run(depends_on, id);
+  res.json({ ok: true });
+});
+
+app.delete('/api/workplanner/tasks/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM wp_tasks WHERE id = ?').run(parseInt(req.params.id));
+  res.json({ ok: true });
+});
+
+app.post('/api/workplanner/members', authMiddleware, (req, res) => {
+  const { project_id, name, role, color } = req.body;
+  if (!project_id || !name || !name.trim()) return res.status(400).json({ error: 'project_id and name required' });
+  const db = getUserDb(req.user.username);
+  const info = db.prepare('INSERT INTO wp_members (project_id, name, role, color) VALUES (?,?,?,?)').run(project_id, name.trim().slice(0,100), (role||'').slice(0,100), color||'#6366f1');
+  res.json({ id: Number(info.lastInsertRowid), project_id, name: name.trim(), role: role||'', color: color||'#6366f1' });
+});
+
+app.delete('/api/workplanner/members/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM wp_members WHERE id = ?').run(parseInt(req.params.id));
+  res.json({ ok: true });
+});
+
+app.post('/api/workplanner/nodes', authMiddleware, (req, res) => {
+  const { project_id, type, label, x, y, assignee_id } = req.body;
+  if (!project_id) return res.status(400).json({ error: 'project_id required' });
+  const db = getUserDb(req.user.username);
+  const info = db.prepare('INSERT INTO wp_flow_nodes (project_id, type, label, x, y, assignee_id) VALUES (?,?,?,?,?,?)').run(
+    project_id, (type||'task').slice(0,20), (label||'').slice(0,200), x||100, y||100, assignee_id||null
+  );
+  const node = db.prepare('SELECT n.*, m.name as assignee_name FROM wp_flow_nodes n LEFT JOIN wp_members m ON n.assignee_id = m.id WHERE n.id = ?').get(Number(info.lastInsertRowid));
+  res.json(node);
+});
+
+app.put('/api/workplanner/nodes/:id', authMiddleware, (req, res) => {
+  const { label, x, y, assignee_id } = req.body;
+  const db = getUserDb(req.user.username);
+  const id = parseInt(req.params.id);
+  if (label !== undefined) db.prepare('UPDATE wp_flow_nodes SET label = ? WHERE id = ?').run(label.slice(0,200), id);
+  if (x !== undefined) db.prepare('UPDATE wp_flow_nodes SET x = ? WHERE id = ?').run(x, id);
+  if (y !== undefined) db.prepare('UPDATE wp_flow_nodes SET y = ? WHERE id = ?').run(y, id);
+  if (assignee_id !== undefined) db.prepare('UPDATE wp_flow_nodes SET assignee_id = ? WHERE id = ?').run(assignee_id, id);
+  res.json({ ok: true });
+});
+
+app.delete('/api/workplanner/nodes/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  const id = parseInt(req.params.id);
+  db.prepare('DELETE FROM wp_flow_edges WHERE from_node = ? OR to_node = ?').run(id, id);
+  db.prepare('DELETE FROM wp_flow_nodes WHERE id = ?').run(id);
+  res.json({ ok: true });
+});
+
+app.post('/api/workplanner/edges', authMiddleware, (req, res) => {
+  const { project_id, from_node, to_node, label } = req.body;
+  if (!project_id || !from_node || !to_node) return res.status(400).json({ error: 'project_id, from_node, to_node required' });
+  const db = getUserDb(req.user.username);
+  const info = db.prepare('INSERT INTO wp_flow_edges (project_id, from_node, to_node, label) VALUES (?,?,?,?)').run(project_id, from_node, to_node, (label||'').slice(0,200));
+  res.json({ id: Number(info.lastInsertRowid), project_id, from_node, to_node, label: label||'' });
+});
+
+app.delete('/api/workplanner/edges/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM wp_flow_edges WHERE id = ?').run(parseInt(req.params.id));
+  res.json({ ok: true });
 });
 
 // #endregion
@@ -6365,6 +6565,70 @@ app.post('/api/vault/change-password', authMiddleware, (req, res) => {
     const data = decryptVault(vaultObj, currentPassword);
     const encrypted = encryptVault(data, newPassword);
     saveVault(req.user.username, encrypted);
+    res.json({ ok: true });
+  } catch {
+    res.status(403).json({ error: 'Wrong current password' });
+  }
+});
+
+// #endregion
+// #region SecureNote (AES-256-GCM encrypted notes & media)
+
+function getSecureNotePath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  return path.join(dir, 'secure-note.enc');
+}
+
+function loadSecureNote(username) {
+  const filePath = getSecureNotePath(username);
+  if (!fs.existsSync(filePath)) return null;
+  try { return JSON.parse(fs.readFileSync(filePath, 'utf-8')); } catch { return null; }
+}
+
+function saveSecureNote(username, vaultObj) {
+  const filePath = getSecureNotePath(username);
+  fs.writeFileSync(filePath, JSON.stringify(vaultObj));
+}
+
+app.get('/api/secure-note/exists', authMiddleware, (req, res) => {
+  const vaultObj = loadSecureNote(req.user.username);
+  res.json({ exists: !!vaultObj });
+});
+
+app.post('/api/secure-note/unlock', authMiddleware, (req, res) => {
+  const { masterPassword } = req.body;
+  if (!masterPassword) return res.status(400).json({ error: 'masterPassword required' });
+  const vaultObj = loadSecureNote(req.user.username);
+  if (!vaultObj) return res.json({ notes: [], media: [] });
+  try {
+    const data = decryptVault(vaultObj, masterPassword);
+    res.json(data);
+  } catch {
+    res.status(403).json({ error: 'wrong_password' });
+  }
+});
+
+app.post('/api/secure-note/save', authMiddleware, (req, res) => {
+  const { masterPassword, notes, media } = req.body;
+  if (!masterPassword) return res.status(400).json({ error: 'masterPassword required' });
+  const data = { notes: (notes || []).slice(0, 500), media: (media || []).slice(0, 200) };
+  const encrypted = encryptVault(data, masterPassword);
+  saveSecureNote(req.user.username, encrypted);
+  res.json({ ok: true });
+});
+
+app.post('/api/secure-note/change-password', authMiddleware, (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) return res.status(400).json({ error: 'currentPassword and newPassword required' });
+  if (newPassword.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  const vaultObj = loadSecureNote(req.user.username);
+  if (!vaultObj) return res.status(404).json({ error: 'Vault not found' });
+  try {
+    const data = decryptVault(vaultObj, currentPassword);
+    const encrypted = encryptVault(data, newPassword);
+    saveSecureNote(req.user.username, encrypted);
     res.json({ ok: true });
   } catch {
     res.status(403).json({ error: 'Wrong current password' });
@@ -12791,6 +13055,302 @@ app.get('/api/gcalendar/colors', authMiddleware, async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
+});
+// #endregion
+
+// #region Web Downloader
+function webdlFetch(url, timeout = 10000) {
+  return new Promise((resolve, reject) => {
+    const parsedUrl = new URL(url);
+    const lib = parsedUrl.protocol === 'https:' ? require('https') : require('http');
+    const req = lib.get(url, { timeout, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CloudComputer-WebDownloader/1.0)' } }, (resp) => {
+      if (resp.statusCode >= 300 && resp.statusCode < 400 && resp.headers.location) {
+        try {
+          const redirectUrl = new URL(resp.headers.location, url).href;
+          webdlFetch(redirectUrl, timeout).then(resolve).catch(reject);
+        } catch (e) { reject(e); }
+        return;
+      }
+      if (resp.statusCode !== 200) {
+        resp.resume();
+        return reject(new Error(`${resp.statusCode} ${resp.statusMessage}`));
+      }
+      const chunks = [];
+      resp.on('data', chunk => chunks.push(chunk));
+      resp.on('end', () => resolve({ body: Buffer.concat(chunks), headers: resp.headers, statusCode: resp.statusCode }));
+      resp.on('error', reject);
+    });
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
+  });
+}
+
+function webdlExtractLinks(html, baseUrl) {
+  const links = new Set();
+  // Extract href, src attributes
+  const patterns = [
+    /href\s*=\s*["']([^"'#]+)/gi,
+    /src\s*=\s*["']([^"'#]+)/gi
+  ];
+  for (const pattern of patterns) {
+    let m;
+    while ((m = pattern.exec(html)) !== null) {
+      const raw = m[1].trim();
+      if (!raw || raw.startsWith('data:') || raw.startsWith('javascript:') || raw.startsWith('mailto:')) continue;
+      try {
+        const resolved = new URL(raw, baseUrl).href;
+        if (resolved.startsWith('http://') || resolved.startsWith('https://')) {
+          // Remove fragment
+          const clean = resolved.split('#')[0];
+          if (clean) links.add(clean);
+        }
+      } catch { /* skip invalid */ }
+    }
+  }
+  return [...links];
+}
+
+function webdlClassify(url) {
+  const ext = (url.split('?')[0].split('#')[0].split('.').pop() || '').toLowerCase();
+  const imageExts = ['jpg','jpeg','png','gif','webp','svg','ico','bmp','tiff','avif'];
+  const mediaExts = ['mp3','mp4','avi','mkv','webm','ogg','wav','flac','m4a','mov','wmv'];
+  const textExts = ['txt','csv','xml','json','md','log','ini','cfg','yaml','yml'];
+  const archiveExts = ['zip','rar','7z','tar','gz','bz2','xz'];
+  if (imageExts.includes(ext)) return 'images';
+  if (mediaExts.includes(ext)) return 'media';
+  if (textExts.includes(ext)) return 'text';
+  if (ext === 'pdf') return 'pdf';
+  if (archiveExts.includes(ext)) return 'archives';
+  return 'html';
+}
+
+function webdlFileName(url) {
+  try {
+    const u = new URL(url);
+    const parts = u.pathname.split('/').filter(Boolean);
+    if (parts.length) {
+      const last = parts[parts.length - 1];
+      if (last.includes('.')) return decodeURIComponent(last);
+      return decodeURIComponent(last) + '.html';
+    }
+    return u.hostname + '.html';
+  } catch { return 'page.html'; }
+}
+
+function webdlMatchPattern(url, pattern) {
+  if (!pattern || !pattern.trim()) return true;
+  try {
+    const re = new RegExp(pattern.replace(/\*/g, '.*'));
+    return re.test(new URL(url).pathname);
+  } catch { return true; }
+}
+
+app.post('/api/web-downloader/crawl', authMiddleware, async (req, res) => {
+  const { url, maxDepth = 3, maxPages = 100, sameDomain = true, filters = [], urlPattern = '' } = req.body;
+  if (!url) return res.status(400).json({ error: 'URL is required' });
+
+  let baseUrl;
+  try {
+    baseUrl = new URL(url);
+  } catch {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+
+  const depth = Math.max(1, Math.min(10, Number(maxDepth) || 3));
+  const limit = Math.max(1, Math.min(5000, Number(maxPages) || 100));
+  const baseDomain = baseUrl.hostname;
+
+  const visited = new Set();
+  const resources = [];
+  const queue = [{ url: baseUrl.href, depth: 0 }];
+  let pagesScanned = 0;
+  let maxDepthReached = 0;
+
+  while (queue.length > 0 && pagesScanned < limit) {
+    const { url: currentUrl, depth: currentDepth } = queue.shift();
+    if (visited.has(currentUrl)) continue;
+    visited.add(currentUrl);
+
+    if (currentDepth > maxDepthReached) maxDepthReached = currentDepth;
+
+    const type = webdlClassify(currentUrl);
+
+    // If it's not an HTML page, just record it as a resource
+    if (type !== 'html') {
+      if (filters.length === 0 || filters.includes(type)) {
+        if (webdlMatchPattern(currentUrl, urlPattern)) {
+          resources.push({ url: currentUrl, fileName: webdlFileName(currentUrl), type, size: null, depth: currentDepth });
+        }
+      }
+      continue;
+    }
+
+    // Fetch the HTML page
+    try {
+      const result = await webdlFetch(currentUrl);
+      pagesScanned++;
+      const html = result.body.toString('utf-8');
+      const contentType = result.headers['content-type'] || '';
+
+      // Record this page if filters allow
+      if (filters.length === 0 || filters.includes('html')) {
+        if (webdlMatchPattern(currentUrl, urlPattern)) {
+          resources.push({ url: currentUrl, fileName: webdlFileName(currentUrl), type: 'html', size: result.body.length, depth: currentDepth });
+        }
+      }
+
+      // Only parse links if it's actually HTML
+      if (!contentType.includes('text/html') && !contentType.includes('application/xhtml')) continue;
+
+      // Extract and process links
+      if (currentDepth < depth) {
+        const links = webdlExtractLinks(html, currentUrl);
+        for (const link of links) {
+          if (visited.has(link)) continue;
+
+          // Domain check
+          if (sameDomain) {
+            try {
+              if (new URL(link).hostname !== baseDomain) continue;
+            } catch { continue; }
+          }
+
+          const linkType = webdlClassify(link);
+          // If non-HTML resource, record it directly
+          if (linkType !== 'html') {
+            if (!visited.has(link)) {
+              visited.add(link);
+              if (filters.length === 0 || filters.includes(linkType)) {
+                if (webdlMatchPattern(link, urlPattern)) {
+                  resources.push({ url: link, fileName: webdlFileName(link), type: linkType, size: null, depth: currentDepth + 1 });
+                }
+              }
+            }
+          } else {
+            // Queue HTML page for crawling
+            queue.push({ url: link, depth: currentDepth + 1 });
+          }
+
+          if (resources.length >= limit * 10) break; // safety cap on resources
+        }
+      }
+    } catch (e) {
+      // Skip failed pages silently
+    }
+  }
+
+  res.json({ resources, pagesScanned, maxDepthReached });
+});
+
+app.post('/api/web-downloader/download', authMiddleware, async (req, res) => {
+  const { files, savePath = 'downloads/web', maxFileSize = 0 } = req.body;
+  if (!files || !Array.isArray(files) || files.length === 0) {
+    return res.status(400).json({ error: 'No files specified' });
+  }
+
+  const username = req.user.username;
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '');
+  const baseDir = path.join(DATA_DIR, safe, savePath.replace(/\.\./g, '').replace(/^\//, ''));
+  const sizeLimitBytes = maxFileSize > 0 ? maxFileSize * 1024 * 1024 : 0;
+
+  // Ensure directory exists
+  fs.mkdirSync(baseDir, { recursive: true });
+
+  const results = [];
+  const concurrency = 5;
+
+  // Process in batches
+  for (let i = 0; i < files.length; i += concurrency) {
+    const batch = files.slice(i, i + concurrency);
+    const batchResults = await Promise.allSettled(
+      batch.map(async (file) => {
+        const fileName = (file.fileName || 'file').replace(/[<>:"|?*]/g, '_').replace(/\.\./g, '');
+        const filePath = path.join(baseDir, fileName);
+        try {
+          const result = await webdlFetch(file.url);
+          // Check file size limit
+          if (sizeLimitBytes > 0 && result.body.length > sizeLimitBytes) {
+            return { url: file.url, success: false, error: `File size (${(result.body.length / 1024 / 1024).toFixed(1)} MB) exceeds limit (${maxFileSize} MB)` };
+          }
+          fs.writeFileSync(filePath, result.body);
+          return { url: file.url, success: true, size: result.body.length };
+        } catch (e) {
+          return { url: file.url, success: false, error: e.message };
+        }
+      })
+    );
+    for (const r of batchResults) {
+      results.push(r.status === 'fulfilled' ? r.value : { url: '', success: false, error: 'Unknown error' });
+    }
+  }
+
+  res.json({ results });
+});
+// #endregion
+
+// #region Icon Maker
+function getIconMakerPath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  return path.join(dir, 'icon-maker.json');
+}
+function getIconMakerData(username) {
+  const fp = getIconMakerPath(username);
+  if (!fs.existsSync(fp)) return { icons: [] };
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return { icons: [] }; }
+}
+function saveIconMakerData(username, data) {
+  fs.writeFileSync(getIconMakerPath(username), JSON.stringify(data));
+}
+
+// GET icons list
+app.get('/api/icon-maker/icons', authMiddleware, (req, res) => {
+  const data = getIconMakerData(req.user.username);
+  // Return with thumbnails (smaller version for list)
+  const icons = (data.icons || []).map(ic => ({
+    id: ic.id,
+    name: ic.name,
+    size: ic.size,
+    thumbnail: ic.data,
+    createdAt: ic.createdAt
+  }));
+  res.json({ icons });
+});
+
+// POST save icon
+app.post('/api/icon-maker/icons', authMiddleware, (req, res) => {
+  const { name, size, data: dataUrl } = req.body;
+  if (!name || !size || !dataUrl) return res.status(400).json({ error: 'name, size and data required' });
+  if (typeof name !== 'string' || name.length > 100) return res.status(400).json({ error: 'Invalid name' });
+  const validSizes = [16, 24, 32, 48, 64, 128];
+  if (!validSizes.includes(Number(size))) return res.status(400).json({ error: 'Invalid size' });
+  if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/png')) return res.status(400).json({ error: 'Invalid data' });
+  if (dataUrl.length > 500000) return res.status(400).json({ error: 'Data too large' });
+
+  const store = getIconMakerData(req.user.username);
+  const icon = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+    name: name.slice(0, 100),
+    size: Number(size),
+    data: dataUrl,
+    createdAt: new Date().toISOString()
+  };
+  store.icons = (store.icons || []).slice(0, 500);
+  store.icons.unshift(icon);
+  saveIconMakerData(req.user.username, store);
+  res.json({ ok: true, id: icon.id });
+});
+
+// DELETE icon
+app.delete('/api/icon-maker/icons/:id', authMiddleware, (req, res) => {
+  const id = req.params.id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const store = getIconMakerData(req.user.username);
+  const idx = (store.icons || []).findIndex(ic => ic.id === id);
+  if (idx === -1) return res.status(404).json({ error: 'Icon not found' });
+  store.icons.splice(idx, 1);
+  saveIconMakerData(req.user.username, store);
+  res.json({ ok: true });
 });
 // #endregion
 

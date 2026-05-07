@@ -63,5 +63,6 @@
       "name": "Bing Pesquisa",
       "description": "Acesso rápido ao motor de busca Bing"
     }
-  }
+  },
+  "category": "internet"
 }

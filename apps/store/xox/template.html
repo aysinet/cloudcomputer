@@ -1,0 +1,90 @@
+<div class="xox-root">
+  <!-- MENU -->
+  <div v-if="screen === 'menu'" class="xox-menu">
+    <div class="xox-logo">❌⭕❌</div>
+    <h1 class="xox-title">XOX</h1>
+    <div class="xox-menu-buttons">
+      <button class="xox-btn" @click="selectBoardMode('single')">
+        <span class="xox-btn-icon">◻️</span>
+        {{ L('singleBoard') }}
+      </button>
+      <button class="xox-btn" @click="selectBoardMode('triple')">
+        <span class="xox-btn-icon">◻️◻️◻️</span>
+        {{ L('tripleBoard') }}
+      </button>
+    </div>
+  </div>
+
+  <!-- MODE SELECT -->
+  <div v-if="screen === 'modeSelect'" class="xox-menu">
+    <div class="xox-logo">🎮</div>
+    <h2 class="xox-subtitle">{{ boardMode === 'single' ? L('singleBoard') : L('tripleBoard') }}</h2>
+    <div class="xox-menu-buttons">
+      <button class="xox-btn" @click="startGame(boardMode, 'cpu')">
+        <span class="xox-btn-icon">🤖</span>
+        {{ L('vsComputer') }}
+      </button>
+      <button class="xox-btn" @click="startGame(boardMode, '2p')">
+        <span class="xox-btn-icon">👥</span>
+        {{ L('twoPlayers') }}
+      </button>
+      <button class="xox-btn xox-btn-back" @click="screen = 'menu'">
+        {{ L('back') }}
+      </button>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div v-if="screen === 'game'" class="xox-game">
+    <!-- Top Bar -->
+    <div class="xox-topbar">
+      <button class="xox-btn-sm" @click="goBack()">{{ L('back') }}</button>
+      <div class="xox-scores">
+        <span class="xox-score xox-x">❌ {{ scores.X }}</span>
+        <span class="xox-score-sep">-</span>
+        <span class="xox-score xox-o">⭕ {{ scores.O }}</span>
+      </div>
+      <button class="xox-btn-sm" @click="newGame()">{{ L('newGame') }}</button>
+    </div>
+
+    <!-- Status -->
+    <div class="xox-status" :class="{ 'xox-status-over': gameOver }">
+      <template v-if="gameOver && winner">
+        <span class="xox-status-symbol">{{ winner === 'X' ? '❌' : '⭕' }}</span>
+        {{ getPlayerName(winner) }} {{ L('wins') }}
+        <span v-if="isCrossBoardWin" class="xox-cross-badge">{{ L('crossBoard') }}</span>
+      </template>
+      <template v-else-if="gameOver && !winner">
+        🤝 {{ L('draw') }}
+      </template>
+      <template v-else>
+        <span class="xox-status-symbol">{{ currentPlayer === 'X' ? '❌' : '⭕' }}</span>
+        {{ L('turn') }}: {{ getPlayerName(currentPlayer) }}
+      </template>
+    </div>
+
+    <!-- Boards -->
+    <div class="xox-boards" :class="{ 'xox-boards-triple': boards.length === 3 }">
+      <div v-for="(board, bi) in boards" :key="bi" class="xox-board-wrap">
+        <div v-if="boards.length > 1" class="xox-board-label">{{ L('board') }} {{ bi + 1 }}</div>
+        <div class="xox-board">
+          <button
+            v-for="(cell, ci) in board" :key="ci"
+            class="xox-cell"
+            :class="{
+              'xox-cell-x': cell === 'X',
+              'xox-cell-o': cell === 'O',
+              'xox-cell-win': isWinCell(bi, ci),
+              'xox-cell-empty': !cell && !gameOver
+            }"
+            @click="makeMove(bi, ci)"
+            :disabled="gameOver || cell !== ''"
+          >
+            <span v-if="cell === 'X'" class="xox-mark">❌</span>
+            <span v-else-if="cell === 'O'" class="xox-mark">⭕</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

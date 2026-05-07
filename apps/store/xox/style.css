@@ -1,0 +1,273 @@
+.xox-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: linear-gradient(145deg, #1a1a2e, #16213e);
+  color: #fff;
+  overflow: hidden;
+  user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ---- Menu ---- */
+.xox-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 20px;
+  padding: 30px;
+}
+
+.xox-logo {
+  font-size: 48px;
+  animation: xox-bounce 1.5s ease infinite;
+}
+
+@keyframes xox-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.xox-title {
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: 6px;
+  background: linear-gradient(135deg, #e040fb, #7c4dff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+.xox-subtitle {
+  font-size: 22px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+  margin: 0;
+}
+
+.xox-menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+  width: 260px;
+}
+
+.xox-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c4dff, #6a1b9a);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 15px rgba(124, 77, 255, 0.3);
+}
+
+.xox-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 77, 255, 0.5);
+}
+
+.xox-btn:active {
+  transform: translateY(0);
+}
+
+.xox-btn-back {
+  background: rgba(255,255,255,0.1);
+  box-shadow: none;
+  font-size: 14px;
+  padding: 10px;
+}
+
+.xox-btn-back:hover {
+  background: rgba(255,255,255,0.2);
+  box-shadow: none;
+}
+
+.xox-btn-icon {
+  font-size: 18px;
+}
+
+/* ---- Game ---- */
+.xox-game {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.xox-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(0,0,0,0.3);
+  flex-shrink: 0;
+}
+
+.xox-btn-sm {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.xox-btn-sm:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.xox-scores {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.xox-score-sep {
+  color: rgba(255,255,255,0.4);
+}
+
+/* ---- Status ---- */
+.xox-status {
+  text-align: center;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  flex-shrink: 0;
+}
+
+.xox-status-over {
+  background: rgba(124, 77, 255, 0.2);
+  animation: xox-pulse 0.6s ease;
+}
+
+@keyframes xox-pulse {
+  0% { transform: scale(0.95); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.xox-status-symbol {
+  font-size: 18px;
+}
+
+.xox-cross-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #ff6f00;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ---- Boards ---- */
+.xox-boards {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  gap: 20px;
+  overflow: auto;
+}
+
+.xox-boards-triple {
+  gap: 16px;
+}
+
+.xox-board-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.xox-board-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.xox-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 6px;
+}
+
+.xox-boards:not(.xox-boards-triple) .xox-board {
+  width: 300px;
+  height: 300px;
+}
+
+.xox-boards-triple .xox-board {
+  width: 180px;
+  height: 180px;
+}
+
+.xox-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.05);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  font-size: 32px;
+  padding: 0;
+}
+
+.xox-boards-triple .xox-cell {
+  font-size: 22px;
+  border-radius: 6px;
+}
+
+.xox-cell-empty:hover {
+  background: rgba(255,255,255,0.15);
+  transform: scale(1.05);
+}
+
+.xox-cell-x, .xox-cell-o {
+  cursor: default;
+}
+
+.xox-cell-win {
+  background: rgba(124, 77, 255, 0.4) !important;
+  animation: xox-win-cell 0.5s ease;
+  box-shadow: 0 0 12px rgba(124, 77, 255, 0.6);
+}
+
+@keyframes xox-win-cell {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.xox-cell:disabled {
+  cursor: default;
+}
+
+.xox-mark {
+  line-height: 1;
+}

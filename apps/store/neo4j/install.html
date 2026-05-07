@@ -1,0 +1,94 @@
+<div class="neo4j-install-form">
+  <div class="neo4j-install-header">
+    <span class="neo4j-install-icon">🔵</span>
+    <h3>Neo4j</h3>
+    <p class="neo4j-install-subtitle">Graf veritabanı kuruluma hazır</p>
+  </div>
+  <div class="neo4j-install-body">
+    <p class="neo4j-install-info">Neo4j graf veritabanı. HTTP (7474) ve Bolt (7687) portları otomatik atanacaktır.</p>
+    <div class="neo4j-install-field">
+      <label for="neo4j-user">Kullanıcı Adı</label>
+      <input type="text" id="neo4j-user" value="neo4j" placeholder="neo4j" />
+    </div>
+    <div class="neo4j-install-field">
+      <label for="neo4j-password">Şifre</label>
+      <input type="password" id="neo4j-password" placeholder="En az 8 karakter" />
+    </div>
+    <div class="neo4j-install-error" id="neo4j-install-error" style="display:none"></div>
+  </div>
+  <div class="neo4j-install-footer">
+    <button class="neo4j-cancel-btn" onclick="cancelServiceInstall()">İptal</button>
+    <button class="neo4j-install-btn" onclick="confirmServiceInstall()">Kur ve Başlat</button>
+  </div>
+</div>
+
+<script>
+  const NEO4J_I18N = {
+    tr: { subtitle: 'Graf veritabanı kuruluma hazır', info: 'Neo4j graf veritabanı. HTTP (7474) ve Bolt (7687) portları otomatik atanacaktır.', userLabel: 'Kullanıcı Adı', passwordLabel: 'Şifre', passwordPlaceholder: 'En az 8 karakter', cancel: 'İptal', installBtn: 'Kur ve Başlat', errorRequired: 'Şifre gereklidir', errorShort: 'Şifre en az 8 karakter olmalıdır' },
+    en: { subtitle: 'Graph database ready to install', info: 'Neo4j graph database. HTTP (7474) and Bolt (7687) ports will be automatically assigned.', userLabel: 'Username', passwordLabel: 'Password', passwordPlaceholder: 'At least 8 characters', cancel: 'Cancel', installBtn: 'Install & Start', errorRequired: 'Password is required', errorShort: 'Password must be at least 8 characters' },
+    de: { subtitle: 'Graphdatenbank bereit zur Installation', info: 'Neo4j Graphdatenbank. HTTP (7474) und Bolt (7687) Ports werden automatisch zugewiesen.', userLabel: 'Benutzername', passwordLabel: 'Passwort', passwordPlaceholder: 'Mindestens 8 Zeichen', cancel: 'Abbrechen', installBtn: 'Installieren & Starten', errorRequired: 'Passwort ist erforderlich', errorShort: 'Passwort muss mindestens 8 Zeichen haben' },
+    fr: { subtitle: 'Base de données graphe prête à installer', info: 'Base de données graphe Neo4j. Les ports HTTP (7474) et Bolt (7687) seront attribués automatiquement.', userLabel: 'Nom d\'utilisateur', passwordLabel: 'Mot de passe', passwordPlaceholder: 'Au moins 8 caractères', cancel: 'Annuler', installBtn: 'Installer & Démarrer', errorRequired: 'Le mot de passe est requis', errorShort: 'Le mot de passe doit comporter au moins 8 caractères' },
+    es: { subtitle: 'Base de datos de grafos lista para instalar', info: 'Base de datos de grafos Neo4j. Los puertos HTTP (7474) y Bolt (7687) se asignarán automáticamente.', userLabel: 'Nombre de usuario', passwordLabel: 'Contraseña', passwordPlaceholder: 'Al menos 8 caracteres', cancel: 'Cancelar', installBtn: 'Instalar e Iniciar', errorRequired: 'La contraseña es obligatoria', errorShort: 'La contraseña debe tener al menos 8 caracteres' }
+  };
+
+  function getNeo4jLocale() { try { return window.__serviceInstallLocale || 'tr'; } catch { return 'tr'; } }
+  function getNeo4jI18n(key) { const loc = getNeo4jLocale(); return (NEO4J_I18N[loc] || NEO4J_I18N.tr)[key] || (NEO4J_I18N.tr)[key] || key; }
+
+  (function applyI18n() {
+    const loc = getNeo4jLocale();
+    const t = NEO4J_I18N[loc] || NEO4J_I18N.tr;
+    const sub = document.querySelector('.neo4j-install-subtitle');
+    if (sub) sub.textContent = t.subtitle;
+    const info = document.querySelector('.neo4j-install-info');
+    if (info) info.textContent = t.info;
+    const userLabel = document.querySelector('label[for="neo4j-user"]');
+    if (userLabel) userLabel.textContent = t.userLabel;
+    const pwLabel = document.querySelector('label[for="neo4j-password"]');
+    if (pwLabel) pwLabel.textContent = t.passwordLabel;
+    const pwInput = document.getElementById('neo4j-password');
+    if (pwInput) pwInput.placeholder = t.passwordPlaceholder;
+    const cancelBtn = document.querySelector('.neo4j-cancel-btn');
+    if (cancelBtn) cancelBtn.textContent = t.cancel;
+    const installBtn = document.querySelector('.neo4j-install-btn');
+    if (installBtn) installBtn.textContent = t.installBtn;
+  })();
+
+  function getInstallConfig() {
+    const user = document.getElementById('neo4j-user').value.trim() || 'neo4j';
+    const password = document.getElementById('neo4j-password').value.trim();
+    const errEl = document.getElementById('neo4j-install-error');
+
+    if (!password) {
+      errEl.textContent = getNeo4jI18n('errorRequired');
+      errEl.style.display = 'block';
+      return null;
+    }
+    if (password.length < 8) {
+      errEl.textContent = getNeo4jI18n('errorShort');
+      errEl.style.display = 'block';
+      return null;
+    }
+    errEl.style.display = 'none';
+    return { NEO4J_USER: user, NEO4J_PASSWORD: password };
+  }
+</script>
+
+<style>
+  .neo4j-install-form { padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; }
+  .neo4j-install-header { text-align: center; margin-bottom: 20px; }
+  .neo4j-install-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+  .neo4j-install-header h3 { margin: 0 0 4px; font-size: 20px; color: #fff; }
+  .neo4j-install-subtitle { margin: 0; font-size: 13px; color: #aaa; }
+  .neo4j-install-body { margin-bottom: 16px; }
+  .neo4j-install-info { font-size: 13px; color: #bbb; line-height: 1.5; background: #222238; padding: 12px 16px; border-radius: 8px; margin: 0 0 16px; }
+  .neo4j-install-field { margin-bottom: 12px; }
+  .neo4j-install-field label { display: block; font-size: 12px; color: #aaa; margin-bottom: 4px; }
+  .neo4j-install-field input { width: 100%; padding: 8px 12px; border: 1px solid #444; border-radius: 6px; background: #1a1a2e; color: #e0e0e0; font-size: 13px; box-sizing: border-box; outline: none; }
+  .neo4j-install-field input:focus { border-color: #018BFF; }
+  .neo4j-install-error { color: #ff6b6b; font-size: 12px; margin-top: 8px; padding: 6px 10px; background: rgba(255,0,0,0.1); border-radius: 4px; }
+  .neo4j-install-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .neo4j-cancel-btn { padding: 8px 20px; border: 1px solid #555; border-radius: 6px; background: transparent; color: #ccc; cursor: pointer; font-size: 13px; }
+  .neo4j-cancel-btn:hover { background: #333; }
+  .neo4j-install-btn { padding: 8px 24px; border: none; border-radius: 6px; background: linear-gradient(135deg, #018BFF, #00529B); color: #fff; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .neo4j-install-btn:hover { opacity: 0.9; }
+</style>

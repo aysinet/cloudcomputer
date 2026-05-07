@@ -1,0 +1,78 @@
+{
+  "id": "casaos",
+  "name": "CasaOS",
+  "icon": "🏠",
+  "color": "linear-gradient(135deg,#1a73e8,#0d47a1)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Docker tabanlı self-hosting işletim sistemi (CasaOS)",
+  "lang": {
+    "tr": {
+      "name": "CasaOS",
+      "description": "Docker tabanlı self-hosting işletim sistemi — kendi bulut sunucunuz"
+    },
+    "en": {
+      "name": "CasaOS",
+      "description": "Docker-based self-hosting OS — your personal cloud server"
+    },
+    "de": {
+      "name": "CasaOS",
+      "description": "Docker-basiertes Self-Hosting-Betriebssystem — Ihr persönlicher Cloud-Server"
+    },
+    "fr": {
+      "name": "CasaOS",
+      "description": "Système d'auto-hébergement Docker — votre serveur cloud personnel"
+    },
+    "es": {
+      "name": "CasaOS",
+      "description": "Sistema operativo Docker para auto-alojamiento — tu servidor cloud personal"
+    },
+    "ru": {
+      "name": "CasaOS",
+      "description": "Операционная система Docker для самостоятельного хостинга — ваш личный облачный сервер"
+    },
+    "zh": {
+      "name": "CasaOS",
+      "description": "基于Docker的自托管操作系统 — 您的个人云服务器"
+    },
+    "ja": {
+      "name": "CasaOS",
+      "description": "Dockerベースのセルフホスティング OS — パーソナルクラウドサーバー"
+    },
+    "it": {
+      "name": "CasaOS",
+      "description": "Sistema operativo Docker per self-hosting — il tuo server cloud personale"
+    },
+    "ar": {
+      "name": "كازا أو إس",
+      "description": "نظام تشغيل Docker للاستضافة الذاتية — خادمك السحابي الشخصي"
+    },
+    "ko": {
+      "name": "CasaOS",
+      "description": "Docker 기반 셀프호스팅 OS — 나만의 클라우드 서버"
+    },
+    "hi": {
+      "name": "CasaOS",
+      "description": "Docker-आधारित सेल्फ-होस्टिंग OS — आपका निजी क्लाउड सर्वर"
+    },
+    "pt": {
+      "name": "CasaOS",
+      "description": "SO Docker para auto-hospedagem — seu servidor cloud pessoal"
+    }
+  },
+  "category": "tools",
+  "docker": {
+    "image": "dockurr/casa:latest",
+    "containerPort": 8080,
+    "volumes": [
+      "${APP_VOLUME}:/DATA",
+      "/var/run/docker.sock:/var/run/docker.sock"
+    ],
+    "env": []
+  }
+}
