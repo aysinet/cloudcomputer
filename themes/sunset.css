@@ -1,0 +1,84 @@
+/* Sunset Theme - Warm orange/purple tones */
+:root {
+  --el-color-primary: #e65100;
+  --el-color-primary-light-3: #f4721a;
+  --el-color-primary-light-5: #ff9800;
+  --el-color-primary-light-7: #ffb74d;
+  --el-color-primary-light-8: #ffcc80;
+  --el-color-primary-light-9: #fff3e0;
+  --el-color-primary-dark-2: #bf360c;
+  --el-color-success: #66bb6a;
+  --el-color-warning: #ffa726;
+  --el-color-danger: #ef5350;
+  --el-color-info: #8d6e63;
+  --el-bg-color: #1f1520;
+  --el-bg-color-overlay: #2a1a2e;
+  --el-bg-color-page: #18101a;
+  --el-text-color-primary: #f0d6c8;
+  --el-text-color-regular: #d4a89a;
+  --el-text-color-secondary: #a67868;
+  --el-text-color-placeholder: #7a5548;
+  --el-border-color: #4a2836;
+  --el-border-color-light: #3d2030;
+  --el-border-color-lighter: #331a28;
+  --el-border-color-extra-light: #2a1520;
+  --el-fill-color: #2a1a2e;
+  --el-fill-color-light: #1f1520;
+  --el-fill-color-lighter: #18101a;
+  --el-fill-color-blank: #1f1520;
+  --el-mask-color: rgba(24, 16, 26, 0.85);
+  --el-dialog-bg-color: #1f1520;
+  --el-menu-bg-color: #18101a;
+  --el-menu-hover-bg-color: #2a1a2e;
+}
+
+#app {
+  background: linear-gradient(135deg, #1a0a10 0%, #2d1520 40%, #3d1a28 100%) !important;
+}
+
+.taskbar {
+  background: rgba(26, 10, 16, 0.94) !important;
+  border-top-color: rgba(230, 81, 0, 0.15) !important;
+}
+
+.start-btn:hover {
+  background: rgba(230, 81, 0, 0.2) !important;
+}
+
+.start-menu {
+  background: rgba(24, 16, 26, 0.97) !important;
+  border-color: rgba(230, 81, 0, 0.12) !important;
+}
+
+.winbox {
+  background: #1f1520 !important;
+}
+
+.winbox .wb-header {
+  background: #18101a !important;
+}
+
+.wb-body {
+  background: #1f1520 !important;
+}
+
+.context-menu {
+  background: rgba(24, 16, 26, 0.98) !important;
+  border-color: rgba(230, 81, 0, 0.15) !important;
+}
+
+.context-menu-item:hover {
+  background: rgba(230, 81, 0, 0.15) !important;
+}
+
+.desktop-icon:hover {
+  background: rgba(230, 81, 0, 0.18) !important;
+}
+
+.tray-clock {
+  color: #d4a89a !important;
+}
+
+.wallpaper-grid {
+  background-image: radial-gradient(circle, rgba(230, 81, 0, 0.04) 1px, transparent 1px) !important;
+}

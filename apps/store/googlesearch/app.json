@@ -59,5 +59,6 @@
       "name": "Google 검색",
       "description": "Google 검색 엔진에 빠르게 액세스"
     }
-  }
+  },
+  "category": "internet"
 }

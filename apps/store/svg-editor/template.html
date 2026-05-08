@@ -1,0 +1,334 @@
+<div class="svge-root">
+  <!-- TOOLBAR -->
+  <div class="svge-toolbar">
+    <!-- File actions -->
+    <div class="svge-tb-group">
+      <button class="svge-tb-btn" @click="newFile" :title="L('newFile')">📄</button>
+      <button class="svge-tb-btn" @click="openFile" :title="L('open')">📂</button>
+      <button class="svge-tb-btn" @click="saveFile" :title="L('save')">💾</button>
+      <button class="svge-tb-btn" @click="saveFileAs" :title="L('saveAs')">📋</button>
+      <div class="svge-tb-sep"></div>
+      <button class="svge-tb-btn" @click="exportPng" :title="L('exportPng')">📥</button>
+    </div>
+    <div class="svge-tb-sep"></div>
+
+    <!-- Undo/Redo -->
+    <div class="svge-tb-group">
+      <button class="svge-tb-btn" @click="undo" :disabled="historyIdx<=0" :title="L('undo')">↩️</button>
+      <button class="svge-tb-btn" @click="redo" :disabled="historyIdx>=historyStack.length-1" :title="L('redo')">↪️</button>
+    </div>
+    <div class="svge-tb-sep"></div>
+
+    <!-- Tools -->
+    <div class="svge-tb-group">
+      <button v-for="t in toolList" :key="t.id"
+        :class="['svge-tb-btn','svge-tool-btn', activeTool===t.id&&'active']"
+        @click="activeTool=t.id" :title="L(t.id)">{{t.icon}}</button>
+    </div>
+    <div class="svge-tb-sep"></div>
+
+    <!-- Stroke width -->
+    <div class="svge-tb-group svge-size-group">
+      <label class="svge-size-label">{{strokeWidth}}px</label>
+      <input type="range" class="svge-size-slider" v-model.number="strokeWidth" min="1" max="20" step="1" />
+    </div>
+    <div class="svge-tb-sep"></div>
+
+    <!-- Colors -->
+    <div class="svge-tb-group svge-color-group">
+      <div class="svge-color-item" @click="$refs.fillPicker.click()">
+        <div class="svge-color-swatch" :style="{background: fillColor === 'none' ? 'repeating-conic-gradient(#555 0% 25%,#333 0% 50%) 0 0/8px 8px' : fillColor}">
+          <span v-if="fillColor==='none'" class="svge-no-fill">✕</span>
+        </div>
+        <span class="svge-color-label">{{L('fill')}}</span>
+      </div>
+      <input type="color" ref="fillPicker" :value="fillColor==='none'?'#ffffff':fillColor" @input="fillColor=$event.target.value" style="display:none" />
+      <button class="svge-tb-btn svge-tb-sm" @click="fillColor='none'" :title="L('noFill')" :class="{active:fillColor==='none'}">🚫</button>
+
+      <div class="svge-color-item" @click="$refs.strokePicker.click()">
+        <div class="svge-color-swatch svge-stroke-swatch" :style="{background: strokeColor}"></div>
+        <span class="svge-color-label">{{L('stroke')}}</span>
+      </div>
+      <input type="color" ref="strokePicker" :value="strokeColor" @input="strokeColor=$event.target.value" style="display:none" />
+    </div>
+    <div class="svge-tb-sep"></div>
+
+    <!-- Opacity -->
+    <div class="svge-tb-group svge-size-group">
+      <label class="svge-size-label">{{Math.round(opacity*100)}}%</label>
+      <input type="range" class="svge-size-slider" v-model.number="opacity" min="0" max="1" step="0.05" />
+    </div>
+    <div class="svge-tb-sep"></div>
+
+    <!-- Arrange -->
+    <div class="svge-tb-group" v-if="selectedId">
+      <button class="svge-tb-btn svge-tb-sm" @click="bringToFront" :title="L('toFront')">⬆️</button>
+      <button class="svge-tb-btn svge-tb-sm" @click="sendToBack" :title="L('toBack')">⬇️</button>
+      <button class="svge-tb-btn svge-tb-sm" @click="duplicateElement" :title="L('duplicate')">📑</button>
+      <button class="svge-tb-btn svge-tb-sm" @click="deleteElement" :title="L('delete')">🗑️</button>
+    </div>
+
+    <!-- Grid toggle -->
+    <div class="svge-tb-group" style="margin-left:auto">
+      <button :class="['svge-tb-btn','svge-tb-sm', showGrid&&'active']" @click="showGrid=!showGrid" :title="L('grid')">▦</button>
+      <button :class="['svge-tb-btn','svge-tb-sm', snapToGrid&&'active']" @click="snapToGrid=!snapToGrid" :title="L('snap')">🧲</button>
+      <button class="svge-tb-btn svge-tb-sm" @click="zoomIn" title="Zoom +">🔍+</button>
+      <button class="svge-tb-btn svge-tb-sm" @click="zoomOut" title="Zoom -">🔍-</button>
+      <span class="svge-zoom-label">{{Math.round(zoom*100)}}%</span>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="svge-main">
+    <!-- Canvas area -->
+    <div class="svge-canvas-wrap" ref="canvasWrap"
+      @mousedown="onMouseDown" @mousemove="onMouseMove" @mouseup="onMouseUp" @mouseleave="onMouseUp"
+      @contextmenu.prevent @wheel="onWheel">
+      <svg ref="svgCanvas" class="svge-svg"
+        :viewBox="'0 0 '+canvasW+' '+canvasH"
+        :width="canvasW*zoom" :height="canvasH*zoom"
+        xmlns="http://www.w3.org/2000/svg">
+        <!-- Grid -->
+        <defs>
+          <pattern id="svge-grid" :width="gridSize" :height="gridSize" patternUnits="userSpaceOnUse">
+            <path :d="'M '+gridSize+' 0 L 0 0 0 '+gridSize" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect v-if="showGrid" width="100%" height="100%" fill="url(#svge-grid)" pointer-events="none"/>
+
+        <!-- Elements -->
+        <template v-for="el in elements" :key="el.id">
+          <rect v-if="el.type==='rect'"
+            :x="el.x" :y="el.y" :width="el.w" :height="el.h"
+            :rx="el.rx||0" :ry="el.ry||0"
+            :fill="el.fill" :stroke="el.stroke" :stroke-width="el.strokeWidth"
+            :opacity="el.opacity" :transform="el.transform||''"
+            :class="{'svge-el-selected': selectedId===el.id}"
+            @mousedown.stop="onElementMouseDown($event, el)"/>
+          <ellipse v-if="el.type==='ellipse'"
+            :cx="el.cx" :cy="el.cy" :rx="el.rx" :ry="el.ry"
+            :fill="el.fill" :stroke="el.stroke" :stroke-width="el.strokeWidth"
+            :opacity="el.opacity" :transform="el.transform||''"
+            :class="{'svge-el-selected': selectedId===el.id}"
+            @mousedown.stop="onElementMouseDown($event, el)"/>
+          <circle v-if="el.type==='circle'"
+            :cx="el.cx" :cy="el.cy" :r="el.r"
+            :fill="el.fill" :stroke="el.stroke" :stroke-width="el.strokeWidth"
+            :opacity="el.opacity" :transform="el.transform||''"
+            :class="{'svge-el-selected': selectedId===el.id}"
+            @mousedown.stop="onElementMouseDown($event, el)"/>
+          <line v-if="el.type==='line'"
+            :x1="el.x1" :y1="el.y1" :x2="el.x2" :y2="el.y2"
+            :stroke="el.stroke" :stroke-width="el.strokeWidth"
+            :opacity="el.opacity" :transform="el.transform||''"
+            :stroke-linecap="'round'"
+            :class="{'svge-el-selected': selectedId===el.id}"
+            @mousedown.stop="onElementMouseDown($event, el)"/>
+          <polyline v-if="el.type==='polyline'"
+            :points="el.points" fill="none"
+            :stroke="el.stroke" :stroke-width="el.strokeWidth"
+            :opacity="el.opacity" :transform="el.transform||''"
+            :stroke-linecap="'round'" :stroke-linejoin="'round'"
+            :class="{'svge-el-selected': selectedId===el.id}"
+            @mousedown.stop="onElementMouseDown($event, el)"/>
+          <polygon v-if="el.type==='polygon'"
+            :points="el.points"
+            :fill="el.fill" :stroke="el.stroke" :stroke-width="el.strokeWidth"
+            :opacity="el.opacity" :transform="el.transform||''"
+            :class="{'svge-el-selected': selectedId===el.id}"
+            @mousedown.stop="onElementMouseDown($event, el)"/>
+          <path v-if="el.type==='path'"
+            :d="el.d"
+            :fill="el.fill||'none'" :stroke="el.stroke" :stroke-width="el.strokeWidth"
+            :opacity="el.opacity" :transform="el.transform||''"
+            :stroke-linecap="'round'" :stroke-linejoin="'round'"
+            :class="{'svge-el-selected': selectedId===el.id}"
+            @mousedown.stop="onElementMouseDown($event, el)"/>
+          <text v-if="el.type==='text'"
+            :x="el.x" :y="el.y"
+            :fill="el.fill" :stroke="el.stroke||'none'" :stroke-width="el.strokeWidth||0"
+            :font-size="el.fontSize" :font-family="el.fontFamily||'sans-serif'"
+            :font-weight="el.fontWeight||'normal'" :font-style="el.fontStyle||'normal'"
+            :opacity="el.opacity" :transform="el.transform||''"
+            :class="{'svge-el-selected': selectedId===el.id}"
+            @mousedown.stop="onElementMouseDown($event, el)"
+            @dblclick.stop="startEditText(el)">{{el.text}}</text>
+          <image v-if="el.type==='image'"
+            :x="el.x" :y="el.y" :width="el.w" :height="el.h"
+            :href="el.href"
+            :opacity="el.opacity" :transform="el.transform||''"
+            :class="{'svge-el-selected': selectedId===el.id}"
+            @mousedown.stop="onElementMouseDown($event, el)"/>
+        </template>
+
+        <!-- Selection box -->
+        <rect v-if="selectedEl && (selectedEl.type==='rect'||selectedEl.type==='image')"
+          :x="selectedEl.x-2" :y="selectedEl.y-2" :width="(selectedEl.w||0)+4" :height="(selectedEl.h||0)+4"
+          fill="none" stroke="#6c5ce7" stroke-width="1.5" stroke-dasharray="4 3" pointer-events="none"/>
+        <rect v-if="selectedEl && selectedEl.type==='text'"
+          :x="selectedEl.x-4" :y="selectedEl.y-(selectedEl.fontSize||16)-2" :width="getTextWidth(selectedEl)+8" :height="(selectedEl.fontSize||16)+8"
+          fill="none" stroke="#6c5ce7" stroke-width="1.5" stroke-dasharray="4 3" pointer-events="none"/>
+        <rect v-if="selectedEl && (selectedEl.type==='ellipse'||selectedEl.type==='circle')"
+          :x="(selectedEl.cx||0)-(selectedEl.rx||selectedEl.r||0)-2"
+          :y="(selectedEl.cy||0)-(selectedEl.ry||selectedEl.r||0)-2"
+          :width="((selectedEl.rx||selectedEl.r||0))*2+4"
+          :height="((selectedEl.ry||selectedEl.r||0))*2+4"
+          fill="none" stroke="#6c5ce7" stroke-width="1.5" stroke-dasharray="4 3" pointer-events="none"/>
+
+        <!-- Drawing preview -->
+        <rect v-if="drawing && activeTool==='rect'"
+          :x="Math.min(drawStart.x,drawCurrent.x)" :y="Math.min(drawStart.y,drawCurrent.y)"
+          :width="Math.abs(drawCurrent.x-drawStart.x)" :height="Math.abs(drawCurrent.y-drawStart.y)"
+          :fill="fillColor" :stroke="strokeColor" :stroke-width="strokeWidth" :opacity="opacity"
+          stroke-dasharray="4 3" pointer-events="none"/>
+        <ellipse v-if="drawing && activeTool==='ellipse'"
+          :cx="(drawStart.x+drawCurrent.x)/2" :cy="(drawStart.y+drawCurrent.y)/2"
+          :rx="Math.abs(drawCurrent.x-drawStart.x)/2" :ry="Math.abs(drawCurrent.y-drawStart.y)/2"
+          :fill="fillColor" :stroke="strokeColor" :stroke-width="strokeWidth" :opacity="opacity"
+          stroke-dasharray="4 3" pointer-events="none"/>
+        <circle v-if="drawing && activeTool==='circle'"
+          :cx="drawStart.x" :cy="drawStart.y"
+          :r="Math.sqrt(Math.pow(drawCurrent.x-drawStart.x,2)+Math.pow(drawCurrent.y-drawStart.y,2))"
+          :fill="fillColor" :stroke="strokeColor" :stroke-width="strokeWidth" :opacity="opacity"
+          stroke-dasharray="4 3" pointer-events="none"/>
+        <line v-if="drawing && activeTool==='line'"
+          :x1="drawStart.x" :y1="drawStart.y" :x2="drawCurrent.x" :y2="drawCurrent.y"
+          :stroke="strokeColor" :stroke-width="strokeWidth" :opacity="opacity"
+          stroke-dasharray="4 3" pointer-events="none"/>
+        <path v-if="drawing && activeTool==='pen' && currentPath.length>0"
+          :d="buildPathD(currentPath)" fill="none"
+          :stroke="strokeColor" :stroke-width="strokeWidth" :opacity="opacity"
+          stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+      </svg>
+    </div>
+
+    <!-- Properties panel -->
+    <div class="svge-panel">
+      <div class="svge-panel-title">{{L('properties')}}</div>
+
+      <!-- Canvas properties -->
+      <div v-if="!selectedId" class="svge-props">
+        <div class="svge-prop-section">{{L('canvas')}}</div>
+        <div class="svge-prop-row">
+          <label>W</label>
+          <input type="number" v-model.number="canvasW" min="100" max="4000" class="svge-prop-input" />
+        </div>
+        <div class="svge-prop-row">
+          <label>H</label>
+          <input type="number" v-model.number="canvasH" min="100" max="4000" class="svge-prop-input" />
+        </div>
+        <div class="svge-prop-row">
+          <label>{{L('bgColor')}}</label>
+          <input type="color" v-model="canvasBg" class="svge-prop-color" />
+        </div>
+      </div>
+
+      <!-- Element properties -->
+      <div v-if="selectedEl" class="svge-props">
+        <div class="svge-prop-section">{{L(selectedEl.type)}} #{{selectedEl.id}}</div>
+
+        <!-- Position/Size for rect,image -->
+        <template v-if="selectedEl.type==='rect'||selectedEl.type==='image'">
+          <div class="svge-prop-row"><label>X</label><input type="number" :value="selectedEl.x" @input="updateProp('x',+$event.target.value)" class="svge-prop-input" /></div>
+          <div class="svge-prop-row"><label>Y</label><input type="number" :value="selectedEl.y" @input="updateProp('y',+$event.target.value)" class="svge-prop-input" /></div>
+          <div class="svge-prop-row"><label>W</label><input type="number" :value="selectedEl.w" @input="updateProp('w',+$event.target.value)" class="svge-prop-input" min="1" /></div>
+          <div class="svge-prop-row"><label>H</label><input type="number" :value="selectedEl.h" @input="updateProp('h',+$event.target.value)" class="svge-prop-input" min="1" /></div>
+          <div class="svge-prop-row" v-if="selectedEl.type==='rect'"><label>RX</label><input type="number" :value="selectedEl.rx||0" @input="updateProp('rx',+$event.target.value)" class="svge-prop-input" min="0" /></div>
+        </template>
+
+        <!-- Position/Size for ellipse -->
+        <template v-if="selectedEl.type==='ellipse'">
+          <div class="svge-prop-row"><label>CX</label><input type="number" :value="selectedEl.cx" @input="updateProp('cx',+$event.target.value)" class="svge-prop-input" /></div>
+          <div class="svge-prop-row"><label>CY</label><input type="number" :value="selectedEl.cy" @input="updateProp('cy',+$event.target.value)" class="svge-prop-input" /></div>
+          <div class="svge-prop-row"><label>RX</label><input type="number" :value="selectedEl.rx" @input="updateProp('rx',+$event.target.value)" class="svge-prop-input" min="1" /></div>
+          <div class="svge-prop-row"><label>RY</label><input type="number" :value="selectedEl.ry" @input="updateProp('ry',+$event.target.value)" class="svge-prop-input" min="1" /></div>
+        </template>
+
+        <!-- Position/Size for circle -->
+        <template v-if="selectedEl.type==='circle'">
+          <div class="svge-prop-row"><label>CX</label><input type="number" :value="selectedEl.cx" @input="updateProp('cx',+$event.target.value)" class="svge-prop-input" /></div>
+          <div class="svge-prop-row"><label>CY</label><input type="number" :value="selectedEl.cy" @input="updateProp('cy',+$event.target.value)" class="svge-prop-input" /></div>
+          <div class="svge-prop-row"><label>R</label><input type="number" :value="selectedEl.r" @input="updateProp('r',+$event.target.value)" class="svge-prop-input" min="1" /></div>
+        </template>
+
+        <!-- Line endpoints -->
+        <template v-if="selectedEl.type==='line'">
+          <div class="svge-prop-row"><label>X1</label><input type="number" :value="selectedEl.x1" @input="updateProp('x1',+$event.target.value)" class="svge-prop-input" /></div>
+          <div class="svge-prop-row"><label>Y1</label><input type="number" :value="selectedEl.y1" @input="updateProp('y1',+$event.target.value)" class="svge-prop-input" /></div>
+          <div class="svge-prop-row"><label>X2</label><input type="number" :value="selectedEl.x2" @input="updateProp('x2',+$event.target.value)" class="svge-prop-input" /></div>
+          <div class="svge-prop-row"><label>Y2</label><input type="number" :value="selectedEl.y2" @input="updateProp('y2',+$event.target.value)" class="svge-prop-input" /></div>
+        </template>
+
+        <!-- Text properties -->
+        <template v-if="selectedEl.type==='text'">
+          <div class="svge-prop-row"><label>X</label><input type="number" :value="selectedEl.x" @input="updateProp('x',+$event.target.value)" class="svge-prop-input" /></div>
+          <div class="svge-prop-row"><label>Y</label><input type="number" :value="selectedEl.y" @input="updateProp('y',+$event.target.value)" class="svge-prop-input" /></div>
+          <div class="svge-prop-row"><label>{{L('textContent')}}</label><input type="text" :value="selectedEl.text" @input="updateProp('text',$event.target.value)" class="svge-prop-input svge-prop-text" /></div>
+          <div class="svge-prop-row"><label>{{L('fontSize')}}</label><input type="number" :value="selectedEl.fontSize" @input="updateProp('fontSize',+$event.target.value)" class="svge-prop-input" min="8" max="200" /></div>
+          <div class="svge-prop-row">
+            <label>{{L('fontFamily')}}</label>
+            <select :value="selectedEl.fontFamily||'sans-serif'" @change="updateProp('fontFamily',$event.target.value)" class="svge-prop-input">
+              <option value="sans-serif">Sans-serif</option>
+              <option value="serif">Serif</option>
+              <option value="monospace">Monospace</option>
+              <option value="cursive">Cursive</option>
+            </select>
+          </div>
+          <div class="svge-prop-row">
+            <button :class="['svge-prop-toggle', selectedEl.fontWeight==='bold'&&'active']" @click="updateProp('fontWeight',selectedEl.fontWeight==='bold'?'normal':'bold')">B</button>
+            <button :class="['svge-prop-toggle', selectedEl.fontStyle==='italic'&&'active']" @click="updateProp('fontStyle',selectedEl.fontStyle==='italic'?'normal':'italic')" style="font-style:italic">I</button>
+          </div>
+        </template>
+
+        <!-- Common: fill, stroke, opacity -->
+        <div class="svge-prop-section" style="margin-top:8px">{{L('appearance')}}</div>
+        <div class="svge-prop-row" v-if="selectedEl.type!=='line'&&selectedEl.type!=='polyline'&&selectedEl.type!=='image'">
+          <label>{{L('fill')}}</label>
+          <input type="color" :value="selectedEl.fill==='none'?'#ffffff':selectedEl.fill" @input="updateProp('fill',$event.target.value)" class="svge-prop-color" />
+          <button class="svge-prop-toggle" :class="{active:selectedEl.fill==='none'}" @click="updateProp('fill',selectedEl.fill==='none'?'#ffffff':'none')" style="font-size:10px">✕</button>
+        </div>
+        <div class="svge-prop-row" v-if="selectedEl.type!=='image'">
+          <label>{{L('stroke')}}</label>
+          <input type="color" :value="selectedEl.stroke" @input="updateProp('stroke',$event.target.value)" class="svge-prop-color" />
+        </div>
+        <div class="svge-prop-row" v-if="selectedEl.type!=='image'">
+          <label>{{L('strokeW')}}</label>
+          <input type="number" :value="selectedEl.strokeWidth" @input="updateProp('strokeWidth',+$event.target.value)" class="svge-prop-input" min="0" max="50" />
+        </div>
+        <div class="svge-prop-row">
+          <label>{{L('opacity')}}</label>
+          <input type="range" :value="selectedEl.opacity" @input="updateProp('opacity',+$event.target.value)" min="0" max="1" step="0.05" class="svge-prop-range" />
+          <span class="svge-prop-val">{{Math.round((selectedEl.opacity||1)*100)}}%</span>
+        </div>
+      </div>
+
+      <!-- Elements list -->
+      <div class="svge-panel-title" style="margin-top:8px;border-top:1px solid rgba(255,255,255,.08);padding-top:8px">{{L('elements')}} ({{elements.length}})</div>
+      <div class="svge-elements-list">
+        <div v-for="el in [...elements].reverse()" :key="el.id"
+          :class="['svge-el-item', selectedId===el.id&&'active']"
+          @click="selectedId=el.id">
+          <span class="svge-el-icon">{{elementIcon(el.type)}}</span>
+          <span class="svge-el-name">{{L(el.type)}} #{{el.id}}</span>
+        </div>
+        <div v-if="elements.length===0" class="svge-el-empty">{{L('noElements')}}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Text edit overlay -->
+  <div v-if="editingText" class="svge-text-overlay" :style="textOverlayStyle">
+    <input ref="textEditInput" v-model="editTextValue" class="svge-text-edit-input"
+      @keydown.enter="commitEditText" @keydown.esc="cancelEditText"
+      :style="{fontSize:(editingTextEl?editingTextEl.fontSize:16)+'px', color:editingTextEl?editingTextEl.fill:'#fff'}" />
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="svge-statusbar">
+    <span>{{cursorX}}, {{cursorY}}</span>
+    <span>{{canvasW}} × {{canvasH}}</span>
+    <span v-if="currentFileName" style="color:#a6e3a1">📁 {{currentFileName}}</span>
+    <span>{{L('tool')}}: {{L(activeTool)}}</span>
+    <span>{{L('elements')}}: {{elements.length}}</span>
+  </div>
+</div>

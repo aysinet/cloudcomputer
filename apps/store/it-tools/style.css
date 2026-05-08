@@ -1,0 +1,147 @@
+.it-tools-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.itt-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.itt-icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.itt-status-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.itt-sub-text {
+  font-size: 13px;
+  color: #8888aa;
+  max-width: 360px;
+}
+
+.itt-error-msg {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.itt-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #5c6bc0;
+  border-radius: 50%;
+  animation: itt-spin 0.8s linear infinite;
+}
+
+@keyframes itt-spin {
+  to { transform: rotate(360deg); }
+}
+
+.itt-btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: all 0.2s;
+  background: #16213e;
+  color: #e0e0e0;
+}
+
+.itt-btn:hover {
+  background: #1a2744;
+}
+
+.itt-btn-primary {
+  background: #5c6bc0;
+  color: #fff;
+  font-weight: 600;
+}
+
+.itt-btn-primary:hover {
+  background: #7986cb;
+}
+
+.itt-btn-large {
+  padding: 12px 32px;
+  font-size: 16px;
+  border-radius: 12px;
+}
+
+.itt-btn-small {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.itt-btn-danger {
+  background: #c62828;
+  color: #fff;
+}
+
+.itt-btn-danger:hover {
+  background: #e53935;
+}
+
+.itt-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.itt-running {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.itt-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: #0f1a30;
+  border-bottom: 1px solid #1a237e;
+  min-height: 32px;
+}
+
+.itt-info {
+  font-size: 12px;
+  color: #8888aa;
+}
+
+.itt-toolbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.itt-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}

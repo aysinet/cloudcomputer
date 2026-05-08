@@ -1,0 +1,184 @@
+.vpn-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #0d1f0d;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+/* ── Status screens ── */
+.vpn-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.vpn-icon-large { font-size: 56px; line-height: 1; }
+.vpn-status-text { font-size: 18px; font-weight: 600; color: #fff; }
+.vpn-sub-text { font-size: 13px; color: #81c784; max-width: 360px; }
+
+.vpn-error-msg {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.vpn-spinner {
+  width: 40px; height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #4caf50;
+  border-radius: 50%;
+  animation: vpn-spin 0.8s linear infinite;
+}
+@keyframes vpn-spin { to { transform: rotate(360deg); } }
+
+/* ── Buttons ── */
+.vpn-btn {
+  border: none; border-radius: 8px; cursor: pointer;
+  font-size: 14px; padding: 8px 16px;
+  transition: all 0.2s;
+  background: #1b3a1b; color: #e0e0e0;
+}
+.vpn-btn:hover { background: #2e5a2e; }
+.vpn-btn-primary { background: #2e7d32; color: #fff; font-weight: 600; }
+.vpn-btn-primary:hover { background: #388e3c; }
+.vpn-btn-large { padding: 12px 32px; font-size: 16px; border-radius: 12px; }
+.vpn-btn-small { padding: 4px 10px; font-size: 12px; border-radius: 6px; }
+.vpn-btn-danger { background: #c62828; color: #fff; }
+.vpn-btn-danger:hover { background: #e53935; }
+.vpn-actions { display: flex; gap: 8px; }
+
+/* ── Toolbar ── */
+.vpn-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 10px; background: #0a1a0a;
+  border-bottom: 1px solid #1b5e20; min-height: 32px;
+}
+.vpn-info { font-size: 12px; color: #81c784; }
+.vpn-toolbar-actions { display: flex; gap: 4px; }
+
+/* ── Running Dashboard ── */
+.vpn-running { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.vpn-dashboard {
+  flex: 1; padding: 20px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+.vpn-card {
+  display: flex; align-items: center; gap: 14px;
+  background: #142814; border: 1px solid rgba(76,175,80,0.15);
+  border-radius: 12px; padding: 14px 18px;
+  transition: border-color 0.2s;
+}
+.vpn-card:hover { border-color: rgba(76,175,80,0.35); }
+
+.vpn-card-status.vpn-connected { border-color: rgba(76,175,80,0.5); background: rgba(76,175,80,0.08); }
+.vpn-card-status.vpn-disconnected { border-color: rgba(244,67,54,0.4); background: rgba(244,67,54,0.06); }
+
+.vpn-card-icon { font-size: 28px; line-height: 1; flex-shrink: 0; }
+.vpn-card-body { flex: 1; min-width: 0; }
+.vpn-card-label { font-size: 11px; color: #81c784; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+.vpn-card-value { font-size: 15px; font-weight: 500; color: #fff; word-break: break-all; }
+
+.vpn-copyable { cursor: pointer; transition: color 0.2s; }
+.vpn-copyable:hover { color: #a5d6a7; }
+
+.vpn-proxy-hint {
+  font-size: 12px; color: #66bb6a; background: rgba(76,175,80,0.06);
+  border: 1px solid rgba(76,175,80,0.12); border-radius: 8px;
+  padding: 10px 14px; display: flex; gap: 8px; align-items: flex-start;
+  margin-top: 4px;
+}
+
+/* ── Config Form ── */
+.vpn-config-screen {
+  flex: 1; display: flex; flex-direction: column;
+  overflow-y: auto; padding: 24px;
+}
+.vpn-config-header {
+  text-align: center; margin-bottom: 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.vpn-config-form {
+  max-width: 460px; width: 100%; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+.vpn-field { display: flex; flex-direction: column; gap: 4px; }
+.vpn-field label {
+  font-size: 12px; font-weight: 500; color: #a5d6a7;
+  display: flex; align-items: center; gap: 6px;
+}
+.vpn-optional { font-size: 10px; color: #558b2f; font-weight: 400; }
+
+.vpn-field input[type="text"],
+.vpn-field input[type="password"],
+.vpn-field select {
+  background: #142814; border: 1px solid rgba(76,175,80,0.25);
+  border-radius: 8px; padding: 9px 12px; color: #e0e0e0;
+  font-size: 13px; outline: none; transition: border-color 0.2s;
+  font-family: inherit; width: 100%; box-sizing: border-box;
+}
+.vpn-field input:focus,
+.vpn-field select:focus {
+  border-color: #4caf50;
+}
+.vpn-field select { appearance: auto; }
+.vpn-field select option { background: #142814; color: #e0e0e0; }
+
+.vpn-toggle-group {
+  display: flex; gap: 0; border: 1px solid rgba(76,175,80,0.25); border-radius: 8px; overflow: hidden;
+}
+.vpn-toggle {
+  flex: 1; border: none; background: #142814; color: #81c784;
+  padding: 8px 0; font-size: 13px; cursor: pointer; font-weight: 500;
+  transition: all 0.2s;
+}
+.vpn-toggle.active { background: #2e7d32; color: #fff; }
+.vpn-toggle:hover:not(.active) { background: #1b3a1b; }
+
+.vpn-hint {
+  font-size: 12px; color: #66bb6a; background: rgba(76,175,80,0.06);
+  border: 1px solid rgba(76,175,80,0.12); border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.vpn-advanced-toggle {
+  font-size: 13px; color: #81c784; cursor: pointer;
+  padding: 6px 0; user-select: none;
+  display: flex; align-items: center; gap: 6px;
+}
+.vpn-advanced-toggle:hover { color: #a5d6a7; }
+
+.vpn-checkbox-field { flex-direction: column; gap: 2px; }
+.vpn-checkbox-label {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  font-size: 13px; color: #e0e0e0;
+}
+.vpn-checkbox-label input[type="checkbox"] {
+  width: 16px; height: 16px; accent-color: #4caf50; cursor: pointer;
+}
+.vpn-field-hint { font-size: 11px; color: #558b2f; padding-left: 24px; }
+
+.vpn-btn-start { margin-top: 8px; width: 100%; text-align: center; }
+
+/* ── Scrollbar ── */
+.vpn-config-screen::-webkit-scrollbar,
+.vpn-dashboard::-webkit-scrollbar { width: 6px; }
+.vpn-config-screen::-webkit-scrollbar-track,
+.vpn-dashboard::-webkit-scrollbar-track { background: transparent; }
+.vpn-config-screen::-webkit-scrollbar-thumb,
+.vpn-dashboard::-webkit-scrollbar-thumb { background: rgba(76,175,80,0.3); border-radius: 3px; }

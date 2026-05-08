@@ -12,13 +12,46 @@
     </div>
   </div>
 
-  <!-- Google iframe -->
+  <!-- Landing page -->
+  <div v-if="showLanding" class="google-landing">
+    <div class="google-landing-logo">
+      <span class="gl-blue">G</span><span class="gl-red">o</span><span class="gl-yellow">o</span><span class="gl-blue">g</span><span class="gl-green">l</span><span class="gl-red">e</span>
+    </div>
+    <form class="google-search-form" @submit.prevent="doSearch">
+      <div class="google-search-box">
+        <span class="google-search-icon">🔎</span>
+        <input
+          ref="searchInput"
+          v-model="query"
+          type="text"
+          class="google-search-input"
+          :placeholder="t.placeholder"
+          autocomplete="off"
+          autofocus
+        />
+        <button v-if="query" type="button" class="google-clear-btn" @click="query=''">✕</button>
+      </div>
+      <div class="google-search-buttons">
+        <button type="submit" class="google-search-submit">{{ t.search }}</button>
+        <button type="button" class="google-search-submit google-lucky" @click="doLucky">{{ t.lucky }}</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Google iframe for search results -->
   <iframe
+    v-show="!showLanding"
     :src="iframeSrc"
     class="google-frame"
     ref="googleFrame"
     frameborder="0"
     allow="fullscreen"
     referrerpolicy="no-referrer"
+    @load="onFrameLoad"
   ></iframe>
+
+  <!-- Loading overlay -->
+  <div v-if="loading" class="google-loading">
+    <div class="google-spinner"></div>
+  </div>
 </div>

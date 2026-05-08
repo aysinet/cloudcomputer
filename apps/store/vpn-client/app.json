@@ -1,0 +1,80 @@
+{
+  "id": "vpn-client",
+  "name": "VPN Client",
+  "icon": "🛡️",
+  "color": "linear-gradient(135deg,#1b5e20,#004d40)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 700,
+    "h": 600
+  },
+  "global": false,
+  "description": "Docker tabanlı VPN istemcisi — tüm trafiğinizi şifreleyin (Gluetun)",
+  "lang": {
+    "tr": {
+      "name": "VPN İstemcisi",
+      "description": "Docker tabanlı VPN istemcisi — tüm trafiğinizi şifreleyin"
+    },
+    "en": {
+      "name": "VPN Client",
+      "description": "Docker-based VPN client — encrypt all your traffic"
+    },
+    "de": {
+      "name": "VPN-Client",
+      "description": "Docker-basierter VPN-Client — verschlüsseln Sie Ihren gesamten Datenverkehr"
+    },
+    "fr": {
+      "name": "Client VPN",
+      "description": "Client VPN basé sur Docker — chiffrez tout votre trafic"
+    },
+    "es": {
+      "name": "Cliente VPN",
+      "description": "Cliente VPN basado en Docker — cifra todo tu tráfico"
+    },
+    "ru": {
+      "name": "VPN Клиент",
+      "description": "VPN-клиент на базе Docker — зашифруйте весь трафик"
+    },
+    "zh": {
+      "name": "VPN 客户端",
+      "description": "基于Docker的VPN客户端 — 加密所有流量"
+    },
+    "ja": {
+      "name": "VPNクライアント",
+      "description": "DockerベースのVPNクライアント — 全トラフィックを暗号化"
+    },
+    "it": {
+      "name": "Client VPN",
+      "description": "Client VPN basato su Docker — crittografa tutto il traffico"
+    },
+    "ar": {
+      "name": "عميل VPN",
+      "description": "عميل VPN يعتمد على Docker — تشفير كل حركة المرور"
+    },
+    "ko": {
+      "name": "VPN 클라이언트",
+      "description": "Docker 기반 VPN 클라이언트 — 모든 트래픽 암호화"
+    },
+    "hi": {
+      "name": "VPN क्लाइंट",
+      "description": "Docker-आधारित VPN क्लाइंट — अपने सभी ट्रैफ़िक को एन्क्रिप्ट करें"
+    },
+    "pt": {
+      "name": "Cliente VPN",
+      "description": "Cliente VPN baseado em Docker — criptografe todo o seu tráfego"
+    }
+  },
+  "category": "utilities",
+  "docker": {
+    "image": "qmcgaw/gluetun:latest",
+    "containerPort": 8000,
+    "volumes": [
+      "${APP_VOLUME}:/gluetun"
+    ],
+    "env": [
+      "VPN_SERVICE_PROVIDER=custom",
+      "VPN_TYPE=openvpn"
+    ]
+  }
+}

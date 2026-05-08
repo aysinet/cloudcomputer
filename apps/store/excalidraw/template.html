@@ -1,0 +1,48 @@
+<div class="excalidraw-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="ed-status-screen">
+    <div class="ed-spinner"></div>
+    <div class="ed-icon-large">🎨</div>
+    <div class="ed-status-text">{{ pullProgress }}</div>
+    <div class="ed-sub-text">{{ L('pullingDesc') }}</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="ed-status-screen">
+    <div class="ed-spinner"></div>
+    <div class="ed-icon-large">🎨</div>
+    <div class="ed-status-text">{{ L('starting') }}</div>
+    <div class="ed-sub-text">{{ L('startingDesc') }}</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="ed-status-screen ed-error">
+    <div class="ed-icon-large">⚠️</div>
+    <div class="ed-status-text">{{ L('error') }}</div>
+    <div class="ed-error-msg">{{ errorMsg }}</div>
+    <div class="ed-actions">
+      <el-button type="primary" @click="checkAndStart">🔄 {{ L('retry') }}</el-button>
+    </div>
+    <div class="ed-sub-text">{{ L('dockerHint') }}</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="ed-running">
+    <div class="ed-toolbar">
+      <span class="ed-info">🎨 {{ L('appName') }} — {{ L('port') }}: {{ port }}</span>
+      <div class="ed-toolbar-actions">
+        <el-button size="small" @click="restart" :title="L('restart')">🔄</el-button>
+        <el-button size="small" type="danger" @click="stopContainer" :title="L('stop')">⏹️</el-button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="ed-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="ed-status-screen">
+    <div class="ed-icon-large">🎨</div>
+    <div class="ed-status-text">{{ L('appName') }}</div>
+    <div class="ed-sub-text">{{ L('desc') }}</div>
+    <el-button type="primary" size="large" @click="checkAndStart">▶ {{ L('start') }}</el-button>
+  </div>
+</div>

@@ -1,0 +1,200 @@
+<div class="vpn-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="vpn-status-screen">
+    <div class="vpn-spinner"></div>
+    <div class="vpn-icon-large">🛡️</div>
+    <div class="vpn-status-text">{{ pullProgress }}</div>
+    <div class="vpn-sub-text">{{ t('firstInstall') }}</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="vpn-status-screen">
+    <div class="vpn-spinner"></div>
+    <div class="vpn-icon-large">🛡️</div>
+    <div class="vpn-status-text">{{ t('starting') }}</div>
+    <div class="vpn-sub-text">{{ t('preparing') }}</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="vpn-status-screen vpn-error">
+    <div class="vpn-icon-large">⚠️</div>
+    <div class="vpn-status-text">{{ t('error') }}</div>
+    <div class="vpn-error-msg">{{ errorMsg }}</div>
+    <div class="vpn-actions">
+      <button class="vpn-btn vpn-btn-primary" @click="checkAndStart">🔄 {{ t('tryAgain') }}</button>
+      <button class="vpn-btn" @click="showConfig">⚙️ {{ t('advanced') }}</button>
+    </div>
+    <div class="vpn-sub-text">{{ t('dockerCheck') }}</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="vpn-running">
+    <div class="vpn-toolbar">
+      <span class="vpn-info">🛡️ {{ t('title') }}</span>
+      <div class="vpn-toolbar-actions">
+        <button class="vpn-btn vpn-btn-small" @click="showConfig" title="Settings">⚙️</button>
+        <button class="vpn-btn vpn-btn-small" @click="restart" title="Restart">🔄</button>
+        <button class="vpn-btn vpn-btn-small vpn-btn-danger" @click="stopContainer" title="Stop">⏹️</button>
+      </div>
+    </div>
+    <div class="vpn-dashboard">
+      <!-- Connection Status Card -->
+      <div class="vpn-card vpn-card-status" :class="{ 'vpn-connected': vpnStatus === 'connected', 'vpn-disconnected': vpnStatus !== 'connected' }">
+        <div class="vpn-card-icon">{{ vpnStatus === 'connected' ? '🟢' : '🔴' }}</div>
+        <div class="vpn-card-body">
+          <div class="vpn-card-label">{{ t('status') }}</div>
+          <div class="vpn-card-value">{{ vpnStatus === 'connected' ? t('connected') : t('disconnected') }}</div>
+        </div>
+      </div>
+
+      <!-- Public IP Card -->
+      <div class="vpn-card" v-if="publicIp">
+        <div class="vpn-card-icon">🌍</div>
+        <div class="vpn-card-body">
+          <div class="vpn-card-label">{{ t('publicIp') }}</div>
+          <div class="vpn-card-value vpn-copyable" @click="copyToClipboard(publicIp)">{{ publicIp }} 📋</div>
+        </div>
+      </div>
+
+      <!-- HTTP Proxy Card -->
+      <div class="vpn-card" v-if="httpProxyPort">
+        <div class="vpn-card-icon">🔒</div>
+        <div class="vpn-card-body">
+          <div class="vpn-card-label">{{ t('httpProxy') }}</div>
+          <div class="vpn-card-value vpn-copyable" @click="copyToClipboard('http://' + location.hostname + ':' + httpProxyPort)">http://{{ location.hostname }}:{{ httpProxyPort }} 📋</div>
+        </div>
+      </div>
+
+      <!-- SOCKS5 Proxy Card -->
+      <div class="vpn-card" v-if="socksProxyPort">
+        <div class="vpn-card-icon">🧦</div>
+        <div class="vpn-card-body">
+          <div class="vpn-card-label">{{ t('socksProxy') }}</div>
+          <div class="vpn-card-value vpn-copyable" @click="copyToClipboard('socks5://' + location.hostname + ':' + socksProxyPort)">socks5://{{ location.hostname }}:{{ socksProxyPort }} 📋</div>
+        </div>
+      </div>
+
+      <!-- Provider Info -->
+      <div class="vpn-card">
+        <div class="vpn-card-icon">📡</div>
+        <div class="vpn-card-body">
+          <div class="vpn-card-label">{{ t('provider') }}</div>
+          <div class="vpn-card-value">{{ config.provider }} — {{ config.vpnType.toUpperCase() }}</div>
+        </div>
+      </div>
+
+      <div class="vpn-proxy-hint">
+        <span>💡</span> {{ t('proxyInfo') }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Config / Idle State -->
+  <div v-else class="vpn-config-screen">
+    <div class="vpn-config-header">
+      <div class="vpn-icon-large">🛡️</div>
+      <div class="vpn-status-text">{{ t('title') }}</div>
+      <div class="vpn-sub-text">{{ t('desc') }}</div>
+    </div>
+
+    <div class="vpn-config-form">
+      <!-- Provider -->
+      <div class="vpn-field">
+        <label>{{ t('provider') }}</label>
+        <select v-model="config.provider">
+          <option v-for="p in VPN_PROVIDERS" :key="p.value" :value="p.value">{{ p.label }}</option>
+        </select>
+      </div>
+
+      <!-- VPN Type -->
+      <div class="vpn-field">
+        <label>{{ t('vpnType') }}</label>
+        <div class="vpn-toggle-group">
+          <button :class="['vpn-toggle', config.vpnType === 'openvpn' ? 'active' : '']" @click="config.vpnType = 'openvpn'">OpenVPN</button>
+          <button :class="['vpn-toggle', config.vpnType === 'wireguard' ? 'active' : '']" @click="config.vpnType = 'wireguard'">WireGuard</button>
+        </div>
+      </div>
+
+      <!-- OpenVPN credentials (for most providers) -->
+      <template v-if="!isWireGuard && needsCredentials">
+        <div class="vpn-field">
+          <label>{{ t('username') }}</label>
+          <input type="text" v-model="config.username" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="vpn-field">
+          <label>{{ t('password') }}</label>
+          <input type="password" v-model="config.password" autocomplete="off" />
+        </div>
+      </template>
+
+      <!-- WireGuard fields -->
+      <template v-if="isWireGuard">
+        <div class="vpn-field">
+          <label>{{ t('wgPrivateKey') }}</label>
+          <input type="password" v-model="config.wgPrivateKey" autocomplete="off" placeholder="e.g. wOEI9rqqbDwnN8/..." />
+        </div>
+        <div class="vpn-field">
+          <label>{{ t('wgAddresses') }}</label>
+          <input type="text" v-model="config.wgAddresses" autocomplete="off" placeholder="e.g. 10.64.222.21/32" />
+        </div>
+        <template v-if="isCustom">
+          <div class="vpn-field">
+            <label>{{ t('wgPublicKey') }}</label>
+            <input type="text" v-model="config.wgPublicKey" autocomplete="off" />
+          </div>
+          <div class="vpn-field">
+            <label>{{ t('wgEndpoint') }}</label>
+            <input type="text" v-model="config.wgEndpoint" autocomplete="off" placeholder="e.g. 203.0.113.1:51820" />
+          </div>
+        </template>
+      </template>
+
+      <!-- Custom OpenVPN hint -->
+      <div v-if="isCustom && !isWireGuard" class="vpn-hint">
+        💡 {{ t('customOvpn') }}
+      </div>
+
+      <!-- Server selection (non-custom providers) -->
+      <template v-if="!isCustom">
+        <div class="vpn-field">
+          <label>{{ t('serverCountry') }} <span class="vpn-optional">{{ t('optional') }}</span></label>
+          <input type="text" v-model="config.serverCountry" placeholder="e.g. Netherlands" />
+        </div>
+        <div class="vpn-field">
+          <label>{{ t('serverCity') }} <span class="vpn-optional">{{ t('optional') }}</span></label>
+          <input type="text" v-model="config.serverCity" placeholder="e.g. Amsterdam" />
+        </div>
+        <div class="vpn-field">
+          <label>{{ t('serverHostname') }} <span class="vpn-optional">{{ t('optional') }}</span></label>
+          <input type="text" v-model="config.serverHostname" placeholder="e.g. us-dal.prod.surfshark.com" />
+        </div>
+      </template>
+
+      <!-- Advanced toggle -->
+      <div class="vpn-advanced-toggle" @click="showAdvanced = !showAdvanced">
+        <span>{{ showAdvanced ? '▼' : '▶' }}</span> {{ t('advanced') }}
+      </div>
+
+      <template v-if="showAdvanced">
+        <div class="vpn-field vpn-checkbox-field">
+          <label class="vpn-checkbox-label">
+            <input type="checkbox" v-model="config.killSwitch" />
+            <span>{{ t('killSwitch') }}</span>
+          </label>
+          <div class="vpn-field-hint">{{ t('killSwitchDesc') }}</div>
+        </div>
+        <div class="vpn-field vpn-checkbox-field">
+          <label class="vpn-checkbox-label">
+            <input type="checkbox" v-model="config.dnsOverTls" />
+            <span>{{ t('dnsOverTls') }}</span>
+          </label>
+        </div>
+      </template>
+
+      <!-- Start button -->
+      <button class="vpn-btn vpn-btn-primary vpn-btn-large vpn-btn-start" @click="checkAndStart">
+        ▶ {{ t('saveSettings') }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,68 @@
+{
+  "id": "gif-maker",
+  "name": "GIF Maker",
+  "icon": "🎞️",
+  "color": "linear-gradient(135deg,#f7971e,#ffd200)",
+  "type": "internal",
+  "size": {
+    "w": 960,
+    "h": 640
+  },
+  "global": false,
+  "description": "Resimlerden ve videodan GIF oluşturucu",
+  "category": "media",
+  "lang": {
+    "tr": {
+      "name": "GIF Maker",
+      "description": "Resimlerden ve videodan GIF oluşturucu"
+    },
+    "en": {
+      "name": "GIF Maker",
+      "description": "Create GIFs from images and video"
+    },
+    "de": {
+      "name": "GIF Maker",
+      "description": "GIFs aus Bildern und Videos erstellen"
+    },
+    "fr": {
+      "name": "GIF Maker",
+      "description": "Créer des GIF à partir d'images et de vidéos"
+    },
+    "es": {
+      "name": "GIF Maker",
+      "description": "Crear GIFs desde imágenes y video"
+    },
+    "ru": {
+      "name": "GIF Maker",
+      "description": "Создание GIF из изображений и видео"
+    },
+    "zh": {
+      "name": "GIF 制作器",
+      "description": "从图片和视频创建GIF动画"
+    },
+    "ja": {
+      "name": "GIFメーカー",
+      "description": "画像や動画からGIFを作成"
+    },
+    "it": {
+      "name": "GIF Maker",
+      "description": "Crea GIF da immagini e video"
+    },
+    "ar": {
+      "name": "صانع GIF",
+      "description": "إنشاء صور GIF من الصور والفيديو"
+    },
+    "ko": {
+      "name": "GIF 메이커",
+      "description": "이미지와 비디오에서 GIF 만들기"
+    },
+    "hi": {
+      "name": "GIF मेकर",
+      "description": "चित्रों और वीडियो से GIF बनाएं"
+    },
+    "pt": {
+      "name": "GIF Maker",
+      "description": "Criar GIFs a partir de imagens e vídeo"
+    }
+  }
+}

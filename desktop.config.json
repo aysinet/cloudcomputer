@@ -11,7 +11,7 @@
     ]
   },
   "docker": {
-    "managerUrl": "http://localhost:9800",
+    "managerUrl": "http://localhost:8081",
     "secret": "cloudpc-docker-manager-secret",
     "network": "cloudpc-net",
     "portRange": {

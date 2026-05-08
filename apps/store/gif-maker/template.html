@@ -1,0 +1,138 @@
+<div class="gm-root">
+  <!-- Toolbar -->
+  <div class="gm-toolbar">
+    <button class="gm-tb-btn" @click="triggerImageUpload">📤 {{L('addImages')}}</button>
+    <button class="gm-tb-btn" @click="triggerVideoUpload">🎬 {{L('fromVideo')}}</button>
+    <div class="gm-sep"></div>
+    <label class="gm-tb-label">{{L('delay')}}:</label>
+    <input type="number" class="gm-tb-num" v-model.number="globalDelay" min="20" max="5000" step="10"> ms
+    <div class="gm-sep"></div>
+    <label class="gm-tb-label">{{L('width')}}:</label>
+    <input type="number" class="gm-tb-num" v-model.number="outputWidth" min="16" max="1920" step="1">
+    <label class="gm-tb-label">{{L('height')}}:</label>
+    <input type="number" class="gm-tb-num" v-model.number="outputHeight" min="16" max="1080" step="1">
+    <label class="gm-tb-check"><input type="checkbox" v-model="keepAspect"> {{L('keepAspect')}}</label>
+    <div class="gm-sep"></div>
+    <label class="gm-tb-label">{{L('quality')}}:</label>
+    <select class="gm-tb-sel" v-model.number="quality">
+      <option :value="1">{{L('best')}}</option>
+      <option :value="10">{{L('good')}}</option>
+      <option :value="20">{{L('fast')}}</option>
+    </select>
+    <div style="flex:1"></div>
+    <button class="gm-tb-btn gm-primary" @click="generateGif" :disabled="frames.length < 2 || generating">
+      {{generating ? '⏳ ' + progress + '%' : '✨ ' + L('generate')}}
+    </button>
+  </div>
+
+  <!-- Hidden inputs -->
+  <input type="file" ref="imageInput" multiple accept="image/*" style="display:none" @change="onImagesSelected">
+  <input type="file" ref="videoInput" accept="video/*" style="display:none" @change="onVideoSelected">
+
+  <!-- Main layout -->
+  <div class="gm-main">
+    <!-- Frame list sidebar -->
+    <div class="gm-frames-panel">
+      <div class="gm-frames-header">
+        <span>🎞️ {{L('frames')}} ({{frames.length}})</span>
+        <div class="gm-frames-actions" v-if="frames.length">
+          <button class="gm-sm-btn" @click="reverseFrames" title="Reverse">🔄</button>
+          <button class="gm-sm-btn" @click="clearFrames" title="Clear all" style="color:#f56c6c">🗑</button>
+        </div>
+      </div>
+      <div class="gm-frames-list" ref="framesList">
+        <div v-for="(frame, idx) in frames" :key="frame.id"
+             class="gm-frame-item" :class="{active: selectedFrame === idx}"
+             @click="selectedFrame = idx">
+          <div class="gm-frame-num">{{idx + 1}}</div>
+          <img :src="frame.thumb" class="gm-frame-thumb">
+          <div class="gm-frame-info">
+            <input type="number" class="gm-frame-delay" v-model.number="frame.delay" min="20" max="5000" step="10"
+                   @click.stop title="Frame delay (ms)"> ms
+          </div>
+          <div class="gm-frame-btns">
+            <button class="gm-fr-btn" @click.stop="moveFrame(idx, -1)" :disabled="idx === 0">▲</button>
+            <button class="gm-fr-btn" @click.stop="moveFrame(idx, 1)" :disabled="idx === frames.length - 1">▼</button>
+            <button class="gm-fr-btn" @click.stop="duplicateFrame(idx)">📋</button>
+            <button class="gm-fr-btn" @click.stop="removeFrame(idx)" style="color:#f56c6c">✕</button>
+          </div>
+        </div>
+      </div>
+      <!-- Drop zone when empty -->
+      <div v-if="!frames.length" class="gm-empty-drop"
+           @dragover.prevent="dragOver=true" @dragleave="dragOver=false"
+           @drop.prevent="onDrop" :class="{hover: dragOver}">
+        <div class="gm-empty-icon">🎞️</div>
+        <div>{{L('dropHint')}}</div>
+      </div>
+    </div>
+
+    <!-- Preview / Output area -->
+    <div class="gm-preview"
+         @dragover.prevent="dragOver=true" @dragleave="dragOver=false"
+         @drop.prevent="onDrop">
+      <!-- Preview animation -->
+      <div v-if="frames.length && !outputUrl" class="gm-preview-anim">
+        <img v-if="frames.length" :src="frames[previewIdx]?.thumb" class="gm-preview-img">
+        <div class="gm-preview-controls">
+          <button class="gm-prev-btn" @click="togglePreview">{{playing ? '⏸' : '▶'}}</button>
+          <span class="gm-prev-label">{{previewIdx + 1}} / {{frames.length}}</span>
+          <input type="range" class="gm-prev-range" :min="0" :max="Math.max(frames.length - 1, 0)" v-model.number="previewIdx">
+        </div>
+      </div>
+
+      <!-- Generated output -->
+      <div v-if="outputUrl" class="gm-output">
+        <img :src="outputUrl" class="gm-output-img">
+        <div class="gm-output-info">
+          <span>{{outputSize}}</span>
+          <span>{{outputWidth}}×{{outputHeight}}</span>
+          <span>{{frames.length}} {{L('frames')}}</span>
+        </div>
+        <div class="gm-output-actions">
+          <button class="gm-tb-btn gm-primary" @click="downloadGif">💾 {{L('download')}}</button>
+          <button class="gm-tb-btn" @click="saveToFiles">📁 {{L('saveToFiles')}}</button>
+          <button class="gm-tb-btn" @click="outputUrl=null">✕ {{L('close')}}</button>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div v-if="!frames.length && !outputUrl" class="gm-empty">
+        <div class="gm-empty-icon">🎞️</div>
+        <div>{{L('emptyHint')}}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video frame extractor modal -->
+  <div v-if="showVideoModal" class="gm-modal-overlay" @click.self="showVideoModal=false">
+    <div class="gm-modal">
+      <div class="gm-modal-header">
+        <span>🎬 {{L('extractFrames')}}</span>
+        <button class="gm-modal-close" @click="showVideoModal=false">✕</button>
+      </div>
+      <div class="gm-modal-body">
+        <video ref="videoEl" :src="videoSrc" class="gm-video-preview" @loadedmetadata="onVideoLoaded"></video>
+        <div class="gm-video-controls">
+          <label class="gm-tb-label">{{L('startTime')}}:</label>
+          <input type="number" class="gm-tb-num" v-model.number="videoStart" min="0" :max="videoDuration" step="0.1"> s
+          <label class="gm-tb-label">{{L('endTime')}}:</label>
+          <input type="number" class="gm-tb-num" v-model.number="videoEnd" min="0" :max="videoDuration" step="0.1"> s
+          <label class="gm-tb-label">FPS:</label>
+          <input type="number" class="gm-tb-num" v-model.number="videoFps" min="1" max="30" step="1">
+          <label class="gm-tb-label">Max:</label>
+          <input type="number" class="gm-tb-num" v-model.number="maxFrames" min="2" max="200" step="1">
+        </div>
+        <div class="gm-video-info" v-if="videoDuration">
+          {{L('duration')}}: {{videoDuration.toFixed(1)}}s — ~{{estimatedFrames}} {{L('frames')}}
+        </div>
+      </div>
+      <div class="gm-modal-footer">
+        <button class="gm-tb-btn" @click="showVideoModal=false">{{L('cancel')}}</button>
+        <button class="gm-tb-btn gm-primary" @click="extractVideoFrames" :disabled="extracting">
+          {{extracting ? '⏳ ' + extractProgress + '%' : '🎬 ' + L('extract')}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

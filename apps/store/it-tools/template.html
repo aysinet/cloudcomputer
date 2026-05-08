@@ -1,0 +1,48 @@
+<div class="it-tools-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="itt-status-screen">
+    <div class="itt-spinner"></div>
+    <div class="itt-icon-large">🧰</div>
+    <div class="itt-status-text">{{ pullProgress }}</div>
+    <div class="itt-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="itt-status-screen">
+    <div class="itt-spinner"></div>
+    <div class="itt-icon-large">🧰</div>
+    <div class="itt-status-text">IT-Tools başlatılıyor...</div>
+    <div class="itt-sub-text">Geliştirici araçları hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="itt-status-screen itt-error">
+    <div class="itt-icon-large">⚠️</div>
+    <div class="itt-status-text">Bir hata oluştu</div>
+    <div class="itt-error-msg">{{ errorMsg }}</div>
+    <div class="itt-actions">
+      <button class="itt-btn itt-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="itt-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="itt-running">
+    <div class="itt-toolbar">
+      <span class="itt-info">🧰 IT-Tools — Port: {{ port }}</span>
+      <div class="itt-toolbar-actions">
+        <button class="itt-btn itt-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="itt-btn itt-btn-small itt-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="itt-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="itt-status-screen">
+    <div class="itt-icon-large">🧰</div>
+    <div class="itt-status-text">IT-Tools</div>
+    <div class="itt-sub-text">80+ geliştirici aracı — hash, encode, format, convert ve daha fazlası</div>
+    <button class="itt-btn itt-btn-primary itt-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

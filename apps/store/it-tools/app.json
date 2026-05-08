@@ -1,0 +1,77 @@
+{
+  "id": "it-tools",
+  "name": "IT-Tools",
+  "icon": "🧰",
+  "color": "linear-gradient(135deg,#1a1a2e,#16213e)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "80+ geliştirici aracı tek yerde — hash, encode, format, convert ve daha fazlası",
+  "lang": {
+    "tr": {
+      "name": "IT-Tools",
+      "description": "80+ geliştirici aracı tek yerde — hash, encode, format, convert ve daha fazlası"
+    },
+    "en": {
+      "name": "IT-Tools",
+      "description": "80+ developer tools in one place — hash, encode, format, convert and more"
+    },
+    "de": {
+      "name": "IT-Tools",
+      "description": "80+ Entwicklerwerkzeuge an einem Ort — Hash, Encode, Format, Convert und mehr"
+    },
+    "fr": {
+      "name": "IT-Tools",
+      "description": "80+ outils pour développeurs — hash, encode, format, convert et plus"
+    },
+    "es": {
+      "name": "IT-Tools",
+      "description": "80+ herramientas para desarrolladores — hash, encode, format, convert y más"
+    },
+    "ru": {
+      "name": "IT-Tools",
+      "description": "80+ инструментов для разработчиков — хеширование, кодирование, форматирование и другое"
+    },
+    "zh": {
+      "name": "IT-Tools",
+      "description": "80+ 开发者工具集合 — 哈希、编码、格式化、转换等"
+    },
+    "ja": {
+      "name": "IT-Tools",
+      "description": "80以上の開発者ツール — ハッシュ、エンコード、フォーマット、変換など"
+    },
+    "it": {
+      "name": "IT-Tools",
+      "description": "80+ strumenti per sviluppatori — hash, encode, format, convert e altro"
+    },
+    "ar": {
+      "name": "أدوات تقنية",
+      "description": "أكثر من 80 أداة للمطورين — تجزئة، ترميز، تنسيق، تحويل والمزيد"
+    },
+    "ko": {
+      "name": "IT-Tools",
+      "description": "80개 이상의 개발자 도구 — 해시, 인코딩, 포맷, 변환 등"
+    },
+    "hi": {
+      "name": "IT-Tools",
+      "description": "80+ डेवलपर टूल्स एक ही जगह — हैश, एनकोड, फॉर्मेट, कन्वर्ट और अधिक"
+    },
+    "pt": {
+      "name": "IT-Tools",
+      "description": "80+ ferramentas para desenvolvedores — hash, encode, format, convert e mais"
+    }
+  },
+  "category": "developer",
+  "docker": {
+    "image": "corentinth/it-tools:latest",
+    "containerPort": 80,
+    "volumes": [
+      "${APP_VOLUME}:/data"
+    ],
+    "env": []
+  }
+}

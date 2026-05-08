@@ -1,0 +1,167 @@
+<div class="ffm-app" @drop="onDrop" @dragover="onDragOver">
+
+  <!-- TOOLBAR -->
+  <div class="ffm-toolbar">
+    <div class="ffm-toolbar-group">
+      <el-button size="small" @click="$refs.fileInput.click()" :disabled="busy">📂 {{L('selectFile')}}</el-button>
+      <el-button size="small" @click="openServerPicker" :disabled="busy">🌐 {{L('browseServer')}}</el-button>
+      <input type="file" ref="fileInput" @change="onFileInput" style="display:none"
+        accept="video/*,audio/*,image/*,.mkv,.avi,.mov,.flv,.wmv,.ts,.webm,.mp4,.mp3,.aac,.wav,.ogg,.flac,.m4a,.gif">
+    </div>
+    <div class="ffm-toolbar-group">
+      <span class="ffm-label">{{L('outputFormat')}}:</span>
+      <el-select v-model="outputFormat" size="small" style="width:100px" :disabled="busy || useCustom || !!selectedPreset">
+        <el-option-group v-for="g in OUTPUT_FORMATS" :key="g.group" :label="L(g.group+'Formats')">
+          <el-option v-for="f in g.formats" :key="f" :label="f.toUpperCase()" :value="f" />
+        </el-option-group>
+      </el-select>
+    </div>
+    <div class="ffm-toolbar-group">
+      <span class="ffm-label">{{L('preset')}}:</span>
+      <el-select v-model="selectedPreset" size="small" style="width:180px" clearable :disabled="busy || useCustom"
+        @change="onPresetChange" :placeholder="'—'">
+        <el-option v-for="p in presetList" :key="p.value" :label="p.label" :value="p.value" />
+      </el-select>
+    </div>
+    <div class="ffm-toolbar-group">
+      <el-button size="small" :type="useCustom?'warning':''" @click="toggleCustom" :disabled="busy">⌨ {{L('custom')}}</el-button>
+    </div>
+    <div class="ffm-toolbar-group ffm-toolbar-right">
+      <el-button size="small" type="primary" @click="convert" :disabled="!inputFile || busy" :loading="busy">
+        ⚡ {{L('convert')}}
+      </el-button>
+    </div>
+  </div>
+
+  <!-- CUSTOM ARGS -->
+  <div v-if="useCustom" class="ffm-custom-bar">
+    <span class="ffm-custom-prefix">ffmpeg -i input</span>
+    <el-input v-model="customArgs" size="small" :placeholder="L('customArgs')" style="flex:1" />
+    <span class="ffm-custom-suffix">output.{{outputFormat}}</span>
+  </div>
+
+  <!-- BUSY OVERLAY -->
+  <div v-if="busy || ffmpegLoading" class="ffm-busy-overlay">
+    <div class="ffm-spinner"></div>
+    <div class="ffm-busy-text">{{ffmpegLoading ? L('loadingEngine') : busyText}}</div>
+    <div v-if="progressPct > 0" class="ffm-progress-wrap">
+      <div class="ffm-progress-bar" :style="{width: progressPct+'%'}"></div>
+      <span class="ffm-progress-text">{{progressPct}}%</span>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="ffm-main">
+    <!-- INPUT PANEL -->
+    <div class="ffm-panel ffm-input-panel">
+      <div class="ffm-panel-header">
+        <span>📥 {{L('inputFile')}}</span>
+      </div>
+      <div class="ffm-panel-body">
+        <div v-if="!inputFile" class="ffm-dropzone" @click="$refs.fileInput.click()">
+          <div class="ffm-drop-icon">🎬</div>
+          <div class="ffm-drop-text">{{L('dragDrop')}}</div>
+        </div>
+        <div v-else class="ffm-preview-area">
+          <video v-if="isVideo(inputExt)" :src="inputPreviewUrl" controls class="ffm-preview-media"></video>
+          <audio v-else-if="isAudio(inputExt)" :src="inputPreviewUrl" controls class="ffm-preview-audio"></audio>
+          <img v-else-if="isImage(inputExt)" :src="inputPreviewUrl" class="ffm-preview-img" />
+          <div v-else class="ffm-preview-generic">📄</div>
+          <div class="ffm-file-info">
+            <div><b>{{L('name')}}:</b> {{inputFileName}}</div>
+            <div><b>{{L('size')}}:</b> {{formatSize(inputFileSize)}}</div>
+            <div><b>{{L('type')}}:</b> {{inputFileType}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARROW -->
+    <div class="ffm-arrow">➜</div>
+
+    <!-- OUTPUT PANEL -->
+    <div class="ffm-panel ffm-output-panel">
+      <div class="ffm-panel-header">
+        <span>📤 {{L('outputFile')}}</span>
+      </div>
+      <div class="ffm-panel-body">
+        <div v-if="!outputBlob" class="ffm-output-empty">
+          <div class="ffm-out-icon">{{busy ? '⏳' : '🎯'}}</div>
+          <div v-if="!busy">{{L('noFile')}}</div>
+        </div>
+        <div v-else class="ffm-preview-area">
+          <video v-if="isVideo(outputExt)" :src="outputUrl" controls class="ffm-preview-media"></video>
+          <audio v-else-if="isAudio(outputExt)" :src="outputUrl" controls class="ffm-preview-audio"></audio>
+          <img v-else-if="isImage(outputExt)" :src="outputUrl" class="ffm-preview-img" />
+          <div v-else class="ffm-preview-generic">📄 {{outputFileName}}</div>
+          <div class="ffm-file-info">
+            <div><b>{{L('name')}}:</b> {{outputFileName}}</div>
+            <div><b>{{L('size')}}:</b> {{formatSize(outputBlob.size)}}</div>
+          </div>
+          <div class="ffm-output-actions">
+            <el-button size="small" type="success" @click="downloadOutput">💾 {{L('download')}}</el-button>
+            <el-button size="small" type="primary" @click="showSaveDialog=true">☁ {{L('saveToServer')}}</el-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG PANEL -->
+  <div class="ffm-log-bar" @click="showLogs=!showLogs">
+    <span>📋 {{L('logs')}} ({{logLines.length}})</span>
+    <span class="ffm-log-toggle">{{showLogs ? '▼' : '▲'}}</span>
+  </div>
+  <div v-if="showLogs" class="ffm-log-panel">
+    <div class="ffm-log-actions">
+      <el-button size="small" @click="logLines=[]">🗑 {{L('clearLogs')}}</el-button>
+    </div>
+    <div class="ffm-log-scroll" ref="logScroll">
+      <div v-for="(l, i) in logLines" :key="i" class="ffm-log-line">
+        <span class="ffm-log-time">{{l.t}}</span>
+        <span :class="l.m.startsWith('ERROR') ? 'ffm-log-err' : ''">{{l.m}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENGINE STATUS -->
+  <div class="ffm-engine-status" v-if="!ffmpegLoaded && !ffmpegLoading && !busy">
+    <el-button type="warning" size="small" @click="loadFFmpeg">🔧 {{L('loadEngine')}}</el-button>
+    <span class="ffm-engine-hint">~31 MB</span>
+  </div>
+  <div class="ffm-engine-badge" v-if="ffmpegLoaded">
+    <span class="ffm-badge-dot"></span> {{L('engineReady')}}
+  </div>
+
+  <!-- FILE PICKER DIALOG -->
+  <el-dialog v-model="showFilePicker" :title="L('browseServer')" width="500px" append-to-body>
+    <div class="ffm-fp-list" v-if="!fpLoading">
+      <div v-if="fpFiles.length===0" class="ffm-fp-empty">{{L('noFiles')}}</div>
+      <div v-for="f in fpFiles" :key="f.name+f.folder" class="ffm-fp-item" @click="loadServerFile(f)">
+        <span class="ffm-fp-icon">🎬</span>
+        <span class="ffm-fp-name">{{f.name}}</span>
+        <span class="ffm-fp-folder">{{f.folder}}/</span>
+        <span class="ffm-fp-size">{{formatSize(f.size)}}</span>
+      </div>
+    </div>
+    <div v-else class="ffm-fp-loading">
+      <div class="ffm-spinner"></div>
+    </div>
+  </el-dialog>
+
+  <!-- SAVE DIALOG -->
+  <el-dialog v-model="showSaveDialog" :title="L('saveToServer')" width="380px" append-to-body>
+    <div class="ffm-save-body">
+      <div class="ffm-save-label">{{L('savePath')}}:</div>
+      <el-radio-group v-model="savePath">
+        <el-radio value="downloads">📁 {{L('downloads')}}</el-radio>
+        <el-radio value="videos">🎬 {{L('videos')}}</el-radio>
+      </el-radio-group>
+      <div class="ffm-save-filename">{{outputFileName}}</div>
+    </div>
+    <template #footer>
+      <el-button @click="showSaveDialog=false">{{L('cancel')}}</el-button>
+      <el-button type="primary" @click="saveToServer">{{L('save')}}</el-button>
+    </template>
+  </el-dialog>
+</div>

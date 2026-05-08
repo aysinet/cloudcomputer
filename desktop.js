@@ -278,7 +278,7 @@ const proxyCache = {};
 
 // #endregion
 // #region Docker Manager client (ENV > config.json > default)
-const DOCKER_MANAGER_URL = process.env.DOCKER_MANAGER_URL || config.docker?.managerUrl || 'http://localhost:9800';
+const DOCKER_MANAGER_URL = process.env.DOCKER_MANAGER_URL || config.docker?.managerUrl || 'http://localhost:8081';
 const DM_SECRET = process.env.DM_SECRET || config.docker?.secret || 'cloudpc-docker-manager-secret';
 const IS_DOCKER = process.env.IS_DOCKER === 'true';
 const INSTANCE_ID = process.env.INSTANCE_ID || 'default';
@@ -1741,6 +1741,7 @@ app.get('/api/browser/proxy', authMiddleware, async (req, res) => {
       // Inject <base> tag right after <head>
       html = html.replace(/(<head[^>]*>)/i, '$1<base href="' + baseHref + '">');
       // Inject script to intercept link clicks and window.open inside iframe
+      const interceptAll = req.query.interceptAll === '1';
       const interceptScript = `<script>(function(){
         var origOpen=window.open;
         window.open=function(url){
@@ -1750,10 +1751,10 @@ app.get('/api/browser/proxy', authMiddleware, async (req, res) => {
           if(!a)return;
           var href=a.getAttribute('href');
           if(!href||href.startsWith('#')||href.startsWith('javascript:'))return;
-          if(a.target==='_blank'||a.target==='_new'||e.ctrlKey||e.metaKey){
+          ${interceptAll ? '' : "if(a.target==='_blank'||a.target==='_new'||e.ctrlKey||e.metaKey){"}
             e.preventDefault();e.stopPropagation();
             try{var u=new URL(href,location.href);parent.postMessage({type:'browser-navigate',url:u.href},'*');}catch(ex){}
-          }
+          ${interceptAll ? '' : '}'}
         },true);
       })();<\/script>`;
       html = html.replace(/(<head[^>]*>)/i, '$1' + interceptScript);
@@ -1794,6 +1795,69 @@ app.delete('/api/browser/bookmarks', authMiddleware, (req, res) => {
   bookmarks = bookmarks.filter(b => b.url !== url);
   saveUserSettings(req.user.username, { ...settings, browserBookmarks: bookmarks });
   res.json({ ok: true, bookmarks });
+});
+
+// #endregion
+// #region AppLinks (Desktop Shortcuts)
+app.get('/api/applinks', authMiddleware, (req, res) => {
+  const settings = getUserSettings(req.user.username);
+  res.json(Array.isArray(settings.appLinks) ? settings.appLinks : []);
+});
+
+app.post('/api/applinks', authMiddleware, (req, res) => {
+  const { appId, label, description, url, data, desktop, color } = req.body;
+  if (!appId || typeof appId !== 'string') return res.status(400).json({ error: 'appId required' });
+  if (!label || typeof label !== 'string') return res.status(400).json({ error: 'label required' });
+  const safeAppId = appId.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
+  const safeLabel = String(label).slice(0, 100);
+  const safeDesc = description ? String(description).slice(0, 500) : '';
+  const safeUrl = url ? String(url).slice(0, 2048) : '';
+  const targetDesktop = Math.max(1, Math.min(4, Number(desktop) || 1));
+  const settings = getUserSettings(req.user.username);
+  const links = Array.isArray(settings.appLinks) ? settings.appLinks : [];
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const link = {
+    id,
+    appId: safeAppId,
+    label: safeLabel,
+    description: safeDesc,
+    url: safeUrl,
+    data: data && typeof data === 'object' ? JSON.parse(JSON.stringify(data)) : {},
+    desktop: targetDesktop,
+    color: color && typeof color === 'string' ? color.slice(0, 100) : '',
+    createdAt: new Date().toISOString()
+  };
+  links.push(link);
+  saveUserSettings(req.user.username, { ...settings, appLinks: links });
+  res.json({ ok: true, link });
+});
+
+app.put('/api/applinks/:id', authMiddleware, (req, res) => {
+  const linkId = req.params.id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const settings = getUserSettings(req.user.username);
+  const links = Array.isArray(settings.appLinks) ? settings.appLinks : [];
+  const idx = links.findIndex(l => l.id === linkId);
+  if (idx === -1) return res.status(404).json({ error: 'Link not found' });
+  const { label, description, url, data, desktop, color } = req.body;
+  if (label !== undefined) links[idx].label = String(label).slice(0, 100);
+  if (description !== undefined) links[idx].description = String(description).slice(0, 500);
+  if (url !== undefined) links[idx].url = String(url).slice(0, 2048);
+  if (data !== undefined && typeof data === 'object') links[idx].data = JSON.parse(JSON.stringify(data));
+  if (desktop !== undefined) links[idx].desktop = Math.max(1, Math.min(4, Number(desktop) || 1));
+  if (color !== undefined) links[idx].color = String(color).slice(0, 100);
+  saveUserSettings(req.user.username, { ...settings, appLinks: links });
+  res.json({ ok: true, link: links[idx] });
+});
+
+app.delete('/api/applinks/:id', authMiddleware, (req, res) => {
+  const linkId = req.params.id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const settings = getUserSettings(req.user.username);
+  const links = Array.isArray(settings.appLinks) ? settings.appLinks : [];
+  const idx = links.findIndex(l => l.id === linkId);
+  if (idx === -1) return res.status(404).json({ error: 'Link not found' });
+  links.splice(idx, 1);
+  saveUserSettings(req.user.username, { ...settings, appLinks: links });
+  res.json({ ok: true });
 });
 
 // #endregion
@@ -2607,6 +2671,29 @@ app.post('/api/settings', authMiddleware, (req, res) => {
   res.json({ ok: true, settings: updated });
 });
 
+// #endregion
+// #region Theme API
+app.get('/api/themes', authMiddleware, (req, res) => {
+  const themesDir = path.join(__dirname, 'themes');
+  try {
+    const files = fs.readdirSync(themesDir).filter(f => f.endsWith('.css'));
+    const themes = files.map(f => f.replace('.css', ''));
+    res.json({ themes });
+  } catch {
+    res.json({ themes: [] });
+  }
+});
+
+app.get('/api/themes/:id', (req, res) => {
+  const id = req.params.id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const filePath = path.join(__dirname, 'themes', id + '.css');
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Theme not found' });
+  res.setHeader('Content-Type', 'text/css');
+  res.send(fs.readFileSync(filePath, 'utf-8'));
+});
+
+// #endregion
+// #region Google Fonts proxy
 // Google Fonts proxy
 let googleFontsCache = null;
 let googleFontsCacheTime = 0;
@@ -3186,7 +3273,7 @@ const AI_DOMAIN_APPS = {
 const AI_DOMAIN_KEYWORDS = {
   files: ['disk','dosya','file','storage','backup','yedek','ftp','gdrive','archive','sync','boyut','alan','depolama','yer','kapa','klasör','folder','directory','sil','delete','upload','download','indirme','kopyala','taşı'],
   organizer: ['todo','task','calendar','takvim','reminder','hatırlat','note','not','contact','kişi','kanban','schedule','görev','plan','toplantı','meeting','etkinlik','event','ajanda','randevu'],
-  finance: ['budget','bütçe','crypto','coin','currency','döviz','stock','hisse','wallet','cüzdan','para','gelir','gider','harcama','fiyat','kur','borsa','finans','expense','income','araç','araba','car','vehicle','muayene','inspection','vergi','tax','yakıt','fuel','benzin','gasoline','ceza','fine','kaza','accident','sigorta','insurance','plaka','plate','carpaper'],
+  finance: ['budget','bütçe','crypto','coin','currency','döviz','stock','hisse','wallet','cüzdan','para','gelir','gider','harcama','fiyat','kur','borsa','finans','expense','income','araç','araba','car','vehicle','muayene','inspection','vergi','tax','yakıt','fuel','benzin','gasoline','ceza','fine','kaza','accident','sigorta','insurance','plaka','plate','carpaper','euro','dolar','sterlin','dollar','eur','usd','gbp','try','bitcoin','kaç tl','kaç dolar','kaç euro','exchange rate','convert'],
   media: ['music','müzik','photo','fotoğraf','video','audio','ses','record','kayıt','şarkı','song','album','çal','play'],
   communication: ['email','mail','notification','bildirim','mesaj','message','inbox','posta'],
   developer: ['code','github','api','debug','repo','commit','pull','push','rabbitmq','branch'],
@@ -3906,6 +3993,7 @@ function getUserDb(username) {
       recurring TEXT DEFAULT '',
       notify INTEGER DEFAULT 0,
       show_calendar INTEGER DEFAULT 0,
+      notified_date TEXT DEFAULT '',
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (category_id) REFERENCES budget_categories(id) ON DELETE SET NULL
     );
@@ -5454,6 +5542,8 @@ app.delete('/api/budget/categories/:id', authMiddleware, (req, res) => {
 app.get('/api/budget/entries', authMiddleware, (req, res) => {
   const { month, type, paid, category_id } = req.query;
   const db = getUserDb(req.user.username);
+  // Migrate: add notified_date column if missing
+  try { db.prepare('SELECT notified_date FROM budget_entries LIMIT 1').get(); } catch { db.exec('ALTER TABLE budget_entries ADD COLUMN notified_date TEXT DEFAULT ""'); }
   let sql = 'SELECT e.*, c.name as category_name, c.icon as category_icon, c.color as category_color FROM budget_entries e LEFT JOIN budget_categories c ON e.category_id = c.id WHERE 1=1';
   const params = [];
   if (month) { sql += " AND strftime('%Y-%m', e.date) = ?"; params.push(month); }
@@ -5546,6 +5636,58 @@ app.delete('/api/budget/entries/:id', authMiddleware, (req, res) => {
   db.prepare('DELETE FROM budget_entries WHERE id=?').run(req.params.id);
   res.json({ ok: true });
 });
+
+// Budget unpaid payment checker — runs every 12 hours
+function startBudgetPaymentChecker() {
+  const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+  const check = () => {
+    try {
+      if (!fs.existsSync(APPDATA_DIR)) return;
+      const dbFiles = fs.readdirSync(APPDATA_DIR).filter(f => f.endsWith('.db'));
+      const today = new Date().toISOString().slice(0, 10);
+      for (const dbFile of dbFiles) {
+        const username = dbFile.replace(/\.db$/, '');
+        try {
+          const db = getUserDb(username);
+          // Migrate: add notified_date column if missing
+          try { db.prepare('SELECT notified_date FROM budget_entries LIMIT 1').get(); } catch { db.exec('ALTER TABLE budget_entries ADD COLUMN notified_date TEXT DEFAULT ""'); }
+          const rows = db.prepare(
+            'SELECT e.id, e.amount, e.description, e.date, e.type, c.name as category_name, c.icon as category_icon ' +
+            'FROM budget_entries e LEFT JOIN budget_categories c ON e.category_id = c.id ' +
+            'WHERE e.paid = 0 AND e.date <= ? AND e.notified_date != ?'
+          ).all(today, today);
+          if (!rows.length) continue;
+          const now = new Date();
+          for (const row of rows) {
+            const icon = row.category_icon || (row.type === 'income' ? '💰' : '💸');
+            const notif = {
+              id: crypto.randomUUID(),
+              icon,
+              bg: row.type === 'income' ? '#f0f9eb' : '#fef0f0',
+              title: icon + ' ' + (row.type === 'income' ? 'Unpaid Income' : 'Unpaid Expense'),
+              text: (row.description || row.category_name || row.type) + ' — ' + row.amount.toLocaleString('en') + ' (' + row.date + ')',
+              time: now.toISOString(),
+              read: false,
+              createdAt: now.getTime(),
+              action: { app: 'budget' }
+            };
+            addNotificationToDb(username, notif);
+            wsClients.forEach(ws => {
+              if (ws.readyState !== 1) return;
+              if (ws.user && ws.user.username === username) {
+                ws.send(JSON.stringify({ type: 'notification', data: notif }));
+              }
+            });
+          }
+          // Mark all as notified for today
+          db.prepare('UPDATE budget_entries SET notified_date = ? WHERE paid = 0 AND date <= ? AND notified_date != ?').run(today, today, today);
+        } catch (e) { /* skip user */ }
+      }
+    } catch (e) { console.error('Budget payment check error:', e.message); }
+  };
+  check();
+  setInterval(check, TWELVE_HOURS);
+}
 
 // #endregion
 // #region CarPaper API
@@ -13668,6 +13810,31 @@ app.delete('/api/icon-maker/icons/:id', authMiddleware, (req, res) => {
 });
 // #endregion
 
+// #region ═══════════════════ VPN Client Config API ═══════════════════
+app.get('/api/vpn-client/config', authMiddleware, (req, res) => {
+  const fp = path.join('data', 'users', req.user.username, 'vpn-client-config.json');
+  if (fs.existsSync(fp)) {
+    try { return res.json(JSON.parse(fs.readFileSync(fp, 'utf-8'))); } catch {}
+  }
+  res.json({ provider: 'custom', vpnType: 'openvpn', killSwitch: true, dnsOverTls: true });
+});
+
+app.post('/api/vpn-client/config', authMiddleware, (req, res) => {
+  const allowed = ['provider', 'vpnType', 'username', 'password', 'wgPrivateKey', 'wgAddresses', 'wgPublicKey', 'wgEndpoint', 'serverCountry', 'serverCity', 'serverHostname', 'killSwitch', 'dnsOverTls'];
+  const cfg = {};
+  for (const key of allowed) {
+    if (req.body[key] !== undefined) {
+      if (typeof req.body[key] === 'boolean') { cfg[key] = req.body[key]; }
+      else { cfg[key] = String(req.body[key]).slice(0, 500); }
+    }
+  }
+  const fp = path.join('data', 'users', req.user.username, 'vpn-client-config.json');
+  fs.mkdirSync(path.dirname(fp), { recursive: true });
+  fs.writeFileSync(fp, JSON.stringify(cfg, null, 2));
+  res.json({ ok: true });
+});
+// #endregion
+
 server.listen(config.server.port, config.server.host, () => {
   console.log(`Desktop Server running at http://${config.server.host}:${config.server.port}`);
   console.log(`WebSocket endpoint: ws://${config.server.host}:${config.server.port}/ws`);
@@ -13677,6 +13844,7 @@ server.listen(config.server.port, config.server.host, () => {
   startMailChecker();
   startSyncChecker();
   startGmailChecker();
+  startBudgetPaymentChecker();
 });
 
 // #endregion

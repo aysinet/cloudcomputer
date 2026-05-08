@@ -1,0 +1,101 @@
+.excalidraw-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1e1e2e;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.ed-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.ed-icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.ed-status-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.ed-sub-text {
+  font-size: 13px;
+  color: #a78bfa;
+  max-width: 360px;
+}
+
+.ed-error-msg {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.ed-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #6965db;
+  border-radius: 50%;
+  animation: ed-spin 0.8s linear infinite;
+}
+
+@keyframes ed-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ed-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ed-running {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ed-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: #181825;
+  border-bottom: 1px solid #313244;
+  min-height: 32px;
+}
+
+.ed-info {
+  font-size: 12px;
+  color: #a78bfa;
+}
+
+.ed-toolbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.ed-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}

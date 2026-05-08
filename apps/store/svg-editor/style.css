@@ -1,0 +1,83 @@
+.svge-root{width:100%;height:100%;display:flex;flex-direction:column;background:#2b2b3a;color:#e0e0e0;font-family:'Segoe UI',sans-serif;overflow:hidden;user-select:none}
+
+/* Toolbar */
+.svge-toolbar{display:flex;align-items:center;gap:4px;padding:4px 8px;background:#1e1e2e;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;flex-wrap:wrap;min-height:36px}
+.svge-tb-group{display:flex;align-items:center;gap:2px}
+.svge-tb-sep{width:1px;height:22px;background:rgba(255,255,255,.1);margin:0 4px}
+.svge-tb-btn{height:28px;min-width:28px;padding:0 6px;border:1px solid transparent;border-radius:4px;background:none;color:#ccc;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
+.svge-tb-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.svge-tb-btn.active{background:rgba(108,92,231,.3);border-color:rgba(108,92,231,.6);color:#fff}
+.svge-tb-btn:disabled{opacity:.3;cursor:default}
+.svge-tb-sm{font-size:11px;height:24px;min-width:24px;padding:0 4px}
+.svge-tool-btn{font-size:16px;width:32px}
+.svge-zoom-label{font-size:10px;color:rgba(255,255,255,.45);min-width:36px;text-align:center}
+
+/* Size slider */
+.svge-size-group{gap:6px}
+.svge-size-label{font-size:10px;color:rgba(255,255,255,.5);min-width:28px;text-align:center}
+.svge-size-slider{width:60px;height:4px;accent-color:#6c5ce7;cursor:pointer}
+
+/* Colors */
+.svge-color-group{gap:6px;align-items:center}
+.svge-color-item{display:flex;align-items:center;gap:4px;cursor:pointer}
+.svge-color-swatch{width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-radius:3px;position:relative;display:flex;align-items:center;justify-content:center}
+.svge-color-swatch:hover{border-color:#fff}
+.svge-stroke-swatch{border-style:dashed}
+.svge-no-fill{color:#e74c3c;font-size:12px;font-weight:bold}
+.svge-color-label{font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase}
+
+/* Main layout */
+.svge-main{flex:1;display:flex;overflow:hidden;min-height:0}
+
+/* Canvas wrap */
+.svge-canvas-wrap{flex:1;overflow:auto;background:repeating-conic-gradient(#3a3a4a 0% 25%,#2e2e3e 0% 50%) 0 0/16px 16px;display:flex;align-items:flex-start;justify-content:flex-start;padding:8px;cursor:crosshair;position:relative}
+.svge-svg{background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.4);flex-shrink:0}
+
+/* SVG element selection highlight */
+.svge-el-selected{cursor:move;filter:drop-shadow(0 0 2px rgba(108,92,231,.6))}
+
+/* Properties panel */
+.svge-panel{width:210px;background:#1e1e2e;border-left:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.svge-panel-title{font-size:11px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;padding:8px 10px 4px;letter-spacing:.5px}
+
+.svge-props{padding:0 10px 8px}
+.svge-prop-section{font-size:10px;font-weight:600;color:rgba(108,92,231,.8);text-transform:uppercase;margin:6px 0 4px;letter-spacing:.3px}
+.svge-prop-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.svge-prop-row label{font-size:10px;color:rgba(255,255,255,.5);min-width:24px;flex-shrink:0}
+.svge-prop-input{flex:1;height:22px;border:1px solid rgba(255,255,255,.12);border-radius:3px;background:rgba(255,255,255,.06);color:#ddd;padding:0 6px;font-size:11px;outline:none;min-width:0}
+.svge-prop-input:focus{border-color:rgba(108,92,231,.5)}
+.svge-prop-text{width:100%}
+.svge-prop-color{width:24px;height:22px;border:1px solid rgba(255,255,255,.12);border-radius:3px;background:rgba(255,255,255,.06);cursor:pointer;padding:0}
+.svge-prop-range{flex:1;height:4px;accent-color:#6c5ce7;cursor:pointer}
+.svge-prop-val{font-size:9px;color:rgba(255,255,255,.4);min-width:28px;text-align:right}
+.svge-prop-toggle{width:24px;height:22px;border:1px solid rgba(255,255,255,.12);border-radius:3px;background:rgba(255,255,255,.06);color:#aaa;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
+.svge-prop-toggle:hover{background:rgba(255,255,255,.12)}
+.svge-prop-toggle.active{background:rgba(108,92,231,.3);border-color:rgba(108,92,231,.6);color:#fff}
+
+/* Elements list */
+.svge-elements-list{flex:1;overflow-y:auto;padding:0 6px 8px}
+.svge-el-item{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:4px;cursor:pointer;font-size:11px;color:rgba(255,255,255,.6);transition:.1s}
+.svge-el-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.svge-el-item.active{background:rgba(108,92,231,.25);color:#fff}
+.svge-el-icon{font-size:13px;flex-shrink:0}
+.svge-el-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.svge-el-empty{font-size:11px;color:rgba(255,255,255,.25);text-align:center;padding:16px 0}
+
+/* Text edit overlay */
+.svge-text-overlay{position:absolute;z-index:15}
+.svge-text-edit-input{background:rgba(0,0,0,.5);border:1px dashed rgba(108,92,231,.6);outline:none;padding:4px 6px;min-width:120px;font-family:'Segoe UI',sans-serif;color:#fff;border-radius:3px}
+
+/* Statusbar */
+.svge-statusbar{height:22px;background:#1e1e2e;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 12px;gap:20px;font-size:10px;color:rgba(255,255,255,.4);flex-shrink:0}
+
+/* Scrollbar */
+.svge-canvas-wrap::-webkit-scrollbar{width:8px;height:8px}
+.svge-canvas-wrap::-webkit-scrollbar-track{background:rgba(0,0,0,.2)}
+.svge-canvas-wrap::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px}
+.svge-canvas-wrap::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2)}
+.svge-panel::-webkit-scrollbar{width:6px}
+.svge-panel::-webkit-scrollbar-track{background:transparent}
+.svge-panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+.svge-elements-list::-webkit-scrollbar{width:5px}
+.svge-elements-list::-webkit-scrollbar-track{background:transparent}
+.svge-elements-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:3px}

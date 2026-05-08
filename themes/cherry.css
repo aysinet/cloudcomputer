@@ -1,0 +1,84 @@
+/* Cherry Theme - Red/Rose tones */
+:root {
+  --el-color-primary: #c62828;
+  --el-color-primary-light-3: #e53935;
+  --el-color-primary-light-5: #ef5350;
+  --el-color-primary-light-7: #ef9a9a;
+  --el-color-primary-light-8: #ffcdd2;
+  --el-color-primary-light-9: #ffebee;
+  --el-color-primary-dark-2: #b71c1c;
+  --el-color-success: #66bb6a;
+  --el-color-warning: #ffa726;
+  --el-color-danger: #d32f2f;
+  --el-color-info: #8d6e63;
+  --el-bg-color: #1f1418;
+  --el-bg-color-overlay: #2d1a20;
+  --el-bg-color-page: #180f12;
+  --el-text-color-primary: #f0d4d8;
+  --el-text-color-regular: #d4a0a8;
+  --el-text-color-secondary: #a66a74;
+  --el-text-color-placeholder: #7a4a52;
+  --el-border-color: #4a2028;
+  --el-border-color-light: #3d1a22;
+  --el-border-color-lighter: #33151c;
+  --el-border-color-extra-light: #2a1018;
+  --el-fill-color: #2d1a20;
+  --el-fill-color-light: #1f1418;
+  --el-fill-color-lighter: #180f12;
+  --el-fill-color-blank: #1f1418;
+  --el-mask-color: rgba(24, 15, 18, 0.85);
+  --el-dialog-bg-color: #1f1418;
+  --el-menu-bg-color: #180f12;
+  --el-menu-hover-bg-color: #2d1a20;
+}
+
+#app {
+  background: linear-gradient(135deg, #120a0c 0%, #1f1015 40%, #2d141c 100%) !important;
+}
+
+.taskbar {
+  background: rgba(18, 10, 12, 0.94) !important;
+  border-top-color: rgba(198, 40, 40, 0.15) !important;
+}
+
+.start-btn:hover {
+  background: rgba(198, 40, 40, 0.2) !important;
+}
+
+.start-menu {
+  background: rgba(24, 15, 18, 0.97) !important;
+  border-color: rgba(198, 40, 40, 0.12) !important;
+}
+
+.winbox {
+  background: #1f1418 !important;
+}
+
+.winbox .wb-header {
+  background: #180f12 !important;
+}
+
+.wb-body {
+  background: #1f1418 !important;
+}
+
+.context-menu {
+  background: rgba(24, 15, 18, 0.98) !important;
+  border-color: rgba(198, 40, 40, 0.15) !important;
+}
+
+.context-menu-item:hover {
+  background: rgba(198, 40, 40, 0.15) !important;
+}
+
+.desktop-icon:hover {
+  background: rgba(198, 40, 40, 0.18) !important;
+}
+
+.tray-clock {
+  color: #d4a0a8 !important;
+}
+
+.wallpaper-grid {
+  background-image: radial-gradient(circle, rgba(198, 40, 40, 0.04) 1px, transparent 1px) !important;
+}

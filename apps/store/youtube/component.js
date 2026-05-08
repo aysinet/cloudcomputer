@@ -1,5 +1,6 @@
 (function(Vue) {
   const { ref, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
+  const ElMessage = (window.ElementPlus && window.ElementPlus.ElMessage) || { success(){}, error(){}, warning(){}, info(){} };
 
   const LANGS = {
     tr: {

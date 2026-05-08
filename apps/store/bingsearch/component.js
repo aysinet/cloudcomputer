@@ -43,7 +43,7 @@
       const bingFrame = ref(null);
 
       function proxyUrl(url) {
-        return '/api/browser/proxy?url=' + encodeURIComponent(url);
+        return '/api/browser/proxy?url=' + encodeURIComponent(url) + '&interceptAll=1';
       }
 
       function getRealUrl() {
@@ -82,18 +82,25 @@
         window.open(getRealUrl(), '_blank');
       }
 
+      function openInBrowser(url) {
+        window.dispatchEvent(new CustomEvent('open-app-action', { detail: { app: 'browser' } }));
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('browser-open-url', { detail: url }));
+        }, 300);
+      }
+
       function onIframeMessage(e) {
         if (e.data && e.data.type === 'browser-navigate' && e.data.url) {
           const url = e.data.url;
-          // If it's a Bing internal link, navigate within the app
-          if (url.includes('bing.com')) {
+          // Bing redirect links (search results) should open in browser app
+          if (url.includes('bing.com/ck/') || url.includes('bing.com/newtabredir')) {
+            openInBrowser(url);
+          } else if (url.includes('bing.com')) {
+            // Bing internal navigation stays within the app
             iframeSrc.value = proxyUrl(url);
           } else {
-            // Open external links in the browser app
-            window.dispatchEvent(new CustomEvent('open-app-action', { detail: { app: 'browser' } }));
-            setTimeout(() => {
-              window.dispatchEvent(new CustomEvent('browser-open-url', { detail: url }));
-            }, 300);
+            // External links open in the browser app
+            openInBrowser(url);
           }
         }
       }

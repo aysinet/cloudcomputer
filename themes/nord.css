@@ -1,0 +1,84 @@
+/* Nord Theme - Cool blue-gray Arctic tones */
+:root {
+  --el-color-primary: #5e81ac;
+  --el-color-primary-light-3: #81a1c1;
+  --el-color-primary-light-5: #88c0d0;
+  --el-color-primary-light-7: #a3d4e0;
+  --el-color-primary-light-8: #c8e4ed;
+  --el-color-primary-light-9: #eceff4;
+  --el-color-primary-dark-2: #4c6a91;
+  --el-color-success: #a3be8c;
+  --el-color-warning: #ebcb8b;
+  --el-color-danger: #bf616a;
+  --el-color-info: #81a1c1;
+  --el-bg-color: #2e3440;
+  --el-bg-color-overlay: #3b4252;
+  --el-bg-color-page: #272c36;
+  --el-text-color-primary: #eceff4;
+  --el-text-color-regular: #d8dee9;
+  --el-text-color-secondary: #9aa5b4;
+  --el-text-color-placeholder: #6d7a8a;
+  --el-border-color: #434c5e;
+  --el-border-color-light: #3b4252;
+  --el-border-color-lighter: #353b48;
+  --el-border-color-extra-light: #2e3440;
+  --el-fill-color: #3b4252;
+  --el-fill-color-light: #2e3440;
+  --el-fill-color-lighter: #272c36;
+  --el-fill-color-blank: #2e3440;
+  --el-mask-color: rgba(39, 44, 54, 0.85);
+  --el-dialog-bg-color: #2e3440;
+  --el-menu-bg-color: #272c36;
+  --el-menu-hover-bg-color: #3b4252;
+}
+
+#app {
+  background: linear-gradient(135deg, #242933 0%, #2e3440 40%, #353b48 100%) !important;
+}
+
+.taskbar {
+  background: rgba(36, 41, 51, 0.94) !important;
+  border-top-color: rgba(94, 129, 172, 0.15) !important;
+}
+
+.start-btn:hover {
+  background: rgba(94, 129, 172, 0.2) !important;
+}
+
+.start-menu {
+  background: rgba(39, 44, 54, 0.97) !important;
+  border-color: rgba(94, 129, 172, 0.12) !important;
+}
+
+.winbox {
+  background: #2e3440 !important;
+}
+
+.winbox .wb-header {
+  background: #272c36 !important;
+}
+
+.wb-body {
+  background: #2e3440 !important;
+}
+
+.context-menu {
+  background: rgba(39, 44, 54, 0.98) !important;
+  border-color: rgba(94, 129, 172, 0.15) !important;
+}
+
+.context-menu-item:hover {
+  background: rgba(94, 129, 172, 0.15) !important;
+}
+
+.desktop-icon:hover {
+  background: rgba(94, 129, 172, 0.18) !important;
+}
+
+.tray-clock {
+  color: #d8dee9 !important;
+}
+
+.wallpaper-grid {
+  background-image: radial-gradient(circle, rgba(94, 129, 172, 0.04) 1px, transparent 1px) !important;
+}

@@ -1,0 +1,84 @@
+/* Cyberpunk Theme - Neon pink/cyan on dark */
+:root {
+  --el-color-primary: #ff006e;
+  --el-color-primary-light-3: #ff3d8e;
+  --el-color-primary-light-5: #ff6aaa;
+  --el-color-primary-light-7: #ff99c8;
+  --el-color-primary-light-8: #ffc2e0;
+  --el-color-primary-light-9: #ffe5f2;
+  --el-color-primary-dark-2: #d4005c;
+  --el-color-success: #00e5ff;
+  --el-color-warning: #ffea00;
+  --el-color-danger: #ff1744;
+  --el-color-info: #8c9eff;
+  --el-bg-color: #0a0a14;
+  --el-bg-color-overlay: #12121f;
+  --el-bg-color-page: #06060e;
+  --el-text-color-primary: #eaeaff;
+  --el-text-color-regular: #c0c0e0;
+  --el-text-color-secondary: #7878aa;
+  --el-text-color-placeholder: #4a4a70;
+  --el-border-color: #2a1a3a;
+  --el-border-color-light: #221430;
+  --el-border-color-lighter: #1c1028;
+  --el-border-color-extra-light: #140c1e;
+  --el-fill-color: #12121f;
+  --el-fill-color-light: #0a0a14;
+  --el-fill-color-lighter: #06060e;
+  --el-fill-color-blank: #0a0a14;
+  --el-mask-color: rgba(6, 6, 14, 0.9);
+  --el-dialog-bg-color: #0a0a14;
+  --el-menu-bg-color: #06060e;
+  --el-menu-hover-bg-color: #12121f;
+}
+
+#app {
+  background: linear-gradient(135deg, #030308 0%, #0a0515 40%, #120820 100%) !important;
+}
+
+.taskbar {
+  background: rgba(3, 3, 8, 0.96) !important;
+  border-top-color: rgba(255, 0, 110, 0.25) !important;
+}
+
+.start-btn:hover {
+  background: rgba(255, 0, 110, 0.2) !important;
+}
+
+.start-menu {
+  background: rgba(6, 6, 14, 0.98) !important;
+  border-color: rgba(255, 0, 110, 0.2) !important;
+}
+
+.winbox {
+  background: #0a0a14 !important;
+}
+
+.winbox .wb-header {
+  background: #06060e !important;
+}
+
+.wb-body {
+  background: #0a0a14 !important;
+}
+
+.context-menu {
+  background: rgba(6, 6, 14, 0.98) !important;
+  border-color: rgba(255, 0, 110, 0.2) !important;
+}
+
+.context-menu-item:hover {
+  background: rgba(255, 0, 110, 0.15) !important;
+}
+
+.desktop-icon:hover {
+  background: rgba(255, 0, 110, 0.18) !important;
+}
+
+.tray-clock {
+  color: #c0c0e0 !important;
+}
+
+.wallpaper-grid {
+  background-image: radial-gradient(circle, rgba(255, 0, 110, 0.05) 1px, transparent 1px) !important;
+}

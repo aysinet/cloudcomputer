@@ -1,0 +1,68 @@
+{
+  "id": "svg-editor",
+  "name": "SVG Editor",
+  "icon": "🖋️",
+  "color": "linear-gradient(135deg,#6c5ce7,#00cec9)",
+  "type": "internal",
+  "size": {
+    "w": 1050,
+    "h": 700
+  },
+  "global": false,
+  "description": "SVG vektör grafik düzenleyici — şekiller, yollar, metin, katmanlar",
+  "category": "productivity",
+  "lang": {
+    "tr": {
+      "name": "SVG Editör",
+      "description": "SVG vektör grafik düzenleyici — şekiller, yollar, metin, katmanlar"
+    },
+    "en": {
+      "name": "SVG Editor",
+      "description": "SVG vector graphics editor — shapes, paths, text, layers"
+    },
+    "de": {
+      "name": "SVG-Editor",
+      "description": "SVG-Vektorgrafik-Editor — Formen, Pfade, Text, Ebenen"
+    },
+    "fr": {
+      "name": "Éditeur SVG",
+      "description": "Éditeur de graphiques vectoriels SVG — formes, chemins, texte, calques"
+    },
+    "es": {
+      "name": "Editor SVG",
+      "description": "Editor de gráficos vectoriales SVG — formas, trazados, texto, capas"
+    },
+    "ru": {
+      "name": "SVG Редактор",
+      "description": "Редактор SVG-графики — фигуры, пути, текст, слои"
+    },
+    "zh": {
+      "name": "SVG编辑器",
+      "description": "SVG矢量图形编辑器 — 形状、路径、文本、图层"
+    },
+    "ja": {
+      "name": "SVGエディタ",
+      "description": "SVGベクターグラフィックエディター — 図形、パス、テキスト、レイヤー"
+    },
+    "it": {
+      "name": "Editor SVG",
+      "description": "Editor di grafica vettoriale SVG — forme, percorsi, testo, livelli"
+    },
+    "ar": {
+      "name": "محرر SVG",
+      "description": "محرر رسومات SVG — أشكال، مسارات، نصوص، طبقات"
+    },
+    "ko": {
+      "name": "SVG 편집기",
+      "description": "SVG 벡터 그래픽 편집기 — 도형, 경로, 텍스트, 레이어"
+    },
+    "hi": {
+      "name": "SVG एडिटर",
+      "description": "SVG वेक्टर ग्राफ़िक्स एडिटर — आकार, पथ, टेक्स्ट, लेयर"
+    },
+    "pt": {
+      "name": "Editor SVG",
+      "description": "Editor de gráficos vetoriais SVG — formas, caminhos, texto, camadas"
+    }
+  }
+}

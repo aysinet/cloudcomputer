@@ -29,6 +29,26 @@ JWT token required.
 - **POST /api/ai-settings** — Update AI settings
 - **GET /api/ai-settings/provider/:providerId** — Get specific provider info
 
+### Desktop Shortcuts (AppLinks)
+
+#### GET /api/applinks
+List all desktop shortcuts for the current user.
+- **Response**: `[{ id, appId, label, description, url, data, desktop, color, createdAt }]`
+
+#### POST /api/applinks
+Create a desktop shortcut (applink). If desktop is not specified, defaults to desktop 1.
+- **Body**: `{ appId: string (required), label: string (required), description?: string, url?: string, data?: object, desktop?: number (1-4, default 1), color?: string }`
+- **Response**: `{ ok: true, link: AppLink }`
+
+#### PUT /api/applinks/:id
+Update an existing desktop shortcut.
+- **Body**: `{ label?, description?, url?, data?, desktop?, color? }`
+- **Response**: `{ ok: true, link: AppLink }`
+
+#### DELETE /api/applinks/:id
+Delete a desktop shortcut.
+- **Response**: `{ ok: true }`
+
 ### Google Fonts
 - **GET /api/google-fonts?key=API_KEY** — Get font list
 

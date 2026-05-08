@@ -1,0 +1,75 @@
+{
+  "id": "excalidraw",
+  "name": "Excalidraw",
+  "icon": "🎨",
+  "color": "linear-gradient(135deg,#6965db,#a259ff)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Docker tabanlı el çizimi tarzında sanal beyaz tahta uygulaması",
+  "lang": {
+    "tr": {
+      "name": "Excalidraw",
+      "description": "El çizimi tarzında diyagram ve çizim tahtası"
+    },
+    "en": {
+      "name": "Excalidraw",
+      "description": "Virtual whiteboard for sketching hand-drawn like diagrams"
+    },
+    "de": {
+      "name": "Excalidraw",
+      "description": "Virtuelles Whiteboard für handgezeichnete Diagramme"
+    },
+    "fr": {
+      "name": "Excalidraw",
+      "description": "Tableau blanc virtuel pour dessiner des diagrammes à main levée"
+    },
+    "es": {
+      "name": "Excalidraw",
+      "description": "Pizarra virtual para diagramas con estilo dibujado a mano"
+    },
+    "ru": {
+      "name": "Excalidraw",
+      "description": "Виртуальная доска для рисования диаграмм от руки"
+    },
+    "zh": {
+      "name": "Excalidraw",
+      "description": "手绘风格虚拟白板绘图工具"
+    },
+    "ja": {
+      "name": "Excalidraw",
+      "description": "手描き風のダイアグラム用仮想ホワイトボード"
+    },
+    "it": {
+      "name": "Excalidraw",
+      "description": "Lavagna virtuale per diagrammi in stile disegnato a mano"
+    },
+    "ar": {
+      "name": "إكسكاليدرو",
+      "description": "سبورة افتراضية لرسم المخططات بأسلوب يدوي"
+    },
+    "ko": {
+      "name": "엑스칼리드로",
+      "description": "손으로 그린 스타일의 다이어그램용 가상 화이트보드"
+    },
+    "hi": {
+      "name": "एक्सकैलिड्रॉ",
+      "description": "हाथ से बनाए गए आरेखों के लिए वर्चुअल व्हाइटबोर्ड"
+    },
+    "pt": {
+      "name": "Excalidraw",
+      "description": "Quadro branco virtual para diagramas com estilo desenhado à mão"
+    }
+  },
+  "category": "media",
+  "docker": {
+    "image": "excalidraw/excalidraw:latest",
+    "containerPort": 80,
+    "volumes": [],
+    "env": []
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "id": "ffmpeg",
+  "name": "FFmpeg.wasm",
+  "icon": "🎬",
+  "color": "linear-gradient(135deg,#1a1a2e,#16213e)",
+  "type": "internal",
+  "size": {
+    "w": 900,
+    "h": 660
+  },
+  "global": false,
+  "description": "Video ve ses dönüştürücü — FFmpeg.wasm ile tarayıcıda format dönüşümü",
+  "category": "media",
+  "lang": {
+    "tr": {
+      "name": "FFmpeg.wasm",
+      "description": "Video ve ses dönüştürücü — FFmpeg.wasm ile tarayıcıda format dönüşümü"
+    },
+    "en": {
+      "name": "FFmpeg.wasm",
+      "description": "Video & audio converter — format conversion in browser with FFmpeg.wasm"
+    },
+    "de": {
+      "name": "FFmpeg.wasm",
+      "description": "Video- & Audio-Konverter — Formatkonvertierung im Browser mit FFmpeg.wasm"
+    },
+    "fr": {
+      "name": "FFmpeg.wasm",
+      "description": "Convertisseur vidéo et audio — conversion de formats dans le navigateur avec FFmpeg.wasm"
+    },
+    "es": {
+      "name": "FFmpeg.wasm",
+      "description": "Conversor de video y audio — conversión de formatos en el navegador con FFmpeg.wasm"
+    },
+    "ru": {
+      "name": "FFmpeg.wasm",
+      "description": "Конвертер видео и аудио — конвертация форматов в браузере с FFmpeg.wasm"
+    },
+    "zh": {
+      "name": "FFmpeg.wasm",
+      "description": "视频和音频转换器 — 使用FFmpeg.wasm在浏览器中转换格式"
+    },
+    "ja": {
+      "name": "FFmpeg.wasm",
+      "description": "動画・音声変換 — FFmpeg.wasmによるブラウザ内フォーマット変換"
+    },
+    "it": {
+      "name": "FFmpeg.wasm",
+      "description": "Convertitore video e audio — conversione di formati nel browser con FFmpeg.wasm"
+    },
+    "ar": {
+      "name": "FFmpeg.wasm",
+      "description": "محول فيديو وصوت — تحويل التنسيقات في المتصفح باستخدام FFmpeg.wasm"
+    },
+    "ko": {
+      "name": "FFmpeg.wasm",
+      "description": "비디오 및 오디오 변환기 — FFmpeg.wasm으로 브라우저에서 형식 변환"
+    },
+    "hi": {
+      "name": "FFmpeg.wasm",
+      "description": "वीडियो और ऑडियो कनवर्टर — FFmpeg.wasm के साथ ब्राउज़र में फ़ॉर्मेट रूपांतरण"
+    },
+    "pt": {
+      "name": "FFmpeg.wasm",
+      "description": "Conversor de vídeo e áudio — conversão de formatos no navegador com FFmpeg.wasm"
+    }
+  }
+}
