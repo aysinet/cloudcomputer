@@ -1431,6 +1431,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
             </div>
             <span class="si-type" :class="app.type">{{app.type==='internal'?t('internal'):app.type==='service'?t('service'):t('external')}}</span>
             <button v-if="app.global" class="si-btn global">Global</button>
+            <button v-else-if="uninstallingApps.has(app.id)" class="si-btn uninstall" disabled style="opacity:.6;cursor:wait">⏳ {{t('uninstall')}}...</button>
             <button v-else-if="app.installed" class="si-btn uninstall" @click="uninstall(app)">{{t('uninstall')}}</button>
             <button v-else-if="app.type==='service'" class="si-btn install" @click="installService(app)">{{t('install')}}</button>
             <button v-else class="si-btn install" @click="install(app)">{{t('install')}}</button>
@@ -2178,6 +2179,30 @@ window.FontSelectDialog = (function() {
 function getToken() { try { return localStorage.getItem('auth_token') || ''; } catch { return ''; } }
 function authHeaders() { return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' }; }
 
+// ── Global 401 interceptor: redirect to login on token expiry ──
+(function() {
+  const _fetch = window.fetch;
+  let redirecting = false;
+  window.fetch = function(input, init) {
+    return _fetch.apply(this, arguments).then(function(response) {
+      if (response.status === 401 && !redirecting) {
+        const url = typeof input === 'string' ? input : (input && input.url) || '';
+        if (url.includes('/api/') && !url.includes('/api/login')) {
+          response.clone().json().then(function(data) {
+            if (data && data.expired) {
+              redirecting = true;
+              localStorage.removeItem('token');
+              localStorage.removeItem('auth_token');
+              location.replace('/login.html');
+            }
+          }).catch(function() {});
+        }
+      }
+      return response;
+    });
+  };
+})();
+
 // ── i18n translations ──
 const I18N = {
   tr: {
@@ -2209,7 +2234,7 @@ const I18N = {
     send: 'Gönder', openApp: 'Uygulamayı Aç',
     // App Store
     storeTitle: 'Uygulama Mağazası', appsAvailable: 'uygulama mevcut',
-    internal: 'Dahili', external: 'Harici', service: 'Servis', install: 'Kur', uninstall: 'Kaldır', storeSearch: 'Uygulama ara...', storeNoResults: 'Sonuç bulunamadı',
+    internal: 'Dahili', external: 'Harici', service: 'Servis', install: 'Kur', uninstall: 'Kaldır', uninstalling: 'Kaldırılıyor...', storeSearch: 'Uygulama ara...', storeNoResults: 'Sonuç bulunamadı',
     // Volume
     volMute: '🔇 Sessiz', volUnmute: '🔈 Sesi Aç',
     // Wallpaper
@@ -2264,7 +2289,7 @@ const I18N = {
     markAllRead: 'Mark All as Read', testNotifPlaceholder: 'Add test notification...',
     send: 'Send', openApp: 'Open App',
     storeTitle: 'App Store', appsAvailable: 'apps available',
-    internal: 'Internal', external: 'External', service: 'Service', install: 'Install', uninstall: 'Uninstall', storeSearch: 'Search apps...', storeNoResults: 'No results found',
+    internal: 'Internal', external: 'External', service: 'Service', install: 'Install', uninstall: 'Uninstall', uninstalling: 'Uninstalling...', storeSearch: 'Search apps...', storeNoResults: 'No results found',
     volMute: '🔇 Mute', volUnmute: '🔈 Unmute',
     settingsWallpaper: 'Wallpaper', wpMode: 'Mode', wpModeDesc: 'Same wallpaper for all desktops or different for each',
     wpAll: 'Same for All', wpPer: 'Per Desktop', wpDesktopSelect: 'Select Desktop',
@@ -2317,7 +2342,7 @@ const I18N = {
     markAllRead: 'Alle als gelesen markieren', testNotifPlaceholder: 'Testbenachrichtigung hinzufügen...',
     send: 'Senden', openApp: 'App öffnen',
     storeTitle: 'App Store', appsAvailable: 'Apps verfügbar',
-    internal: 'Intern', external: 'Extern', service: 'Dienst', install: 'Installieren', uninstall: 'Deinstallieren', storeSearch: 'Apps suchen...', storeNoResults: 'Keine Ergebnisse gefunden',
+    internal: 'Intern', external: 'Extern', service: 'Dienst', install: 'Installieren', uninstall: 'Deinstallieren', uninstalling: 'Wird deinstalliert...', storeSearch: 'Apps suchen...', storeNoResults: 'Keine Ergebnisse gefunden',
     volMute: '🔇 Stumm', volUnmute: '🔈 Ton an',
     settingsWallpaper: 'Hintergrundbild', wpMode: 'Modus', wpModeDesc: 'Gleiches oder verschiedenes Hintergrundbild für alle Desktops',
     wpAll: 'Für alle gleich', wpPer: 'Pro Desktop', wpDesktopSelect: 'Desktop auswählen',
@@ -2363,7 +2388,7 @@ const I18N = {
     markAllRead: 'Tout marquer comme lu', testNotifPlaceholder: 'Ajouter une notification test...',
     send: 'Envoyer', openApp: 'Ouvrir l\'app',
     storeTitle: 'Boutique d\'apps', appsAvailable: 'apps disponibles',
-    internal: 'Interne', external: 'Externe', service: 'Service', install: 'Installer', uninstall: 'Désinstaller', storeSearch: 'Rechercher...', storeNoResults: 'Aucun résultat trouvé',
+    internal: 'Interne', external: 'Externe', service: 'Service', install: 'Installer', uninstall: 'Désinstaller', uninstalling: 'Désinstallation...', storeSearch: 'Rechercher...', storeNoResults: 'Aucun résultat trouvé',
     volMute: '🔇 Muet', volUnmute: '🔈 Son activé',
     settingsWallpaper: 'Fond d\'écran', wpMode: 'Mode', wpModeDesc: 'Même fond d\'écran pour tous les bureaux ou différent pour chacun',
     wpAll: 'Identique pour tous', wpPer: 'Par bureau', wpDesktopSelect: 'Sélectionner le bureau',
@@ -2409,7 +2434,7 @@ const I18N = {
     markAllRead: 'Marcar todo como leído', testNotifPlaceholder: 'Añadir notificación de prueba...',
     send: 'Enviar', openApp: 'Abrir app',
     storeTitle: 'Tienda de apps', appsAvailable: 'apps disponibles',
-    internal: 'Interna', external: 'Externa', service: 'Servicio', install: 'Instalar', uninstall: 'Desinstalar', storeSearch: 'Buscar apps...', storeNoResults: 'Sin resultados',
+    internal: 'Interna', external: 'Externa', service: 'Servicio', install: 'Instalar', uninstall: 'Desinstalar', uninstalling: 'Desinstalando...', storeSearch: 'Buscar apps...', storeNoResults: 'Sin resultados',
     volMute: '🔇 Silenciar', volUnmute: '🔈 Activar sonido',
     settingsWallpaper: 'Fondo de pantalla', wpMode: 'Modo', wpModeDesc: 'Mismo fondo para todos los escritorios o diferente para cada uno',
     wpAll: 'Igual para todos', wpPer: 'Por escritorio', wpDesktopSelect: 'Seleccionar escritorio',
@@ -2455,7 +2480,7 @@ const I18N = {
     markAllRead: 'Отметить все как прочитанные', testNotifPlaceholder: 'Добавить тестовое уведомление...',
     send: 'Отправить', openApp: 'Открыть',
     storeTitle: 'Магазин приложений', appsAvailable: 'приложений доступно',
-    internal: 'Встроенное', external: 'Внешнее', service: 'Сервис', install: 'Установить', uninstall: 'Удалить', storeSearch: 'Поиск приложений...', storeNoResults: 'Ничего не найдено',
+    internal: 'Встроенное', external: 'Внешнее', service: 'Сервис', install: 'Установить', uninstall: 'Удалить', uninstalling: 'Удаление...', storeSearch: 'Поиск приложений...', storeNoResults: 'Ничего не найдено',
     volMute: '🔇 Без звука', volUnmute: '🔈 Включить звук',
     settingsWallpaper: 'Обои', wpMode: 'Режим', wpModeDesc: 'Одинаковые обои для всех рабочих столов или разные',
     wpAll: 'Одинаковые для всех', wpPer: 'Для каждого стола', wpDesktopSelect: 'Выбрать рабочий стол',
@@ -2500,7 +2525,7 @@ const I18N = {
     markAllRead: '全部标记为已读', testNotifPlaceholder: '添加测试通知...',
     send: '发送', openApp: '打开应用',
     storeTitle: '应用商店', appsAvailable: '个可用应用',
-    internal: '内置', external: '外部', service: '服务', install: '安装', uninstall: '卸载', storeSearch: '搜索应用...', storeNoResults: '未找到结果',
+    internal: '内置', external: '外部', service: '服务', install: '安装', uninstall: '卸载', uninstalling: '正在卸载...', storeSearch: '搜索应用...', storeNoResults: '未找到结果',
     volMute: '🔇 静音', volUnmute: '🔈 取消静音',
     settingsWallpaper: '壁纸', wpMode: '模式', wpModeDesc: '为所有桌面设置相同或不同的壁纸',
     wpAll: '全部相同', wpPer: '各自不同', wpDesktopSelect: '选择桌面',
@@ -2545,7 +2570,7 @@ const I18N = {
     markAllRead: 'すべて既読にする', testNotifPlaceholder: 'テスト通知を追加...',
     send: '送信', openApp: 'アプリを開く',
     storeTitle: 'アプリストア', appsAvailable: '個のアプリが利用可能',
-    internal: '内蔵', external: '外部', service: 'サービス', install: 'インストール', uninstall: 'アンインストール', storeSearch: 'アプリを検索...', storeNoResults: '結果が見つかりません',
+    internal: '内蔵', external: '外部', service: 'サービス', install: 'インストール', uninstall: 'アンインストール', uninstalling: 'アンインストール中...', storeSearch: 'アプリを検索...', storeNoResults: '結果が見つかりません',
     volMute: '🔇 ミュート', volUnmute: '🔈 ミュート解除',
     settingsWallpaper: '壁紙', wpMode: 'モード', wpModeDesc: 'すべてのデスクトップに同じ壁紙または個別に設定',
     wpAll: 'すべて同じ', wpPer: 'デスクトップごと', wpDesktopSelect: 'デスクトップを選択',
@@ -2590,7 +2615,7 @@ const I18N = {
     markAllRead: 'Segna tutto come letto', testNotifPlaceholder: 'Aggiungi notifica di test...',
     send: 'Invia', openApp: 'Apri app',
     storeTitle: 'App Store', appsAvailable: 'app disponibili',
-    internal: 'Interna', external: 'Esterna', service: 'Servizio', install: 'Installa', uninstall: 'Disinstalla', storeSearch: 'Cerca app...', storeNoResults: 'Nessun risultato trovato',
+    internal: 'Interna', external: 'Esterna', service: 'Servizio', install: 'Installa', uninstall: 'Disinstalla', uninstalling: 'Disinstallazione...', storeSearch: 'Cerca app...', storeNoResults: 'Nessun risultato trovato',
     volMute: '🔇 Muto', volUnmute: '🔈 Riattiva audio',
     settingsWallpaper: 'Sfondo', wpMode: 'Modalità', wpModeDesc: 'Stesso sfondo per tutti i desktop o diverso per ciascuno',
     wpAll: 'Uguale per tutti', wpPer: 'Per desktop', wpDesktopSelect: 'Seleziona desktop',
@@ -2635,7 +2660,7 @@ const I18N = {
     markAllRead: 'تحديد الكل كمقروء', testNotifPlaceholder: 'إضافة إشعار تجريبي...',
     send: 'إرسال', openApp: 'فتح التطبيق',
     storeTitle: 'متجر التطبيقات', appsAvailable: 'تطبيق متاح',
-    internal: 'داخلي', external: 'خارجي', service: 'خدمة', install: 'تثبيت', uninstall: 'إزالة', storeSearch: 'بحث في التطبيقات...', storeNoResults: 'لم يتم العثور على نتائج',
+    internal: 'داخلي', external: 'خارجي', service: 'خدمة', install: 'تثبيت', uninstall: 'إزالة', uninstalling: 'جارٍ الإزالة...', storeSearch: 'بحث في التطبيقات...', storeNoResults: 'لم يتم العثور على نتائج',
     volMute: '🔇 كتم', volUnmute: '🔈 إلغاء الكتم',
     settingsWallpaper: 'خلفية الشاشة', wpMode: 'الوضع', wpModeDesc: 'نفس الخلفية لجميع أسطح المكتب أو مختلفة لكل واحد',
     wpAll: 'نفسها للجميع', wpPer: 'لكل سطح مكتب', wpDesktopSelect: 'اختر سطح المكتب',
@@ -2680,7 +2705,7 @@ const I18N = {
     markAllRead: '모두 읽음으로 표시', testNotifPlaceholder: '테스트 알림 추가...',
     send: '보내기', openApp: '앱 열기',
     storeTitle: '앱 스토어', appsAvailable: '개 앱 사용 가능',
-    internal: '내장', external: '외부', service: '서비스', install: '설치', uninstall: '제거', storeSearch: '앱 검색...', storeNoResults: '결과 없음',
+    internal: '내장', external: '외부', service: '서비스', install: '설치', uninstall: '제거', uninstalling: '제거 중...', storeSearch: '앱 검색...', storeNoResults: '결과 없음',
     volMute: '🔇 음소거', volUnmute: '🔈 음소거 해제',
     settingsWallpaper: '배경화면', wpMode: '모드', wpModeDesc: '모든 데스크톱에 같은 배경 또는 각각 다르게 설정',
     wpAll: '모두 동일', wpPer: '데스크톱별', wpDesktopSelect: '데스크톱 선택',
@@ -2725,7 +2750,7 @@ const I18N = {
     markAllRead: 'सभी को पढ़ा गया चिह्नित करें', testNotifPlaceholder: 'परीक्षण सूचना जोड़ें...',
     send: 'भेजें', openApp: 'ऐप खोलें',
     storeTitle: 'ऐप स्टोर', appsAvailable: 'ऐप उपलब्ध',
-    internal: 'आंतरिक', external: 'बाहरी', service: 'सेवा', install: 'इंस्टॉल', uninstall: 'अनइंस्टॉल', storeSearch: 'ऐप खोजें...', storeNoResults: 'कोई परिणाम नहीं',
+    internal: 'आंतरिक', external: 'बाहरी', service: 'सेवा', install: 'इंस्टॉल', uninstall: 'अनइंस्टॉल', uninstalling: 'अनइंस्टॉल हो रहा है...', storeSearch: 'ऐप खोजें...', storeNoResults: 'कोई परिणाम नहीं',
     volMute: '🔇 म्यूट', volUnmute: '🔈 अनम्यूट',
     settingsWallpaper: 'वॉलपेपर', wpMode: 'मोड', wpModeDesc: 'सभी डेस्कटॉप के लिए एक ही या अलग-अलग वॉलपेपर',
     wpAll: 'सभी के लिए समान', wpPer: 'प्रति डेस्कटॉप', wpDesktopSelect: 'डेस्कटॉप चुनें',
@@ -2770,7 +2795,7 @@ const I18N = {
     markAllRead: 'Marcar Todas como Lidas', testNotifPlaceholder: 'Adicionar notificação de teste...',
     send: 'Enviar', openApp: 'Abrir App',
     storeTitle: 'Loja de Apps', appsAvailable: 'apps disponíveis',
-    internal: 'Interno', external: 'Externo', service: 'Serviço', install: 'Instalar', uninstall: 'Desinstalar', storeSearch: 'Pesquisar apps...', storeNoResults: 'Nenhum resultado encontrado',
+    internal: 'Interno', external: 'Externo', service: 'Serviço', install: 'Instalar', uninstall: 'Desinstalar', uninstalling: 'Desinstalando...', storeSearch: 'Pesquisar apps...', storeNoResults: 'Nenhum resultado encontrado',
     volMute: '🔇 Silenciar', volUnmute: '🔈 Ativar Som',
     settingsWallpaper: 'Papel de Parede', wpMode: 'Modo', wpModeDesc: 'Mesmo papel de parede para todas as áreas de trabalho ou diferente para cada uma',
     wpAll: 'Igual para Todos', wpPer: 'Por Área de Trabalho', wpDesktopSelect: 'Selecionar Área de Trabalho',
@@ -5276,7 +5301,7 @@ const BrowserApp = {
     }
 
     function proxyUrl(url) {
-      return '/api/browser/proxy?url=' + encodeURIComponent(url);
+      return '/api/browser/proxy?url=' + encodeURIComponent(url) + '&interceptAll=1';
     }
 
     function navigate() {
@@ -5427,7 +5452,6 @@ const BrowserApp = {
 
     function onIframeMessage(e) {
       if (e.data && e.data.type === 'browser-navigate' && e.data.url) {
-        if (currentUrl.value) newTab();
         loadUrl(e.data.url);
       }
     }
@@ -5464,15 +5488,16 @@ const APP_CATEGORY_META = {
   utilities: { icon: '🔧', order: 2 },
   development: { icon: '👨‍💻', order: 3 },
   productivity: { icon: '📋', order: 4 },
-  tools: { icon: '🛠️', order: 5 },
-  media: { icon: '🎬', order: 6 },
-  games: { icon: '🎮', order: 7 },
-  internet: { icon: '🌐', order: 8 },
-  social: { icon: '📱', order: 9 },
-  finance: { icon: '💰', order: 10 },
-  health: { icon: '🩺', order: 11 },
-  education: { icon: '🎓', order: 12 },
-  designer: { icon: '🎨', order: 13 },
+  ai: { icon: '🤖', order: 5 },
+  tools: { icon: '🛠️', order: 6 },
+  media: { icon: '🎬', order: 7 },
+  games: { icon: '🎮', order: 8 },
+  internet: { icon: '🌐', order: 9 },
+  social: { icon: '📱', order: 10 },
+  finance: { icon: '💰', order: 11 },
+  health: { icon: '🩺', order: 12 },
+  education: { icon: '🎓', order: 13 },
+  designer: { icon: '🎨', order: 14 },
   other: { icon: '📦', order: 99 }
 };
 const APP_CATEGORY_NAMES = {
@@ -5480,6 +5505,7 @@ const APP_CATEGORY_NAMES = {
   utilities: { tr: 'Yardımcılar', en: 'Utilities', de: 'Dienstprogramme', fr: 'Utilitaires', es: 'Utilidades', ru: 'Утилиты', zh: '实用工具', ja: 'ユーティリティ', it: 'Utilità' },
   development: { tr: 'Geliştirme', en: 'Development', de: 'Entwicklung', fr: 'Développement', es: 'Desarrollo', ru: 'Разработка', zh: '开发', ja: '開発', it: 'Sviluppo' },
   productivity: { tr: 'Verimlilik', en: 'Productivity', de: 'Produktivität', fr: 'Productivité', es: 'Productividad', ru: 'Продуктивность', zh: '生产力', ja: '生産性', it: 'Produttività' },
+  ai: { tr: 'Yapay Zeka', en: 'AI', de: 'KI', fr: 'IA', es: 'IA', ru: 'ИИ', zh: '人工智能', ja: 'AI', it: 'IA', ar: 'ذكاء اصطناعي', ko: 'AI', hi: 'AI', pt: 'IA' },
   tools: { tr: 'Araçlar', en: 'Tools', de: 'Werkzeuge', fr: 'Outils', es: 'Herramientas', ru: 'Инструменты', zh: '工具', ja: 'ツール', it: 'Strumenti' },
   media: { tr: 'Medya', en: 'Media', de: 'Medien', fr: 'Médias', es: 'Medios', ru: 'Медиа', zh: '媒体', ja: 'メディア', it: 'Media' },
   games: { tr: 'Oyunlar', en: 'Games', de: 'Spiele', fr: 'Jeux', es: 'Juegos', ru: 'Игры', zh: '游戏', ja: 'ゲーム', it: 'Giochi' },
@@ -5532,7 +5558,10 @@ const AppStoreApp = {
       } catch (e) { console.error('Install error', e); }
     }
 
+    const uninstallingApps = reactive(new Set());
+
     async function uninstall(app) {
+      uninstallingApps.add(app.id);
       try {
         const res = await fetch('/api/apps/uninstall', {
           method: 'POST',
@@ -5544,6 +5573,7 @@ const AppStoreApp = {
           window.dispatchEvent(new CustomEvent('app-uninstalled', { detail: { id: app.id } }));
         }
       } catch (e) { console.error('Uninstall error', e); }
+      uninstallingApps.delete(app.id);
     }
 
     onMounted(() => loadStore());
@@ -5662,7 +5692,7 @@ const AppStoreApp = {
       serviceInstallDialog.app = null;
     }
 
-    return { storeApps, storeCategories, filteredCategories, activeCategory, searchQuery, loading, install, uninstall, installService, serviceInstallDialog, installPageContainer, closeServiceInstall, t, appName: sAppName, appDesc: sAppDesc };
+    return { storeApps, storeCategories, filteredCategories, activeCategory, searchQuery, loading, install, uninstall, uninstallingApps, installService, serviceInstallDialog, installPageContainer, closeServiceInstall, t, appName: sAppName, appDesc: sAppDesc };
   }
 };
 
@@ -6032,11 +6062,13 @@ createApp({
           { confirmButtonText: t('ctxUninstallYes'), cancelButtonText: t('ctxUninstallNo'), type: 'warning' }
         );
       } catch { return; }
+      const loadingMsg = ElementPlus.ElMessage({ message: appName(app) + ' ' + t('uninstalling'), type: 'info', duration: 0 });
       try {
         const res = await fetch('/api/apps/uninstall', {
           method: 'POST', headers: authHeaders(),
           body: JSON.stringify({ appId: app.id })
         });
+        loadingMsg.close();
         if (res.ok) {
           window.dispatchEvent(new CustomEvent('app-uninstalled', { detail: { id: app.id } }));
           ElementPlus.ElMessage.success(appName(app) + ' ' + t('ctxUninstalled'));
@@ -6044,7 +6076,7 @@ createApp({
           const data = await res.json().catch(() => ({}));
           ElementPlus.ElMessage.error(data.error || 'Uninstall failed');
         }
-      } catch (e) { ElementPlus.ElMessage.error('Uninstall failed'); }
+      } catch (e) { loadingMsg.close(); ElementPlus.ElMessage.error('Uninstall failed'); }
     }
 
     // ── AppLinks (Desktop Shortcuts) ──
@@ -6656,7 +6688,15 @@ createApp({
           }
         } catch {}
       };
-      wsConn.onclose = () => { setTimeout(connectWS, 5000); };
+      wsConn.onclose = (e) => {
+        if (e.code === 4001) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('auth_token');
+          location.replace('/login.html');
+          return;
+        }
+        setTimeout(connectWS, 5000);
+      };
       wsConn.onerror = () => { wsConn.close(); };
     }
 

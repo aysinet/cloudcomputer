@@ -4,7 +4,7 @@
   "icon": "🧰",
   "color": "linear-gradient(135deg,#1a1a2e,#16213e)",
   "type": "internal",
-  "proxyMode": "pathprefix",
+  "proxyMode": "rewrite",
   "size": {
     "w": 1100,
     "h": 750
@@ -65,7 +65,7 @@
       "description": "80+ ferramentas para desenvolvedores — hash, encode, format, convert e mais"
     }
   },
-  "category": "developer",
+  "category": "development",
   "docker": {
     "image": "corentinth/it-tools:latest",
     "containerPort": 80,

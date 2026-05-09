@@ -9,60 +9,60 @@
     "h": 640
   },
   "global": false,
-  "description": "ChatGPT — yapay zeka sohbet asistanı",
-  "category": "productivity",
+  "description": "ChatGPT — OpenAI yapay zeka sohbet platformuna hızlı erişim",
+  "category": "ai",
   "lang": {
     "tr": {
       "name": "ChatGPT",
-      "description": "ChatGPT — yapay zeka sohbet asistanı"
+      "description": "ChatGPT — OpenAI yapay zeka sohbet platformuna hızlı erişim"
     },
     "en": {
       "name": "ChatGPT",
-      "description": "ChatGPT — AI chat assistant"
+      "description": "ChatGPT — Quick access to OpenAI AI chat platform"
     },
     "de": {
       "name": "ChatGPT",
-      "description": "ChatGPT — KI-Chat-Assistent"
+      "description": "ChatGPT — Schneller Zugriff auf die OpenAI KI-Chat-Plattform"
     },
     "fr": {
       "name": "ChatGPT",
-      "description": "ChatGPT — assistant de chat IA"
+      "description": "ChatGPT — Accès rapide à la plateforme de chat IA OpenAI"
     },
     "es": {
       "name": "ChatGPT",
-      "description": "ChatGPT — asistente de chat con IA"
+      "description": "ChatGPT — Acceso rápido a la plataforma de chat IA de OpenAI"
     },
     "ru": {
       "name": "ChatGPT",
-      "description": "ChatGPT — ИИ-чат-ассистент"
+      "description": "ChatGPT — Быстрый доступ к платформе чата ИИ OpenAI"
     },
     "zh": {
       "name": "ChatGPT",
-      "description": "ChatGPT — AI聊天助手"
+      "description": "ChatGPT — 快速访问OpenAI AI聊天平台"
     },
     "ja": {
       "name": "ChatGPT",
-      "description": "ChatGPT — AIチャットアシスタント"
+      "description": "ChatGPT — OpenAI AIチャットプラットフォームへのクイックアクセス"
     },
     "it": {
       "name": "ChatGPT",
-      "description": "ChatGPT — assistente chat AI"
+      "description": "ChatGPT — Accesso rapido alla piattaforma di chat IA OpenAI"
     },
     "ar": {
       "name": "ChatGPT",
-      "description": "ChatGPT — مساعد دردشة بالذكاء الاصطناعي"
+      "description": "ChatGPT — وصول سريع إلى منصة دردشة الذكاء الاصطناعي OpenAI"
     },
     "ko": {
       "name": "ChatGPT",
-      "description": "ChatGPT — AI 채팅 도우미"
+      "description": "ChatGPT — OpenAI AI 채팅 플랫폼 빠른 접속"
     },
     "hi": {
       "name": "ChatGPT",
-      "description": "ChatGPT — AI चैट सहायक"
+      "description": "ChatGPT — OpenAI AI चैट प्लेटफ़ॉर्म पर त्वरित पहुँच"
     },
     "pt": {
       "name": "ChatGPT",
-      "description": "ChatGPT — assistente de chat com IA"
+      "description": "ChatGPT — Acesso rápido à plataforma de chat IA da OpenAI"
     }
   }
 }

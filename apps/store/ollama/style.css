@@ -1,0 +1,430 @@
+.ollama-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+/* ── Status Screens ── */
+.oll-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.oll-icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.oll-status-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.oll-sub-text {
+  font-size: 13px;
+  color: #7c8db5;
+  max-width: 360px;
+}
+
+.oll-error-msg {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.oll-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #6c63ff;
+  border-radius: 50%;
+  animation: oll-spin 0.8s linear infinite;
+}
+
+@keyframes oll-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Main Layout ── */
+.oll-main {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+.oll-sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: #141425;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.oll-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.oll-logo {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.oll-sidebar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.oll-section {
+  padding: 12px 14px 8px;
+}
+
+.oll-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #7c8db5;
+  margin-bottom: 8px;
+}
+
+/* ── Model List ── */
+.oll-model-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 8px;
+}
+
+.oll-model-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 2px;
+}
+
+.oll-model-item:hover {
+  background: rgba(108,99,255,0.1);
+}
+
+.oll-model-item.active {
+  background: rgba(108,99,255,0.18);
+  border: 1px solid rgba(108,99,255,0.3);
+}
+
+.oll-model-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.oll-model-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e0e0e0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.oll-model-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: #7c8db5;
+  margin-top: 2px;
+}
+
+.oll-no-models {
+  text-align: center;
+  padding: 24px 12px;
+  font-size: 12px;
+  color: #5a6a8a;
+}
+
+/* ── Pull Section ── */
+.oll-pull-section {
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.oll-pull-row {
+  display: flex;
+  gap: 6px;
+}
+
+.oll-pull-status {
+  font-size: 11px;
+  color: #4ade80;
+  margin-top: 6px;
+  padding: 4px 0;
+}
+
+.oll-pull-status.error {
+  color: #ff6b6b;
+}
+
+.oll-sidebar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.oll-port-info {
+  font-size: 11px;
+  color: #5a6a8a;
+}
+
+/* ── Chat Area ── */
+.oll-chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #1a1a2e;
+}
+
+.oll-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: #16162a;
+}
+
+.oll-chat-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.oll-chat-header-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.oll-system-row {
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  background: #16162a;
+}
+
+/* ── Messages ── */
+.oll-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.oll-welcome {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  opacity: 0.6;
+}
+
+.oll-welcome-icon {
+  font-size: 56px;
+}
+
+.oll-welcome-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.oll-welcome-sub {
+  font-size: 13px;
+  color: #7c8db5;
+}
+
+.oll-message {
+  display: flex;
+  gap: 12px;
+  max-width: 85%;
+}
+
+.oll-message-user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.oll-message-assistant {
+  align-self: flex-start;
+}
+
+.oll-message-avatar {
+  font-size: 24px;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+}
+
+.oll-message-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.oll-message-content {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.oll-message-user .oll-message-content {
+  background: #6c63ff;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.oll-message-assistant .oll-message-content {
+  background: #222240;
+  color: #e0e0e0;
+  border-bottom-left-radius: 4px;
+}
+
+.oll-message-actions {
+  display: flex;
+  gap: 4px;
+  padding-left: 4px;
+}
+
+.oll-thinking {
+  color: #7c8db5;
+  animation: oll-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes oll-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── Input Area ── */
+.oll-input-area {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: #16162a;
+}
+
+.oll-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.oll-input-row .el-textarea {
+  flex: 1;
+}
+
+/* ── Element Plus Dark Overrides ── */
+.ollama-root .el-input__wrapper,
+.ollama-root .el-textarea__inner,
+.ollama-root .el-input-group__prepend {
+  background: #222240 !important;
+  border-color: rgba(255,255,255,0.1) !important;
+  color: #e0e0e0 !important;
+  box-shadow: none !important;
+}
+
+.ollama-root .el-input__wrapper:hover,
+.ollama-root .el-textarea__inner:hover {
+  border-color: rgba(108,99,255,0.4) !important;
+}
+
+.ollama-root .el-input__wrapper.is-focus,
+.ollama-root .el-textarea__inner:focus {
+  border-color: #6c63ff !important;
+}
+
+.ollama-root .el-input__inner,
+.ollama-root .el-textarea__inner {
+  color: #e0e0e0 !important;
+}
+
+.ollama-root .el-input__inner::placeholder,
+.ollama-root .el-textarea__inner::placeholder {
+  color: #5a6a8a !important;
+}
+
+.ollama-root .el-select .el-input__wrapper {
+  background: #222240 !important;
+}
+
+.ollama-root .el-button--text {
+  color: #7c8db5 !important;
+}
+
+.ollama-root .el-button--text:hover {
+  color: #6c63ff !important;
+}
+
+.ollama-root .el-input-group__prepend {
+  font-size: 11px;
+  color: #7c8db5 !important;
+}
+
+/* ── Scrollbar ── */
+.oll-messages::-webkit-scrollbar,
+.oll-model-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.oll-messages::-webkit-scrollbar-track,
+.oll-model-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.oll-messages::-webkit-scrollbar-thumb,
+.oll-model-list::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+}
+
+.oll-messages::-webkit-scrollbar-thumb:hover,
+.oll-model-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.2);
+}

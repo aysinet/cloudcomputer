@@ -1,0 +1,24 @@
+<div class="zai-app">
+  <!-- Toolbar -->
+  <div class="zai-toolbar">
+    <span class="zai-toolbar-title">⚡ Z AI</span>
+    <div class="zai-toolbar-actions">
+      <button class="zai-btn" @click="navigateHome" :title="t.home">🏠</button>
+      <button class="zai-btn" @click="goBack" :title="t.back">◀</button>
+      <button class="zai-btn" @click="goForward" :title="t.forward">▶</button>
+      <button class="zai-btn" @click="refresh" :title="t.refresh">🔄</button>
+      <div class="zai-separator"></div>
+      <button class="zai-btn" @click="openExternal" :title="t.openTab">🔗</button>
+    </div>
+  </div>
+
+  <!-- Z AI iframe -->
+  <iframe
+    :src="iframeSrc"
+    class="zai-frame"
+    ref="zaiFrame"
+    frameborder="0"
+    allow="fullscreen"
+    referrerpolicy="no-referrer"
+  ></iframe>
+</div>

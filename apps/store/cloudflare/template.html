@@ -1,0 +1,34 @@
+<div class="cloudflare-app">
+  <!-- Toolbar -->
+  <div class="cf-toolbar">
+    <span class="cf-toolbar-title">🛡️ Cloudflare</span>
+    <div class="cf-toolbar-actions">
+      <button class="cf-btn" @click="goBack" :title="t.back">◀</button>
+      <button class="cf-btn" @click="goForward" :title="t.forward">▶</button>
+      <button class="cf-btn" @click="navigateHome" :title="t.home">🏠</button>
+      <button class="cf-btn" @click="refresh" :title="t.refresh">🔄</button>
+      <div class="cf-separator"></div>
+      <button class="cf-btn cf-btn-warn" @click="clearSession" :title="t.clearSession">🗑️</button>
+      <button class="cf-btn" @click="openExternal" :title="t.openTab">🔗</button>
+    </div>
+    <span v-if="statusMsg" class="cf-status-msg">{{ statusMsg }}</span>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="cf-loading" v-if="!iframeLoaded">
+    <div class="cf-loading-icon">🛡️</div>
+    <div class="cf-loading-text">{{ t.loading }}</div>
+    <div class="cf-spinner"></div>
+  </div>
+
+  <!-- Cloudflare iframe -->
+  <iframe
+    ref="cfFrame"
+    :src="iframeSrc"
+    class="cf-iframe"
+    frameborder="0"
+    referrerpolicy="no-referrer"
+    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+    @load="onIframeLoad"
+  ></iframe>
+</div>

@@ -1,0 +1,76 @@
+{
+  "id": "ollama",
+  "name": "Ollama",
+  "icon": "🦙",
+  "color": "linear-gradient(135deg,#1a1a2e,#16213e)",
+  "type": "internal",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Yerel LLM çalıştırma platformu — Llama, Mistral, Gemma ve daha fazlası",
+  "category": "ai",
+  "lang": {
+    "tr": {
+      "name": "Ollama",
+      "description": "Yerel LLM çalıştırma platformu — Llama, Mistral, Gemma ve daha fazlası"
+    },
+    "en": {
+      "name": "Ollama",
+      "description": "Local LLM runtime platform — Llama, Mistral, Gemma and more"
+    },
+    "de": {
+      "name": "Ollama",
+      "description": "Lokale LLM-Laufzeitplattform — Llama, Mistral, Gemma und mehr"
+    },
+    "fr": {
+      "name": "Ollama",
+      "description": "Plateforme locale d'exécution LLM — Llama, Mistral, Gemma et plus"
+    },
+    "es": {
+      "name": "Ollama",
+      "description": "Plataforma local de ejecución LLM — Llama, Mistral, Gemma y más"
+    },
+    "ru": {
+      "name": "Ollama",
+      "description": "Локальная платформа запуска LLM — Llama, Mistral, Gemma и другие"
+    },
+    "zh": {
+      "name": "Ollama",
+      "description": "本地 LLM 运行平台 — Llama、Mistral、Gemma 等"
+    },
+    "ja": {
+      "name": "Ollama",
+      "description": "ローカル LLM 実行プラットフォーム — Llama、Mistral、Gemma など"
+    },
+    "it": {
+      "name": "Ollama",
+      "description": "Piattaforma locale di esecuzione LLM — Llama, Mistral, Gemma e altri"
+    },
+    "ar": {
+      "name": "أولاما",
+      "description": "منصة تشغيل LLM محلية — Llama وMistral وGemma والمزيد"
+    },
+    "ko": {
+      "name": "Ollama",
+      "description": "로컬 LLM 실행 플랫폼 — Llama, Mistral, Gemma 등"
+    },
+    "hi": {
+      "name": "Ollama",
+      "description": "स्थानीय LLM रनटाइम प्लेटफ़ॉर्म — Llama, Mistral, Gemma और अधिक"
+    },
+    "pt": {
+      "name": "Ollama",
+      "description": "Plataforma local de execução LLM — Llama, Mistral, Gemma e mais"
+    }
+  },
+  "docker": {
+    "image": "ollama/ollama:latest",
+    "containerPort": 11434,
+    "volumes": [
+      "${APP_VOLUME}:/root/.ollama"
+    ],
+    "env": []
+  }
+}

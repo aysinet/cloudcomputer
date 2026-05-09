@@ -1,0 +1,24 @@
+<div class="gemini-app">
+  <!-- Toolbar -->
+  <div class="gemini-toolbar">
+    <span class="gemini-toolbar-title">✨ Gemini</span>
+    <div class="gemini-toolbar-actions">
+      <button class="gemini-btn" @click="navigateHome" :title="t.home">🏠</button>
+      <button class="gemini-btn" @click="goBack" :title="t.back">◀</button>
+      <button class="gemini-btn" @click="goForward" :title="t.forward">▶</button>
+      <button class="gemini-btn" @click="refresh" :title="t.refresh">🔄</button>
+      <div class="gemini-separator"></div>
+      <button class="gemini-btn" @click="openExternal" :title="t.openTab">🔗</button>
+    </div>
+  </div>
+
+  <!-- Gemini iframe -->
+  <iframe
+    :src="iframeSrc"
+    class="gemini-frame"
+    ref="geminiFrame"
+    frameborder="0"
+    allow="fullscreen"
+    referrerpolicy="no-referrer"
+  ></iframe>
+</div>

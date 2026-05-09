@@ -359,6 +359,13 @@ async function dmFetch(dmPath, opts = {}) {
 // #endregion
 // #region Middleware
 app.use((req, res, next) => {
+  if (!req.path.startsWith('/proxy/')) {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+  }
+  next();
+});
+app.use((req, res, next) => {
   if (req.path.startsWith('/proxy/')) return next();
   express.json({ limit: '10mb' })(req, res, next);
 });
@@ -420,10 +427,17 @@ function extractToken(req) {
 function authMiddleware(req, res, next) {
   const token = extractToken(req);
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
-  const decoded = verifyToken(token);
-  if (!decoded) return res.status(401).json({ error: 'Invalid token' });
-  req.user = decoded;
-  next();
+  try {
+    const decoded = jwt.verify(token, config.auth.jwtSecret);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      const locale = getUserLocale(jwt.decode(token)?.username);
+      return res.status(401).json({ error: 'Token expired', message: serverT('sessionExpired', locale), expired: true });
+    }
+    return res.status(401).json({ error: 'Invalid token' });
+  }
 }
 
 // #endregion
@@ -970,7 +984,11 @@ app.post('/api/apps/uninstall', authMiddleware, async (req, res) => {
 
   // Stop Docker container if app has docker config or is tracked
   if (dockerContainers[appId] || (appManifest && appManifest.docker)) {
-    dmFetch('/stop', { method: 'POST', body: JSON.stringify({ appId }) }).catch(() => {});
+    try {
+      await dmFetch('/stop', { method: 'POST', body: JSON.stringify({ appId }) });
+    } catch (e) {
+      console.error(`[UNINSTALL] Docker stop failed for ${appId}:`, e.message);
+    }
     delete dockerContainers[appId];
     delete proxyCache[appId];
   }
@@ -1742,6 +1760,42 @@ app.get('/api/browser/proxy', authMiddleware, async (req, res) => {
       html = html.replace(/(<head[^>]*>)/i, '$1<base href="' + baseHref + '">');
       // Inject script to intercept link clicks and window.open inside iframe
       const interceptAll = req.query.interceptAll === '1';
+      const proxyDomain = req.query.proxyDomain || (interceptAll ? baseUrl.hostname : '');
+      const xhrIntercept = proxyDomain ? `
+        var _authTk=(function(){try{var c=document.cookie.match(/token=([^;]+)/);if(c)return 'Bearer '+c[1];}catch(e){}try{var t=localStorage.getItem('auth_token');if(t)return 'Bearer '+t;}catch(e){}return '';})();
+        var _pDomain='${proxyDomain.replace(/'/g, "\\'")}';var _pDomains=[_pDomain];try{var _bd=new URL('${baseHref}');if(_bd.hostname!==_pDomain)_pDomains.push(_bd.hostname);}catch(e){}
+        var _interceptAllOrigins=${interceptAll ? 'true' : 'false'};
+        function _matchDomain(h){if(_interceptAllOrigins&&h!==location.hostname)return true;for(var i=0;i<_pDomains.length;i++)if(h.includes(_pDomains[i]))return true;return false;}
+        var _origXhrOpen=XMLHttpRequest.prototype.open;
+        var _origXhrSend=XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.open=function(method,url,async,user,pass){
+          this._pMethod=method;this._pUrl=url;this._pAsync=async;this._pUser=user;this._pPass=pass;
+          try{var u=new URL(url,location.href);if(_matchDomain(u.hostname)){this._pIntercept=true;this._pFullUrl=u.href;return;}}catch(e){}
+          return _origXhrOpen.apply(this,arguments);
+        };
+        XMLHttpRequest.prototype.send=function(body){
+          if(this._pIntercept){
+            var self=this;var hdrs=this._pHeaders||{};
+            fetch('/api/browser/proxy-xhr',{method:'POST',headers:{'Content-Type':'application/json','Authorization':_authTk},body:JSON.stringify({url:self._pFullUrl,method:self._pMethod,body:body,headers:hdrs})}).then(function(r){return r.text().then(function(t){Object.defineProperty(self,'readyState',{writable:true});self.readyState=4;Object.defineProperty(self,'status',{writable:true});self.status=r.status;Object.defineProperty(self,'statusText',{writable:true});self.statusText=r.statusText||'';Object.defineProperty(self,'responseText',{writable:true});self.responseText=t;Object.defineProperty(self,'response',{writable:true});self.response=t;if(typeof self.onreadystatechange==='function')self.onreadystatechange();if(typeof self.onload==='function')self.onload();self.dispatchEvent(new Event('readystatechange'));self.dispatchEvent(new Event('load'));self.dispatchEvent(new Event('loadend'));});}).catch(function(e){Object.defineProperty(self,'readyState',{writable:true});self.readyState=4;Object.defineProperty(self,'status',{writable:true});self.status=0;if(typeof self.onerror==='function')self.onerror(e);self.dispatchEvent(new Event('error'));self.dispatchEvent(new Event('loadend'));});
+            return;
+          }
+          return _origXhrSend.apply(this,arguments);
+        };
+        var _origSetReqHdr=XMLHttpRequest.prototype.setRequestHeader;
+        XMLHttpRequest.prototype.setRequestHeader=function(k,v){
+          if(this._pIntercept){if(!this._pHeaders)this._pHeaders={};this._pHeaders[k]=v;return;}
+          return _origSetReqHdr.apply(this,arguments);
+        };
+        var _origFetch=window.fetch;
+        window.fetch=function(input,init){
+          var url=typeof input==='string'?input:(input&&input.url?input.url:'');
+          try{var u=new URL(url,location.href);if(_matchDomain(u.hostname)){
+            var method=(init&&init.method)||'GET';var body=(init&&init.body)||undefined;var fHeaders={};
+            if(init&&init.headers){if(typeof init.headers.forEach==='function'){init.headers.forEach(function(v,k){fHeaders[k]=v;});}else if(typeof init.headers==='object'){for(var hk in init.headers)fHeaders[hk]=init.headers[hk];}}
+            return _origFetch('/api/browser/proxy-xhr',{method:'POST',headers:{'Content-Type':'application/json','Authorization':_authTk},body:JSON.stringify({url:u.href,method:method,body:typeof body==='string'?body:undefined,headers:fHeaders})});
+          }}catch(e){}
+          return _origFetch.apply(this,arguments);
+        };` : '';
       const interceptScript = `<script>(function(){
         var origOpen=window.open;
         window.open=function(url){
@@ -1755,7 +1809,7 @@ app.get('/api/browser/proxy', authMiddleware, async (req, res) => {
             e.preventDefault();e.stopPropagation();
             try{var u=new URL(href,location.href);parent.postMessage({type:'browser-navigate',url:u.href},'*');}catch(ex){}
           ${interceptAll ? '' : '}'}
-        },true);
+        },true);${xhrIntercept}
       })();<\/script>`;
       html = html.replace(/(<head[^>]*>)/i, '$1' + interceptScript);
       res.send(html);
@@ -1768,6 +1822,344 @@ app.get('/api/browser/proxy', authMiddleware, async (req, res) => {
     res.status(502).json({ error: e.message || 'Fetch failed' });
   }
 });
+
+// Browser proxy POST/PUT/DELETE (for intercepted XHR/fetch from proxied pages)
+app.post('/api/browser/proxy-xhr', authMiddleware, async (req, res) => {
+  const targetUrl = req.body.url;
+  const method = (req.body.method || 'POST').toUpperCase();
+  if (!targetUrl) return res.status(400).json({ error: 'url required' });
+  try { new URL(targetUrl); } catch { return res.status(400).json({ error: 'Invalid URL' }); }
+  try {
+    const parsed = new URL(targetUrl);
+    const hostname = parsed.hostname;
+    if (/^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.|localhost|::1|\[::1\])/i.test(hostname)) {
+      return res.status(403).json({ error: 'Access to internal addresses is not allowed' });
+    }
+  } catch { return res.status(400).json({ error: 'Invalid URL' }); }
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    const fwdHeaders = {};
+    const passthroughKeys = ['content-type', 'accept', 'accept-language', 'x-requested-with', 'x-goog-authuser', 'x-same-domain'];
+    if (req.body.headers && typeof req.body.headers === 'object') {
+      for (const [k, v] of Object.entries(req.body.headers)) {
+        const lk = k.toLowerCase();
+        if (passthroughKeys.includes(lk) || lk.startsWith('x-goog-')) {
+          fwdHeaders[k] = v;
+        }
+      }
+    }
+    fwdHeaders['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+    if (req.body.cookies) {
+      fwdHeaders['Cookie'] = req.body.cookies;
+    }
+    const fetchOpts = {
+      method: ['GET','POST','PUT','DELETE','PATCH'].includes(method) ? method : 'POST',
+      headers: fwdHeaders,
+      signal: controller.signal,
+      redirect: 'follow'
+    };
+    if (method !== 'GET' && method !== 'HEAD' && req.body.body !== undefined) {
+      fetchOpts.body = typeof req.body.body === 'string' ? req.body.body : JSON.stringify(req.body.body);
+    }
+    const resp = await fetch(targetUrl, fetchOpts);
+    clearTimeout(timeout);
+    const ct = resp.headers.get('content-type') || 'application/octet-stream';
+    res.set('Content-Type', ct);
+    res.set('Access-Control-Allow-Origin', '*');
+    const buffer = Buffer.from(await resp.arrayBuffer());
+    res.status(resp.status).send(buffer);
+  } catch (e) {
+    if (e.name === 'AbortError') return res.status(504).json({ error: 'Request timeout' });
+    res.status(502).json({ error: e.message || 'Fetch failed' });
+  }
+});
+
+// #region Server-Side Cookie Jar Proxy (for login-required proxied sites)
+const proxyCookieJars = {}; // { "username:appId": { "domain": { "cookieName": {value, domain, path, expires, secure, httpOnly} } } }
+
+function getCookieJarKey(username, appId) {
+  return username + ':' + appId;
+}
+
+function getCookieJar(username, appId) {
+  const key = getCookieJarKey(username, appId);
+  if (!proxyCookieJars[key]) {
+    // Try loading from disk
+    const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const cookiePath = path.join(DATA_DIR, safe, 'proxy-cookies-' + appId.replace(/[^a-zA-Z0-9_-]/g, '_') + '.json');
+    if (fs.existsSync(cookiePath)) {
+      try { proxyCookieJars[key] = JSON.parse(fs.readFileSync(cookiePath, 'utf-8')); } catch { proxyCookieJars[key] = {}; }
+    } else {
+      proxyCookieJars[key] = {};
+    }
+  }
+  return proxyCookieJars[key];
+}
+
+function saveCookieJar(username, appId) {
+  const key = getCookieJarKey(username, appId);
+  const jar = proxyCookieJars[key] || {};
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  ensureDir(dir);
+  const cookiePath = path.join(dir, 'proxy-cookies-' + appId.replace(/[^a-zA-Z0-9_-]/g, '_') + '.json');
+  fs.writeFileSync(cookiePath, JSON.stringify(jar));
+}
+
+function parseSetCookieHeader(header, requestUrl) {
+  const parts = header.split(';').map(p => p.trim());
+  const [nameVal, ...rest] = parts;
+  const eqIdx = nameVal.indexOf('=');
+  if (eqIdx < 0) return null;
+  const name = nameVal.substring(0, eqIdx).trim();
+  const value = nameVal.substring(eqIdx + 1).trim();
+  if (!name) return null;
+  const cookie = { name, value, path: '/', domain: '', secure: false, httpOnly: false, sameSite: '' };
+  for (const attr of rest) {
+    const lower = attr.toLowerCase();
+    if (lower.startsWith('domain=')) cookie.domain = attr.substring(7).trim().replace(/^\./, '');
+    else if (lower.startsWith('path=')) cookie.path = attr.substring(5).trim();
+    else if (lower === 'secure') cookie.secure = true;
+    else if (lower === 'httponly') cookie.httpOnly = true;
+    else if (lower.startsWith('expires=')) {
+      try { cookie.expires = new Date(attr.substring(8).trim()).toISOString(); } catch {}
+    }
+    else if (lower.startsWith('max-age=')) {
+      const sec = parseInt(attr.substring(8).trim(), 10);
+      if (!isNaN(sec)) {
+        if (sec <= 0) { cookie.value = ''; cookie.expires = new Date(0).toISOString(); }
+        else cookie.expires = new Date(Date.now() + sec * 1000).toISOString();
+      }
+    }
+    else if (lower.startsWith('samesite=')) cookie.sameSite = attr.substring(9).trim();
+  }
+  if (!cookie.domain) {
+    try { cookie.domain = new URL(requestUrl).hostname; } catch {}
+  }
+  return cookie;
+}
+
+function storeCookiesFromResponse(jar, resp, requestUrl) {
+  const setCookies = resp.headers.getSetCookie ? resp.headers.getSetCookie() : [];
+  let changed = false;
+  for (const h of setCookies) {
+    const c = parseSetCookieHeader(h, requestUrl);
+    if (!c) continue;
+    const domain = c.domain || '';
+    if (!jar[domain]) jar[domain] = {};
+    // Check if expired → delete
+    if (c.expires && new Date(c.expires).getTime() < Date.now()) {
+      delete jar[domain][c.name];
+    } else {
+      jar[domain][c.name] = c;
+    }
+    changed = true;
+  }
+  return changed;
+}
+
+function buildCookieHeader(jar, requestUrl) {
+  let hostname, pathname;
+  try {
+    const u = new URL(requestUrl);
+    hostname = u.hostname;
+    pathname = u.pathname;
+  } catch { return ''; }
+  const pairs = [];
+  for (const [domain, cookies] of Object.entries(jar)) {
+    if (!hostname.endsWith(domain) && hostname !== domain) continue;
+    for (const [name, c] of Object.entries(cookies)) {
+      if (c.expires && new Date(c.expires).getTime() < Date.now()) continue;
+      if (c.path && !pathname.startsWith(c.path)) continue;
+      pairs.push(name + '=' + c.value);
+    }
+  }
+  return pairs.join('; ');
+}
+
+function isPrivateHost(hostname) {
+  return /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.|localhost|::1|\[::1\])/i.test(hostname);
+}
+
+// Session proxy GET — loads page with server-side cookies
+app.get('/api/proxy-session/:appId', authMiddleware, async (req, res) => {
+  const appId = req.params.appId;
+  const targetUrl = req.query.url;
+  if (!targetUrl) return res.status(400).json({ error: 'url required' });
+  try { new URL(targetUrl); } catch { return res.status(400).json({ error: 'Invalid URL' }); }
+  try {
+    const parsed = new URL(targetUrl);
+    if (isPrivateHost(parsed.hostname)) return res.status(403).json({ error: 'Access to internal addresses is not allowed' });
+  } catch { return res.status(400).json({ error: 'Invalid URL' }); }
+
+  const jar = getCookieJar(req.user.username, appId);
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const cookieHeader = buildCookieHeader(jar, targetUrl);
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+      'Accept': req.headers.accept || 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': req.headers['accept-language'] || 'en-US,en;q=0.5'
+    };
+    if (cookieHeader) headers['Cookie'] = cookieHeader;
+    const resp = await fetch(targetUrl, { headers, signal: controller.signal, redirect: 'follow' });
+    clearTimeout(timeout);
+
+    // Capture and store Set-Cookie headers
+    if (storeCookiesFromResponse(jar, resp, targetUrl)) {
+      saveCookieJar(req.user.username, appId);
+    }
+
+    const contentType = resp.headers.get('content-type') || 'text/html';
+    res.set('Content-Type', contentType);
+    res.set('X-Final-URL', resp.url);
+
+    if (contentType.includes('text/html')) {
+      let html = await resp.text();
+      const baseUrl = new URL(resp.url);
+      const baseHref = baseUrl.origin + baseUrl.pathname.replace(/\/[^/]*$/, '/');
+      html = html.replace(/(<head[^>]*>)/i, '$1<base href="' + baseHref + '">');
+      const proxyDomain = req.query.proxyDomain || baseUrl.hostname;
+      const xhrIntercept = `
+        var _authTk=(function(){try{var c=document.cookie.match(/token=([^;]+)/);if(c)return 'Bearer '+c[1];}catch(e){}try{var t=localStorage.getItem('auth_token');if(t)return 'Bearer '+t;}catch(e){}return '';})();
+        var _appId='${appId.replace(/'/g, "\\'")}';
+        var _pDomain='${proxyDomain.replace(/'/g, "\\'")}';var _pDomains=[_pDomain];try{var _bd=new URL('${baseHref}');if(_bd.hostname!==_pDomain)_pDomains.push(_bd.hostname);}catch(e){}
+        function _matchDomain(h){for(var i=0;i<_pDomains.length;i++)if(h===_pDomains[i]||h.endsWith('.'+_pDomains[i]))return true;return false;}
+        var _origXhrOpen=XMLHttpRequest.prototype.open;
+        var _origXhrSend=XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.open=function(method,url,async,user,pass){
+          this._pMethod=method;this._pUrl=url;this._pAsync=async;this._pUser=user;this._pPass=pass;
+          try{var u=new URL(url,location.href);if(_matchDomain(u.hostname)){this._pIntercept=true;this._pFullUrl=u.href;return;}}catch(e){}
+          return _origXhrOpen.apply(this,arguments);
+        };
+        XMLHttpRequest.prototype.send=function(body){
+          if(this._pIntercept){
+            var self=this;var hdrs=this._pHeaders||{};
+            fetch('/api/proxy-session/'+_appId+'/xhr',{method:'POST',headers:{'Content-Type':'application/json','Authorization':_authTk},body:JSON.stringify({url:self._pFullUrl,method:self._pMethod,body:body,headers:hdrs})}).then(function(r){return r.text().then(function(t){Object.defineProperty(self,'readyState',{writable:true});self.readyState=4;Object.defineProperty(self,'status',{writable:true});self.status=r.status;Object.defineProperty(self,'statusText',{writable:true});self.statusText=r.statusText||'';Object.defineProperty(self,'responseText',{writable:true});self.responseText=t;Object.defineProperty(self,'response',{writable:true});self.response=t;if(typeof self.onreadystatechange==='function')self.onreadystatechange();if(typeof self.onload==='function')self.onload();self.dispatchEvent(new Event('readystatechange'));self.dispatchEvent(new Event('load'));self.dispatchEvent(new Event('loadend'));});}).catch(function(e){Object.defineProperty(self,'readyState',{writable:true});self.readyState=4;Object.defineProperty(self,'status',{writable:true});self.status=0;if(typeof self.onerror==='function')self.onerror(e);self.dispatchEvent(new Event('error'));self.dispatchEvent(new Event('loadend'));});
+            return;
+          }
+          return _origXhrSend.apply(this,arguments);
+        };
+        var _origSetReqHdr=XMLHttpRequest.prototype.setRequestHeader;
+        XMLHttpRequest.prototype.setRequestHeader=function(k,v){
+          if(this._pIntercept){if(!this._pHeaders)this._pHeaders={};this._pHeaders[k]=v;return;}
+          return _origSetReqHdr.apply(this,arguments);
+        };
+        var _origFetch=window.fetch;
+        window.fetch=function(input,init){
+          var url=typeof input==='string'?input:(input&&input.url?input.url:'');
+          try{var u=new URL(url,location.href);if(_matchDomain(u.hostname)){
+            var method=(init&&init.method)||'GET';var body=(init&&init.body)||undefined;var fHeaders={};
+            if(init&&init.headers){if(typeof init.headers.forEach==='function'){init.headers.forEach(function(v,k){fHeaders[k]=v;});}else if(typeof init.headers==='object'){for(var hk in init.headers)fHeaders[hk]=init.headers[hk];}}
+            return _origFetch('/api/proxy-session/'+_appId+'/xhr',{method:'POST',headers:{'Content-Type':'application/json','Authorization':_authTk},body:JSON.stringify({url:u.href,method:method,body:typeof body==='string'?body:undefined,headers:fHeaders})});
+          }}catch(e){}
+          return _origFetch.apply(this,arguments);
+        };`;
+      const interceptScript = `<script>(function(){
+        var origOpen=window.open;
+        window.open=function(url){
+          if(url){try{var u=new URL(url,location.href);parent.postMessage({type:'browser-navigate',url:u.href},'*');}catch(e){}}return null;};
+        document.addEventListener('click',function(e){
+          var a=e.target.closest('a');
+          if(!a)return;
+          var href=a.getAttribute('href');
+          if(!href||href.startsWith('#')||href.startsWith('javascript:'))return;
+          e.preventDefault();e.stopPropagation();
+          try{var u=new URL(href,location.href);parent.postMessage({type:'browser-navigate',url:u.href},'*');}catch(ex){}
+        },true);
+        document.addEventListener('submit',function(e){
+          var form=e.target;
+          if(!form||form.tagName!=='FORM')return;
+          var action=form.getAttribute('action')||location.href;
+          try{var u=new URL(action,location.href);if(_matchDomain(u.hostname)){
+            e.preventDefault();
+            var fd=new FormData(form);var method=(form.method||'GET').toUpperCase();
+            if(method==='GET'){var qs=new URLSearchParams(fd).toString();parent.postMessage({type:'browser-navigate',url:u.origin+u.pathname+'?'+qs},'*');}
+            else{var body=new URLSearchParams(fd).toString();fetch('/api/proxy-session/'+_appId+'/xhr',{method:'POST',headers:{'Content-Type':'application/json','Authorization':_authTk},body:JSON.stringify({url:u.href,method:method,body:body,headers:{'Content-Type':'application/x-www-form-urlencoded'}})}).then(function(r){return r.text();}).then(function(html){document.open();document.write(html);document.close();}).catch(function(err){console.error('Form submit error',err);});}
+          }}catch(ex){}
+        },true);${xhrIntercept}
+      })();<\/script>`;
+      html = html.replace(/(<head[^>]*>)/i, '$1' + interceptScript);
+      res.send(html);
+    } else {
+      const buffer = Buffer.from(await resp.arrayBuffer());
+      res.send(buffer);
+    }
+  } catch (e) {
+    if (e.name === 'AbortError') return res.status(504).json({ error: 'Request timeout' });
+    res.status(502).json({ error: e.message || 'Fetch failed' });
+  }
+});
+
+// Session proxy XHR — handles XHR/fetch with server-side cookies
+app.post('/api/proxy-session/:appId/xhr', authMiddleware, async (req, res) => {
+  const appId = req.params.appId;
+  const targetUrl = req.body.url;
+  const method = (req.body.method || 'POST').toUpperCase();
+  if (!targetUrl) return res.status(400).json({ error: 'url required' });
+  try { new URL(targetUrl); } catch { return res.status(400).json({ error: 'Invalid URL' }); }
+  try {
+    const parsed = new URL(targetUrl);
+    if (isPrivateHost(parsed.hostname)) return res.status(403).json({ error: 'Access to internal addresses is not allowed' });
+  } catch { return res.status(400).json({ error: 'Invalid URL' }); }
+
+  const jar = getCookieJar(req.user.username, appId);
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    const fwdHeaders = {};
+    const passthroughKeys = ['content-type', 'accept', 'accept-language', 'x-requested-with'];
+    if (req.body.headers && typeof req.body.headers === 'object') {
+      for (const [k, v] of Object.entries(req.body.headers)) {
+        const lk = k.toLowerCase();
+        if (passthroughKeys.includes(lk)) fwdHeaders[k] = v;
+      }
+    }
+    fwdHeaders['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
+    const cookieHeader = buildCookieHeader(jar, targetUrl);
+    if (cookieHeader) fwdHeaders['Cookie'] = cookieHeader;
+
+    const fetchOpts = {
+      method: ['GET','POST','PUT','DELETE','PATCH'].includes(method) ? method : 'POST',
+      headers: fwdHeaders,
+      signal: controller.signal,
+      redirect: 'follow'
+    };
+    if (method !== 'GET' && method !== 'HEAD' && req.body.body !== undefined) {
+      fetchOpts.body = typeof req.body.body === 'string' ? req.body.body : JSON.stringify(req.body.body);
+    }
+    const resp = await fetch(targetUrl, fetchOpts);
+    clearTimeout(timeout);
+
+    // Capture and store Set-Cookie headers
+    if (storeCookiesFromResponse(jar, resp, targetUrl)) {
+      saveCookieJar(req.user.username, appId);
+    }
+
+    const ct = resp.headers.get('content-type') || 'application/octet-stream';
+    res.set('Content-Type', ct);
+    res.set('Access-Control-Allow-Origin', '*');
+    const buffer = Buffer.from(await resp.arrayBuffer());
+    res.status(resp.status).send(buffer);
+  } catch (e) {
+    if (e.name === 'AbortError') return res.status(504).json({ error: 'Request timeout' });
+    res.status(502).json({ error: e.message || 'Fetch failed' });
+  }
+});
+
+// Clear server-side cookies for an app
+app.delete('/api/proxy-session/:appId/cookies', authMiddleware, (req, res) => {
+  const appId = req.params.appId;
+  const key = getCookieJarKey(req.user.username, appId);
+  proxyCookieJars[key] = {};
+  saveCookieJar(req.user.username, appId);
+  res.json({ ok: true });
+});
+// #endregion
 
 // Browser Bookmarks API
 app.get('/api/browser/bookmarks', authMiddleware, (req, res) => {
@@ -2496,6 +2888,7 @@ app.get('/api/docker/network', authMiddleware, async (req, res) => {
 // Supports multiple proxy modes via app.json "proxyMode" field:
 //   "hpm"        — http-proxy-middleware (best for non-standard HTTP responses, e.g. rmeira/chess)
 //   "pathprefix" — keeps /proxy/{appId} prefix in forwarded path (for apps using path-prefix, e.g. TiddlyWiki)
+//   "rewrite"    — like default but rewrites absolute paths in HTML responses (for Vite SPA apps)
 //   "default"    — http.request with IPv4 forcing, strips /proxy/{appId} prefix (default)
 
 app.use('/proxy/:appId', async (req, res, next) => {
@@ -2508,7 +2901,10 @@ app.use('/proxy/:appId', async (req, res, next) => {
   const dynProxy = proxyCache[appId];
   if (dynProxy && dynProxy.dynamic) {
     targetBase = dynProxy.target;
-    proxyMode = dynProxy.proxyMode || 'default';
+    // Always read fresh proxyMode from manifest (app.json may have changed)
+    const freshMode = getProxyMode(appId);
+    proxyMode = freshMode;
+    dynProxy.proxyMode = freshMode;
   } else {
     const storeApps = getStoreApps();
     const appManifest = storeApps.find(a => a.id === appId && a.type === 'external');
@@ -2542,7 +2938,12 @@ app.use('/proxy/:appId', async (req, res, next) => {
         target: targetBase,
         changeOrigin: true,
         pathRewrite: (p) => p.replace(new RegExp(`^/proxy/${appId}`), ''),
-        ws: true
+        ws: true,
+        onProxyRes: (proxyRes) => {
+          delete proxyRes.headers['x-frame-options'];
+          delete proxyRes.headers['content-security-policy'];
+          delete proxyRes.headers['content-security-policy-report-only'];
+        }
       });
     }
     if (dynP && dynP.middleware) return dynP.middleware(req, res, next);
@@ -2568,6 +2969,120 @@ app.use('/proxy/:appId', async (req, res, next) => {
       delete resHeaders['transfer-encoding'];
       res.writeHead(proxyRes.statusCode, resHeaders);
       proxyRes.pipe(res, { end: true });
+    });
+
+    proxyReq.on('error', (err) => {
+      console.error(`[PROXY] ${appId} error:`, err.message);
+      if (!res.headersSent) res.status(502).json({ error: 'Proxy error: ' + err.message });
+    });
+
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      if (req.readable) {
+        req.pipe(proxyReq, { end: true });
+      } else if (req.body) {
+        const bodyStr = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+        proxyReq.setHeader('content-length', Buffer.byteLength(bodyStr));
+        proxyReq.end(bodyStr);
+      } else {
+        proxyReq.end();
+      }
+    } else {
+      proxyReq.end();
+    }
+    return;
+  }
+
+  // ── Rewrite mode: like default but rewrites absolute paths in HTML responses ──
+  if (proxyMode === 'rewrite') {
+    const targetPath = req.originalUrl.replace(new RegExp(`^/proxy/${appId}`), '') || '/';
+    const target = new URL(targetPath, targetBase);
+    const hostname = (target.hostname === 'localhost') ? '127.0.0.1' : target.hostname;
+    const prefix = '/proxy/' + appId;
+
+    const options = {
+      hostname,
+      port: target.port || 80,
+      path: target.pathname + target.search,
+      method: req.method,
+      headers: { ...req.headers, host: target.host, connection: 'close', 'accept-encoding': 'identity' },
+      insecureHTTPParser: true
+    };
+    delete options.headers['authorization'];
+
+    const proxyReq = http.request(options, (proxyRes) => {
+      // Rewrite Location header on redirects to include proxy prefix
+      if (proxyRes.headers.location && proxyRes.headers.location.startsWith('/') && !proxyRes.headers.location.startsWith(prefix + '/')) {
+        proxyRes.headers.location = prefix + proxyRes.headers.location;
+      }
+      // Remove headers that block iframe embedding and CSP (rewrite mode injects inline scripts)
+      delete proxyRes.headers['x-frame-options'];
+      delete proxyRes.headers['content-security-policy'];
+      delete proxyRes.headers['content-security-policy-report-only'];
+      const ct = proxyRes.headers['content-type'] || '';
+      const needsRewrite = ct.includes('text/html') || ct.includes('javascript') || ct.includes('text/css');
+      if (needsRewrite) {
+        const chunks = [];
+        proxyRes.on('data', chunk => chunks.push(chunk));
+        proxyRes.on('end', () => {
+          let body = Buffer.concat(chunks).toString('utf8');
+
+          if (ct.includes('text/html')) {
+            // Inject comprehensive interceptor script for fetch/XHR/history/setAttribute/property setters
+            const interceptScript = `<script>(function(){var P="${prefix}";var O=window.location.origin;function fix(u){if(typeof u!=="string")return u;if(u.startsWith("/")&&!u.startsWith(P+"/")&&!u.startsWith("/proxy/"))return P+u;if(u.startsWith(O+"/")){var p=u.substring(O.length);if(!p.startsWith(P+"/")&&!p.startsWith("/proxy/"))return O+P+p}return u}var oF=window.fetch;window.fetch=function(u,o){if(typeof u==="string")u=fix(u);else if(u instanceof Request){var nu=fix(u.url);if(nu!==u.url)u=new Request(nu,u)}return oF.call(this,u,o)};var oX=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u){return oX.apply(this,[m,fix(u)].concat([].slice.call(arguments,2)))};var oP=history.pushState;history.pushState=function(s,t,u){return oP.call(this,s,t,fix(u))};var oR=history.replaceState;history.replaceState=function(s,t,u){return oR.call(this,s,t,fix(u))};var oSA=Element.prototype.setAttribute;Element.prototype.setAttribute=function(n,v){if((n==="src"||n==="href"||n==="action"||n==="srcset")&&typeof v==="string")v=fix(v);return oSA.call(this,n,v)};["HTMLImageElement","HTMLScriptElement","HTMLSourceElement","HTMLVideoElement","HTMLAudioElement","HTMLIFrameElement","HTMLInputElement"].forEach(function(c){var p=window[c]&&window[c].prototype;if(!p)return;var d=Object.getOwnPropertyDescriptor(p,"src");if(d&&d.set){var oS=d.set;Object.defineProperty(p,"src",{set:function(v){oS.call(this,fix(v))},get:d.get,configurable:true})}});["HTMLLinkElement","HTMLAnchorElement","HTMLAreaElement"].forEach(function(c){var p=window[c]&&window[c].prototype;if(!p)return;var d=Object.getOwnPropertyDescriptor(p,"href");if(d&&d.set){var oS=d.set;Object.defineProperty(p,"href",{set:function(v){oS.call(this,fix(v))},get:d.get,configurable:true})}});if(window.Worker){var oW=window.Worker;window.Worker=function(u,o){return new oW(fix(u),o)};window.Worker.prototype=oW.prototype}if(window.SharedWorker){var oSW=window.SharedWorker;window.SharedWorker=function(u,o){return new oSW(fix(u),o)};window.SharedWorker.prototype=oSW.prototype}if(navigator.serviceWorker){navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(r){r.unregister()})});navigator.serviceWorker.register=function(){return Promise.resolve({unregister:function(){return Promise.resolve()},update:function(){return Promise.resolve()},installing:null,waiting:null,active:null})}}})()</script>`;
+            // Inject interceptor after <head> or at start of document
+            if (body.includes('<head>')) {
+              body = body.replace('<head>', '<head>' + interceptScript);
+            } else if (body.includes('<HEAD>')) {
+              body = body.replace('<HEAD>', '<HEAD>' + interceptScript);
+            } else {
+              body = interceptScript + body;
+            }
+            // Rewrite absolute paths in HTML attributes (src, href, action)
+            body = body.replace(/((?:src|href|action)\s*=\s*["'])\/(?!\/|proxy\/)/gi, '$1' + prefix + '/');
+            // Rewrite absolute paths in inline import statements
+            body = body.replace(/(import\s*\(?\s*["'])\/(?!\/|proxy\/)/g, '$1' + prefix + '/');
+            // Rewrite JS string literals referencing root "/" as asset path fallback (e.g. EXCALIDRAW_ASSET_PATH)
+            body = body.replace(/EXCALIDRAW_ASSET_PATH\s*=\s*\[([^\]]*)\]/s, (m, inner) => {
+              const fixed = inner.replace(/"\/"/g, '"' + prefix + '/"');
+              return 'EXCALIDRAW_ASSET_PATH = [' + fixed + ']';
+            });
+          }
+
+          if (ct.includes('javascript') || ct.includes('text/css')) {
+            // Rewrite absolute path string literals in JS/CSS: "/path" or '/path' → "/proxy/appId/path"
+            body = body.replace(/(["'])(\/(?:api|static|library|kcab|sw\.js)[^\s"']*)\1/g, (m, q, p) => {
+              if (p.startsWith(prefix + '/')) return m;
+              return q + prefix + p + q;
+            });
+          }
+          if (ct.includes('javascript')) {
+            // Inject importScripts + fetch + XMLHttpRequest wrapper for worker contexts
+            const workerFix = `(function(){if(typeof WorkerGlobalScope!=="undefined"&&self instanceof WorkerGlobalScope){var P="${prefix}";var O=self.location.origin;function fix(u){if(typeof u!=="string")return u;if(u.startsWith("/")&&!u.startsWith(P+"/")&&!u.startsWith("/proxy/"))return P+u;if(u.startsWith(O+"/")){var p=u.substring(O.length);if(!p.startsWith(P+"/")&&!p.startsWith("/proxy/"))return O+P+p}return u}if(typeof importScripts==="function"){var _ois=importScripts;importScripts=function(){var a=[].slice.call(arguments).map(function(u){return fix(u)});return _ois.apply(this,a)}}var _of=self.fetch;self.fetch=function(u,o){if(typeof u==="string")u=fix(u);else if(u instanceof Request){var nu=fix(u.url);if(nu!==u.url)u=new Request(nu,u)}return _of.call(this,u,o)};if(typeof XMLHttpRequest!=="undefined"){var _ox=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u){return _ox.apply(this,[m,fix(u)].concat([].slice.call(arguments,2)))}}}})();\n`;
+            body = workerFix + body;
+          }
+          if (ct.includes('text/css')) {
+            // Rewrite unquoted url() paths in CSS: url(/static/...) → url(/proxy/appId/static/...)
+            body = body.replace(/url\(\s*(\/(?:static|api|assets|fonts|media)[^\s)"']*)\s*\)/g, (m, p) => {
+              if (p.startsWith(prefix + '/')) return m;
+              return 'url(' + prefix + p + ')';
+            });
+          }
+
+          // Prevent cache so rewritten content is always fresh
+          const resHeaders = { ...proxyRes.headers };
+          delete resHeaders['transfer-encoding'];
+          delete resHeaders['content-encoding'];
+          resHeaders['content-length'] = Buffer.byteLength(body);
+          resHeaders['cache-control'] = 'no-store';
+          res.writeHead(proxyRes.statusCode, resHeaders);
+          res.end(body);
+        });
+      } else {
+        const resHeaders = { ...proxyRes.headers };
+        delete resHeaders['transfer-encoding'];
+        res.writeHead(proxyRes.statusCode, resHeaders);
+        proxyRes.pipe(res, { end: true });
+      }
     });
 
     proxyReq.on('error', (err) => {
@@ -10353,6 +10868,262 @@ app.post('/api/keep/notes', authMiddleware, (req, res) => {
 });
 
 // #endregion
+// #region Resume Builder API
+function getUserResumePath(username) {
+  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const dir = path.join(DATA_DIR, safe);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  return path.join(dir, 'resume-builder.json');
+}
+function getUserResumeData(username) {
+  const fp = getUserResumePath(username);
+  if (!fs.existsSync(fp)) return { resumes: [] };
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return { resumes: [] }; }
+}
+function saveUserResumeData(username, data) {
+  fs.writeFileSync(getUserResumePath(username), JSON.stringify(data, null, 2));
+}
+
+app.get('/api/resume-builder/resumes', authMiddleware, (req, res) => {
+  res.json(getUserResumeData(req.user.username));
+});
+
+app.post('/api/resume-builder/resumes', authMiddleware, (req, res) => {
+  const { resumes } = req.body;
+  if (!Array.isArray(resumes)) return res.status(400).json({ error: 'resumes array required' });
+  const sanitized = {
+    resumes: resumes.slice(0, 100).map(r => ({
+      id: String(r.id || '').slice(0, 50),
+      name: String(r.name || '').slice(0, 200),
+      template: ['classic','modern','minimal','professional'].includes(r.template) ? r.template : 'classic',
+      accentColor: String(r.accentColor || '#2980b9').slice(0, 20),
+      fontSize: Math.min(Math.max(Number(r.fontSize) || 14, 10), 20),
+      photo: typeof r.photo === 'string' ? r.photo.slice(0, 200000) : '',
+      personal: {
+        fullName: String((r.personal && r.personal.fullName) || '').slice(0, 200),
+        jobTitle: String((r.personal && r.personal.jobTitle) || '').slice(0, 200),
+        email: String((r.personal && r.personal.email) || '').slice(0, 200),
+        phone: String((r.personal && r.personal.phone) || '').slice(0, 50),
+        address: String((r.personal && r.personal.address) || '').slice(0, 300),
+        website: String((r.personal && r.personal.website) || '').slice(0, 300)
+      },
+      summary: String(r.summary || '').slice(0, 5000),
+      experience: Array.isArray(r.experience) ? r.experience.slice(0, 50).map(e => ({
+        id: String(e.id || '').slice(0, 50),
+        company: String(e.company || '').slice(0, 200),
+        position: String(e.position || '').slice(0, 200),
+        startDate: String(e.startDate || '').slice(0, 20),
+        endDate: String(e.endDate || '').slice(0, 20),
+        present: !!e.present,
+        description: String(e.description || '').slice(0, 3000)
+      })) : [],
+      education: Array.isArray(r.education) ? r.education.slice(0, 30).map(e => ({
+        id: String(e.id || '').slice(0, 50),
+        school: String(e.school || '').slice(0, 200),
+        degree: String(e.degree || '').slice(0, 200),
+        startDate: String(e.startDate || '').slice(0, 20),
+        endDate: String(e.endDate || '').slice(0, 20),
+        description: String(e.description || '').slice(0, 2000)
+      })) : [],
+      skills: Array.isArray(r.skills) ? r.skills.slice(0, 100).map(s => ({
+        id: String(s.id || '').slice(0, 50),
+        name: String(s.name || '').slice(0, 100),
+        level: ['beginner','intermediate','advanced','expert'].includes(s.level) ? s.level : 'intermediate'
+      })) : [],
+      languages: Array.isArray(r.languages) ? r.languages.slice(0, 30).map(l => ({
+        id: String(l.id || '').slice(0, 50),
+        name: String(l.name || '').slice(0, 100),
+        proficiency: ['beginner','intermediate','advanced','expert','native'].includes(l.proficiency) ? l.proficiency : 'intermediate'
+      })) : [],
+      certifications: Array.isArray(r.certifications) ? r.certifications.slice(0, 50).map(c => ({
+        id: String(c.id || '').slice(0, 50),
+        name: String(c.name || '').slice(0, 200),
+        issuer: String(c.issuer || '').slice(0, 200),
+        date: String(c.date || '').slice(0, 20)
+      })) : [],
+      projects: Array.isArray(r.projects) ? r.projects.slice(0, 50).map(p => ({
+        id: String(p.id || '').slice(0, 50),
+        name: String(p.name || '').slice(0, 200),
+        url: String(p.url || '').slice(0, 500),
+        description: String(p.description || '').slice(0, 2000)
+      })) : [],
+      references: Array.isArray(r.references) ? r.references.slice(0, 20).map(rf => ({
+        id: String(rf.id || '').slice(0, 50),
+        name: String(rf.name || '').slice(0, 200),
+        position: String(rf.position || '').slice(0, 200),
+        company: String(rf.company || '').slice(0, 200),
+        phone: String(rf.phone || '').slice(0, 50),
+        email: String(rf.email || '').slice(0, 200)
+      })) : [],
+      createdAt: r.createdAt || new Date().toISOString(),
+      updatedAt: r.updatedAt || new Date().toISOString()
+    }))
+  };
+  saveUserResumeData(req.user.username, sanitized);
+  res.json({ ok: true });
+});
+
+app.post('/api/resume-builder/export-pdf', authMiddleware, async (req, res) => {
+  const { resume, locale } = req.body;
+  if (!resume || !resume.personal) return res.status(400).json({ error: 'resume required' });
+
+  const LEVEL_LABELS = {
+    tr: { beginner:'Başlangıç', intermediate:'Orta', advanced:'İleri', expert:'Uzman', native:'Ana Dil', present:'Devam Ediyor' },
+    en: { beginner:'Beginner', intermediate:'Intermediate', advanced:'Advanced', expert:'Expert', native:'Native', present:'Present' },
+    de: { beginner:'Anfänger', intermediate:'Mittel', advanced:'Fortgeschritten', expert:'Experte', native:'Muttersprache', present:'Aktuell' },
+    fr: { beginner:'Débutant', intermediate:'Intermédiaire', advanced:'Avancé', expert:'Expert', native:'Langue maternelle', present:'Présent' },
+    es: { beginner:'Principiante', intermediate:'Intermedio', advanced:'Avanzado', expert:'Experto', native:'Nativo', present:'Presente' }
+  };
+  const SECTION_LABELS = {
+    tr: { summary:'Özet', experience:'İş Deneyimi', education:'Eğitim', skills:'Yetenekler', languages:'Diller', certifications:'Sertifikalar', projects:'Projeler', references:'Referanslar' },
+    en: { summary:'Summary', experience:'Work Experience', education:'Education', skills:'Skills', languages:'Languages', certifications:'Certifications', projects:'Projects', references:'References' },
+    de: { summary:'Zusammenfassung', experience:'Berufserfahrung', education:'Ausbildung', skills:'Fähigkeiten', languages:'Sprachen', certifications:'Zertifikate', projects:'Projekte', references:'Referenzen' },
+    fr: { summary:'Résumé', experience:'Expérience professionnelle', education:'Formation', skills:'Compétences', languages:'Langues', certifications:'Certifications', projects:'Projets', references:'Références' },
+    es: { summary:'Resumen', experience:'Experiencia laboral', education:'Educación', skills:'Habilidades', languages:'Idiomas', certifications:'Certificaciones', projects:'Proyectos', references:'Referencias' }
+  };
+
+  const ll = LEVEL_LABELS[locale] || LEVEL_LABELS.en;
+  const sl = SECTION_LABELS[locale] || SECTION_LABELS.en;
+  const accent = resume.accentColor || '#2980b9';
+  const p = resume.personal;
+  const isTwoCol = resume.template === 'modern' || resume.template === 'professional';
+  const sidebarBg = resume.template === 'professional' ? '#1a1a2e' : accent;
+
+  function esc(str) { return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  let sidebar = '';
+  if (isTwoCol) {
+    sidebar = '<div style="width:220px;flex-shrink:0;padding:28px 18px;background:' + sidebarBg + ';color:#fff;font-size:12px;">';
+    if (resume.photo) sidebar += '<div style="text-align:center;margin-bottom:14px"><img src="' + esc(resume.photo) + '" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.3)"/></div>';
+    if (p.email) sidebar += '<div style="margin-bottom:5px">✉ ' + esc(p.email) + '</div>';
+    if (p.phone) sidebar += '<div style="margin-bottom:5px">☎ ' + esc(p.phone) + '</div>';
+    if (p.address) sidebar += '<div style="margin-bottom:5px">📍 ' + esc(p.address) + '</div>';
+    if (p.website) sidebar += '<div style="margin-bottom:10px">🌐 ' + esc(p.website) + '</div>';
+    if (resume.skills && resume.skills.length) {
+      sidebar += '<div style="font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid rgba(255,255,255,.3);padding-bottom:3px;margin:12px 0 8px">' + esc(sl.skills) + '</div>';
+      resume.skills.forEach(s => { sidebar += '<div style="margin-bottom:4px">' + esc(s.name) + ' <span style="opacity:.7">(' + esc(ll[s.level] || s.level) + ')</span></div>'; });
+    }
+    if (resume.languages && resume.languages.length) {
+      sidebar += '<div style="font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid rgba(255,255,255,.3);padding-bottom:3px;margin:12px 0 8px">' + esc(sl.languages) + '</div>';
+      resume.languages.forEach(l => { sidebar += '<div style="margin-bottom:4px">' + esc(l.name) + ' — <span style="opacity:.7">' + esc(ll[l.proficiency] || l.proficiency) + '</span></div>'; });
+    }
+    sidebar += '</div>';
+  }
+
+  let main = '<div style="flex:1;padding:28px 30px;font-size:13px;color:#333">';
+  // Header
+  main += '<div style="margin-bottom:16px' + (resume.photo && !isTwoCol ? ';display:flex;align-items:center;gap:14px' : '') + '">';
+  if (resume.photo && !isTwoCol) main += '<img src="' + esc(resume.photo) + '" style="width:70px;height:70px;border-radius:50%;object-fit:cover"/>';
+  main += '<div><div style="font-size:22px;font-weight:700;color:' + esc(accent) + '">' + esc(p.fullName) + '</div>';
+  if (p.jobTitle) main += '<div style="font-size:14px;color:#666;margin-top:2px">' + esc(p.jobTitle) + '</div>';
+  if (!isTwoCol) {
+    const contacts = [];
+    if (p.email) contacts.push('✉ ' + esc(p.email));
+    if (p.phone) contacts.push('☎ ' + esc(p.phone));
+    if (p.address) contacts.push('📍 ' + esc(p.address));
+    if (p.website) contacts.push('🌐 ' + esc(p.website));
+    if (contacts.length) main += '<div style="font-size:11px;color:#888;margin-top:6px">' + contacts.join(' &nbsp;|&nbsp; ') + '</div>';
+  }
+  main += '</div></div>';
+
+  function sectionTitle(title) {
+    return '<div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:' + esc(accent) + ';border-bottom:2px solid ' + esc(accent) + ';padding-bottom:3px;margin:14px 0 8px">' + esc(title) + '</div>';
+  }
+
+  if (resume.summary) {
+    main += sectionTitle(sl.summary);
+    main += '<div style="color:#555;line-height:1.6;white-space:pre-line">' + esc(resume.summary) + '</div>';
+  }
+  if (resume.experience && resume.experience.length) {
+    main += sectionTitle(sl.experience);
+    resume.experience.forEach(e => {
+      main += '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between"><div><strong>' + esc(e.position) + '</strong> · ' + esc(e.company) + '</div><div style="font-size:11px;color:#999">' + esc(e.startDate) + ' — ' + (e.present ? esc(ll.present) : esc(e.endDate)) + '</div></div>';
+      if (e.description) main += '<div style="color:#555;line-height:1.5;margin-top:3px;white-space:pre-line">' + esc(e.description) + '</div>';
+      main += '</div>';
+    });
+  }
+  if (resume.education && resume.education.length) {
+    main += sectionTitle(sl.education);
+    resume.education.forEach(e => {
+      main += '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between"><div><strong>' + esc(e.degree) + '</strong> · ' + esc(e.school) + '</div><div style="font-size:11px;color:#999">' + esc(e.startDate) + ' — ' + esc(e.endDate) + '</div></div>';
+      if (e.description) main += '<div style="color:#555;line-height:1.5;margin-top:3px">' + esc(e.description) + '</div>';
+      main += '</div>';
+    });
+  }
+  if (!isTwoCol && resume.skills && resume.skills.length) {
+    main += sectionTitle(sl.skills);
+    main += '<div style="display:flex;flex-wrap:wrap;gap:5px">';
+    resume.skills.forEach(s => { main += '<span style="padding:3px 9px;background:rgba(41,128,185,.1);border-radius:10px;font-size:11px;color:' + esc(accent) + ';border:1px solid rgba(41,128,185,.15)">' + esc(s.name) + ' (' + esc(ll[s.level] || s.level) + ')</span>'; });
+    main += '</div>';
+  }
+  if (!isTwoCol && resume.languages && resume.languages.length) {
+    main += sectionTitle(sl.languages);
+    main += '<div style="display:flex;flex-wrap:wrap;gap:5px">';
+    resume.languages.forEach(l => { main += '<span style="padding:3px 9px;background:rgba(41,128,185,.1);border-radius:10px;font-size:11px;color:' + esc(accent) + ';border:1px solid rgba(41,128,185,.15)">' + esc(l.name) + ' (' + esc(ll[l.proficiency] || l.proficiency) + ')</span>'; });
+    main += '</div>';
+  }
+  if (resume.certifications && resume.certifications.length) {
+    main += sectionTitle(sl.certifications);
+    resume.certifications.forEach(c => {
+      main += '<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between"><div><strong>' + esc(c.name) + '</strong> · ' + esc(c.issuer) + '</div><div style="font-size:11px;color:#999">' + esc(c.date) + '</div></div></div>';
+    });
+  }
+  if (resume.projects && resume.projects.length) {
+    main += sectionTitle(sl.projects);
+    resume.projects.forEach(p2 => {
+      main += '<div style="margin-bottom:8px"><strong>' + esc(p2.name) + '</strong>';
+      if (p2.url) main += ' · <span style="color:' + esc(accent) + ';font-size:11px">' + esc(p2.url) + '</span>';
+      if (p2.description) main += '<div style="color:#555;line-height:1.5;margin-top:2px">' + esc(p2.description) + '</div>';
+      main += '</div>';
+    });
+  }
+  if (resume.references && resume.references.length) {
+    main += sectionTitle(sl.references);
+    main += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+    resume.references.forEach(rf => {
+      main += '<div style="font-size:11px;background:#f8f9fa;border-radius:5px;padding:8px"><strong>' + esc(rf.name) + '</strong><br>' + esc(rf.position);
+      if (rf.company) main += ' · ' + esc(rf.company);
+      if (rf.phone) main += '<br>☎ ' + esc(rf.phone);
+      if (rf.email) main += '<br>✉ ' + esc(rf.email);
+      main += '</div>';
+    });
+    main += '</div>';
+  }
+  main += '</div>';
+
+  const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Helvetica,Arial,sans-serif}</style></head><body><div style="width:794px;min-height:1123px;display:flex;background:#fff">' + sidebar + main + '</div></body></html>';
+
+  try {
+    const puppeteer = require('puppeteer');
+    const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdf = await page.pdf({ format: 'A4', printBackground: true, margin: { top: '0', bottom: '0', left: '0', right: '0' } });
+    await browser.close();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="resume.pdf"');
+    res.send(pdf);
+  } catch (puppeteerErr) {
+    // Fallback: serve HTML for client-side PDF generation
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  }
+});
+
+app.get('/api/resume-builder/resumes/:id', authMiddleware, (req, res) => {
+  const data = getUserResumeData(req.user.username);
+  const resume = (data.resumes || []).find(r => r.id === req.params.id);
+  if (!resume) return res.status(404).json({ error: 'Resume not found' });
+  res.json(resume);
+});
+
+app.delete('/api/resume-builder/resumes/:id', authMiddleware, (req, res) => {
+  const data = getUserResumeData(req.user.username);
+  data.resumes = (data.resumes || []).filter(r => r.id !== req.params.id);
+  saveUserResumeData(req.user.username, data);
+  res.json({ ok: true });
+});
+// #endregion
 // #region 3D Home Planner
 function getUser3DHomePath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -13831,6 +14602,86 @@ app.post('/api/vpn-client/config', authMiddleware, (req, res) => {
   fs.writeFileSync(fp, JSON.stringify(cfg, null, 2));
   res.json({ ok: true });
 });
+// #endregion
+
+// #region Cron Builder
+function getCronBuilderPath(username) {
+  return path.join('data', 'users', username, 'cron-builder.json');
+}
+function getCronBuilderData(username) {
+  const fp = getCronBuilderPath(username);
+  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return { expressions: [] }; }
+}
+
+app.get('/api/cron-builder/expressions', authMiddleware, (req, res) => {
+  res.json(getCronBuilderData(req.user.username));
+});
+
+app.post('/api/cron-builder/expressions', authMiddleware, (req, res) => {
+  let expressions = req.body.expressions;
+  if (!Array.isArray(expressions)) return res.status(400).json({ error: 'expressions must be array' });
+  expressions = expressions.slice(0, 50).map(e => ({
+    expression: String(e.expression || '').slice(0, 100),
+    label: String(e.label || '').slice(0, 200),
+    explanation: String(e.explanation || '').slice(0, 500),
+    createdAt: e.createdAt || new Date().toISOString()
+  }));
+  const fp = getCronBuilderPath(req.user.username);
+  fs.mkdirSync(path.dirname(fp), { recursive: true });
+  fs.writeFileSync(fp, JSON.stringify({ expressions }, null, 2));
+  res.json({ ok: true });
+});
+
+app.post('/api/cron-builder/validate', authMiddleware, (req, res) => {
+  const { expression } = req.body;
+  if (!expression || typeof expression !== 'string') return res.status(400).json({ valid: false, error: 'expression required' });
+  const parts = expression.trim().split(/\s+/);
+  if (parts.length !== 5) return res.json({ valid: false, error: 'Invalid cron expression: must have 5 fields' });
+
+  const ranges = [[0,59],[0,23],[1,31],[1,12],[0,7]];
+  for (let i = 0; i < 5; i++) {
+    if (!validateCronField(parts[i], ranges[i][0], ranges[i][1])) {
+      return res.json({ valid: false, error: 'Invalid field ' + (i+1) + ': ' + parts[i] });
+    }
+  }
+
+  const now = new Date();
+  const nextRuns = [];
+  const dt = new Date(now);
+  dt.setSeconds(0, 0);
+  dt.setMinutes(dt.getMinutes() + 1);
+  for (let iter = 0; iter < 525600 && nextRuns.length < 5; iter++) {
+    if (cronMatch(dt, parts)) nextRuns.push(dt.toISOString());
+    dt.setMinutes(dt.getMinutes() + 1);
+  }
+  res.json({ valid: true, expression: expression.trim(), nextRuns });
+});
+
+function validateCronField(part, min, max) {
+  if (part === '*') return true;
+  if (/^\*\/\d+$/.test(part)) { const n = parseInt(part.split('/')[1]); return n >= 1 && n <= max; }
+  if (/^\d+-\d+$/.test(part)) { const [a,b] = part.split('-').map(Number); return a >= min && a <= max && b >= min && b <= max; }
+  if (/^[\d,]+$/.test(part)) { return part.split(',').map(Number).every(n => n >= min && n <= max); }
+  if (/^\d+$/.test(part)) { const v = parseInt(part); return v >= min && v <= max; }
+  return false;
+}
+
+function cronMatch(dt, parts) {
+  const vals = [dt.getMinutes(), dt.getHours(), dt.getDate(), dt.getMonth()+1, dt.getDay()];
+  const ranges = [[0,59],[0,23],[1,31],[1,12],[0,7]];
+  for (let i = 0; i < 5; i++) {
+    if (!cronFieldMatch(vals[i], parts[i], ranges[i][0], ranges[i][1])) return false;
+  }
+  return true;
+}
+
+function cronFieldMatch(value, field, min, max) {
+  if (field === '*') return true;
+  if (field.includes('/')) { const [b,s] = field.split('/'); const step = parseInt(s); const base = b === '*' ? min : parseInt(b); return (value - base) >= 0 && (value - base) % step === 0; }
+  if (field.includes('-')) { const [a,b] = field.split('-').map(Number); return value >= a && value <= b; }
+  if (field.includes(',')) { const vals = field.split(',').map(Number); if (max === 7) return vals.some(v => v === value || (v === 7 && value === 0)); return vals.includes(value); }
+  const n = parseInt(field); if (max === 7) return n === value || (n === 7 && value === 0); return n === value;
+}
 // #endregion
 
 server.listen(config.server.port, config.server.host, () => {

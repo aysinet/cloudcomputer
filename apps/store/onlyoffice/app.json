@@ -1,0 +1,86 @@
+{
+  "id": "onlyoffice",
+  "name": "OnlyOffice",
+  "icon": "📝",
+  "color": "linear-gradient(135deg,#0f4071,#ff6f3d)",
+  "type": "service",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1200,
+    "h": 800
+  },
+  "global": false,
+  "description": "Docker tabanlı tam ofis paketi — Word, Excel, PowerPoint online düzenleme",
+  "category": "productivity",
+  "lang": {
+    "tr": {
+      "name": "OnlyOffice",
+      "description": "Tam ofis paketi — Word, Excel, PowerPoint online düzenleme"
+    },
+    "en": {
+      "name": "OnlyOffice",
+      "description": "Full office suite — edit Word, Excel, PowerPoint online"
+    },
+    "de": {
+      "name": "OnlyOffice",
+      "description": "Komplettes Office-Paket — Word, Excel, PowerPoint online bearbeiten"
+    },
+    "fr": {
+      "name": "OnlyOffice",
+      "description": "Suite bureautique complète — Word, Excel, PowerPoint en ligne"
+    },
+    "es": {
+      "name": "OnlyOffice",
+      "description": "Suite ofimática completa — editar Word, Excel, PowerPoint en línea"
+    },
+    "ru": {
+      "name": "OnlyOffice",
+      "description": "Полный офисный пакет — редактирование Word, Excel, PowerPoint онлайн"
+    },
+    "zh": {
+      "name": "OnlyOffice",
+      "description": "完整办公套件 — 在线编辑 Word、Excel、PowerPoint"
+    },
+    "ja": {
+      "name": "OnlyOffice",
+      "description": "完全なオフィススイート — Word、Excel、PowerPointをオンラインで編集"
+    },
+    "it": {
+      "name": "OnlyOffice",
+      "description": "Suite office completa — modifica Word, Excel, PowerPoint online"
+    },
+    "ar": {
+      "name": "أونلي أوفيس",
+      "description": "حزمة مكتبية كاملة — تحرير Word وExcel وPowerPoint عبر الإنترنت"
+    },
+    "ko": {
+      "name": "온리오피스",
+      "description": "전체 오피스 제품군 — Word, Excel, PowerPoint 온라인 편집"
+    },
+    "hi": {
+      "name": "ओनलीऑफिस",
+      "description": "पूर्ण ऑफिस सूट — Word, Excel, PowerPoint ऑनलाइन संपादन"
+    },
+    "pt": {
+      "name": "OnlyOffice",
+      "description": "Pacote office completo — editar Word, Excel, PowerPoint online"
+    }
+  },
+  "docker": {
+    "image": "onlyoffice/documentserver:latest",
+    "containerPort": 80,
+    "volumes": [
+      "${APP_VOLUME}/logs:/var/log/onlyoffice",
+      "${APP_VOLUME}/data:/var/www/onlyoffice/Data",
+      "${APP_VOLUME}/lib:/var/lib/onlyoffice",
+      "${APP_VOLUME}/db:/var/lib/postgresql"
+    ],
+    "env": [
+      "JWT_ENABLED=true",
+      "JWT_IN_BODY=true",
+      "ALLOW_META_IP_ADDRESS=true",
+      "ALLOW_PRIVATE_IP_ADDRESS=true",
+      "USE_UNAUTHORIZED_STORAGE=true"
+    ]
+  }
+}

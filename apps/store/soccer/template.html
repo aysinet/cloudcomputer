@@ -1,0 +1,131 @@
+<div class="soccer-app">
+  <!-- Menu Screen -->
+  <div v-if="screen === 'menu'" class="soccer-menu">
+    <div class="soccer-menu-bg">
+      <div class="soccer-menu-ball">⚽</div>
+      <h1 class="soccer-menu-title">{{ t('title') }}</h1>
+
+      <div class="soccer-menu-options">
+        <div class="soccer-menu-section">
+          <span class="soccer-menu-label">{{ t('gameMode') }}</span>
+          <el-radio-group v-model="gameMode" size="default">
+            <el-radio-button value="ai">🤖 {{ t('vsAI') }}</el-radio-button>
+            <el-radio-button value="2p">👥 {{ t('vs2P') }}</el-radio-button>
+          </el-radio-group>
+        </div>
+
+        <div class="soccer-menu-section" v-if="gameMode === 'ai'">
+          <span class="soccer-menu-label">{{ t('difficulty') }}</span>
+          <el-radio-group v-model="difficulty" size="default">
+            <el-radio-button value="easy">{{ t('easy') }}</el-radio-button>
+            <el-radio-button value="medium">{{ t('medium') }}</el-radio-button>
+            <el-radio-button value="hard">{{ t('hard') }}</el-radio-button>
+          </el-radio-group>
+        </div>
+
+        <div class="soccer-menu-section">
+          <span class="soccer-menu-label">{{ t('matchTime') }}</span>
+          <el-radio-group v-model="matchDuration" size="default">
+            <el-radio-button :value="60">1 {{ t('min') }}</el-radio-button>
+            <el-radio-button :value="120">2 {{ t('min') }}</el-radio-button>
+            <el-radio-button :value="180">3 {{ t('min') }}</el-radio-button>
+            <el-radio-button :value="300">5 {{ t('min') }}</el-radio-button>
+          </el-radio-group>
+        </div>
+
+        <button class="soccer-start-btn" @click="startGame">
+          ⚽ {{ t('startGame') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div v-if="screen === 'game'" class="soccer-game">
+    <!-- Scoreboard -->
+    <div class="soccer-scoreboard">
+      <div class="soccer-team soccer-team-left" :class="{ scoring: flashLeft }">
+        <span class="soccer-team-name">{{ teamLeftName }}</span>
+        <span class="soccer-team-score">{{ scoreLeft }}</span>
+      </div>
+      <div class="soccer-timer-wrap">
+        <span class="soccer-timer" :class="{ warning: timeLeft <= 10 }">{{ timerDisplay }}</span>
+        <div class="soccer-controls-bar">
+          <button class="soccer-ctrl-btn" @click="togglePause" :title="paused ? t('resume') : t('pause')">
+            {{ paused ? '▶️' : '⏸️' }}
+          </button>
+          <button class="soccer-ctrl-btn" @click="confirmQuit" :title="t('quit')">🏠</button>
+        </div>
+      </div>
+      <div class="soccer-team soccer-team-right" :class="{ scoring: flashRight }">
+        <span class="soccer-team-score">{{ scoreRight }}</span>
+        <span class="soccer-team-name">{{ teamRightName }}</span>
+      </div>
+    </div>
+
+    <!-- Canvas -->
+    <div class="soccer-canvas-wrap" ref="canvasWrap">
+      <canvas ref="canvasRef" class="soccer-canvas"
+        @mousemove="onMouseMove" @mousedown="onMouseDown" @mouseup="onMouseUp"
+        @touchstart.prevent="onTouchStart" @touchmove.prevent="onTouchMove" @touchend.prevent="onTouchEnd">
+      </canvas>
+      <!-- Paused overlay -->
+      <div v-if="paused && !goalScored" class="soccer-paused-overlay">
+        <div class="soccer-paused-text">{{ t('paused') }}</div>
+        <button class="soccer-start-btn small" @click="togglePause">▶️ {{ t('resume') }}</button>
+      </div>
+      <!-- Goal overlay -->
+      <div v-if="goalScored" class="soccer-goal-overlay">
+        <div class="soccer-goal-text">{{ t('goal') }}!</div>
+      </div>
+      <!-- Countdown overlay -->
+      <div v-if="countdown > 0" class="soccer-countdown-overlay">
+        <div class="soccer-countdown-num">{{ countdown }}</div>
+      </div>
+    </div>
+
+    <!-- Controls hint -->
+    <div class="soccer-hint-bar">
+      <span v-if="gameMode === '2p'" class="soccer-hint">
+        🔴 {{ t('player1') }}: {{ t('controlsP1') }}
+        | {{ t('shootKey') }}: {{ t('shootP1') }}
+        | {{ t('passKey') }}: {{ t('passP1') }}
+        | {{ t('switchKey') }}: {{ t('switchP1') }}
+        &nbsp;•&nbsp;
+        🔵 {{ t('player2') }}: {{ t('controlsP2') }}
+        | {{ t('shootKey') }}: {{ t('shootP2') }}
+        | {{ t('passKey') }}: {{ t('passP2') }}
+        | {{ t('switchKey') }}: {{ t('switchP2') }}
+      </span>
+      <span v-else class="soccer-hint">
+        {{ t('controls') }}: {{ t('controlsP1') }}
+        &nbsp;|&nbsp; {{ t('shootKey') }}: {{ t('shootP1') }}
+        &nbsp;|&nbsp; {{ t('passKey') }}: {{ t('passP1') }}
+        &nbsp;|&nbsp; {{ t('switchKey') }}: {{ t('switchP1') }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div v-if="screen === 'gameover'" class="soccer-gameover">
+    <div class="soccer-gameover-box">
+      <div class="soccer-gameover-icon">{{ gameOverIcon }}</div>
+      <div class="soccer-gameover-title">{{ gameOverTitle }}</div>
+      <div class="soccer-gameover-score">{{ scoreLeft }} — {{ scoreRight }}</div>
+      <div class="soccer-gameover-sub">{{ teamLeftName }} vs {{ teamRightName }}</div>
+      <div class="soccer-gameover-btns">
+        <button class="soccer-start-btn small" @click="startGame">🔄 {{ t('playAgain') }}</button>
+        <button class="soccer-start-btn small secondary" @click="screen = 'menu'">🏠 {{ t('mainMenu') }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quit confirmation dialog -->
+  <el-dialog v-model="showQuitDialog" :title="t('quit')" width="320px" append-to-body :close-on-click-modal="false">
+    <p style="text-align:center;font-size:15px;">{{ t('quitConfirm') }}</p>
+    <template #footer>
+      <el-button @click="showQuitDialog = false">{{ t('cancel') }}</el-button>
+      <el-button type="primary" @click="quitToMenu">{{ t('yes') }}</el-button>
+    </template>
+  </el-dialog>
+</div>

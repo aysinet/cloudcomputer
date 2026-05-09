@@ -1,0 +1,153 @@
+<div class="ollama-root">
+  <!-- Checking State -->
+  <div v-if="status === 'checking'" class="oll-status-screen">
+    <div class="oll-spinner"></div>
+    <div class="oll-icon-large">🦙</div>
+    <div class="oll-status-text">{{ L('checking') }}</div>
+  </div>
+
+  <!-- Pulling Docker Image -->
+  <div v-else-if="status === 'pulling'" class="oll-status-screen">
+    <div class="oll-spinner"></div>
+    <div class="oll-icon-large">🦙</div>
+    <div class="oll-status-text">{{ pullProgress }}</div>
+  </div>
+
+  <!-- Starting -->
+  <div v-else-if="status === 'starting'" class="oll-status-screen">
+    <div class="oll-spinner"></div>
+    <div class="oll-icon-large">🦙</div>
+    <div class="oll-status-text">{{ L('starting') }}</div>
+  </div>
+
+  <!-- Error -->
+  <div v-else-if="status === 'error'" class="oll-status-screen oll-error-screen">
+    <div class="oll-icon-large">⚠️</div>
+    <div class="oll-status-text">{{ L('error') }}</div>
+    <div class="oll-error-msg">{{ errorMsg }}</div>
+    <el-button type="primary" @click="checkAndStart">🔄 {{ L('retry') }}</el-button>
+  </div>
+
+  <!-- Running — Main Chat UI -->
+  <div v-else-if="status === 'running'" class="oll-main">
+    <!-- Sidebar -->
+    <div class="oll-sidebar">
+      <div class="oll-sidebar-header">
+        <span class="oll-logo">🦙 Ollama</span>
+        <div class="oll-sidebar-actions">
+          <el-button size="small" circle @click="restart" :title="L('restartTip')">🔄</el-button>
+          <el-button size="small" circle type="danger" @click="stopContainer" :title="L('stopTip')">⏹️</el-button>
+        </div>
+      </div>
+
+      <!-- Model Selector -->
+      <div class="oll-section">
+        <div class="oll-section-title">{{ L('models') }}</div>
+        <el-select v-model="selectedModel" :placeholder="L('selectModel')" size="default" style="width:100%" filterable>
+          <el-option v-for="m in models" :key="m.name" :label="m.name" :value="m.name">
+            <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
+              <span>{{ m.name }}</span>
+              <span style="font-size:11px;color:#888">{{ formatSize(m.size) }}</span>
+            </div>
+          </el-option>
+        </el-select>
+      </div>
+
+      <!-- Model List -->
+      <div class="oll-model-list">
+        <div v-for="m in models" :key="m.name" class="oll-model-item" :class="{ active: selectedModel === m.name }" @click="selectedModel = m.name">
+          <div class="oll-model-info">
+            <div class="oll-model-name">{{ m.name }}</div>
+            <div class="oll-model-meta">
+              <span v-if="m.paramSize">{{ m.paramSize }}</span>
+              <span v-if="m.quantization">{{ m.quantization }}</span>
+              <span>{{ formatSize(m.size) }}</span>
+            </div>
+          </div>
+          <el-button size="small" type="danger" circle @click.stop="deleteModel(m.name)" :title="L('deleteModel')">🗑️</el-button>
+        </div>
+        <div v-if="!models.length" class="oll-no-models">{{ L('noModels') }}</div>
+      </div>
+
+      <!-- Pull Model -->
+      <div class="oll-section oll-pull-section">
+        <div class="oll-section-title">{{ L('pullModel') }}</div>
+        <div class="oll-pull-row">
+          <el-input v-model="pullModelName" :placeholder="L('modelPullPlaceholder')" size="default" @keydown.enter="pullModel" :disabled="pullingModelFlag" clearable />
+          <el-button type="primary" :loading="pullingModelFlag" @click="pullModel" size="default">{{ L('pull') }}</el-button>
+        </div>
+        <div v-if="pullModelStatus" class="oll-pull-status" :class="{ error: pullModelStatus.includes('Error') || pullModelStatus.includes('hata') }">{{ pullModelStatus }}</div>
+      </div>
+
+      <!-- Refresh -->
+      <div class="oll-sidebar-footer">
+        <el-button size="small" text @click="loadModels">🔄 {{ L('refreshModels') }}</el-button>
+        <span v-if="port" class="oll-port-info">{{ L('port') }}: {{ port }}</span>
+      </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="oll-chat">
+      <!-- Chat Header -->
+      <div class="oll-chat-header">
+        <div class="oll-chat-title">
+          <span v-if="selectedModel">💬 {{ selectedModel }}</span>
+          <span v-else>💬 {{ L('chat') }}</span>
+        </div>
+        <div class="oll-chat-header-actions">
+          <el-button size="small" text @click="clearChat">🗑️ {{ L('clearChat') }}</el-button>
+        </div>
+      </div>
+
+      <!-- System Message -->
+      <div class="oll-system-row">
+        <el-input v-model="systemMessage" :placeholder="L('systemPlaceholder')" size="small" :prefix-icon="''" clearable>
+          <template #prepend>{{ L('system') }}</template>
+        </el-input>
+      </div>
+
+      <!-- Messages -->
+      <div class="oll-messages" ref="chatContainer">
+        <div v-if="!messages.length" class="oll-welcome">
+          <div class="oll-welcome-icon">🦙</div>
+          <div class="oll-welcome-title">{{ L('welcome') }}</div>
+          <div class="oll-welcome-sub">{{ L('welcomeSub') }}</div>
+        </div>
+        <div v-for="(msg, i) in messages" :key="i" class="oll-message" :class="'oll-message-' + msg.role">
+          <div class="oll-message-avatar">{{ msg.role === 'user' ? '👤' : '🦙' }}</div>
+          <div class="oll-message-body">
+            <div class="oll-message-content" v-html="msg.content ? msg.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>') : (generating && i === messages.length - 1 ? '<span class=oll-thinking>' + L('thinking') + '</span>' : '')"></div>
+            <div class="oll-message-actions" v-if="msg.content && msg.role === 'assistant'">
+              <el-button size="small" text @click="copyMessage(msg.content)">📋 {{ L('copy') }}</el-button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="oll-input-area">
+        <div class="oll-input-row">
+          <el-input
+            v-model="userInput"
+            :placeholder="L('typeMessage')"
+            type="textarea"
+            :autosize="{ minRows: 1, maxRows: 5 }"
+            @keydown="handleInputKeydown"
+            :disabled="generating || !selectedModel"
+            resize="none"
+          />
+          <el-button v-if="generating" type="warning" circle @click="stopGeneration" :title="L('stopGen')">⏹️</el-button>
+          <el-button v-else type="primary" circle @click="sendMessage" :disabled="!userInput.trim() || !selectedModel" :title="L('send')">➤</el-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Idle — Launch Screen -->
+  <div v-else class="oll-status-screen">
+    <div class="oll-icon-large">🦙</div>
+    <div class="oll-status-text">Ollama</div>
+    <div class="oll-sub-text">{{ L('stoppedSub') }}</div>
+    <el-button type="primary" size="large" @click="checkAndStart">▶ {{ L('start') }}</el-button>
+  </div>
+</div>

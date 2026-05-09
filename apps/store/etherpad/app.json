@@ -4,7 +4,7 @@
   "icon": "📝",
   "color": "linear-gradient(135deg,#1a1a2e,#16213e)",
   "type": "internal",
-  "proxyMode": "pathprefix",
+  "proxyMode": "hpm",
   "size": {
     "w": 1050,
     "h": 700

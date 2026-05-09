@@ -1,0 +1,64 @@
+{
+  "id": "grok",
+  "name": "Grok",
+  "icon": "🧠",
+  "color": "linear-gradient(135deg,#1a1a2e,#e94560)",
+  "type": "internal",
+  "size": {
+    "w": 1000,
+    "h": 700
+  },
+  "global": false,
+  "description": "Grok — xAI yapay zeka asistanı",
+  "category": "ai",
+  "lang": {
+    "tr": {
+      "name": "Grok",
+      "description": "Grok — xAI yapay zeka asistanı"
+    },
+    "en": {
+      "name": "Grok",
+      "description": "Grok — xAI artificial intelligence assistant"
+    },
+    "de": {
+      "name": "Grok",
+      "description": "Grok — xAI KI-Assistent"
+    },
+    "fr": {
+      "name": "Grok",
+      "description": "Grok — Assistant IA xAI"
+    },
+    "es": {
+      "name": "Grok",
+      "description": "Grok — Asistente de IA de xAI"
+    },
+    "ru": {
+      "name": "Grok",
+      "description": "Grok — ИИ-ассистент xAI"
+    },
+    "zh": {
+      "name": "Grok",
+      "description": "Grok — xAI AI助手"
+    },
+    "ja": {
+      "name": "Grok",
+      "description": "Grok — xAI AIアシスタント"
+    },
+    "it": {
+      "name": "Grok",
+      "description": "Grok — Assistente IA xAI"
+    },
+    "ar": {
+      "name": "Grok",
+      "description": "Grok — مساعد الذكاء الاصطناعي من xAI"
+    },
+    "pt": {
+      "name": "Grok",
+      "description": "Grok — Assistente de IA da xAI"
+    },
+    "ko": {
+      "name": "Grok",
+      "description": "Grok — xAI AI 어시스턴트"
+    }
+  }
+}

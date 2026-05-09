@@ -1,0 +1,24 @@
+<div class="claude-app">
+  <!-- Toolbar -->
+  <div class="claude-toolbar">
+    <span class="claude-toolbar-title">🧠 Claude</span>
+    <div class="claude-toolbar-actions">
+      <button class="claude-btn" @click="navigateHome" :title="t.home">🏠</button>
+      <button class="claude-btn" @click="goBack" :title="t.back">◀</button>
+      <button class="claude-btn" @click="goForward" :title="t.forward">▶</button>
+      <button class="claude-btn" @click="refresh" :title="t.refresh">🔄</button>
+      <div class="claude-separator"></div>
+      <button class="claude-btn" @click="openExternal" :title="t.openTab">🔗</button>
+    </div>
+  </div>
+
+  <!-- Claude iframe -->
+  <iframe
+    :src="iframeSrc"
+    class="claude-frame"
+    ref="claudeFrame"
+    frameborder="0"
+    allow="fullscreen"
+    referrerpolicy="no-referrer"
+  ></iframe>
+</div>

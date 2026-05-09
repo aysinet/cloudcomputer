@@ -1,0 +1,220 @@
+<div class="cron-app">
+  <div class="cron-header">
+    <span class="cron-title">⏱️ {{L('title')}}</span>
+    <div class="cron-header-actions">
+      <el-button size="small" @click="loadPresets" text>📋 {{L('presets')}}</el-button>
+      <el-button size="small" @click="clearAll" text>🗑️ {{L('clear')}}</el-button>
+    </div>
+  </div>
+
+  <!-- Expression input -->
+  <div class="cron-expr-section">
+    <div class="cron-expr-row">
+      <el-input v-model="cronExpression" :placeholder="L('exprPlaceholder')" class="cron-expr-input" @input="onExpressionInput" spellcheck="false">
+        <template #prepend>Cron</template>
+      </el-input>
+      <el-button type="primary" @click="copyExpression" :icon="copiedFlag ? '' : ''">
+        {{copiedFlag ? '✅' : '📋'}}
+      </el-button>
+    </div>
+    <div class="cron-explain-box" v-if="explanation">
+      <span class="cron-explain-icon">💬</span>
+      <span class="cron-explain-text">{{explanation}}</span>
+    </div>
+    <div class="cron-error-box" v-if="errorMsg">
+      <span>⚠️ {{errorMsg}}</span>
+    </div>
+  </div>
+
+  <!-- Visual Builder -->
+  <div class="cron-builder-section">
+    <el-tabs v-model="activeTab" type="border-card" class="cron-tabs">
+      <!-- Minute -->
+      <el-tab-pane :label="L('minute')" name="minute">
+        <div class="cron-field-group">
+          <el-radio-group v-model="fields.minute.type" @change="buildExpression">
+            <div class="cron-radio-row"><el-radio value="every">{{L('every')}} {{L('minute')}}</el-radio></div>
+            <div class="cron-radio-row">
+              <el-radio value="range">{{L('range')}}</el-radio>
+              <span v-if="fields.minute.type === 'range'" class="cron-inline-inputs">
+                <el-input-number v-model="fields.minute.rangeStart" :min="0" :max="59" size="small" @change="buildExpression" />
+                <span>-</span>
+                <el-input-number v-model="fields.minute.rangeEnd" :min="0" :max="59" size="small" @change="buildExpression" />
+              </span>
+            </div>
+            <div class="cron-radio-row">
+              <el-radio value="interval">{{L('every')}}</el-radio>
+              <span v-if="fields.minute.type === 'interval'" class="cron-inline-inputs">
+                <el-input-number v-model="fields.minute.interval" :min="1" :max="59" size="small" @change="buildExpression" />
+                <span>{{L('minuteInterval')}}</span>
+              </span>
+            </div>
+            <div class="cron-radio-row">
+              <el-radio value="specific">{{L('specific')}}</el-radio>
+            </div>
+          </el-radio-group>
+          <div v-if="fields.minute.type === 'specific'" class="cron-specific-grid">
+            <el-checkbox-group v-model="fields.minute.selected" @change="buildExpression">
+              <el-checkbox-button v-for="m in 60" :key="m-1" :value="m-1" class="cron-check-btn">{{m-1}}</el-checkbox-button>
+            </el-checkbox-group>
+          </div>
+        </div>
+      </el-tab-pane>
+
+      <!-- Hour -->
+      <el-tab-pane :label="L('hour')" name="hour">
+        <div class="cron-field-group">
+          <el-radio-group v-model="fields.hour.type" @change="buildExpression">
+            <div class="cron-radio-row"><el-radio value="every">{{L('every')}} {{L('hour')}}</el-radio></div>
+            <div class="cron-radio-row">
+              <el-radio value="range">{{L('range')}}</el-radio>
+              <span v-if="fields.hour.type === 'range'" class="cron-inline-inputs">
+                <el-input-number v-model="fields.hour.rangeStart" :min="0" :max="23" size="small" @change="buildExpression" />
+                <span>-</span>
+                <el-input-number v-model="fields.hour.rangeEnd" :min="0" :max="23" size="small" @change="buildExpression" />
+              </span>
+            </div>
+            <div class="cron-radio-row">
+              <el-radio value="interval">{{L('every')}}</el-radio>
+              <span v-if="fields.hour.type === 'interval'" class="cron-inline-inputs">
+                <el-input-number v-model="fields.hour.interval" :min="1" :max="23" size="small" @change="buildExpression" />
+                <span>{{L('hourInterval')}}</span>
+              </span>
+            </div>
+            <div class="cron-radio-row">
+              <el-radio value="specific">{{L('specific')}}</el-radio>
+            </div>
+          </el-radio-group>
+          <div v-if="fields.hour.type === 'specific'" class="cron-specific-grid">
+            <el-checkbox-group v-model="fields.hour.selected" @change="buildExpression">
+              <el-checkbox-button v-for="h in 24" :key="h-1" :value="h-1" class="cron-check-btn">{{String(h-1).padStart(2,'0')}}</el-checkbox-button>
+            </el-checkbox-group>
+          </div>
+        </div>
+      </el-tab-pane>
+
+      <!-- Day of Month -->
+      <el-tab-pane :label="L('dayOfMonth')" name="dom">
+        <div class="cron-field-group">
+          <el-radio-group v-model="fields.dom.type" @change="buildExpression">
+            <div class="cron-radio-row"><el-radio value="every">{{L('every')}} {{L('day')}}</el-radio></div>
+            <div class="cron-radio-row">
+              <el-radio value="range">{{L('range')}}</el-radio>
+              <span v-if="fields.dom.type === 'range'" class="cron-inline-inputs">
+                <el-input-number v-model="fields.dom.rangeStart" :min="1" :max="31" size="small" @change="buildExpression" />
+                <span>-</span>
+                <el-input-number v-model="fields.dom.rangeEnd" :min="1" :max="31" size="small" @change="buildExpression" />
+              </span>
+            </div>
+            <div class="cron-radio-row">
+              <el-radio value="interval">{{L('every')}}</el-radio>
+              <span v-if="fields.dom.type === 'interval'" class="cron-inline-inputs">
+                <el-input-number v-model="fields.dom.interval" :min="1" :max="31" size="small" @change="buildExpression" />
+                <span>{{L('dayInterval')}}</span>
+              </span>
+            </div>
+            <div class="cron-radio-row">
+              <el-radio value="specific">{{L('specific')}}</el-radio>
+            </div>
+          </el-radio-group>
+          <div v-if="fields.dom.type === 'specific'" class="cron-specific-grid">
+            <el-checkbox-group v-model="fields.dom.selected" @change="buildExpression">
+              <el-checkbox-button v-for="d in 31" :key="d" :value="d" class="cron-check-btn">{{d}}</el-checkbox-button>
+            </el-checkbox-group>
+          </div>
+        </div>
+      </el-tab-pane>
+
+      <!-- Month -->
+      <el-tab-pane :label="L('month')" name="month">
+        <div class="cron-field-group">
+          <el-radio-group v-model="fields.month.type" @change="buildExpression">
+            <div class="cron-radio-row"><el-radio value="every">{{L('every')}} {{L('month')}}</el-radio></div>
+            <div class="cron-radio-row">
+              <el-radio value="range">{{L('range')}}</el-radio>
+              <span v-if="fields.month.type === 'range'" class="cron-inline-inputs">
+                <el-input-number v-model="fields.month.rangeStart" :min="1" :max="12" size="small" @change="buildExpression" />
+                <span>-</span>
+                <el-input-number v-model="fields.month.rangeEnd" :min="1" :max="12" size="small" @change="buildExpression" />
+              </span>
+            </div>
+            <div class="cron-radio-row">
+              <el-radio value="specific">{{L('specific')}}</el-radio>
+            </div>
+          </el-radio-group>
+          <div v-if="fields.month.type === 'specific'" class="cron-specific-grid">
+            <el-checkbox-group v-model="fields.month.selected" @change="buildExpression">
+              <el-checkbox-button v-for="m in 12" :key="m" :value="m" class="cron-check-btn">{{monthNames[m-1]}}</el-checkbox-button>
+            </el-checkbox-group>
+          </div>
+        </div>
+      </el-tab-pane>
+
+      <!-- Day of Week -->
+      <el-tab-pane :label="L('dayOfWeek')" name="dow">
+        <div class="cron-field-group">
+          <el-radio-group v-model="fields.dow.type" @change="buildExpression">
+            <div class="cron-radio-row"><el-radio value="every">{{L('every')}} {{L('dayOfWeek')}}</el-radio></div>
+            <div class="cron-radio-row">
+              <el-radio value="range">{{L('range')}}</el-radio>
+              <span v-if="fields.dow.type === 'range'" class="cron-inline-inputs">
+                <el-select v-model="fields.dow.rangeStart" size="small" style="width:120px" @change="buildExpression">
+                  <el-option v-for="(name,i) in dayNames" :key="i" :label="name" :value="i" />
+                </el-select>
+                <span>-</span>
+                <el-select v-model="fields.dow.rangeEnd" size="small" style="width:120px" @change="buildExpression">
+                  <el-option v-for="(name,i) in dayNames" :key="i" :label="name" :value="i" />
+                </el-select>
+              </span>
+            </div>
+            <div class="cron-radio-row">
+              <el-radio value="specific">{{L('specific')}}</el-radio>
+            </div>
+          </el-radio-group>
+          <div v-if="fields.dow.type === 'specific'" class="cron-specific-grid">
+            <el-checkbox-group v-model="fields.dow.selected" @change="buildExpression">
+              <el-checkbox-button v-for="(name,i) in dayNames" :key="i" :value="i" class="cron-check-btn cron-day-btn">{{name}}</el-checkbox-button>
+            </el-checkbox-group>
+          </div>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
+  </div>
+
+  <!-- Next Run Times -->
+  <div class="cron-next-section" v-if="nextRuns.length">
+    <div class="cron-next-header">🕐 {{L('nextRuns')}}</div>
+    <div class="cron-next-list">
+      <div v-for="(run, i) in nextRuns" :key="i" class="cron-next-item">
+        <span class="cron-next-num">{{i + 1}}.</span>
+        <span class="cron-next-time">{{run}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Presets Dialog -->
+  <el-dialog v-model="showPresets" :title="L('presets')" width="420px" append-to-body>
+    <div class="cron-presets-list">
+      <div v-for="p in presets" :key="p.expr" class="cron-preset-item" @click="applyPreset(p)">
+        <code class="cron-preset-expr">{{p.expr}}</code>
+        <span class="cron-preset-desc">{{p.desc}}</span>
+      </div>
+    </div>
+  </el-dialog>
+
+  <!-- Saved Expressions -->
+  <div class="cron-saved-section">
+    <div class="cron-saved-header">
+      <span>💾 {{L('saved')}}</span>
+      <el-button size="small" type="primary" @click="saveExpression" :disabled="!cronExpression" text>{{L('save')}}</el-button>
+    </div>
+    <div v-if="savedExpressions.length === 0" class="cron-saved-empty">{{L('noSaved')}}</div>
+    <div v-for="(s, i) in savedExpressions" :key="i" class="cron-saved-item">
+      <div class="cron-saved-item-main" @click="loadSavedExpression(s)">
+        <code class="cron-saved-expr">{{s.expression}}</code>
+        <span class="cron-saved-label" v-if="s.label">{{s.label}}</span>
+      </div>
+      <el-button size="small" type="danger" text @click.stop="removeSavedExpression(i)">🗑️</el-button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,64 @@
+{
+  "id": "zai",
+  "name": "Z AI",
+  "icon": "⚡",
+  "color": "linear-gradient(135deg,#0a0a0a,#1a1a2e)",
+  "type": "internal",
+  "size": {
+    "w": 1000,
+    "h": 700
+  },
+  "global": false,
+  "description": "Z AI — Yapay zeka sohbet asistanı",
+  "category": "ai",
+  "lang": {
+    "tr": {
+      "name": "Z AI",
+      "description": "Z AI — Yapay zeka sohbet asistanı"
+    },
+    "en": {
+      "name": "Z AI",
+      "description": "Z AI — AI chat assistant"
+    },
+    "de": {
+      "name": "Z AI",
+      "description": "Z AI — KI-Chat-Assistent"
+    },
+    "fr": {
+      "name": "Z AI",
+      "description": "Z AI — Assistant de chat IA"
+    },
+    "es": {
+      "name": "Z AI",
+      "description": "Z AI — Asistente de chat con IA"
+    },
+    "ru": {
+      "name": "Z AI",
+      "description": "Z AI — ИИ чат-ассистент"
+    },
+    "zh": {
+      "name": "Z AI",
+      "description": "Z AI — AI聊天助手"
+    },
+    "ja": {
+      "name": "Z AI",
+      "description": "Z AI — AIチャットアシスタント"
+    },
+    "it": {
+      "name": "Z AI",
+      "description": "Z AI — Assistente chat IA"
+    },
+    "ar": {
+      "name": "Z AI",
+      "description": "Z AI — مساعد دردشة الذكاء الاصطناعي"
+    },
+    "pt": {
+      "name": "Z AI",
+      "description": "Z AI — Assistente de chat com IA"
+    },
+    "ko": {
+      "name": "Z AI",
+      "description": "Z AI — AI 채팅 어시스턴트"
+    }
+  }
+}

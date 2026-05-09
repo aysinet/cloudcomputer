@@ -4,6 +4,15 @@
     <div class="bg-menu-icon">🎲</div>
     <div class="bg-menu-title">{{t('title')}}</div>
     <div class="bg-menu-buttons">
+      <div class="bg-mode-toggle">
+        <button class="bg-btn bg-btn-toggle" :class="{ active: !matchMode }" @click="matchMode = false">
+          {{t('singleMode')}}
+        </button>
+        <button class="bg-btn bg-btn-toggle" :class="{ active: matchMode }" @click="matchMode = true">
+          🏆 {{t('matchMode')}}
+        </button>
+      </div>
+      <div v-if="matchMode" class="bg-match-label">{{t('firstTo5')}}</div>
       <button class="bg-btn bg-btn-primary bg-btn-large" @click="startGame('ai')">
         🤖 {{t('vsAI')}}
       </button>
@@ -16,6 +25,14 @@
 
   <!-- Game Screen -->
   <div v-else class="bg-game-screen">
+    <!-- Match Score Bar -->
+    <div v-if="matchMode" class="bg-match-score-bar">
+      <span>🏆 {{t('matchMode')}} — {{t('firstTo5')}}</span>
+      <span class="bg-match-score">
+        <span class="bg-checker-icon black-icon"></span> {{matchScore.black}} - {{matchScore.white}} <span class="bg-checker-icon white-icon"></span>
+      </span>
+    </div>
+
     <!-- Top bar -->
     <div class="bg-top-bar">
       <div class="bg-player-info" :class="{ active: currentPlayer === 'black' }">
@@ -47,8 +64,21 @@
 
     <!-- Winner Banner -->
     <div v-if="gameOver" class="bg-winner-banner">
-      <span>🏆 {{winnerText}}</span>
-      <button class="bg-btn bg-btn-primary" @click="screen = 'menu'">{{t('newGame')}}</button>
+      <div class="bg-winner-row">
+        <span>🏆 {{winnerText}}</span>
+        <span v-if="roundResult && roundResult.mars" class="bg-mars-badge">🔥 {{t('mars')}} ({{roundResult.points}} {{t('pts')}})</span>
+        <span v-else-if="roundResult && matchMode" class="bg-round-pts">({{roundResult.points}} {{t('pts')}})</span>
+      </div>
+      <div v-if="matchMode && !matchOver" class="bg-match-standing">
+        <span class="bg-checker-icon black-icon"></span> {{matchScore.black}} - {{matchScore.white}} <span class="bg-checker-icon white-icon"></span>
+      </div>
+      <div v-if="matchOver" class="bg-match-winner">
+        🏆🏆 {{matchWinnerText}}
+      </div>
+      <div class="bg-winner-actions">
+        <button v-if="matchMode && !matchOver" class="bg-btn bg-btn-primary" @click="nextRound">{{t('nextRound')}}</button>
+        <button class="bg-btn" :class="matchMode && !matchOver ? 'bg-btn-small' : 'bg-btn-primary'" @click="backToMenu">{{t('menu')}}</button>
+      </div>
     </div>
 
     <!-- Board -->
@@ -177,7 +207,7 @@
     </div>
 
     <div class="bg-bottom-bar">
-      <button class="bg-btn bg-btn-small" @click="screen = 'menu'">◀ {{t('menu')}}</button>
+      <button class="bg-btn bg-btn-small" @click="backToMenu">◀ {{t('menu')}}</button>
       <button v-if="rolled && !canMove && !gameOver && !(mode === 'ai' && currentPlayer === 'white')"
               class="bg-btn bg-btn-small bg-btn-end-turn" @click="endTurn">
         {{t('endTurn')}}

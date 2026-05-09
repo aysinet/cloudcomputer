@@ -3,7 +3,8 @@
   "name": "PhotoPrism",
   "icon": "📸",
   "color": "linear-gradient(135deg,#1a1a2e,#16213e)",
-  "type": "internal",
+  "type": "service",
+  "proxyMode": "rewrite",
   "size": {
     "w": 1100,
     "h": 750
@@ -73,11 +74,7 @@
       "${APP_VOLUME}:/photoprism/storage"
     ],
     "env": [
-      "PHOTOPRISM_ADMIN_USER=admin",
-      "PHOTOPRISM_ADMIN_PASSWORD=cloudcomputer",
       "PHOTOPRISM_AUTH_MODE=password",
-      "PHOTOPRISM_SITE_TITLE=PhotoPrism",
-      "PHOTOPRISM_SITE_CAPTION=AI-Powered Photos App",
       "PHOTOPRISM_LOG_LEVEL=info",
       "PHOTOPRISM_READONLY=false",
       "PHOTOPRISM_EXPERIMENTAL=false",
@@ -94,7 +91,6 @@
       "PHOTOPRISM_UPLOAD_NSFW=true",
       "PHOTOPRISM_DATABASE_DRIVER=sqlite",
       "PHOTOPRISM_HTTP_COMPRESSION=gzip",
-      "PHOTOPRISM_DEFAULT_LOCALE=en",
       "PHOTOPRISM_ORIGINALS_LIMIT=5000",
       "PHOTOPRISM_UPLOAD_LIMIT=5000"
     ]

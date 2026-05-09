@@ -3,12 +3,12 @@
 
   /* ── i18n ── */
   const I18N = {
-    tr: { title:'Tavla', vsAI:'Bilgisayara Karşı', vs2P:'2 Kişilik', subtitle:'Klasik tavla deneyimi', black:'Siyah', white:'Beyaz', you:'Sen', computer:'Bilgisayar', roll:'Zar At', selectChecker:'Bir taş seç ve hamle yap', noMoves:'Hamle yok — tur atlanıyor...', newGame:'Yeni Oyun', menu:'Menü', endTurn:'Turu Bitir', blackWins:'Siyah kazandı!', whiteWins:'Beyaz kazandı!', player1:'Oyuncu 1', player2:'Oyuncu 2' },
-    en: { title:'Backgammon', vsAI:'vs Computer', vs2P:'2 Players', subtitle:'Classic backgammon experience', black:'Black', white:'White', you:'You', computer:'Computer', roll:'Roll Dice', selectChecker:'Select a checker and make your move', noMoves:'No moves available — skipping turn...', newGame:'New Game', menu:'Menu', endTurn:'End Turn', blackWins:'Black wins!', whiteWins:'White wins!', player1:'Player 1', player2:'Player 2' },
-    de: { title:'Backgammon', vsAI:'Gegen Computer', vs2P:'2 Spieler', subtitle:'Klassisches Backgammon', black:'Schwarz', white:'Weiß', you:'Du', computer:'Computer', roll:'Würfeln', selectChecker:'Wähle einen Stein', noMoves:'Keine Züge — Runde überspringen...', newGame:'Neues Spiel', menu:'Menü', endTurn:'Zug beenden', blackWins:'Schwarz gewinnt!', whiteWins:'Weiß gewinnt!', player1:'Spieler 1', player2:'Spieler 2' },
-    fr: { title:'Backgammon', vsAI:'Contre l\'ordi', vs2P:'2 Joueurs', subtitle:'Backgammon classique', black:'Noir', white:'Blanc', you:'Vous', computer:'Ordinateur', roll:'Lancer', selectChecker:'Sélectionnez un pion', noMoves:'Aucun mouvement — tour passé...', newGame:'Nouvelle partie', menu:'Menu', endTurn:'Fin du tour', blackWins:'Noir gagne!', whiteWins:'Blanc gagne!', player1:'Joueur 1', player2:'Joueur 2' },
-    es: { title:'Backgammon', vsAI:'vs Computadora', vs2P:'2 Jugadores', subtitle:'Backgammon clásico', black:'Negro', white:'Blanco', you:'Tú', computer:'Computadora', roll:'Tirar dados', selectChecker:'Selecciona una ficha', noMoves:'Sin movimientos — saltando turno...', newGame:'Nuevo juego', menu:'Menú', endTurn:'Terminar turno', blackWins:'¡Negro gana!', whiteWins:'¡Blanco gana!', player1:'Jugador 1', player2:'Jugador 2' },
-    ru: { title:'Нарды', vsAI:'Против ПК', vs2P:'2 Игрока', subtitle:'Классические нарды', black:'Чёрные', white:'Белые', you:'Вы', computer:'Компьютер', roll:'Бросить', selectChecker:'Выберите шашку', noMoves:'Нет ходов — пропуск...', newGame:'Новая игра', menu:'Меню', endTurn:'Конец хода', blackWins:'Чёрные победили!', whiteWins:'Белые победили!', player1:'Игрок 1', player2:'Игрок 2' }
+    tr: { title:'Tavla', vsAI:'Bilgisayara Karşı', vs2P:'2 Kişilik', subtitle:'Klasik tavla deneyimi', black:'Siyah', white:'Beyaz', you:'Sen', computer:'Bilgisayar', roll:'Zar At', selectChecker:'Bir taş seç ve hamle yap', noMoves:'Hamle yok — tur atlanıyor...', newGame:'Yeni Oyun', menu:'Menü', endTurn:'Turu Bitir', blackWins:'Siyah kazandı!', whiteWins:'Beyaz kazandı!', player1:'Oyuncu 1', player2:'Oyuncu 2', mars:'Mars!', matchMode:'Karşılaşma', singleMode:'Tek Oyun', nextRound:'Sonraki El', matchWin:'karşılaşmayı kazandı!', pts:'puan', firstTo5:'5 puana kadar' },
+    en: { title:'Backgammon', vsAI:'vs Computer', vs2P:'2 Players', subtitle:'Classic backgammon experience', black:'Black', white:'White', you:'You', computer:'Computer', roll:'Roll Dice', selectChecker:'Select a checker and make your move', noMoves:'No moves available — skipping turn...', newGame:'New Game', menu:'Menu', endTurn:'End Turn', blackWins:'Black wins!', whiteWins:'White wins!', player1:'Player 1', player2:'Player 2', mars:'Mars!', matchMode:'Match', singleMode:'Single Game', nextRound:'Next Round', matchWin:'wins the match!', pts:'pts', firstTo5:'First to 5' },
+    de: { title:'Backgammon', vsAI:'Gegen Computer', vs2P:'2 Spieler', subtitle:'Klassisches Backgammon', black:'Schwarz', white:'Weiß', you:'Du', computer:'Computer', roll:'Würfeln', selectChecker:'Wähle einen Stein', noMoves:'Keine Züge — Runde überspringen...', newGame:'Neues Spiel', menu:'Menü', endTurn:'Zug beenden', blackWins:'Schwarz gewinnt!', whiteWins:'Weiß gewinnt!', player1:'Spieler 1', player2:'Spieler 2', mars:'Mars!', matchMode:'Turnier', singleMode:'Einzelspiel', nextRound:'Nächste Runde', matchWin:'gewinnt das Turnier!', pts:'Pkt', firstTo5:'Zuerst bis 5' },
+    fr: { title:'Backgammon', vsAI:'Contre l\'ordi', vs2P:'2 Joueurs', subtitle:'Backgammon classique', black:'Noir', white:'Blanc', you:'Vous', computer:'Ordinateur', roll:'Lancer', selectChecker:'Sélectionnez un pion', noMoves:'Aucun mouvement — tour passé...', newGame:'Nouvelle partie', menu:'Menu', endTurn:'Fin du tour', blackWins:'Noir gagne!', whiteWins:'Blanc gagne!', player1:'Joueur 1', player2:'Joueur 2', mars:'Mars !', matchMode:'Match', singleMode:'Partie unique', nextRound:'Manche suivante', matchWin:'gagne le match !', pts:'pts', firstTo5:'Premier à 5' },
+    es: { title:'Backgammon', vsAI:'vs Computadora', vs2P:'2 Jugadores', subtitle:'Backgammon clásico', black:'Negro', white:'Blanco', you:'Tú', computer:'Computadora', roll:'Tirar dados', selectChecker:'Selecciona una ficha', noMoves:'Sin movimientos — saltando turno...', newGame:'Nuevo juego', menu:'Menú', endTurn:'Terminar turno', blackWins:'¡Negro gana!', whiteWins:'¡Blanco gana!', player1:'Jugador 1', player2:'Jugador 2', mars:'¡Mars!', matchMode:'Partido', singleMode:'Partida única', nextRound:'Siguiente ronda', matchWin:'¡gana el partido!', pts:'pts', firstTo5:'Primero a 5' },
+    ru: { title:'Нарды', vsAI:'Против ПК', vs2P:'2 Игрока', subtitle:'Классические нарды', black:'Чёрные', white:'Белые', you:'Вы', computer:'Компьютер', roll:'Бросить', selectChecker:'Выберите шашку', noMoves:'Нет ходов — пропуск...', newGame:'Новая игра', menu:'Меню', endTurn:'Конец хода', blackWins:'Чёрные победили!', whiteWins:'Белые победили!', player1:'Игрок 1', player2:'Игрок 2', mars:'Марс!', matchMode:'Матч', singleMode:'Одиночная', nextRound:'Следующий раунд', matchWin:'выигрывает матч!', pts:'очк', firstTo5:'До 5 очков' }
   };
 
   I18N.zh = { ...I18N.en, title:'西洋双陆棋' };
@@ -33,16 +33,16 @@
   */
   function initialBoard() {
     const b = new Array(24).fill(0);
-    // Black checkers (positive)
-    b[0] = 2;   // point 1
-    b[11] = 5;  // point 12
-    b[16] = 3;  // point 17
-    b[18] = 5;  // point 19
-    // White checkers (negative)
-    b[23] = -2;  // point 24
-    b[12] = -5;  // point 13
-    b[7] = -3;   // point 8
-    b[5] = -5;   // point 6
+    // Black checkers (positive) — moves 23→0, home = 0-5
+    b[23] = 2;   // point 24 (farthest from home)
+    b[12] = 5;   // point 13
+    b[7] = 3;    // point 8
+    b[5] = 5;    // point 6 (near home)
+    // White checkers (negative) — moves 0→23, home = 18-23
+    b[0] = -2;   // point 1 (farthest from home)
+    b[11] = -5;  // point 12
+    b[16] = -3;  // point 17
+    b[18] = -5;  // point 19 (near home)
     return b;
   }
 
@@ -63,6 +63,11 @@
       const selectedPoint = ref(null); // currently selected source point, or 'bar'
       const gameOver = ref(false);
       const validTargets = ref([]);
+
+      // Match state
+      const matchMode = ref(false);
+      const matchScore = ref({ black: 0, white: 0 });
+      const roundResult = ref(null); // { winner, mars, points }
 
       function t(key) {
         return (I18N[locale.value] || I18N.tr)[key] || key;
@@ -234,6 +239,13 @@
         // Check for win
         if (borneOff.value[player] >= 15) {
           gameOver.value = true;
+          const opp = opponent(player);
+          const isMars = borneOff.value[opp] === 0;
+          const pts = isMars ? 2 : 1;
+          roundResult.value = { winner: player, mars: isMars, points: pts };
+          if (matchMode.value) {
+            matchScore.value = { ...matchScore.value, [player]: matchScore.value[player] + pts };
+          }
         }
       }
 
@@ -496,6 +508,19 @@
         return t('whiteWins');
       });
 
+      const matchOver = computed(() => {
+        return matchMode.value && (matchScore.value.black >= 5 || matchScore.value.white >= 5);
+      });
+
+      const matchWinnerText = computed(() => {
+        if (!matchOver.value) return '';
+        const winner = matchScore.value.black >= 5 ? 'black' : 'white';
+        if (mode.value === 'ai') {
+          return (winner === 'black' ? t('you') : t('computer')) + ' ' + t('matchWin');
+        }
+        return (winner === 'black' ? t('player1') : t('player2')) + ' ' + t('matchWin');
+      });
+
       /* ── Game start / reset ── */
       function startGame(gameMode) {
         mode.value = gameMode;
@@ -509,7 +534,29 @@
         selectedPoint.value = null;
         validTargets.value = [];
         gameOver.value = false;
+        roundResult.value = null;
+        matchScore.value = { black: 0, white: 0 };
         screen.value = 'game';
+      }
+
+      function nextRound() {
+        points.value = initialBoard();
+        bar.value = { black: 0, white: 0 };
+        borneOff.value = { black: 0, white: 0 };
+        currentPlayer.value = 'black';
+        dice.value = [];
+        usedDice.value = [];
+        rolled.value = false;
+        selectedPoint.value = null;
+        validTargets.value = [];
+        gameOver.value = false;
+        roundResult.value = null;
+      }
+
+      function backToMenu() {
+        matchScore.value = { black: 0, white: 0 };
+        roundResult.value = null;
+        screen.value = 'menu';
       }
 
       /* ── Locale watch ── */
@@ -521,9 +568,10 @@
         screen, mode, points, bar, borneOff, currentPlayer,
         dice, usedDice, rolled, selectedPoint, validTargets,
         gameOver, canMove, allDiceUsed, winnerText,
+        matchMode, matchScore, matchOver, matchWinnerText, roundResult,
         t, diceUnicode, getPointCheckers, barCheckers,
         isValidTarget, onPointClick, onBarClick,
-        rollDice, endTurn, startGame
+        rollDice, endTurn, startGame, nextRound, backToMenu
       };
     }
   };

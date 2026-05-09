@@ -1,0 +1,64 @@
+{
+  "id": "cloudflare",
+  "name": "Cloudflare",
+  "icon": "🛡️",
+  "color": "linear-gradient(135deg, #f48120, #f6821f)",
+  "type": "internal",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Cloudflare — DNS, CDN ve web güvenlik yönetim paneli",
+  "category": "network",
+  "lang": {
+    "tr": {
+      "name": "Cloudflare",
+      "description": "Cloudflare — DNS, CDN ve web güvenlik yönetim paneli"
+    },
+    "en": {
+      "name": "Cloudflare",
+      "description": "Cloudflare — DNS, CDN and web security management dashboard"
+    },
+    "de": {
+      "name": "Cloudflare",
+      "description": "Cloudflare — DNS, CDN und Web-Sicherheits-Dashboard"
+    },
+    "fr": {
+      "name": "Cloudflare",
+      "description": "Cloudflare — Tableau de bord DNS, CDN et sécurité web"
+    },
+    "es": {
+      "name": "Cloudflare",
+      "description": "Cloudflare — Panel de gestión de DNS, CDN y seguridad web"
+    },
+    "ru": {
+      "name": "Cloudflare",
+      "description": "Cloudflare — Панель управления DNS, CDN и веб-безопасности"
+    },
+    "zh": {
+      "name": "Cloudflare",
+      "description": "Cloudflare — DNS、CDN和网络安全管理面板"
+    },
+    "ja": {
+      "name": "Cloudflare",
+      "description": "Cloudflare — DNS、CDN、Webセキュリティ管理ダッシュボード"
+    },
+    "it": {
+      "name": "Cloudflare",
+      "description": "Cloudflare — Dashboard di gestione DNS, CDN e sicurezza web"
+    },
+    "ar": {
+      "name": "Cloudflare",
+      "description": "Cloudflare — لوحة إدارة DNS و CDN وأمن الويب"
+    },
+    "pt": {
+      "name": "Cloudflare",
+      "description": "Cloudflare — Painel de gestão de DNS, CDN e segurança web"
+    },
+    "ko": {
+      "name": "Cloudflare",
+      "description": "Cloudflare — DNS, CDN 및 웹 보안 관리 대시보드"
+    }
+  }
+}

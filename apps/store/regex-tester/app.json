@@ -1,0 +1,71 @@
+{
+  "id": "regex-tester",
+  "name": "Regex Tester",
+  "icon": "🔣",
+  "color": "linear-gradient(135deg,#6366f1,#a855f7)",
+  "type": "internal",
+  "size": {
+    "w": 960,
+    "h": 680,
+    "minWidth": 520,
+    "minHeight": 420
+  },
+  "hasStyle": true,
+  "global": false,
+  "description": "Regex oluşturucu, test ve açıklayıcı araç",
+  "category": "development",
+  "lang": {
+    "tr": {
+      "name": "Regex Test",
+      "description": "Düzenli ifade oluşturucu, test ve açıklayıcı araç"
+    },
+    "en": {
+      "name": "Regex Tester",
+      "description": "Regular expression builder, tester and explainer"
+    },
+    "de": {
+      "name": "Regex-Tester",
+      "description": "Regulärer Ausdruck Builder, Tester und Erklärer"
+    },
+    "fr": {
+      "name": "Testeur Regex",
+      "description": "Constructeur, testeur et explicateur d'expressions régulières"
+    },
+    "es": {
+      "name": "Probador Regex",
+      "description": "Constructor, probador y explicador de expresiones regulares"
+    },
+    "ru": {
+      "name": "Тестер Regex",
+      "description": "Конструктор, тестер и объяснитель регулярных выражений"
+    },
+    "zh": {
+      "name": "正则测试器",
+      "description": "正则表达式构建器、测试器和解释器"
+    },
+    "ja": {
+      "name": "正規表現テスター",
+      "description": "正規表現ビルダー、テスター、エクスプレイナー"
+    },
+    "it": {
+      "name": "Tester Regex",
+      "description": "Costruttore, tester ed esplicatore di espressioni regolari"
+    },
+    "ar": {
+      "name": "اختبار التعبيرات",
+      "description": "أداة بناء واختبار وشرح التعبيرات النمطية"
+    },
+    "ko": {
+      "name": "정규식 테스터",
+      "description": "정규 표현식 빌더, 테스터 및 설명 도구"
+    },
+    "hi": {
+      "name": "रीजेक्स टेस्टर",
+      "description": "नियमित अभिव्यक्ति निर्माता, परीक्षक और व्याख्याकार"
+    },
+    "pt": {
+      "name": "Testador Regex",
+      "description": "Construtor, testador e explicador de expressões regulares"
+    }
+  }
+}

@@ -1,0 +1,465 @@
+<div class="rb-app">
+  <!-- ─── HEADER ─── -->
+  <div class="rb-header">
+    <div class="rb-header-left">
+      <span class="rb-logo">📄</span>
+      <span class="rb-title">{{ t('title') }}</span>
+    </div>
+    <div class="rb-header-actions" v-if="mode !== 'list'">
+      <el-button size="small" text @click="goToList">📋 {{ t('myResumes') }}</el-button>
+      <el-button size="small" text @click="mode === 'preview' ? openEdit() : openPreview()">
+        {{ mode === 'preview' ? '✏️ ' + t('edit') : '👁️ ' + t('preview') }}
+      </el-button>
+      <el-button size="small" type="primary" @click="exportPdf" :loading="pdfLoading">📥 {{ t('exportPdf') }}</el-button>
+    </div>
+    <div class="rb-header-actions" v-else>
+      <el-button size="small" type="primary" @click="addResume">➕ {{ t('newResume') }}</el-button>
+    </div>
+  </div>
+
+  <!-- ─── LIST MODE ─── -->
+  <div v-if="mode === 'list'" class="rb-list" v-loading="loading">
+    <div v-if="!resumes.length" class="rb-empty">
+      <div class="rb-empty-icon">📄</div>
+      <div>{{ t('noResumes') }}</div>
+      <el-button type="primary" @click="addResume" style="margin-top:16px">➕ {{ t('newResume') }}</el-button>
+    </div>
+    <div class="rb-resume-grid" v-else>
+      <div v-for="r in resumes" :key="r.id" class="rb-resume-card" @click="switchResume(r.id)"
+        :class="{ active: r.id === activeResumeId }">
+        <div class="rb-resume-card-top" :style="{ borderLeftColor: r.accentColor }">
+          <div class="rb-resume-card-photo" v-if="r.photo">
+            <img :src="r.photo" />
+          </div>
+          <div class="rb-resume-card-photo rb-no-photo" v-else>📄</div>
+          <div class="rb-resume-card-info">
+            <div class="rb-resume-card-name">{{ r.name }}</div>
+            <div class="rb-resume-card-subtitle">{{ r.personal.fullName || '—' }}</div>
+            <div class="rb-resume-card-subtitle">{{ r.personal.jobTitle || '' }}</div>
+          </div>
+        </div>
+        <div class="rb-resume-card-actions" @click.stop>
+          <el-button size="small" text @click="renameResume(r.id)" :title="t('rename')">✏️</el-button>
+          <el-button size="small" text @click="duplicateResume(r.id)" :title="t('duplicate')">📋</el-button>
+          <el-button size="small" text type="danger" @click="deleteResume(r.id)" :title="t('delete')">🗑️</el-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── EDIT MODE ─── -->
+  <div v-else-if="mode === 'edit' && activeResume" class="rb-editor">
+    <!-- Sidebar Sections -->
+    <div class="rb-sidebar">
+      <button v-for="sec in ['personal','summary','experience','education','skills','languages','certifications','projects','references']"
+        :key="sec" class="rb-sidebar-btn" :class="{ active: activeSection === sec }" @click="activeSection = sec">
+        <span class="rb-sidebar-icon">{{ {personal:'👤',summary:'📝',experience:'💼',education:'🎓',skills:'⚡',languages:'🌐',certifications:'🏆',projects:'🚀',references:'📞'}[sec] }}</span>
+        <span class="rb-sidebar-label">{{ t(sec === 'personal' ? 'personalInfo' : sec) }}</span>
+      </button>
+      <div class="rb-sidebar-divider"></div>
+      <button class="rb-sidebar-btn" :class="{ active: activeSection === 'settings' }" @click="activeSection = 'settings'">
+        <span class="rb-sidebar-icon">⚙️</span>
+        <span class="rb-sidebar-label">{{ t('template') }}</span>
+      </button>
+    </div>
+
+    <!-- Editor Content -->
+    <div class="rb-editor-content">
+      <!-- Personal Info -->
+      <div v-if="activeSection === 'personal'" class="rb-section">
+        <h3>👤 {{ t('personalInfo') }}</h3>
+        <div class="rb-photo-area">
+          <div class="rb-photo-preview" v-if="activeResume.photo">
+            <img :src="activeResume.photo" />
+            <el-button size="small" type="danger" text @click="removePhoto">{{ t('removePhoto') }}</el-button>
+          </div>
+          <el-upload v-else :show-file-list="false" :before-upload="() => false" :on-change="handlePhotoUpload" accept="image/*">
+            <el-button size="small">📷 {{ t('uploadPhoto') }}</el-button>
+          </el-upload>
+        </div>
+        <div class="rb-form-grid">
+          <div class="rb-form-item">
+            <label>{{ t('fullName') }}</label>
+            <el-input v-model="activeResume.personal.fullName" :placeholder="t('fullName')" @input="markUpdated" />
+          </div>
+          <div class="rb-form-item">
+            <label>{{ t('jobTitle') }}</label>
+            <el-input v-model="activeResume.personal.jobTitle" :placeholder="t('jobTitle')" @input="markUpdated" />
+          </div>
+          <div class="rb-form-item">
+            <label>{{ t('email') }}</label>
+            <el-input v-model="activeResume.personal.email" :placeholder="t('email')" @input="markUpdated" />
+          </div>
+          <div class="rb-form-item">
+            <label>{{ t('phone') }}</label>
+            <el-input v-model="activeResume.personal.phone" :placeholder="t('phone')" @input="markUpdated" />
+          </div>
+          <div class="rb-form-item">
+            <label>{{ t('address') }}</label>
+            <el-input v-model="activeResume.personal.address" :placeholder="t('address')" @input="markUpdated" />
+          </div>
+          <div class="rb-form-item">
+            <label>{{ t('website') }}</label>
+            <el-input v-model="activeResume.personal.website" :placeholder="t('website')" @input="markUpdated" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div v-if="activeSection === 'summary'" class="rb-section">
+        <h3>📝 {{ t('summary') }}</h3>
+        <el-input type="textarea" v-model="activeResume.summary" :placeholder="t('summaryPlaceholder')"
+          :rows="6" @input="markUpdated" />
+      </div>
+
+      <!-- Experience -->
+      <div v-if="activeSection === 'experience'" class="rb-section">
+        <div class="rb-section-header">
+          <h3>💼 {{ t('experience') }}</h3>
+          <el-button size="small" type="primary" @click="addExperience">➕ {{ t('addExperience') }}</el-button>
+        </div>
+        <div v-for="(exp, idx) in activeResume.experience" :key="exp.id" class="rb-item-card">
+          <div class="rb-item-card-header">
+            <span class="rb-item-num">#{{ idx + 1 }}</span>
+            <el-button size="small" text type="danger" @click="removeExperience(idx)">🗑️</el-button>
+          </div>
+          <div class="rb-form-grid">
+            <div class="rb-form-item">
+              <label>{{ t('company') }}</label>
+              <el-input v-model="exp.company" :placeholder="t('company')" @input="markUpdated" />
+            </div>
+            <div class="rb-form-item">
+              <label>{{ t('position') }}</label>
+              <el-input v-model="exp.position" :placeholder="t('position')" @input="markUpdated" />
+            </div>
+            <div class="rb-form-item">
+              <label>{{ t('startDate') }}</label>
+              <el-input v-model="exp.startDate" placeholder="2020-01" @input="markUpdated" />
+            </div>
+            <div class="rb-form-item">
+              <label>{{ t('endDate') }}</label>
+              <div style="display:flex;align-items:center;gap:8px">
+                <el-input v-model="exp.endDate" :placeholder="t('present')" :disabled="exp.present" @input="markUpdated" />
+                <el-checkbox v-model="exp.present" @change="markUpdated">{{ t('present') }}</el-checkbox>
+              </div>
+            </div>
+          </div>
+          <div class="rb-form-item" style="margin-top:8px">
+            <label>{{ t('description') }}</label>
+            <el-input type="textarea" v-model="exp.description" :rows="3" @input="markUpdated" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Education -->
+      <div v-if="activeSection === 'education'" class="rb-section">
+        <div class="rb-section-header">
+          <h3>🎓 {{ t('education') }}</h3>
+          <el-button size="small" type="primary" @click="addEducation">➕ {{ t('addEducation') }}</el-button>
+        </div>
+        <div v-for="(edu, idx) in activeResume.education" :key="edu.id" class="rb-item-card">
+          <div class="rb-item-card-header">
+            <span class="rb-item-num">#{{ idx + 1 }}</span>
+            <el-button size="small" text type="danger" @click="removeEducation(idx)">🗑️</el-button>
+          </div>
+          <div class="rb-form-grid">
+            <div class="rb-form-item">
+              <label>{{ t('school') }}</label>
+              <el-input v-model="edu.school" :placeholder="t('school')" @input="markUpdated" />
+            </div>
+            <div class="rb-form-item">
+              <label>{{ t('degree') }}</label>
+              <el-input v-model="edu.degree" :placeholder="t('degree')" @input="markUpdated" />
+            </div>
+            <div class="rb-form-item">
+              <label>{{ t('startDate') }}</label>
+              <el-input v-model="edu.startDate" placeholder="2016" @input="markUpdated" />
+            </div>
+            <div class="rb-form-item">
+              <label>{{ t('endDate') }}</label>
+              <el-input v-model="edu.endDate" placeholder="2020" @input="markUpdated" />
+            </div>
+          </div>
+          <div class="rb-form-item" style="margin-top:8px">
+            <label>{{ t('description') }}</label>
+            <el-input type="textarea" v-model="edu.description" :rows="2" @input="markUpdated" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Skills -->
+      <div v-if="activeSection === 'skills'" class="rb-section">
+        <div class="rb-section-header">
+          <h3>⚡ {{ t('skills') }}</h3>
+          <el-button size="small" type="primary" @click="addSkill">➕ {{ t('addSkill') }}</el-button>
+        </div>
+        <div v-for="(sk, idx) in activeResume.skills" :key="sk.id" class="rb-item-card rb-item-inline">
+          <el-input v-model="sk.name" :placeholder="t('skillName')" style="flex:1" @input="markUpdated" />
+          <el-select v-model="sk.level" style="width:140px" @change="markUpdated">
+            <el-option v-for="lv in SKILL_LEVELS" :key="lv" :label="t(lv)" :value="lv" />
+          </el-select>
+          <el-button size="small" text type="danger" @click="removeSkill(idx)">🗑️</el-button>
+        </div>
+      </div>
+
+      <!-- Languages -->
+      <div v-if="activeSection === 'languages'" class="rb-section">
+        <div class="rb-section-header">
+          <h3>🌐 {{ t('languages') }}</h3>
+          <el-button size="small" type="primary" @click="addLanguage">➕ {{ t('addLanguage') }}</el-button>
+        </div>
+        <div v-for="(lng, idx) in activeResume.languages" :key="lng.id" class="rb-item-card rb-item-inline">
+          <el-input v-model="lng.name" :placeholder="t('language')" style="flex:1" @input="markUpdated" />
+          <el-select v-model="lng.proficiency" style="width:140px" @change="markUpdated">
+            <el-option v-for="lv in LANG_LEVELS" :key="lv" :label="t(lv)" :value="lv" />
+          </el-select>
+          <el-button size="small" text type="danger" @click="removeLanguage(idx)">🗑️</el-button>
+        </div>
+      </div>
+
+      <!-- Certifications -->
+      <div v-if="activeSection === 'certifications'" class="rb-section">
+        <div class="rb-section-header">
+          <h3>🏆 {{ t('certifications') }}</h3>
+          <el-button size="small" type="primary" @click="addCertification">➕ {{ t('addCertification') }}</el-button>
+        </div>
+        <div v-for="(cert, idx) in activeResume.certifications" :key="cert.id" class="rb-item-card">
+          <div class="rb-item-card-header">
+            <span class="rb-item-num">#{{ idx + 1 }}</span>
+            <el-button size="small" text type="danger" @click="removeCertification(idx)">🗑️</el-button>
+          </div>
+          <div class="rb-form-grid">
+            <div class="rb-form-item">
+              <label>{{ t('certName') }}</label>
+              <el-input v-model="cert.name" :placeholder="t('certName')" @input="markUpdated" />
+            </div>
+            <div class="rb-form-item">
+              <label>{{ t('issuer') }}</label>
+              <el-input v-model="cert.issuer" :placeholder="t('issuer')" @input="markUpdated" />
+            </div>
+            <div class="rb-form-item">
+              <label>{{ t('date') }}</label>
+              <el-input v-model="cert.date" placeholder="2023" @input="markUpdated" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Projects -->
+      <div v-if="activeSection === 'projects'" class="rb-section">
+        <div class="rb-section-header">
+          <h3>🚀 {{ t('projects') }}</h3>
+          <el-button size="small" type="primary" @click="addProject">➕ {{ t('addProject') }}</el-button>
+        </div>
+        <div v-for="(proj, idx) in activeResume.projects" :key="proj.id" class="rb-item-card">
+          <div class="rb-item-card-header">
+            <span class="rb-item-num">#{{ idx + 1 }}</span>
+            <el-button size="small" text type="danger" @click="removeProject(idx)">🗑️</el-button>
+          </div>
+          <div class="rb-form-grid">
+            <div class="rb-form-item">
+              <label>{{ t('projectName') }}</label>
+              <el-input v-model="proj.name" :placeholder="t('projectName')" @input="markUpdated" />
+            </div>
+            <div class="rb-form-item">
+              <label>{{ t('projectUrl') }}</label>
+              <el-input v-model="proj.url" :placeholder="t('projectUrl')" @input="markUpdated" />
+            </div>
+          </div>
+          <div class="rb-form-item" style="margin-top:8px">
+            <label>{{ t('description') }}</label>
+            <el-input type="textarea" v-model="proj.description" :rows="2" @input="markUpdated" />
+          </div>
+        </div>
+      </div>
+
+      <!-- References -->
+      <div v-if="activeSection === 'references'" class="rb-section">
+        <div class="rb-section-header">
+          <h3>📞 {{ t('references') }}</h3>
+          <el-button size="small" type="primary" @click="addReference">➕ {{ t('addReference') }}</el-button>
+        </div>
+        <div v-for="(ref2, idx) in activeResume.references" :key="ref2.id" class="rb-item-card">
+          <div class="rb-item-card-header">
+            <span class="rb-item-num">#{{ idx + 1 }}</span>
+            <el-button size="small" text type="danger" @click="removeReference(idx)">🗑️</el-button>
+          </div>
+          <div class="rb-form-grid">
+            <div class="rb-form-item">
+              <label>{{ t('refName') }}</label>
+              <el-input v-model="ref2.name" :placeholder="t('refName')" @input="markUpdated" />
+            </div>
+            <div class="rb-form-item">
+              <label>{{ t('refPosition') }}</label>
+              <el-input v-model="ref2.position" :placeholder="t('refPosition')" @input="markUpdated" />
+            </div>
+            <div class="rb-form-item">
+              <label>{{ t('refCompany') }}</label>
+              <el-input v-model="ref2.company" :placeholder="t('refCompany')" @input="markUpdated" />
+            </div>
+            <div class="rb-form-item">
+              <label>{{ t('refPhone') }}</label>
+              <el-input v-model="ref2.phone" :placeholder="t('refPhone')" @input="markUpdated" />
+            </div>
+            <div class="rb-form-item">
+              <label>{{ t('refEmail') }}</label>
+              <el-input v-model="ref2.email" :placeholder="t('refEmail')" @input="markUpdated" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings / Template -->
+      <div v-if="activeSection === 'settings'" class="rb-section">
+        <h3>⚙️ {{ t('template') }}</h3>
+        <div class="rb-template-grid">
+          <div v-for="tpl in TEMPLATES" :key="tpl" class="rb-template-card"
+            :class="{ active: activeResume.template === tpl }"
+            @click="activeResume.template = tpl; markUpdated()">
+            <div class="rb-template-preview" :class="'rb-tpl-' + tpl"></div>
+            <div class="rb-template-name">{{ t(tpl) }}</div>
+          </div>
+        </div>
+        <div class="rb-settings-row">
+          <label>{{ t('accentColor') }}</label>
+          <div class="rb-color-picker">
+            <div v-for="c in ACCENT_COLORS" :key="c" class="rb-color-dot"
+              :style="{ background: c }" :class="{ active: activeResume.accentColor === c }"
+              @click="activeResume.accentColor = c; markUpdated()"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── PREVIEW MODE ─── -->
+  <div v-else-if="mode === 'preview' && activeResume" class="rb-preview-wrap">
+    <div class="rb-preview" :class="'rb-tpl-' + activeResume.template" :style="{ '--rb-accent': activeResume.accentColor, '--rb-fs': activeResume.fontSize + 'px' }">
+      <!-- Classic / Professional / Modern / Minimal — unified layout -->
+      <div class="rb-preview-sidebar" v-if="activeResume.template === 'modern' || activeResume.template === 'professional'">
+        <div class="rb-preview-photo" v-if="activeResume.photo">
+          <img :src="activeResume.photo" />
+        </div>
+        <div class="rb-preview-contact">
+          <div v-if="activeResume.personal.email">✉️ {{ activeResume.personal.email }}</div>
+          <div v-if="activeResume.personal.phone">📞 {{ activeResume.personal.phone }}</div>
+          <div v-if="activeResume.personal.address">📍 {{ activeResume.personal.address }}</div>
+          <div v-if="activeResume.personal.website">🌐 {{ activeResume.personal.website }}</div>
+        </div>
+        <div class="rb-preview-section" v-if="activeResume.skills.length">
+          <div class="rb-preview-section-title">{{ t('skills') }}</div>
+          <div v-for="sk in activeResume.skills" :key="sk.id" class="rb-preview-skill">
+            <span>{{ sk.name }}</span>
+            <div class="rb-preview-skill-bar"><div class="rb-preview-skill-fill" :style="{ width: {beginner:'25%',intermediate:'50%',advanced:'75%',expert:'100%'}[sk.level] }"></div></div>
+          </div>
+        </div>
+        <div class="rb-preview-section" v-if="activeResume.languages.length">
+          <div class="rb-preview-section-title">{{ t('languages') }}</div>
+          <div v-for="lng in activeResume.languages" :key="lng.id" class="rb-preview-lang-item">
+            <span>{{ lng.name }}</span> — <span class="rb-preview-lang-level">{{ t(lng.proficiency) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="rb-preview-main">
+        <!-- Header -->
+        <div class="rb-preview-header">
+          <div class="rb-preview-photo" v-if="activeResume.photo && (activeResume.template === 'classic' || activeResume.template === 'minimal')">
+            <img :src="activeResume.photo" />
+          </div>
+          <div class="rb-preview-header-text">
+            <div class="rb-preview-name">{{ activeResume.personal.fullName }}</div>
+            <div class="rb-preview-jobtitle">{{ activeResume.personal.jobTitle }}</div>
+            <div class="rb-preview-contact-inline" v-if="activeResume.template === 'classic' || activeResume.template === 'minimal'">
+              <span v-if="activeResume.personal.email">✉️ {{ activeResume.personal.email }}</span>
+              <span v-if="activeResume.personal.phone">📞 {{ activeResume.personal.phone }}</span>
+              <span v-if="activeResume.personal.address">📍 {{ activeResume.personal.address }}</span>
+              <span v-if="activeResume.personal.website">🌐 {{ activeResume.personal.website }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="rb-preview-section" v-if="activeResume.summary">
+          <div class="rb-preview-section-title">{{ t('summary') }}</div>
+          <div class="rb-preview-text">{{ activeResume.summary }}</div>
+        </div>
+
+        <!-- Experience -->
+        <div class="rb-preview-section" v-if="activeResume.experience.length">
+          <div class="rb-preview-section-title">{{ t('experience') }}</div>
+          <div v-for="exp in activeResume.experience" :key="exp.id" class="rb-preview-entry">
+            <div class="rb-preview-entry-header">
+              <div><strong>{{ exp.position }}</strong> · {{ exp.company }}</div>
+              <div class="rb-preview-date">{{ exp.startDate }} — {{ exp.present ? t('present') : exp.endDate }}</div>
+            </div>
+            <div class="rb-preview-text" v-if="exp.description">{{ exp.description }}</div>
+          </div>
+        </div>
+
+        <!-- Education -->
+        <div class="rb-preview-section" v-if="activeResume.education.length">
+          <div class="rb-preview-section-title">{{ t('education') }}</div>
+          <div v-for="edu in activeResume.education" :key="edu.id" class="rb-preview-entry">
+            <div class="rb-preview-entry-header">
+              <div><strong>{{ edu.degree }}</strong> · {{ edu.school }}</div>
+              <div class="rb-preview-date">{{ edu.startDate }} — {{ edu.endDate }}</div>
+            </div>
+            <div class="rb-preview-text" v-if="edu.description">{{ edu.description }}</div>
+          </div>
+        </div>
+
+        <!-- Skills (for classic/minimal) -->
+        <div class="rb-preview-section" v-if="activeResume.skills.length && (activeResume.template === 'classic' || activeResume.template === 'minimal')">
+          <div class="rb-preview-section-title">{{ t('skills') }}</div>
+          <div class="rb-preview-skills-inline">
+            <span v-for="sk in activeResume.skills" :key="sk.id" class="rb-preview-skill-tag">{{ sk.name }} <small>({{ t(sk.level) }})</small></span>
+          </div>
+        </div>
+
+        <!-- Languages (for classic/minimal) -->
+        <div class="rb-preview-section" v-if="activeResume.languages.length && (activeResume.template === 'classic' || activeResume.template === 'minimal')">
+          <div class="rb-preview-section-title">{{ t('languages') }}</div>
+          <div class="rb-preview-skills-inline">
+            <span v-for="lng in activeResume.languages" :key="lng.id" class="rb-preview-skill-tag">{{ lng.name }} <small>({{ t(lng.proficiency) }})</small></span>
+          </div>
+        </div>
+
+        <!-- Certifications -->
+        <div class="rb-preview-section" v-if="activeResume.certifications.length">
+          <div class="rb-preview-section-title">{{ t('certifications') }}</div>
+          <div v-for="cert in activeResume.certifications" :key="cert.id" class="rb-preview-entry">
+            <div class="rb-preview-entry-header">
+              <div><strong>{{ cert.name }}</strong> · {{ cert.issuer }}</div>
+              <div class="rb-preview-date">{{ cert.date }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Projects -->
+        <div class="rb-preview-section" v-if="activeResume.projects.length">
+          <div class="rb-preview-section-title">{{ t('projects') }}</div>
+          <div v-for="proj in activeResume.projects" :key="proj.id" class="rb-preview-entry">
+            <div class="rb-preview-entry-header">
+              <div><strong>{{ proj.name }}</strong><span v-if="proj.url" class="rb-preview-link"> · {{ proj.url }}</span></div>
+            </div>
+            <div class="rb-preview-text" v-if="proj.description">{{ proj.description }}</div>
+          </div>
+        </div>
+
+        <!-- References -->
+        <div class="rb-preview-section" v-if="activeResume.references.length">
+          <div class="rb-preview-section-title">{{ t('references') }}</div>
+          <div class="rb-preview-refs">
+            <div v-for="ref2 in activeResume.references" :key="ref2.id" class="rb-preview-ref-card">
+              <div><strong>{{ ref2.name }}</strong></div>
+              <div>{{ ref2.position }}<span v-if="ref2.company"> · {{ ref2.company }}</span></div>
+              <div v-if="ref2.phone">📞 {{ ref2.phone }}</div>
+              <div v-if="ref2.email">✉️ {{ ref2.email }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

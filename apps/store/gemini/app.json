@@ -1,0 +1,64 @@
+{
+  "id": "gemini",
+  "name": "Gemini",
+  "icon": "✨",
+  "color": "linear-gradient(135deg,#4285f4,#1a73e8)",
+  "type": "internal",
+  "size": {
+    "w": 1000,
+    "h": 700
+  },
+  "global": false,
+  "description": "Gemini — Google yapay zeka asistanı",
+  "category": "ai",
+  "lang": {
+    "tr": {
+      "name": "Gemini",
+      "description": "Gemini — Google yapay zeka asistanı"
+    },
+    "en": {
+      "name": "Gemini",
+      "description": "Gemini — Google AI assistant"
+    },
+    "de": {
+      "name": "Gemini",
+      "description": "Gemini — Google KI-Assistent"
+    },
+    "fr": {
+      "name": "Gemini",
+      "description": "Gemini — Assistant IA Google"
+    },
+    "es": {
+      "name": "Gemini",
+      "description": "Gemini — Asistente de IA de Google"
+    },
+    "ru": {
+      "name": "Gemini",
+      "description": "Gemini — ИИ-ассистент Google"
+    },
+    "zh": {
+      "name": "Gemini",
+      "description": "Gemini — Google AI助手"
+    },
+    "ja": {
+      "name": "Gemini",
+      "description": "Gemini — Google AIアシスタント"
+    },
+    "it": {
+      "name": "Gemini",
+      "description": "Gemini — Assistente IA Google"
+    },
+    "ar": {
+      "name": "Gemini",
+      "description": "Gemini — مساعد الذكاء الاصطناعي من Google"
+    },
+    "pt": {
+      "name": "Gemini",
+      "description": "Gemini — Assistente de IA do Google"
+    },
+    "ko": {
+      "name": "Gemini",
+      "description": "Gemini — Google AI 어시스턴트"
+    }
+  }
+}

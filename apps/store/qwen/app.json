@@ -1,0 +1,64 @@
+{
+  "id": "qwen",
+  "name": "Qwen",
+  "icon": "🤖",
+  "color": "linear-gradient(135deg,#6366f1,#4338ca)",
+  "type": "internal",
+  "size": {
+    "w": 1000,
+    "h": 700
+  },
+  "global": false,
+  "description": "Qwen — Alibaba yapay zeka asistanı",
+  "category": "ai",
+  "lang": {
+    "tr": {
+      "name": "Qwen",
+      "description": "Qwen — Alibaba yapay zeka asistanı"
+    },
+    "en": {
+      "name": "Qwen",
+      "description": "Qwen — Alibaba AI assistant"
+    },
+    "de": {
+      "name": "Qwen",
+      "description": "Qwen — Alibaba KI-Assistent"
+    },
+    "fr": {
+      "name": "Qwen",
+      "description": "Qwen — Assistant IA Alibaba"
+    },
+    "es": {
+      "name": "Qwen",
+      "description": "Qwen — Asistente de IA Alibaba"
+    },
+    "ru": {
+      "name": "Qwen",
+      "description": "Qwen — ИИ-ассистент Alibaba"
+    },
+    "zh": {
+      "name": "Qwen",
+      "description": "Qwen — 阿里巴巴AI助手"
+    },
+    "ja": {
+      "name": "Qwen",
+      "description": "Qwen — Alibaba AIアシスタント"
+    },
+    "it": {
+      "name": "Qwen",
+      "description": "Qwen — Assistente IA Alibaba"
+    },
+    "pt": {
+      "name": "Qwen",
+      "description": "Qwen — Assistente de IA Alibaba"
+    },
+    "ar": {
+      "name": "Qwen",
+      "description": "Qwen — مساعد الذكاء الاصطناعي من علي بابا"
+    },
+    "ko": {
+      "name": "Qwen",
+      "description": "Qwen — 알리바바 AI 어시스턴트"
+    }
+  }
+}

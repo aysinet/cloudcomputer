@@ -1,7 +1,7 @@
 (function(Vue) {
   const { ref, onMounted, onUnmounted, nextTick } = Vue;
 
-  const CDN_BASE = 'https://cdn.jsdelivr.net/npm/vim-wasm@0.0.13/';
+  const CDN_BASE = '/wasm/vim/';
 
   return {
     setup() {

@@ -1,0 +1,68 @@
+{
+  "id": "cron-builder",
+  "name": "Cron Builder",
+  "icon": "⏱️",
+  "color": "linear-gradient(135deg,#6c5ce7,#a29bfe)",
+  "type": "internal",
+  "size": {
+    "w": 700,
+    "h": 620
+  },
+  "global": false,
+  "description": "Cron ifadesi oluşturucu ve açıklayıcı",
+  "lang": {
+    "tr": {
+      "name": "Cron Builder",
+      "description": "Cron ifadesi oluşturucu & açıklayıcı — zamanlanmış görevler için ifade oluşturun"
+    },
+    "en": {
+      "name": "Cron Builder",
+      "description": "Cron expression builder & explainer — create expressions for scheduled tasks"
+    },
+    "de": {
+      "name": "Cron Builder",
+      "description": "Cron-Ausdruck-Generator & Erklärer — Ausdrücke für geplante Aufgaben erstellen"
+    },
+    "fr": {
+      "name": "Cron Builder",
+      "description": "Générateur et explicateur d'expressions cron — créez des expressions pour les tâches planifiées"
+    },
+    "es": {
+      "name": "Cron Builder",
+      "description": "Constructor y explicador de expresiones cron — cree expresiones para tareas programadas"
+    },
+    "ru": {
+      "name": "Cron Builder",
+      "description": "Конструктор и объяснитель cron-выражений — создавайте выражения для запланированных задач"
+    },
+    "zh": {
+      "name": "Cron 构建器",
+      "description": "Cron 表达式生成器和解释器 — 为计划任务创建表达式"
+    },
+    "ja": {
+      "name": "Cron ビルダー",
+      "description": "Cron式ビルダー＆解説 — スケジュールタスク用の式を作成"
+    },
+    "it": {
+      "name": "Cron Builder",
+      "description": "Generatore e spiegatore di espressioni cron — crea espressioni per attività pianificate"
+    },
+    "ar": {
+      "name": "منشئ Cron",
+      "description": "منشئ وشارح تعبيرات Cron — إنشاء تعبيرات للمهام المجدولة"
+    },
+    "ko": {
+      "name": "Cron 빌더",
+      "description": "Cron 표현식 빌더 및 설명 — 예약된 작업을 위한 표현식 생성"
+    },
+    "hi": {
+      "name": "Cron बिल्डर",
+      "description": "Cron अभिव्यक्ति बिल्डर और व्याख्याकार — निर्धारित कार्यों के लिए अभिव्यक्ति बनाएं"
+    },
+    "pt": {
+      "name": "Cron Builder",
+      "description": "Construtor e explicador de expressões cron — crie expressões para tarefas agendadas"
+    }
+  },
+  "category": "tools"
+}

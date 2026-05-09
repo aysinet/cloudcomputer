@@ -85,7 +85,16 @@
       const sysLang = localStorage.getItem('sys_locale') || 'en';
       const defaultWikiLang = WIKI_LANGUAGES.find(l => l.code === sysLang) ? sysLang : 'en';
       const wikiLang = ref(defaultWikiLang);
-      const iframeSrc = ref('https://' + wikiLang.value + '.wikipedia.org/');
+
+      function proxyUrl(url) {
+        return '/api/browser/proxy?url=' + encodeURIComponent(url);
+      }
+
+      function wikiUrl(lang) {
+        return 'https://' + lang + '.wikipedia.org/';
+      }
+
+      const iframeSrc = ref(proxyUrl(wikiUrl(wikiLang.value)));
 
       // Favorites
       const favorites = ref([]);
@@ -135,20 +144,19 @@
       }
 
       function getCurrentPageInfo() {
-        const src = iframeSrc.value;
-        // Extract title from URL
-        const match = src.match(/\/wiki\/(.+?)(?:\?|#|$)/);
+        const origUrl = getOriginalUrl();
+        const match = origUrl.match(/\/wiki\/(.+?)(?:\?|#|$)/);
         const slug = match ? decodeURIComponent(match[1]).replace(/_/g, ' ') : '';
-        return { url: src, title: slug || src };
+        return { url: origUrl, title: slug || origUrl };
       }
 
       function isFavorite() {
-        const cur = iframeSrc.value;
+        const cur = getOriginalUrl();
         return favorites.value.some(f => f.url === cur);
       }
 
       function toggleFavorite() {
-        const cur = iframeSrc.value;
+        const cur = getOriginalUrl();
         const idx = favorites.value.findIndex(f => f.url === cur);
         if (idx >= 0) {
           favorites.value.splice(idx, 1);
@@ -160,7 +168,7 @@
       }
 
       function openFavorite(fav) {
-        iframeSrc.value = fav.url;
+        iframeSrc.value = proxyUrl(fav.url);
         showFavPanel.value = false;
       }
 
@@ -182,7 +190,7 @@
           const res = await fetch('/api/wikipedia/save-pdf', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
-            body: JSON.stringify({ url: iframeSrc.value, title: pageTitle, savePath })
+            body: JSON.stringify({ url: getOriginalUrl(), title: pageTitle, savePath })
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || 'Failed');
@@ -201,7 +209,7 @@
         const info = getCurrentPageInfo();
         const shareData = {
           text: info.title || 'Wikipedia',
-          url: iframeSrc.value,
+          url: getOriginalUrl(),
           hashtags: ['Wikipedia']
         };
         // Set pending data and open social-share app
@@ -215,15 +223,21 @@
 
       // ── Navigation ──
       function navigateHome() {
-        iframeSrc.value = 'https://' + wikiLang.value + '.wikipedia.org/';
+        iframeSrc.value = proxyUrl(wikiUrl(wikiLang.value));
       }
 
       function openRandom() {
-        iframeSrc.value = 'https://' + wikiLang.value + '.wikipedia.org/wiki/Special:Random';
+        iframeSrc.value = proxyUrl('https://' + wikiLang.value + '.wikipedia.org/wiki/Special:Random');
+      }
+
+      function getOriginalUrl() {
+        const src = iframeSrc.value;
+        const match = src.match(/[?&]url=([^&]+)/);
+        return match ? decodeURIComponent(match[1]) : src;
       }
 
       function openExternal() {
-        window.open(iframeSrc.value, '_blank');
+        window.open(getOriginalUrl(), '_blank');
       }
 
       function onLocaleChanged(e) {

@@ -38,7 +38,7 @@ background-size:16px 16px;
 background-position:0 0, 0 8px, 8px -8px, -8px 0px;
 background-color:#2e2e3e}
 
-.iconmaker-grid-canvas{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;image-rendering:pixelated;image-rendering:crisp-edges}
+.iconmaker-grid-canvas{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;image-rendering:pixelated;image-rendering:crisp-edges;background:transparent!important;background-image:none!important}
 
 /* Preview panel */
 .iconmaker-preview-panel{width:180px;min-width:180px;background:#1e1e2e;border-left:1px solid rgba(255,255,255,.08);padding:10px;display:flex;flex-direction:column;overflow-y:auto}

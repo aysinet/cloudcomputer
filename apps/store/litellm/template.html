@@ -1,0 +1,52 @@
+<div class="litellm-root">
+  <!-- Loading State -->
+  <div v-if="status === 'loading'" class="ll-status-screen">
+    <div class="ll-spinner"></div>
+    <div class="ll-icon-large">🤖</div>
+    <div class="ll-status-text">{{ L('checking') }}</div>
+  </div>
+
+  <!-- Restarting State -->
+  <div v-else-if="status === 'restarting'" class="ll-status-screen">
+    <div class="ll-spinner"></div>
+    <div class="ll-icon-large">🤖</div>
+    <div class="ll-status-text">{{ L('restarting') }}</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="ll-status-screen ll-error">
+    <div class="ll-icon-large">⚠️</div>
+    <div class="ll-status-text">{{ L('error') }}</div>
+    <div class="ll-error-msg">{{ errorMsg }}</div>
+    <div class="ll-actions">
+      <button class="ll-btn ll-btn-primary" @click="loadStatus">🔄 {{ L('retry') }}</button>
+    </div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="ll-running">
+    <div class="ll-toolbar">
+      <span class="ll-info">🤖 LiteLLM — Port: {{ connInfo?.port }}</span>
+      <div class="ll-toolbar-actions">
+        <button class="ll-btn ll-btn-small" @click="restart" :title="L('restartTip')">🔄</button>
+        <button class="ll-btn ll-btn-small ll-btn-danger" @click="stopContainer" :title="L('stopTip')">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="ll-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Stopped State -->
+  <div v-else-if="status === 'stopped'" class="ll-status-screen">
+    <div class="ll-icon-large">🤖</div>
+    <div class="ll-status-text">{{ L('stopped') }}</div>
+    <div class="ll-sub-text">{{ L('stoppedSub') }}</div>
+    <button class="ll-btn ll-btn-primary ll-btn-large" @click="restart">▶ {{ L('start') }}</button>
+  </div>
+
+  <!-- Fallback -->
+  <div v-else class="ll-status-screen">
+    <div class="ll-icon-large">🤖</div>
+    <div class="ll-status-text">LiteLLM</div>
+    <div class="ll-sub-text">{{ L('desc') }}</div>
+  </div>
+</div>

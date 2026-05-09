@@ -1,0 +1,56 @@
+<div class="onlyoffice-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="oo-status-screen">
+    <div class="oo-spinner"></div>
+    <div class="oo-icon-large">📝</div>
+    <div class="oo-status-text">{{ pullProgress }}</div>
+    <div class="oo-sub-text">{{ L('pullSub') }}</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="oo-status-screen">
+    <div class="oo-spinner"></div>
+    <div class="oo-icon-large">📝</div>
+    <div class="oo-status-text">{{ L('starting') }}</div>
+    <div class="oo-sub-text">{{ L('startSub') }}</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="oo-status-screen oo-error">
+    <div class="oo-icon-large">⚠️</div>
+    <div class="oo-status-text">{{ L('errorTitle') }}</div>
+    <div class="oo-error-msg">{{ errorMsg }}</div>
+    <div class="oo-actions">
+      <el-button type="warning" @click="checkAndStart">{{ L('retry') }}</el-button>
+    </div>
+    <div class="oo-sub-text">{{ L('dockerHint') }}</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="oo-running">
+    <div class="oo-toolbar">
+      <span class="oo-info">📝 {{ L('appTitle') }} — Port: {{ port }}</span>
+      <div class="oo-toolbar-actions">
+        <el-button size="small" @click="restart" :title="L('restart')">🔄</el-button>
+        <el-button size="small" type="danger" @click="stopContainer" :title="L('stop')">⏹️</el-button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="oo-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="oo-status-screen">
+    <div class="oo-icon-large">📝</div>
+    <div class="oo-status-text">{{ L('appTitle') }}</div>
+    <div class="oo-sub-text">{{ L('appDesc') }}</div>
+    <div class="oo-feature-list">
+      <div class="oo-feature">{{ L('featureDoc') }}</div>
+      <div class="oo-feature">{{ L('featureSheet') }}</div>
+      <div class="oo-feature">{{ L('featureSlide') }}</div>
+      <div class="oo-feature">{{ L('featureCollab') }}</div>
+      <div class="oo-feature">{{ L('featurePdf') }}</div>
+      <div class="oo-feature">{{ L('featureFormat') }}</div>
+    </div>
+    <el-button type="primary" size="large" @click="checkAndStart" class="oo-launch-btn">{{ L('launch') }}</el-button>
+  </div>
+</div>

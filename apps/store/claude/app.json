@@ -1,0 +1,64 @@
+{
+  "id": "claude",
+  "name": "Claude",
+  "icon": "🧠",
+  "color": "linear-gradient(135deg,#d97706,#92400e)",
+  "type": "internal",
+  "size": {
+    "w": 1000,
+    "h": 700
+  },
+  "global": false,
+  "description": "Claude — Anthropic yapay zeka asistanı",
+  "category": "ai",
+  "lang": {
+    "tr": {
+      "name": "Claude",
+      "description": "Claude — Anthropic yapay zeka asistanı"
+    },
+    "en": {
+      "name": "Claude",
+      "description": "Claude — Anthropic AI assistant"
+    },
+    "de": {
+      "name": "Claude",
+      "description": "Claude — Anthropic KI-Assistent"
+    },
+    "fr": {
+      "name": "Claude",
+      "description": "Claude — Assistant IA Anthropic"
+    },
+    "es": {
+      "name": "Claude",
+      "description": "Claude — Asistente de IA Anthropic"
+    },
+    "ru": {
+      "name": "Claude",
+      "description": "Claude — ИИ-ассистент Anthropic"
+    },
+    "zh": {
+      "name": "Claude",
+      "description": "Claude — Anthropic AI助手"
+    },
+    "ja": {
+      "name": "Claude",
+      "description": "Claude — Anthropic AIアシスタント"
+    },
+    "it": {
+      "name": "Claude",
+      "description": "Claude — Assistente IA Anthropic"
+    },
+    "ar": {
+      "name": "Claude",
+      "description": "Claude — مساعد الذكاء الاصطناعي من Anthropic"
+    },
+    "pt": {
+      "name": "Claude",
+      "description": "Claude — Assistente de IA Anthropic"
+    },
+    "ko": {
+      "name": "Claude",
+      "description": "Claude — Anthropic AI 어시스턴트"
+    }
+  }
+}

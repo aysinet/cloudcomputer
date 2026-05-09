@@ -1,0 +1,70 @@
+.claude-app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1a1006;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+  position: relative;
+}
+
+.claude-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+  background: #2c1a0e;
+  border-bottom: 1px solid #d97706;
+  min-height: 36px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.claude-toolbar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fbbf24;
+  white-space: nowrap;
+}
+
+.claude-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.claude-separator {
+  width: 1px;
+  height: 20px;
+  background: #92400e;
+  margin: 0 2px;
+}
+
+.claude-btn {
+  background: #78350f;
+  border: 1px solid #92400e;
+  color: #fbbf24;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.claude-btn:hover {
+  background: #92400e;
+  transform: scale(1.05);
+}
+
+.claude-btn:active {
+  transform: scale(0.96);
+}
+
+.claude-frame {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}

@@ -1,0 +1,78 @@
+{
+  "id": "litellm",
+  "name": "LiteLLM",
+  "icon": "🤖",
+  "color": "linear-gradient(135deg,#0f1729,#1a73e8)",
+  "type": "service",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Docker tabanlı LLM proxy sunucusu — 100+ LLM API'yi OpenAI formatında kullanın",
+  "lang": {
+    "tr": {
+      "name": "LiteLLM",
+      "description": "Docker tabanlı LLM proxy sunucusu — 100+ LLM API'yi OpenAI formatında kullanın"
+    },
+    "en": {
+      "name": "LiteLLM",
+      "description": "Docker-based LLM proxy server — call 100+ LLM APIs using the OpenAI format"
+    },
+    "de": {
+      "name": "LiteLLM",
+      "description": "Docker-basierter LLM-Proxyserver — 100+ LLM-APIs im OpenAI-Format aufrufen"
+    },
+    "fr": {
+      "name": "LiteLLM",
+      "description": "Serveur proxy LLM Docker — appelez plus de 100 API LLM au format OpenAI"
+    },
+    "es": {
+      "name": "LiteLLM",
+      "description": "Servidor proxy LLM basado en Docker — llama a más de 100 APIs LLM en formato OpenAI"
+    },
+    "ru": {
+      "name": "LiteLLM",
+      "description": "Docker-прокси-сервер LLM — вызов 100+ API LLM в формате OpenAI"
+    },
+    "zh": {
+      "name": "LiteLLM",
+      "description": "基于 Docker 的 LLM 代理服务器 — 使用 OpenAI 格式调用 100+ LLM API"
+    },
+    "ja": {
+      "name": "LiteLLM",
+      "description": "Docker ベースの LLM プロキシサーバー — OpenAI 形式で 100 以上の LLM API を呼び出し"
+    },
+    "it": {
+      "name": "LiteLLM",
+      "description": "Server proxy LLM basato su Docker — chiama oltre 100 API LLM in formato OpenAI"
+    },
+    "ar": {
+      "name": "لايت إل إل إم",
+      "description": "خادم وكيل LLM يعمل بـ Docker — استدعاء أكثر من 100 واجهة برمجة LLM بتنسيق OpenAI"
+    },
+    "ko": {
+      "name": "LiteLLM",
+      "description": "Docker 기반 LLM 프록시 서버 — OpenAI 형식으로 100개 이상의 LLM API 호출"
+    },
+    "hi": {
+      "name": "LiteLLM",
+      "description": "Docker-आधारित LLM प्रॉक्सी सर्वर — OpenAI प्रारूप में 100+ LLM API कॉल करें"
+    },
+    "pt": {
+      "name": "LiteLLM",
+      "description": "Servidor proxy LLM baseado em Docker — chame mais de 100 APIs LLM no formato OpenAI"
+    }
+  },
+  "category": "ai",
+  "docker": {
+    "image": "litellm/litellm:main-v1.83.14-stable.patch.3",
+    "containerPort": 4000,
+    "volumes": [
+      "${APP_VOLUME}:/app/data"
+    ],
+    "env": [
+      "LITELLM_LOG_LEVEL=INFO"
+    ]
+  }
+}

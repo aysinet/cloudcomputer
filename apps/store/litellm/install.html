@@ -1,0 +1,87 @@
+<div class="ll-install-form">
+  <div class="ll-install-header">
+    <span class="ll-install-icon">🤖</span>
+    <h3>LiteLLM</h3>
+    <p class="ll-install-subtitle">Master Key belirleyin</p>
+  </div>
+  <div class="ll-install-body">
+    <label>Master Key (zorunlu)</label>
+    <div class="ll-key-wrap">
+      <input type="password" id="ll-master-key" placeholder="sk-..." autocomplete="new-password" />
+      <button type="button" class="ll-eye-btn" onclick="toggleLLKey()">👁</button>
+    </div>
+    <p class="ll-install-hint">Bu anahtar LiteLLM proxy'ye erişim için kullanılacaktır.</p>
+    <div class="ll-install-error" id="ll-install-error" style="display:none"></div>
+  </div>
+  <div class="ll-install-footer">
+    <button class="ll-cancel-btn" onclick="cancelServiceInstall()">İptal</button>
+    <button class="ll-install-btn" onclick="confirmServiceInstall()">Kur ve Başlat</button>
+  </div>
+</div>
+
+<script>
+  const LL_I18N = {
+    tr: { subtitle: 'Master Key belirleyin', keyLabel: 'Master Key (zorunlu)', placeholder: 'sk-...', hint: 'Bu anahtar LiteLLM proxy\'ye erişim için kullanılacaktır.', cancel: 'İptal', installBtn: 'Kur ve Başlat', errorRequired: 'Master Key zorunludur', errorShort: 'Master Key en az 4 karakter olmalı' },
+    en: { subtitle: 'Set Master Key', keyLabel: 'Master Key (required)', placeholder: 'sk-...', hint: 'This key will be used to access the LiteLLM proxy.', cancel: 'Cancel', installBtn: 'Install & Start', errorRequired: 'Master Key is required', errorShort: 'Master Key must be at least 4 characters' },
+    de: { subtitle: 'Master Key festlegen', keyLabel: 'Master Key (erforderlich)', placeholder: 'sk-...', hint: 'Dieser Schlüssel wird für den Zugriff auf den LiteLLM-Proxy verwendet.', cancel: 'Abbrechen', installBtn: 'Installieren & Starten', errorRequired: 'Master Key ist erforderlich', errorShort: 'Master Key muss mindestens 4 Zeichen lang sein' },
+    fr: { subtitle: 'Définir la clé maître', keyLabel: 'Clé maître (obligatoire)', placeholder: 'sk-...', hint: 'Cette clé sera utilisée pour accéder au proxy LiteLLM.', cancel: 'Annuler', installBtn: 'Installer & Démarrer', errorRequired: 'La clé maître est obligatoire', errorShort: 'La clé maître doit comporter au moins 4 caractères' },
+    es: { subtitle: 'Establecer clave maestra', keyLabel: 'Clave maestra (obligatoria)', placeholder: 'sk-...', hint: 'Esta clave se usará para acceder al proxy LiteLLM.', cancel: 'Cancelar', installBtn: 'Instalar e Iniciar', errorRequired: 'La clave maestra es obligatoria', errorShort: 'La clave maestra debe tener al menos 4 caracteres' },
+    ru: { subtitle: 'Установите мастер-ключ', keyLabel: 'Мастер-ключ (обязательно)', placeholder: 'sk-...', hint: 'Этот ключ будет использоваться для доступа к прокси LiteLLM.', cancel: 'Отмена', installBtn: 'Установить и запустить', errorRequired: 'Мастер-ключ обязателен', errorShort: 'Мастер-ключ должен быть не менее 4 символов' },
+    zh: { subtitle: '设置主密钥', keyLabel: '主密钥（必填）', placeholder: 'sk-...', hint: '此密钥将用于访问 LiteLLM 代理。', cancel: '取消', installBtn: '安装并启动', errorRequired: '主密钥为必填项', errorShort: '主密钥至少需要4个字符' },
+    ja: { subtitle: 'マスターキーを設定', keyLabel: 'マスターキー（必須）', placeholder: 'sk-...', hint: 'このキーは LiteLLM プロキシへのアクセスに使用されます。', cancel: 'キャンセル', installBtn: 'インストールして開始', errorRequired: 'マスターキーは必須です', errorShort: 'マスターキーは4文字以上必要です' },
+    it: { subtitle: 'Imposta la chiave master', keyLabel: 'Chiave master (obbligatoria)', placeholder: 'sk-...', hint: 'Questa chiave sarà usata per accedere al proxy LiteLLM.', cancel: 'Annulla', installBtn: 'Installa e Avvia', errorRequired: 'La chiave master è obbligatoria', errorShort: 'La chiave master deve avere almeno 4 caratteri' },
+    ar: { subtitle: 'تعيين المفتاح الرئيسي', keyLabel: 'المفتاح الرئيسي (مطلوب)', placeholder: 'sk-...', hint: 'سيتم استخدام هذا المفتاح للوصول إلى وكيل LiteLLM.', cancel: 'إلغاء', installBtn: 'تثبيت وبدء', errorRequired: 'المفتاح الرئيسي مطلوب', errorShort: 'المفتاح الرئيسي يجب أن يكون 4 أحرف على الأقل' },
+    ko: { subtitle: '마스터 키 설정', keyLabel: '마스터 키 (필수)', placeholder: 'sk-...', hint: '이 키는 LiteLLM 프록시 접근에 사용됩니다.', cancel: '취소', installBtn: '설치 및 시작', errorRequired: '마스터 키는 필수입니다', errorShort: '마스터 키는 최소 4자 이상이어야 합니다' },
+    hi: { subtitle: 'मास्टर कुंजी सेट करें', keyLabel: 'मास्टर कुंजी (आवश्यक)', placeholder: 'sk-...', hint: 'यह कुंजी LiteLLM प्रॉक्सी तक पहुँचने के लिए उपयोग की जाएगी।', cancel: 'रद्द करें', installBtn: 'इंस्टॉल करें और शुरू करें', errorRequired: 'मास्टर कुंजी आवश्यक है', errorShort: 'मास्टर कुंजी कम से कम 4 वर्ण होनी चाहिए' },
+    pt: { subtitle: 'Definir chave mestra', keyLabel: 'Chave mestra (obrigatória)', placeholder: 'sk-...', hint: 'Esta chave será usada para acessar o proxy LiteLLM.', cancel: 'Cancelar', installBtn: 'Instalar e Iniciar', errorRequired: 'A chave mestra é obrigatória', errorShort: 'A chave mestra deve ter pelo menos 4 caracteres' }
+  };
+
+  function getLLLocale() { try { return window.__serviceInstallLocale || 'tr'; } catch { return 'tr'; } }
+  function llT(key) { const loc = getLLLocale(); return (LL_I18N[loc] || LL_I18N.tr)[key] || (LL_I18N.tr)[key] || key; }
+
+  // Apply i18n on load
+  (function applyI18n() {
+    const s = (sel, key) => { const el = document.querySelector(sel); if (el) el.textContent = llT(key); };
+    s('.ll-install-subtitle', 'subtitle');
+    s('.ll-install-body label', 'keyLabel');
+    s('.ll-install-hint', 'hint');
+    s('.ll-cancel-btn', 'cancel');
+    s('.ll-install-btn', 'installBtn');
+    const inp = document.getElementById('ll-master-key');
+    if (inp) inp.placeholder = llT('placeholder');
+  })();
+
+  function toggleLLKey() {
+    const inp = document.getElementById('ll-master-key');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  function getInstallConfig() {
+    const masterKey = (document.getElementById('ll-master-key').value || '').trim();
+    const errEl = document.getElementById('ll-install-error');
+    if (!masterKey) { errEl.textContent = llT('errorRequired'); errEl.style.display = 'block'; return null; }
+    if (masterKey.length < 4) { errEl.textContent = llT('errorShort'); errEl.style.display = 'block'; return null; }
+    errEl.style.display = 'none';
+    return { LITELLM_MASTER_KEY: masterKey };
+  }
+</script>
+
+<style>
+  .ll-install-form { padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; }
+  .ll-install-header { text-align: center; margin-bottom: 20px; }
+  .ll-install-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+  .ll-install-header h3 { margin: 0 0 4px; font-size: 20px; color: #fff; }
+  .ll-install-subtitle { margin: 0; font-size: 13px; color: #aaa; }
+  .ll-install-body label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #ccc; }
+  .ll-key-wrap { display: flex; gap: 6px; margin-bottom: 8px; }
+  .ll-key-wrap input { flex: 1; padding: 10px 12px; border: 1px solid #444; border-radius: 6px; background: #1e1e2e; color: #fff; font-size: 14px; outline: none; font-family: monospace; }
+  .ll-key-wrap input:focus { border-color: #1a73e8; }
+  .ll-eye-btn { background: #2a2a3a; border: 1px solid #444; border-radius: 6px; padding: 0 12px; cursor: pointer; font-size: 16px; }
+  .ll-install-hint { font-size: 11px; color: #888; margin: 4px 0 0; }
+  .ll-install-error { color: #ff6b6b; font-size: 12px; margin-top: 8px; padding: 6px 10px; background: rgba(255,0,0,0.1); border-radius: 4px; }
+  .ll-install-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .ll-cancel-btn { padding: 8px 20px; border: 1px solid #555; border-radius: 6px; background: transparent; color: #ccc; cursor: pointer; font-size: 13px; }
+  .ll-cancel-btn:hover { background: #333; }
+  .ll-install-btn { padding: 8px 24px; border: none; border-radius: 6px; background: linear-gradient(135deg, #0f1729, #1a73e8); color: #fff; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .ll-install-btn:hover { opacity: 0.9; }
+</style>

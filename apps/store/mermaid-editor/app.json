@@ -1,0 +1,68 @@
+{
+  "id": "mermaid-editor",
+  "name": "Mermaid Editör",
+  "icon": "🧜‍♀️",
+  "color": "linear-gradient(135deg,#1a1a2e,#16213e)",
+  "type": "internal",
+  "size": {
+    "w": 1100,
+    "h": 700
+  },
+  "global": false,
+  "description": "Mermaid diyagram kodu ile şema çizici — flowchart, sequence, class, gantt ve daha fazlası",
+  "category": "development",
+  "lang": {
+    "tr": {
+      "name": "Mermaid Editör",
+      "description": "Mermaid diyagram kodu ile şema çizici — flowchart, sequence, class, gantt ve daha fazlası"
+    },
+    "en": {
+      "name": "Mermaid Editor",
+      "description": "Diagram editor with Mermaid code — flowchart, sequence, class, gantt and more"
+    },
+    "de": {
+      "name": "Mermaid-Editor",
+      "description": "Diagramm-Editor mit Mermaid-Code — Flowchart, Sequenz, Klasse, Gantt und mehr"
+    },
+    "fr": {
+      "name": "Éditeur Mermaid",
+      "description": "Éditeur de diagrammes avec code Mermaid — flowchart, séquence, classe, gantt et plus"
+    },
+    "es": {
+      "name": "Editor Mermaid",
+      "description": "Editor de diagramas con código Mermaid — flowchart, secuencia, clase, gantt y más"
+    },
+    "ru": {
+      "name": "Редактор Mermaid",
+      "description": "Редактор диаграмм с кодом Mermaid — блок-схемы, последовательности, классы, Gantt и другое"
+    },
+    "zh": {
+      "name": "Mermaid 编辑器",
+      "description": "使用 Mermaid 代码绘制图表 — 流程图、时序图、类图、甘特图等"
+    },
+    "ja": {
+      "name": "Mermaid エディタ",
+      "description": "Mermaidコードでダイアグラム作成 — フローチャート、シーケンス、クラス、ガントなど"
+    },
+    "it": {
+      "name": "Editor Mermaid",
+      "description": "Editor di diagrammi con codice Mermaid — flowchart, sequenza, classe, gantt e altro"
+    },
+    "ar": {
+      "name": "محرر Mermaid",
+      "description": "محرر رسوم بيانية بكود Mermaid — مخططات انسيابية وتسلسلية وصفوف وجانت والمزيد"
+    },
+    "ko": {
+      "name": "Mermaid 편집기",
+      "description": "Mermaid 코드로 다이어그램 작성 — 플로차트, 시퀀스, 클래스, 간트 등"
+    },
+    "hi": {
+      "name": "Mermaid संपादक",
+      "description": "Mermaid कोड से आरेख बनाएं — फ़्लोचार्ट, सीक्वेंस, क्लास, गैंट और अधिक"
+    },
+    "pt": {
+      "name": "Editor Mermaid",
+      "description": "Editor de diagramas com código Mermaid — flowchart, sequência, classe, gantt e mais"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+<div class="grok-app">
+  <!-- Toolbar -->
+  <div class="grok-toolbar">
+    <span class="grok-toolbar-title">🧠 Grok</span>
+    <div class="grok-toolbar-actions">
+      <button class="grok-btn" @click="navigateHome" :title="t.home">🏠</button>
+      <button class="grok-btn" @click="goBack" :title="t.back">◀</button>
+      <button class="grok-btn" @click="goForward" :title="t.forward">▶</button>
+      <button class="grok-btn" @click="refresh" :title="t.refresh">🔄</button>
+      <div class="grok-separator"></div>
+      <button class="grok-btn" @click="openExternal" :title="t.openTab">🔗</button>
+    </div>
+  </div>
+
+  <!-- Grok iframe -->
+  <iframe
+    :src="iframeSrc"
+    class="grok-frame"
+    ref="grokFrame"
+    frameborder="0"
+    allow="fullscreen"
+    referrerpolicy="no-referrer"
+  ></iframe>
+</div>

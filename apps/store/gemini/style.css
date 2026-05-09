@@ -1,0 +1,70 @@
+.gemini-app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #0d1117;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+  position: relative;
+}
+
+.gemini-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+  background: #1a237e;
+  border-bottom: 1px solid #4285f4;
+  min-height: 36px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.gemini-toolbar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8ab4f8;
+  white-space: nowrap;
+}
+
+.gemini-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gemini-separator {
+  width: 1px;
+  height: 20px;
+  background: #1a73e8;
+  margin: 0 2px;
+}
+
+.gemini-btn {
+  background: #1565c0;
+  border: 1px solid #1a73e8;
+  color: #8ab4f8;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.gemini-btn:hover {
+  background: #1a73e8;
+  transform: scale(1.05);
+}
+
+.gemini-btn:active {
+  transform: scale(0.96);
+}
+
+.gemini-frame {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}

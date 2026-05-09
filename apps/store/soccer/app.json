@@ -1,0 +1,68 @@
+{
+  "id": "soccer",
+  "name": "Futbol",
+  "icon": "⚽",
+  "color": "linear-gradient(135deg,#1b5e20,#388e3c)",
+  "type": "internal",
+  "size": {
+    "w": 960,
+    "h": 640
+  },
+  "global": false,
+  "description": "HTML5 futbol oyunu — bilgisayara karşı veya 2 kişilik mod",
+  "category": "games",
+  "lang": {
+    "tr": {
+      "name": "Futbol",
+      "description": "HTML5 futbol oyunu — bilgisayara karşı veya 2 kişilik mod"
+    },
+    "en": {
+      "name": "Soccer",
+      "description": "HTML5 soccer game — play against AI or 2-player mode"
+    },
+    "de": {
+      "name": "Fußball",
+      "description": "HTML5-Fußballspiel — gegen KI oder 2-Spieler-Modus"
+    },
+    "fr": {
+      "name": "Football",
+      "description": "Jeu de football HTML5 — contre l'IA ou mode 2 joueurs"
+    },
+    "es": {
+      "name": "Fútbol",
+      "description": "Juego de fútbol HTML5 — contra IA o modo 2 jugadores"
+    },
+    "ru": {
+      "name": "Футбол",
+      "description": "HTML5 футбол — против ИИ или режим на 2 игрока"
+    },
+    "zh": {
+      "name": "足球",
+      "description": "HTML5足球游戏 — 对战AI或双人模式"
+    },
+    "ja": {
+      "name": "サッカー",
+      "description": "HTML5サッカーゲーム — AI対戦または2人プレイ"
+    },
+    "it": {
+      "name": "Calcio",
+      "description": "Gioco di calcio HTML5 — contro IA o modalità 2 giocatori"
+    },
+    "ar": {
+      "name": "كرة القدم",
+      "description": "لعبة كرة قدم HTML5 — ضد الكمبيوتر أو وضع لاعبين"
+    },
+    "ko": {
+      "name": "축구",
+      "description": "HTML5 축구 게임 — AI 대전 또는 2인 모드"
+    },
+    "hi": {
+      "name": "फ़ुटबॉल",
+      "description": "HTML5 फ़ुटबॉल गेम — AI के खिलाफ या 2 खिलाड़ी मोड"
+    },
+    "pt": {
+      "name": "Futebol",
+      "description": "Jogo de futebol HTML5 — contra IA ou modo 2 jogadores"
+    }
+  }
+}

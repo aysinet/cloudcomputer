@@ -1,0 +1,71 @@
+.grok-app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #0d0d1a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+  position: relative;
+}
+
+.grok-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+  background: #1a1a2e;
+  border-bottom: 1px solid #e94560;
+  min-height: 36px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.grok-toolbar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f0a0b0;
+  white-space: nowrap;
+}
+
+.grok-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.grok-separator {
+  width: 1px;
+  height: 20px;
+  background: #e94560;
+  margin: 0 2px;
+}
+
+.grok-btn {
+  background: #16213e;
+  border: 1px solid #e94560;
+  color: #f0a0b0;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.grok-btn:hover {
+  background: #e94560;
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.grok-btn:active {
+  transform: scale(0.96);
+}
+
+.grok-frame {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}

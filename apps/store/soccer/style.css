@@ -1,0 +1,366 @@
+/* ═══════════════════════════════════════════════════════════
+   Soccer App Styles
+   ═══════════════════════════════════════════════════════════ */
+
+.soccer-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1a1a2e;
+  color: #eee;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ── Menu Screen ── */
+.soccer-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  background: linear-gradient(135deg, #1b5e20 0%, #2d8a4e 50%, #1b5e20 100%);
+}
+
+.soccer-menu-bg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 36px 48px;
+  background: rgba(0,0,0,0.45);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  max-width: 480px;
+  width: 90%;
+}
+
+.soccer-menu-ball {
+  font-size: 64px;
+  animation: soccer-bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes soccer-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.soccer-menu-title {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  margin: 0;
+}
+
+.soccer-menu-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.soccer-menu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.soccer-menu-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #b0bec5;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.soccer-start-btn {
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #43a047, #2e7d32);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(46,125,50,0.4);
+  margin-top: 8px;
+}
+.soccer-start-btn:hover {
+  background: linear-gradient(135deg, #66bb6a, #43a047);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(46,125,50,0.5);
+}
+.soccer-start-btn.small {
+  padding: 8px 20px;
+  font-size: 14px;
+  margin-top: 0;
+}
+.soccer-start-btn.secondary {
+  background: linear-gradient(135deg, #546e7a, #37474f);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.soccer-start-btn.secondary:hover {
+  background: linear-gradient(135deg, #78909c, #546e7a);
+}
+
+/* ── Game Screen ── */
+.soccer-game {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Scoreboard */
+.soccer-scoreboard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 6px 16px;
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border-bottom: 2px solid #2a2a4a;
+  min-height: 48px;
+}
+
+.soccer-team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 16px;
+  border-radius: 8px;
+  transition: all 0.3s;
+  min-width: 140px;
+}
+.soccer-team-left {
+  justify-content: flex-end;
+}
+.soccer-team-right {
+  justify-content: flex-start;
+}
+.soccer-team.scoring {
+  animation: soccer-score-flash 0.6s ease-in-out 2;
+}
+
+@keyframes soccer-score-flash {
+  0%, 100% { background: transparent; }
+  50% { background: rgba(76,175,80,0.3); }
+}
+
+.soccer-team-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+.soccer-team-left .soccer-team-name { color: #ef5350; }
+.soccer-team-right .soccer-team-name { color: #42a5f5; }
+
+.soccer-team-score {
+  font-size: 28px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  min-width: 36px;
+  text-align: center;
+}
+
+.soccer-timer-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0 20px;
+}
+
+.soccer-timer {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #a5d6a7;
+  letter-spacing: 1px;
+}
+.soccer-timer.warning {
+  color: #ef5350;
+  animation: soccer-timer-blink 0.8s infinite;
+}
+
+@keyframes soccer-timer-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.soccer-controls-bar {
+  display: flex;
+  gap: 4px;
+}
+
+.soccer-ctrl-btn {
+  padding: 2px 8px;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #aaa;
+  transition: all 0.2s;
+}
+.soccer-ctrl-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+/* Canvas */
+.soccer-canvas-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a3a1a;
+  overflow: hidden;
+}
+
+.soccer-canvas {
+  display: block;
+  cursor: crosshair;
+}
+
+/* Overlays */
+.soccer-paused-overlay,
+.soccer-goal-overlay,
+.soccer-countdown-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.55);
+  z-index: 10;
+}
+
+.soccer-paused-text {
+  font-size: 36px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 4px;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  margin-bottom: 16px;
+}
+
+.soccer-goal-text {
+  font-size: 64px;
+  font-weight: 900;
+  color: #fdd835;
+  letter-spacing: 8px;
+  text-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 40px rgba(253,216,53,0.4);
+  animation: soccer-goal-pop 0.5s cubic-bezier(.36,.07,.19,.97);
+}
+
+@keyframes soccer-goal-pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  60% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.soccer-countdown-num {
+  font-size: 80px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 4px 24px rgba(0,0,0,0.6);
+  animation: soccer-cd-pop 0.6s cubic-bezier(.36,.07,.19,.97);
+}
+
+@keyframes soccer-cd-pop {
+  0% { transform: scale(2); opacity: 0; }
+  50% { transform: scale(0.9); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* Hint bar */
+.soccer-hint-bar {
+  padding: 5px 16px;
+  background: #16213e;
+  border-top: 1px solid #2a2a4a;
+  text-align: center;
+}
+
+.soccer-hint {
+  font-size: 12px;
+  color: #78909c;
+}
+
+/* ── Game Over Screen ── */
+.soccer-gameover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  background: linear-gradient(135deg, #1a1a2e 0%, #0d1b2a 100%);
+}
+
+.soccer-gameover-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 56px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.soccer-gameover-icon {
+  font-size: 64px;
+}
+
+.soccer-gameover-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.soccer-gameover-score {
+  font-size: 48px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: #a5d6a7;
+}
+
+.soccer-gameover-sub {
+  font-size: 14px;
+  color: #78909c;
+  margin-bottom: 8px;
+}
+
+.soccer-gameover-btns {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* ── Element Plus overrides for dark theme ── */
+.soccer-app .el-radio-button__inner {
+  background: rgba(255,255,255,0.08) !important;
+  border-color: rgba(255,255,255,0.15) !important;
+  color: #ccc !important;
+}
+.soccer-app .el-radio-button__original-radio:checked + .el-radio-button__inner {
+  background: #2e7d32 !important;
+  border-color: #43a047 !important;
+  color: #fff !important;
+  box-shadow: -1px 0 0 0 #43a047 !important;
+}
+.soccer-app .el-dialog {
+  background: #1e1e2e !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+}
+.soccer-app .el-dialog__title {
+  color: #eee !important;
+}
+.soccer-app .el-dialog__body {
+  color: #ccc !important;
+}

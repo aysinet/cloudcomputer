@@ -1,0 +1,176 @@
+.rb-app {
+  width: 100%; height: 100%; display: flex; flex-direction: column;
+  background: #181825; color: #cdd6f4; font-family: 'Segoe UI', sans-serif; overflow: hidden;
+}
+
+/* ── Header ── */
+.rb-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 16px; background: #1e1e2e; border-bottom: 1px solid rgba(255,255,255,.08);
+  min-height: 42px; flex-shrink: 0;
+}
+.rb-header-left { display: flex; align-items: center; gap: 8px; }
+.rb-logo { font-size: 20px; }
+.rb-title { font-size: 15px; font-weight: 600; color: #e1e4ea; }
+.rb-header-actions { display: flex; align-items: center; gap: 6px; }
+
+/* ── List Mode ── */
+.rb-list { flex: 1; overflow-y: auto; padding: 24px; }
+.rb-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 12px; color: #6c7086; }
+.rb-empty-icon { font-size: 48px; opacity: .5; }
+.rb-resume-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.rb-resume-card {
+  background: #1e1e2e; border: 1px solid rgba(255,255,255,.08); border-radius: 10px;
+  padding: 16px; cursor: pointer; transition: all .2s;
+}
+.rb-resume-card:hover { border-color: rgba(255,255,255,.18); transform: translateY(-2px); }
+.rb-resume-card.active { border-color: #89b4fa; }
+.rb-resume-card-top { display: flex; gap: 12px; align-items: flex-start; border-left: 3px solid #6c7086; padding-left: 12px; }
+.rb-resume-card-photo { width: 48px; height: 48px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+.rb-resume-card-photo img { width: 100%; height: 100%; object-fit: cover; }
+.rb-no-photo { background: #313244; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.rb-resume-card-info { flex: 1; min-width: 0; }
+.rb-resume-card-name { font-weight: 600; font-size: 14px; color: #e1e4ea; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rb-resume-card-subtitle { font-size: 12px; color: #6c7086; margin-top: 2px; }
+.rb-resume-card-actions { display: flex; gap: 4px; margin-top: 10px; justify-content: flex-end; }
+
+/* ── Editor ── */
+.rb-editor { flex: 1; display: flex; overflow: hidden; }
+.rb-sidebar {
+  width: 180px; flex-shrink: 0; background: #1e1e2e; border-right: 1px solid rgba(255,255,255,.08);
+  display: flex; flex-direction: column; padding: 8px 0; overflow-y: auto;
+}
+.rb-sidebar-btn {
+  display: flex; align-items: center; gap: 8px; padding: 9px 16px; border: none; background: none;
+  color: #a6adc8; font-size: 13px; cursor: pointer; text-align: left; transition: all .15s;
+}
+.rb-sidebar-btn:hover { background: rgba(255,255,255,.05); color: #cdd6f4; }
+.rb-sidebar-btn.active { background: rgba(137,180,250,.12); color: #89b4fa; }
+.rb-sidebar-icon { font-size: 15px; width: 20px; text-align: center; }
+.rb-sidebar-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rb-sidebar-divider { height: 1px; background: rgba(255,255,255,.06); margin: 6px 12px; }
+
+.rb-editor-content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.rb-section h3 { font-size: 16px; font-weight: 600; color: #e1e4ea; margin: 0 0 16px 0; }
+.rb-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.rb-section-header h3 { margin-bottom: 0; }
+
+.rb-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rb-form-item { display: flex; flex-direction: column; gap: 4px; }
+.rb-form-item label { font-size: 12px; color: #a6adc8; font-weight: 500; }
+
+.rb-item-card {
+  background: #1e1e2e; border: 1px solid rgba(255,255,255,.08); border-radius: 8px;
+  padding: 14px; margin-bottom: 12px;
+}
+.rb-item-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.rb-item-num { font-size: 12px; color: #6c7086; font-weight: 600; }
+.rb-item-inline { display: flex; align-items: center; gap: 8px; padding: 10px 14px; }
+
+/* ── Photo ── */
+.rb-photo-area { margin-bottom: 16px; }
+.rb-photo-preview { display: flex; align-items: center; gap: 12px; }
+.rb-photo-preview img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,.1); }
+
+/* ── Template Settings ── */
+.rb-template-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.rb-template-card {
+  background: #1e1e2e; border: 2px solid rgba(255,255,255,.08); border-radius: 8px;
+  padding: 12px; cursor: pointer; text-align: center; transition: all .2s;
+}
+.rb-template-card:hover { border-color: rgba(255,255,255,.2); }
+.rb-template-card.active { border-color: #89b4fa; }
+.rb-template-preview {
+  width: 100%; height: 80px; border-radius: 4px; margin-bottom: 8px;
+}
+.rb-tpl-classic .rb-template-preview, .rb-template-preview.rb-tpl-classic { background: linear-gradient(180deg, #2980b9 30%, #f5f5f5 30%); }
+.rb-tpl-modern .rb-template-preview, .rb-template-preview.rb-tpl-modern { background: linear-gradient(90deg, #34495e 35%, #ecf0f1 35%); }
+.rb-tpl-minimal .rb-template-preview, .rb-template-preview.rb-tpl-minimal { background: #fafafa; border: 1px solid #ddd; }
+.rb-tpl-professional .rb-template-preview, .rb-template-preview.rb-tpl-professional { background: linear-gradient(90deg, #1a1a2e 30%, #edf2f7 30%); }
+.rb-template-name { font-size: 12px; color: #a6adc8; }
+
+.rb-settings-row { margin-bottom: 16px; }
+.rb-settings-row label { font-size: 13px; color: #a6adc8; display: block; margin-bottom: 8px; }
+.rb-color-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+.rb-color-dot {
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent;
+  transition: all .15s;
+}
+.rb-color-dot:hover { transform: scale(1.15); }
+.rb-color-dot.active { border-color: #fff; box-shadow: 0 0 0 2px rgba(137,180,250,.5); }
+
+/* ── Preview ── */
+.rb-preview-wrap { flex: 1; overflow-y: auto; padding: 20px; display: flex; justify-content: center; background: #11111b; }
+.rb-preview {
+  width: 800px; min-height: 1000px; background: #fff; color: #333; border-radius: 4px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.4); font-size: var(--rb-fs, 14px); display: flex;
+}
+.rb-preview-main { flex: 1; padding: 32px; }
+.rb-preview-sidebar {
+  width: 240px; flex-shrink: 0; padding: 32px 20px; color: #fff;
+  background: var(--rb-accent, #2980b9);
+}
+.rb-tpl-professional .rb-preview-sidebar { background: #1a1a2e; }
+
+/* Header */
+.rb-preview-header { margin-bottom: 20px; display: flex; align-items: center; gap: 16px; }
+.rb-preview-photo { width: 80px; height: 80px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+.rb-preview-photo img { width: 100%; height: 100%; object-fit: cover; }
+.rb-preview-sidebar .rb-preview-photo { width: 100px; height: 100px; margin: 0 auto 16px; border: 3px solid rgba(255,255,255,.3); }
+.rb-preview-name { font-size: 24px; font-weight: 700; color: var(--rb-accent, #2980b9); }
+.rb-tpl-modern .rb-preview-name, .rb-tpl-professional .rb-preview-name { color: #333; }
+.rb-preview-jobtitle { font-size: 15px; color: #666; margin-top: 2px; }
+.rb-preview-contact-inline { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-size: 12px; color: #888; }
+
+/* Sidebar contact */
+.rb-preview-contact { font-size: 12px; margin-bottom: 20px; }
+.rb-preview-contact div { margin-bottom: 6px; word-break: break-word; }
+
+/* Sections */
+.rb-preview-section { margin-bottom: 18px; }
+.rb-preview-section-title {
+  font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+  color: var(--rb-accent, #2980b9); border-bottom: 2px solid var(--rb-accent, #2980b9);
+  padding-bottom: 4px; margin-bottom: 10px;
+}
+.rb-preview-sidebar .rb-preview-section-title { color: rgba(255,255,255,.8); border-color: rgba(255,255,255,.3); }
+.rb-preview-text { font-size: 13px; color: #555; line-height: 1.6; white-space: pre-line; }
+.rb-preview-entry { margin-bottom: 12px; }
+.rb-preview-entry-header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.rb-preview-date { font-size: 12px; color: #999; white-space: nowrap; }
+.rb-preview-link { color: var(--rb-accent, #2980b9); font-size: 12px; }
+
+/* Skills */
+.rb-preview-skill { margin-bottom: 6px; font-size: 12px; }
+.rb-preview-skill-bar { height: 5px; background: rgba(255,255,255,.2); border-radius: 3px; margin-top: 2px; }
+.rb-preview-skill-fill { height: 100%; background: rgba(255,255,255,.7); border-radius: 3px; transition: width .3s; }
+.rb-preview-skills-inline { display: flex; flex-wrap: wrap; gap: 6px; }
+.rb-preview-skill-tag {
+  padding: 4px 10px; background: rgba(41,128,185,.1); border-radius: 12px; font-size: 12px;
+  color: var(--rb-accent, #2980b9); border: 1px solid rgba(41,128,185,.2);
+}
+.rb-preview-lang-item { font-size: 12px; margin-bottom: 4px; }
+.rb-preview-lang-level { opacity: .7; }
+
+/* Refs */
+.rb-preview-refs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rb-preview-ref-card { font-size: 12px; background: #f8f9fa; border-radius: 6px; padding: 10px; }
+.rb-preview-ref-card div { margin-bottom: 2px; }
+
+/* ── Minimal template overrides ── */
+.rb-tpl-minimal .rb-preview-section-title { border-bottom: 1px solid #ddd; color: #333; }
+.rb-tpl-minimal .rb-preview-name { color: #333; font-size: 28px; }
+.rb-tpl-minimal .rb-preview-skill-tag { background: #f0f0f0; color: #333; border-color: #ddd; }
+
+/* ── Element Plus dark overrides ── */
+.rb-app .el-input__wrapper { background: #313244 !important; box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset !important; }
+.rb-app .el-input__inner { color: #cdd6f4 !important; }
+.rb-app .el-textarea__inner { background: #313244 !important; color: #cdd6f4 !important; border-color: rgba(255,255,255,.08) !important; }
+.rb-app .el-select .el-input__wrapper { background: #313244 !important; }
+.rb-app .el-checkbox__label { color: #a6adc8 !important; }
+.rb-app .el-upload { display: inline-block; }
+
+/* ── Scrollbar ── */
+.rb-editor-content::-webkit-scrollbar, .rb-list::-webkit-scrollbar, .rb-preview-wrap::-webkit-scrollbar { width: 6px; }
+.rb-editor-content::-webkit-scrollbar-track, .rb-list::-webkit-scrollbar-track, .rb-preview-wrap::-webkit-scrollbar-track { background: transparent; }
+.rb-editor-content::-webkit-scrollbar-thumb, .rb-list::-webkit-scrollbar-thumb, .rb-preview-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 3px; }

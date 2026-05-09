@@ -65,7 +65,7 @@
       "description": "Bloqueador de anúncios e rastreadores DNS em toda a rede"
     }
   },
-  "category": "security",
+  "category": "tools",
   "docker": {
     "image": "adguard/adguardhome:latest",
     "containerPort": 3000,

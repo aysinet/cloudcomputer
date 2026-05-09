@@ -57,6 +57,7 @@ function dockerExec(args, timeout = 120000) {
 
 // ── Persistent port allocation tracking ──
 const portAllocations = {}; // { appId: hostPort }
+const pendingPorts = new Set(); // Ports currently in-flight (allocated but docker run not yet complete)
 
 function loadPortAllocations() {
   try {
@@ -114,7 +115,7 @@ function getUsedPorts() {
 function findAvailablePort() {
   const usedPorts = getUsedPorts();
   for (let p = PORT_START; p <= PORT_END; p++) {
-    if (!usedPorts.has(p)) return p;
+    if (!usedPorts.has(p) && !pendingPorts.has(p)) return p;
   }
   throw new Error(`No available port in range ${PORT_START}-${PORT_END}`);
 }
@@ -224,6 +225,7 @@ app.post('/run', authCheck, async (req, res) => {
 
     const hostPort = findAvailablePort();
     // Reserve port immediately to prevent race conditions
+    pendingPorts.add(hostPort);
     portAllocations[appId] = hostPort;
     savePortAllocations();
     console.log(`[RUN] Allocated host port: ${hostPort}`);
@@ -241,6 +243,7 @@ app.post('/run', authCheck, async (req, res) => {
         const extraContainerPort = parseInt(ep, 10);
         if (!extraContainerPort || extraContainerPort < 1 || extraContainerPort > 65535) continue;
         const extraHostPort = findAvailablePort();
+        pendingPorts.add(extraHostPort);
         portAllocations[appId + ':' + extraContainerPort] = extraHostPort;
         savePortAllocations();
         args.push('-p', `${extraHostPort}:${extraContainerPort}`);
@@ -329,6 +332,10 @@ app.post('/run', authCheck, async (req, res) => {
 
     const containerId = await dockerExec(args);
 
+    // Docker run succeeded — release pending locks (ports are now tracked in portAllocations)
+    pendingPorts.delete(hostPort);
+    for (const epm of extraPortMappings) pendingPorts.delete(epm.hostPort);
+
     const info = {
       containerId: containerId.substring(0, 12),
       containerName,
@@ -341,10 +348,26 @@ app.post('/run', authCheck, async (req, res) => {
     console.log(`[RUN] OK: ${containerName} (${info.containerId}) on port ${hostPort}`);
     res.json({ ok: true, ...info });
   } catch (e) {
-    // Release port allocation on failure
+    const isPortConflict = e.message && e.message.includes('port is already allocated');
+    // Release appId mapping
     delete portAllocations[appId];
+    // Clean up extra port allocations
+    for (const key of Object.keys(portAllocations)) {
+      if (key.startsWith(appId + ':')) {
+        const ep = portAllocations[key];
+        if (!isPortConflict) pendingPorts.delete(ep);
+        delete portAllocations[key];
+      }
+    }
     savePortAllocations();
-    console.error(`[RUN] FAILED: ${containerName} — ${e.message}`);
+    if (isPortConflict) {
+      // Port is occupied on the host — keep it in pendingPorts so it's never reused
+      console.error(`[RUN] FAILED (port conflict): ${containerName} — port ${hostPort} occupied on host, blocking it`);
+    } else {
+      // Other failure — release the pending port lock
+      pendingPorts.delete(hostPort);
+      console.error(`[RUN] FAILED: ${containerName} — ${e.message}`);
+    }
     res.status(500).json({ error: e.message });
   }
 });
@@ -362,10 +385,15 @@ app.post('/stop', authCheck, async (req, res) => {
   try {
     await dockerExec(['rm', '-f', containerName]);
     delete containers[appId];
+    // Release from pendingPorts before deleting from portAllocations
+    if (portAllocations[appId]) pendingPorts.delete(portAllocations[appId]);
     delete portAllocations[appId];
     // Clean up extra port allocations
     for (const key of Object.keys(portAllocations)) {
-      if (key.startsWith(appId + ':')) delete portAllocations[key];
+      if (key.startsWith(appId + ':')) {
+        pendingPorts.delete(portAllocations[key]);
+        delete portAllocations[key];
+      }
     }
     savePortAllocations();
     console.log(`[STOP] OK: ${containerName} removed`);

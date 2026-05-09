@@ -1,0 +1,128 @@
+<div class="oo-install-form">
+  <div class="oo-install-header">
+    <span class="oo-install-icon">📝</span>
+    <h3>OnlyOffice</h3>
+    <p class="oo-install-subtitle" data-i18n="subtitle">OnlyOffice Document Server yapılandırması</p>
+  </div>
+  <div class="oo-install-body">
+    <label data-i18n="jwtLabel">JWT Gizli Anahtarı</label>
+    <div class="oo-password-wrap">
+      <input type="password" id="oo-jwt-secret" value="" placeholder="En az 8 karakter" autocomplete="new-password" class="oo-input" />
+      <button type="button" class="oo-eye-btn" onclick="toggleOoPass()">👁</button>
+    </div>
+    <p class="oo-install-hint" data-i18n="jwtHint">API bağlantıları için JWT doğrulama anahtarı. Güçlü bir anahtar girin.</p>
+
+    <label data-i18n="exampleLabel" style="margin-top:14px">Örnek Sayfa</label>
+    <div class="oo-toggle-wrap">
+      <input type="checkbox" id="oo-example-enabled" checked />
+      <span data-i18n="exampleDesc">Yerleşik örnek editör sayfasını etkinleştir</span>
+    </div>
+    <p class="oo-install-hint" data-i18n="exampleHint">Doğrudan belge oluşturmak ve düzenlemek için yerleşik demo sayfayı açar.</p>
+
+    <div class="oo-install-error" id="oo-install-error" style="display:none"></div>
+  </div>
+  <div class="oo-install-footer">
+    <button class="oo-cancel-btn" onclick="cancelServiceInstall()" data-i18n="cancel">İptal</button>
+    <button class="oo-install-btn" onclick="confirmServiceInstall()" data-i18n="installBtn">Kur ve Başlat</button>
+  </div>
+</div>
+
+<script>
+  const OO_I18N = {
+    tr: { subtitle: 'OnlyOffice Document Server yapılandırması', jwtLabel: 'JWT Gizli Anahtarı', jwtHint: 'API bağlantıları için JWT doğrulama anahtarı. Güçlü bir anahtar girin.', exampleLabel: 'Örnek Sayfa', exampleDesc: 'Yerleşik örnek editör sayfasını etkinleştir', exampleHint: 'Doğrudan belge oluşturmak ve düzenlemek için yerleşik demo sayfayı açar.', cancel: 'İptal', installBtn: 'Kur ve Başlat', errorShort: 'JWT anahtarı en az 8 karakter olmalı' },
+    en: { subtitle: 'OnlyOffice Document Server configuration', jwtLabel: 'JWT Secret Key', jwtHint: 'JWT validation key for API connections. Enter a strong key.', exampleLabel: 'Example Page', exampleDesc: 'Enable built-in example editor page', exampleHint: 'Opens the built-in demo page for creating and editing documents directly.', cancel: 'Cancel', installBtn: 'Install & Start', errorShort: 'JWT secret must be at least 8 characters' },
+    de: { subtitle: 'OnlyOffice Document Server Konfiguration', jwtLabel: 'JWT-Geheimschlüssel', jwtHint: 'JWT-Validierungsschlüssel für API-Verbindungen. Geben Sie einen starken Schlüssel ein.', exampleLabel: 'Beispielseite', exampleDesc: 'Integrierte Beispiel-Editorseite aktivieren', exampleHint: 'Öffnet die integrierte Demoseite zum direkten Erstellen und Bearbeiten von Dokumenten.', cancel: 'Abbrechen', installBtn: 'Installieren & Starten', errorShort: 'JWT-Schlüssel muss mindestens 8 Zeichen lang sein' },
+    fr: { subtitle: 'Configuration du serveur OnlyOffice', jwtLabel: 'Clé secrète JWT', jwtHint: 'Clé de validation JWT pour les connexions API. Entrez une clé forte.', exampleLabel: 'Page exemple', exampleDesc: "Activer la page d'éditeur d'exemple intégrée", exampleHint: 'Ouvre la page de démonstration intégrée pour créer et modifier des documents directement.', cancel: 'Annuler', installBtn: 'Installer & Démarrer', errorShort: 'La clé JWT doit comporter au moins 8 caractères' },
+    es: { subtitle: 'Configuración del servidor OnlyOffice', jwtLabel: 'Clave secreta JWT', jwtHint: 'Clave de validación JWT para conexiones API. Introduzca una clave segura.', exampleLabel: 'Página de ejemplo', exampleDesc: 'Habilitar la página de editor de ejemplo integrada', exampleHint: 'Abre la página de demostración integrada para crear y editar documentos directamente.', cancel: 'Cancelar', installBtn: 'Instalar e Iniciar', errorShort: 'La clave JWT debe tener al menos 8 caracteres' },
+    ru: { subtitle: 'Конфигурация сервера OnlyOffice', jwtLabel: 'Секретный ключ JWT', jwtHint: 'Ключ проверки JWT для подключений API. Введите надёжный ключ.', exampleLabel: 'Пример страницы', exampleDesc: 'Включить встроенную страницу редактора-примера', exampleHint: 'Открывает встроенную демонстрационную страницу для прямого создания и редактирования документов.', cancel: 'Отмена', installBtn: 'Установить и запустить', errorShort: 'Секрет JWT должен содержать не менее 8 символов' },
+    zh: { subtitle: 'OnlyOffice 文档服务器配置', jwtLabel: 'JWT 密钥', jwtHint: '用于 API 连接的 JWT 验证密钥。请输入强密钥。', exampleLabel: '示例页面', exampleDesc: '启用内置示例编辑器页面', exampleHint: '打开内置演示页面，可直接创建和编辑文档。', cancel: '取消', installBtn: '安装并启动', errorShort: 'JWT 密钥至少需要 8 个字符' },
+    ja: { subtitle: 'OnlyOffice Document Server の設定', jwtLabel: 'JWT シークレットキー', jwtHint: 'API 接続用の JWT 検証キー。強力なキーを入力してください。', exampleLabel: 'サンプルページ', exampleDesc: '組み込みのサンプルエディタページを有効にする', exampleHint: 'ドキュメントを直接作成・編集できる組み込みデモページを開きます。', cancel: 'キャンセル', installBtn: 'インストールして起動', errorShort: 'JWT シークレットは 8 文字以上必要です' },
+    it: { subtitle: 'Configurazione server OnlyOffice', jwtLabel: 'Chiave segreta JWT', jwtHint: 'Chiave di convalida JWT per le connessioni API. Inserisci una chiave forte.', exampleLabel: 'Pagina di esempio', exampleDesc: "Abilita la pagina dell'editor di esempio integrata", exampleHint: 'Apre la pagina demo integrata per creare e modificare documenti direttamente.', cancel: 'Annulla', installBtn: 'Installa e Avvia', errorShort: 'La chiave JWT deve essere di almeno 8 caratteri' },
+    ar: { subtitle: 'تكوين خادم OnlyOffice', jwtLabel: 'المفتاح السري JWT', jwtHint: 'مفتاح التحقق JWT لاتصالات API. أدخل مفتاحًا قويًا.', exampleLabel: 'صفحة المثال', exampleDesc: 'تمكين صفحة المحرر المدمجة', exampleHint: 'يفتح صفحة العرض التوضيحي المدمجة لإنشاء المستندات وتحريرها مباشرة.', cancel: 'إلغاء', installBtn: 'تثبيت وتشغيل', errorShort: 'يجب أن يحتوي مفتاح JWT على 8 أحرف على الأقل' },
+    ko: { subtitle: 'OnlyOffice Document Server 구성', jwtLabel: 'JWT 비밀 키', jwtHint: 'API 연결을 위한 JWT 유효성 검사 키. 강력한 키를 입력하세요.', exampleLabel: '예제 페이지', exampleDesc: '내장 예제 편집기 페이지 활성화', exampleHint: '문서를 직접 만들고 편집할 수 있는 내장 데모 페이지를 엽니다.', cancel: '취소', installBtn: '설치 및 시작', errorShort: 'JWT 비밀은 8자 이상이어야 합니다' },
+    hi: { subtitle: 'OnlyOffice Document Server कॉन्फ़िगरेशन', jwtLabel: 'JWT गुप्त कुंजी', jwtHint: 'API कनेक्शन के लिए JWT सत्यापन कुंजी। एक मजबूत कुंजी दर्ज करें।', exampleLabel: 'उदाहरण पृष्ठ', exampleDesc: 'अंतर्निहित उदाहरण संपादक पृष्ठ सक्षम करें', exampleHint: 'सीधे दस्तावेज़ बनाने और संपादित करने के लिए अंतर्निहित डेमो पृष्ठ खोलता है।', cancel: 'रद्द करें', installBtn: 'इंस्टॉल करें और शुरू करें', errorShort: 'JWT कुंजी कम से कम 8 अक्षर होनी चाहिए' },
+    pt: { subtitle: 'Configuração do servidor OnlyOffice', jwtLabel: 'Chave secreta JWT', jwtHint: 'Chave de validação JWT para conexões API. Insira uma chave forte.', exampleLabel: 'Página de exemplo', exampleDesc: 'Habilitar página do editor de exemplo integrado', exampleHint: 'Abre a página de demonstração integrada para criar e editar documentos diretamente.', cancel: 'Cancelar', installBtn: 'Instalar e Iniciar', errorShort: 'A chave JWT deve ter pelo menos 8 caracteres' }
+  };
+
+  function getOoLocale() {
+    try { return window.__serviceInstallLocale || 'tr'; } catch { return 'tr'; }
+  }
+
+  function getOoI18n(key) {
+    const loc = getOoLocale();
+    return (OO_I18N[loc] || OO_I18N.tr)[key] || (OO_I18N.tr)[key] || key;
+  }
+
+  (function applyOoI18n() {
+    const loc = getOoLocale();
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const text = getOoI18n(key);
+      if (text && text !== key) {
+        if (el.tagName === 'INPUT') el.placeholder = text;
+        else el.textContent = text;
+      }
+    });
+  })();
+
+  function toggleOoPass() {
+    const inp = document.getElementById('oo-jwt-secret');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  function getInstallConfig() {
+    const jwtSecret = (document.getElementById('oo-jwt-secret').value || '').trim();
+    const exampleEnabled = document.getElementById('oo-example-enabled').checked;
+    const errEl = document.getElementById('oo-install-error');
+
+    if (!jwtSecret || jwtSecret.length < 8) {
+      errEl.textContent = getOoI18n('errorShort');
+      errEl.style.display = 'block';
+      return null;
+    }
+    errEl.style.display = 'none';
+
+    return {
+      JWT_SECRET: jwtSecret,
+      EXAMPLE_ENABLED: exampleEnabled ? 'true' : 'false'
+    };
+  }
+</script>
+
+<style>
+  .oo-install-form { padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; }
+  .oo-install-header { text-align: center; margin-bottom: 20px; }
+  .oo-install-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+  .oo-install-header h3 { margin: 0 0 4px; font-size: 20px; color: #fff; }
+  .oo-install-subtitle { margin: 0; font-size: 13px; color: #aaa; }
+  .oo-install-body label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #ccc; }
+  .oo-input {
+    width: 100%; padding: 10px 12px; border: 1px solid #444; border-radius: 6px;
+    background: #1e1e2e; color: #fff; font-size: 14px; outline: none; margin-bottom: 4px;
+    box-sizing: border-box;
+  }
+  .oo-input:focus { border-color: #ff6f3d; }
+  .oo-password-wrap { display: flex; gap: 6px; margin-bottom: 4px; }
+  .oo-password-wrap .oo-input { flex: 1; margin-bottom: 0; }
+  .oo-eye-btn {
+    background: #2a2a3e; border: 1px solid #444; border-radius: 6px;
+    color: #ccc; cursor: pointer; padding: 0 12px; font-size: 16px;
+  }
+  .oo-eye-btn:hover { background: #333350; }
+  .oo-install-hint { margin: 0 0 6px; font-size: 11px; color: #888; }
+  .oo-toggle-wrap { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .oo-toggle-wrap input[type="checkbox"] { width: 18px; height: 18px; accent-color: #ff6f3d; cursor: pointer; }
+  .oo-toggle-wrap span { font-size: 13px; color: #ccc; }
+  .oo-install-error { color: #ff6b6b; background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.2); border-radius: 6px; padding: 8px 12px; font-size: 12px; margin-top: 10px; }
+  .oo-install-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #333; }
+  .oo-cancel-btn {
+    padding: 8px 20px; border: 1px solid #555; border-radius: 6px;
+    background: transparent; color: #ccc; cursor: pointer; font-size: 13px;
+  }
+  .oo-cancel-btn:hover { background: #2a2a3e; }
+  .oo-install-btn {
+    padding: 8px 20px; border: none; border-radius: 6px;
+    background: linear-gradient(135deg,#0f4071,#ff6f3d); color: #fff; cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  .oo-install-btn:hover { opacity: 0.9; }
+</style>

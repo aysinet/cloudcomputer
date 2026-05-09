@@ -1,0 +1,120 @@
+<div class="pp-install-form">
+  <div class="pp-install-header">
+    <span class="pp-install-icon">📸</span>
+    <h3>PhotoPrism</h3>
+    <p class="pp-install-subtitle" data-i18n="subtitle">PhotoPrism yapılandırmasını belirleyin</p>
+  </div>
+  <div class="pp-install-body">
+    <label data-i18n="userLabel">Yönetici Kullanıcı Adı</label>
+    <input type="text" id="pp-admin-user" value="admin" class="pp-input" autocomplete="username" />
+    <p class="pp-install-hint" data-i18n="userHint">PhotoPrism yönetici paneline giriş kullanıcı adı.</p>
+
+    <label data-i18n="passwordLabel" style="margin-top:14px">Yönetici Şifresi</label>
+    <div class="pp-password-wrap">
+      <input type="password" id="pp-admin-password" value="" placeholder="En az 6 karakter" autocomplete="new-password" class="pp-input" />
+      <button type="button" class="pp-eye-btn" onclick="togglePpPass()">👁</button>
+    </div>
+    <p class="pp-install-hint" data-i18n="passwordHint">PhotoPrism yönetici şifresi. En az 6 karakter olmalıdır.</p>
+
+    <label data-i18n="titleLabel" style="margin-top:14px">Site Başlığı</label>
+    <input type="text" id="pp-site-title" value="PhotoPrism" class="pp-input" />
+    <p class="pp-install-hint" data-i18n="titleHint">Tarayıcı sekmesinde ve arayüzde görünecek başlık.</p>
+
+    <label data-i18n="captionLabel" style="margin-top:14px">Site Açıklaması</label>
+    <input type="text" id="pp-site-caption" value="AI-Powered Photos App" class="pp-input" />
+    <p class="pp-install-hint" data-i18n="captionHint">Ana sayfada görünen kısa açıklama.</p>
+
+    <div class="pp-install-error" id="pp-install-error" style="display:none"></div>
+  </div>
+  <div class="pp-install-footer">
+    <button class="pp-cancel-btn" onclick="cancelServiceInstall()" data-i18n="cancel">İptal</button>
+    <button class="pp-install-btn" onclick="confirmServiceInstall()" data-i18n="installBtn">Kur ve Başlat</button>
+  </div>
+</div>
+
+<script>
+  const PP_I18N = {
+    tr: { subtitle: 'PhotoPrism yapılandırmasını belirleyin', userLabel: 'Yönetici Kullanıcı Adı', userHint: 'PhotoPrism yönetici paneline giriş kullanıcı adı.', passwordLabel: 'Yönetici Şifresi', passwordHint: 'PhotoPrism yönetici şifresi. En az 6 karakter olmalıdır.', titleLabel: 'Site Başlığı', titleHint: 'Tarayıcı sekmesinde ve arayüzde görünecek başlık.', captionLabel: 'Site Açıklaması', captionHint: 'Ana sayfada görünen kısa açıklama.', cancel: 'İptal', installBtn: 'Kur ve Başlat', errorShort: 'Şifre en az 6 karakter olmalı', errorUser: 'Kullanıcı adı boş olamaz' },
+    en: { subtitle: 'Configure PhotoPrism settings', userLabel: 'Admin Username', userHint: 'Username to log in to PhotoPrism admin panel.', passwordLabel: 'Admin Password', passwordHint: 'PhotoPrism admin password. Must be at least 6 characters.', titleLabel: 'Site Title', titleHint: 'Title shown in browser tab and interface.', captionLabel: 'Site Caption', captionHint: 'Short description shown on the homepage.', cancel: 'Cancel', installBtn: 'Install & Start', errorShort: 'Password must be at least 6 characters', errorUser: 'Username cannot be empty' },
+    de: { subtitle: 'PhotoPrism-Einstellungen konfigurieren', userLabel: 'Admin-Benutzername', userHint: 'Benutzername für das PhotoPrism-Admin-Panel.', passwordLabel: 'Admin-Passwort', passwordHint: 'PhotoPrism-Admin-Passwort. Mindestens 6 Zeichen.', titleLabel: 'Seitentitel', titleHint: 'Titel im Browser-Tab und Interface.', captionLabel: 'Seitenbeschreibung', captionHint: 'Kurzbeschreibung auf der Startseite.', cancel: 'Abbrechen', installBtn: 'Installieren & Starten', errorShort: 'Passwort muss mindestens 6 Zeichen lang sein', errorUser: 'Benutzername darf nicht leer sein' },
+    fr: { subtitle: 'Configurer PhotoPrism', userLabel: "Nom d'utilisateur admin", userHint: "Nom d'utilisateur pour le panneau d'administration.", passwordLabel: 'Mot de passe admin', passwordHint: "Mot de passe admin PhotoPrism. Au moins 6 caractères.", titleLabel: 'Titre du site', titleHint: "Titre affiché dans l'onglet du navigateur.", captionLabel: 'Description du site', captionHint: "Courte description sur la page d'accueil.", cancel: 'Annuler', installBtn: 'Installer & Démarrer', errorShort: 'Le mot de passe doit comporter au moins 6 caractères', errorUser: "Le nom d'utilisateur ne peut pas être vide" },
+    es: { subtitle: 'Configurar PhotoPrism', userLabel: 'Nombre de usuario admin', userHint: 'Nombre de usuario para el panel de administración.', passwordLabel: 'Contraseña admin', passwordHint: 'Contraseña del administrador. Mínimo 6 caracteres.', titleLabel: 'Título del sitio', titleHint: 'Título en la pestaña del navegador.', captionLabel: 'Descripción del sitio', captionHint: 'Descripción breve en la página principal.', cancel: 'Cancelar', installBtn: 'Instalar e Iniciar', errorShort: 'La contraseña debe tener al menos 6 caracteres', errorUser: 'El nombre de usuario no puede estar vacío' }
+  };
+
+  function getPpLocale() {
+    try { return window.__serviceInstallLocale || 'tr'; } catch { return 'tr'; }
+  }
+
+  function getPpI18n(key) {
+    const loc = getPpLocale();
+    return (PP_I18N[loc] || PP_I18N.tr)[key] || (PP_I18N.tr)[key] || key;
+  }
+
+  function togglePpPass() {
+    const inp = document.getElementById('pp-admin-password');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  function getInstallConfig() {
+    const user = (document.getElementById('pp-admin-user').value || '').trim();
+    const password = (document.getElementById('pp-admin-password').value || '').trim();
+    const title = (document.getElementById('pp-site-title').value || '').trim();
+    const caption = (document.getElementById('pp-site-caption').value || '').trim();
+    const errEl = document.getElementById('pp-install-error');
+
+    if (!user) {
+      errEl.textContent = getPpI18n('errorUser');
+      errEl.style.display = 'block';
+      return null;
+    }
+    if (!password || password.length < 6) {
+      errEl.textContent = getPpI18n('errorShort');
+      errEl.style.display = 'block';
+      return null;
+    }
+    errEl.style.display = 'none';
+
+    return {
+      PHOTOPRISM_ADMIN_USER: user,
+      PHOTOPRISM_ADMIN_PASSWORD: password,
+      PHOTOPRISM_SITE_TITLE: title || 'PhotoPrism',
+      PHOTOPRISM_SITE_CAPTION: caption || 'AI-Powered Photos App',
+      PHOTOPRISM_DEFAULT_LOCALE: getPpLocale()
+    };
+  }
+</script>
+
+<style>
+  .pp-install-form { padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; }
+  .pp-install-header { text-align: center; margin-bottom: 20px; }
+  .pp-install-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+  .pp-install-header h3 { margin: 0 0 4px; font-size: 20px; color: #fff; }
+  .pp-install-subtitle { margin: 0; font-size: 13px; color: #aaa; }
+  .pp-install-body label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #ccc; }
+  .pp-input {
+    width: 100%; padding: 10px 12px; border: 1px solid #444; border-radius: 6px;
+    background: #1e1e2e; color: #fff; font-size: 14px; outline: none; margin-bottom: 4px;
+    box-sizing: border-box;
+  }
+  .pp-input:focus { border-color: #7c5cfc; }
+  .pp-password-wrap { display: flex; gap: 6px; margin-bottom: 4px; }
+  .pp-password-wrap .pp-input { flex: 1; margin-bottom: 0; }
+  .pp-eye-btn {
+    background: #2a2a3a; border: 1px solid #444; border-radius: 6px; padding: 0 12px;
+    cursor: pointer; font-size: 16px;
+  }
+  .pp-install-hint { font-size: 11px; color: #888; margin: 2px 0 0; }
+  .pp-install-error { color: #ff6b6b; font-size: 12px; margin-top: 12px; padding: 6px 10px; background: rgba(255,0,0,0.1); border-radius: 4px; }
+  .pp-install-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .pp-cancel-btn {
+    padding: 8px 20px; border: 1px solid #555; border-radius: 6px; background: transparent;
+    color: #ccc; cursor: pointer; font-size: 13px;
+  }
+  .pp-cancel-btn:hover { background: #333; }
+  .pp-install-btn {
+    padding: 8px 24px; border: none; border-radius: 6px;
+    background: linear-gradient(135deg, #7c5cfc, #00bcd4); color: #fff;
+    cursor: pointer; font-size: 13px; font-weight: 600;
+  }
+  .pp-install-btn:hover { opacity: 0.9; }
+</style>

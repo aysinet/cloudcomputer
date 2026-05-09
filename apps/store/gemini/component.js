@@ -1,0 +1,127 @@
+(function(Vue) {
+  const { ref, computed, onMounted, onBeforeUnmount } = Vue;
+
+  const LANGS = {
+    tr: {
+      home: 'Ana Sayfa', back: 'Geri', forward: 'İleri',
+      refresh: 'Yenile', openTab: 'Yeni Sekmede Aç'
+    },
+    en: {
+      home: 'Home', back: 'Back', forward: 'Forward',
+      refresh: 'Refresh', openTab: 'Open in New Tab'
+    },
+    de: {
+      home: 'Startseite', back: 'Zurück', forward: 'Vorwärts',
+      refresh: 'Aktualisieren', openTab: 'In neuem Tab öffnen'
+    },
+    fr: {
+      home: 'Accueil', back: 'Retour', forward: 'Suivant',
+      refresh: 'Actualiser', openTab: 'Ouvrir dans un nouvel onglet'
+    },
+    es: {
+      home: 'Inicio', back: 'Atrás', forward: 'Adelante',
+      refresh: 'Actualizar', openTab: 'Abrir en nueva pestaña'
+    },
+    ru: {
+      home: 'Главная', back: 'Назад', forward: 'Вперёд',
+      refresh: 'Обновить', openTab: 'Открыть в новой вкладке'
+    },
+    zh: {
+      home: '首页', back: '后退', forward: '前进',
+      refresh: '刷新', openTab: '新标签页打开'
+    },
+    ja: {
+      home: 'ホーム', back: '戻る', forward: '進む',
+      refresh: '更新', openTab: '新しいタブで開く'
+    }
+  };
+
+  return {
+    setup() {
+      const locale = ref(localStorage.getItem('sys_locale') || 'tr');
+      const t = computed(() => LANGS[locale.value] || LANGS.tr);
+      const geminiFrame = ref(null);
+
+      const HOME_URL = 'https://gemini.google.com/app';
+
+      function proxyUrl(url) {
+        return '/api/browser/proxy?url=' + encodeURIComponent(url) + '&interceptAll=1&proxyDomain=gemini.google.com';
+      }
+
+      function getRealUrl() {
+        const src = iframeSrc.value;
+        try {
+          const u = new URL(src, location.origin);
+          return u.searchParams.get('url') || src;
+        } catch { return src; }
+      }
+
+      const iframeSrc = ref(proxyUrl(HOME_URL));
+
+      function navigateHome() {
+        iframeSrc.value = proxyUrl(HOME_URL);
+      }
+
+      function goBack() {
+        try {
+          if (geminiFrame.value) geminiFrame.value.contentWindow.history.back();
+        } catch(e) {}
+      }
+
+      function goForward() {
+        try {
+          if (geminiFrame.value) geminiFrame.value.contentWindow.history.forward();
+        } catch(e) {}
+      }
+
+      function refresh() {
+        const src = iframeSrc.value;
+        iframeSrc.value = '';
+        setTimeout(() => { iframeSrc.value = src; }, 50);
+      }
+
+      function openExternal() {
+        window.open(getRealUrl(), '_blank');
+      }
+
+      function onIframeMessage(e) {
+        if (e.data && e.data.type === 'browser-navigate' && e.data.url) {
+          const url = e.data.url;
+          if (url.includes('gemini.google.com')) {
+            iframeSrc.value = proxyUrl(url);
+          } else {
+            window.dispatchEvent(new CustomEvent('open-app-action', { detail: { app: 'browser' } }));
+            setTimeout(() => {
+              window.dispatchEvent(new CustomEvent('browser-open-url', { detail: url }));
+            }, 300);
+          }
+        }
+      }
+
+      function onLocaleChange() {
+        locale.value = localStorage.getItem('sys_locale') || 'tr';
+      }
+
+      onMounted(() => {
+        window.addEventListener('locale-changed', onLocaleChange);
+        window.addEventListener('message', onIframeMessage);
+      });
+
+      onBeforeUnmount(() => {
+        window.removeEventListener('locale-changed', onLocaleChange);
+        window.removeEventListener('message', onIframeMessage);
+      });
+
+      return {
+        t,
+        iframeSrc,
+        geminiFrame,
+        navigateHome,
+        goBack,
+        goForward,
+        refresh,
+        openExternal
+      };
+    }
+  };
+})(Vue);

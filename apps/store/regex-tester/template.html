@@ -1,0 +1,174 @@
+<div class="rxt-app">
+  <!-- Header -->
+  <div class="rxt-header">
+    <span class="rxt-title">🔣 {{L('title')}}</span>
+    <div class="rxt-header-actions">
+      <el-button size="small" @click="clearAll" text>🗑️ {{L('clear')}}</el-button>
+    </div>
+  </div>
+
+  <!-- Pattern input -->
+  <div class="rxt-pattern-area">
+    <div class="rxt-pattern-row">
+      <span class="rxt-slash">/</span>
+      <input class="rxt-pattern-input"
+             v-model="pattern"
+             :placeholder="L('patternPlaceholder')"
+             spellcheck="false"
+             autocomplete="off" />
+      <span class="rxt-slash">/</span>
+      <span class="rxt-flags-display">{{flagString}}</span>
+    </div>
+    <div v-if="errorMsg" class="rxt-error">⚠️ {{errorMsg}}</div>
+    <div class="rxt-flags-row">
+      <label class="rxt-flag-label">
+        <input type="checkbox" v-model="flagG" /> <span class="rxt-flag-letter">g</span> {{L('flagG')}}
+      </label>
+      <label class="rxt-flag-label">
+        <input type="checkbox" v-model="flagI" /> <span class="rxt-flag-letter">i</span> {{L('flagI')}}
+      </label>
+      <label class="rxt-flag-label">
+        <input type="checkbox" v-model="flagM" /> <span class="rxt-flag-letter">m</span> {{L('flagM')}}
+      </label>
+      <label class="rxt-flag-label">
+        <input type="checkbox" v-model="flagS" /> <span class="rxt-flag-letter">s</span> {{L('flagS')}}
+      </label>
+      <label class="rxt-flag-label">
+        <input type="checkbox" v-model="flagU" /> <span class="rxt-flag-letter">u</span> {{L('flagU')}}
+      </label>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="rxt-tabs">
+    <button :class="['rxt-tab', activeTab==='test' && 'rxt-tab-active']" @click="activeTab='test'">🎯 {{L('tab_test')}}</button>
+    <button :class="['rxt-tab', activeTab==='replace' && 'rxt-tab-active']" @click="activeTab='replace'">🔄 {{L('tab_replace')}}</button>
+    <button :class="['rxt-tab', activeTab==='explain' && 'rxt-tab-active']" @click="activeTab='explain'">📖 {{L('tab_explain')}}</button>
+    <button :class="['rxt-tab', activeTab==='cheatsheet' && 'rxt-tab-active']" @click="activeTab='cheatsheet'">📋 {{L('tab_cheatsheet')}}</button>
+  </div>
+
+  <!-- Tab content -->
+  <div class="rxt-content">
+
+    <!-- TEST TAB -->
+    <div v-if="activeTab==='test'" class="rxt-tab-content">
+      <div class="rxt-section">
+        <label class="rxt-label">{{L('testString')}}</label>
+        <textarea class="rxt-textarea"
+                  v-model="testStr"
+                  :placeholder="L('testPlaceholder')"
+                  spellcheck="false"
+                  rows="5"></textarea>
+      </div>
+
+      <!-- Highlighted preview -->
+      <div v-if="testStr && pattern" class="rxt-section">
+        <label class="rxt-label">{{L('matches')}}
+          <span class="rxt-match-count" v-if="matchResults.length">
+            ({{matchResults.length}} {{L('matchCount')}})
+          </span>
+        </label>
+        <div class="rxt-highlighted" v-html="highlightedText"></div>
+      </div>
+
+      <!-- No match -->
+      <div v-if="testStr && pattern && regex && matchResults.length === 0" class="rxt-no-match">
+        {{L('noMatch')}}
+      </div>
+
+      <!-- Match details -->
+      <div v-if="matchResults.length > 0" class="rxt-match-list">
+        <div v-for="(m, idx) in matchResults" :key="idx" class="rxt-match-item">
+          <div class="rxt-match-header">
+            <span class="rxt-match-idx">#{{idx + 1}}</span>
+            <span class="rxt-match-value">"{{m.value}}"</span>
+            <span class="rxt-match-pos">{{L('index')}}: {{m.index}}</span>
+          </div>
+          <div v-if="m.groups.length > 0" class="rxt-groups">
+            <div v-for="(g, gi) in m.groups" :key="gi" class="rxt-group-item">
+              <span class="rxt-group-label">{{L('group')}} {{gi + 1}}:</span>
+              <span class="rxt-group-value">{{g !== undefined ? '"' + g + '"' : 'undefined'}}</span>
+            </div>
+          </div>
+          <div v-if="m.namedGroups" class="rxt-groups">
+            <div v-for="(val, key) in m.namedGroups" :key="key" class="rxt-group-item">
+              <span class="rxt-group-label">{{key}}:</span>
+              <span class="rxt-group-value">"{{val}}"</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Common patterns -->
+      <div class="rxt-section rxt-examples">
+        <label class="rxt-label">{{L('commonPatterns')}}</label>
+        <div class="rxt-example-grid">
+          <button v-for="ex in commonPatterns" :key="ex.label" class="rxt-example-btn" @click="loadExample(ex)">
+            {{ex.label}}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPLACE TAB -->
+    <div v-if="activeTab==='replace'" class="rxt-tab-content">
+      <div class="rxt-section">
+        <label class="rxt-label">{{L('testString')}}</label>
+        <textarea class="rxt-textarea"
+                  v-model="testStr"
+                  :placeholder="L('testPlaceholder')"
+                  spellcheck="false"
+                  rows="4"></textarea>
+      </div>
+      <div class="rxt-section">
+        <label class="rxt-label">{{L('replace')}}</label>
+        <input class="rxt-replace-input"
+               v-model="replaceStr"
+               :placeholder="L('replacePlaceholder')"
+               spellcheck="false" />
+      </div>
+      <div class="rxt-section" v-if="replaceResult !== undefined">
+        <div class="rxt-result-header">
+          <label class="rxt-label">{{L('replaceResult')}}</label>
+          <el-button size="small" @click="copyResult(replaceResult)" text :class="{'rxt-copied': copiedFlag}">
+            {{copiedFlag ? '✅ ' + L('copied') : '📋 ' + L('copy')}}
+          </el-button>
+        </div>
+        <div class="rxt-result-box">{{replaceResult}}</div>
+      </div>
+    </div>
+
+    <!-- EXPLAIN TAB -->
+    <div v-if="activeTab==='explain'" class="rxt-tab-content">
+      <div v-if="!pattern" class="rxt-no-match">{{L('patternPlaceholder')}}</div>
+      <div v-else class="rxt-explain-list">
+        <div class="rxt-explain-visual">
+          <span v-for="(tok, i) in explanationTokens" :key="i"
+                class="rxt-explain-token"
+                :title="tok.desc">{{tok.token}}</span>
+        </div>
+        <div class="rxt-explain-table">
+          <div v-for="(tok, i) in explanationTokens" :key="i" class="rxt-explain-row">
+            <code class="rxt-explain-code">{{tok.token}}</code>
+            <span class="rxt-explain-desc">{{tok.desc}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHEATSHEET TAB -->
+    <div v-if="activeTab==='cheatsheet'" class="rxt-tab-content">
+      <div v-for="section in cheatsheet" :key="section.title" class="rxt-cheat-section">
+        <div class="rxt-cheat-title">{{section.title}}</div>
+        <div class="rxt-cheat-grid">
+          <div v-for="item in section.items" :key="item.token"
+               class="rxt-cheat-item" @click="insertToken(item.token)">
+            <code class="rxt-cheat-token">{{item.token}}</code>
+            <span class="rxt-cheat-desc">{{item.desc}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

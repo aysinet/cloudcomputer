@@ -632,6 +632,7 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
             </div>
             <span class="si-type" :class="app.type">{{app.type==='internal'?t('internal'):t('external')}}</span>
             <button v-if="app.global" class="si-btn global">Global</button>
+            <button v-else-if="uninstallingApps.has(app.id)" class="si-btn uninstall" disabled style="opacity:.6;cursor:wait">⏳ {{t('uninstall')}}...</button>
             <button v-else-if="app.installed" class="si-btn uninstall" @click="uninstall(app)">{{t('uninstall')}}</button>
             <button v-else class="si-btn install" @click="install(app)">{{t('install')}}</button>
           </div>
@@ -721,6 +722,30 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
 <script>
 const { createApp, ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } = Vue;
 const { createPinia, defineStore } = Pinia;
+
+// ── Global 401 interceptor: redirect to login on token expiry ──
+(function() {
+  const _fetch = window.fetch;
+  let redirecting = false;
+  window.fetch = function(input, init) {
+    return _fetch.apply(this, arguments).then(function(response) {
+      if (response.status === 401 && !redirecting) {
+        const url = typeof input === 'string' ? input : (input && input.url) || '';
+        if (url.includes('/api/') && !url.includes('/api/login')) {
+          response.clone().json().then(function(data) {
+            if (data && data.expired) {
+              redirecting = true;
+              localStorage.removeItem('token');
+              localStorage.removeItem('auth_token');
+              location.replace('/login.html');
+            }
+          }).catch(function() {});
+        }
+      }
+      return response;
+    });
+  };
+})();
 
 const pinia = createPinia();
 
@@ -2759,6 +2784,8 @@ const APP_CATEGORY_META = {
   social: { icon: '📱', order: 9 },
   finance: { icon: '💰', order: 10 },
   education: { icon: '🎓', order: 12 },
+  designer: { icon: '🎨', order: 13 },
+  ai: { icon: '🤖', order: 14 },
   other: { icon: '📦', order: 99 }
 };
 const APP_CATEGORY_NAMES = {
@@ -2773,6 +2800,8 @@ const APP_CATEGORY_NAMES = {
   social: { tr: 'Sosyal', en: 'Social', de: 'Sozial', fr: 'Social', es: 'Social', ru: 'Социальные', zh: '社交', ja: 'ソーシャル', it: 'Social' },
   finance: { tr: 'Finans', en: 'Finance', de: 'Finanzen', fr: 'Finance', es: 'Finanzas', ru: 'Финансы', zh: '金融', ja: 'ファイナンス', it: 'Finanza' },
   education: { tr: 'Eğitim', en: 'Education', de: 'Bildung', fr: 'Éducation', es: 'Educación', ru: 'Образование', zh: '教育', ja: '教育', it: 'Istruzione', ar: 'التعليم', ko: '교육', hi: 'शिक्षा', pt: 'Educação' },
+  designer: { tr: 'Tasarım', en: 'Designer', de: 'Design', fr: 'Design', es: 'Diseño', ru: 'Дизайн', zh: '设计', ja: 'デザイン', it: 'Design', ar: 'تصميم', ko: '디자인', hi: 'डिज़ाइन', pt: 'Design' },
+  ai: { tr: 'Yapay Zeka', en: 'AI', de: 'KI', fr: 'IA', es: 'IA', ru: 'ИИ', zh: '人工智能', ja: 'AI', it: 'IA', ar: 'ذكاء اصطناعي', ko: 'AI', hi: 'AI', pt: 'IA' },
   other: { tr: 'Diğer', en: 'Other', de: 'Sonstige', fr: 'Autres', es: 'Otros', ru: 'Другое', zh: '其他', ja: 'その他', it: 'Altro' }
 };
 function getAppCatName(catId, locale) {
@@ -2815,7 +2844,10 @@ const AppStoreApp = {
       } catch (e) { console.error('Install error', e); }
     }
 
+    const uninstallingApps = reactive(new Set());
+
     async function uninstall(app) {
+      uninstallingApps.add(app.id);
       try {
         const res = await fetch('/api/apps/uninstall', {
           method: 'POST',
@@ -2827,6 +2859,7 @@ const AppStoreApp = {
           window.dispatchEvent(new CustomEvent('app-uninstalled', { detail: { id: app.id } }));
         }
       } catch (e) { console.error('Uninstall error', e); }
+      uninstallingApps.delete(app.id);
     }
 
     onMounted(() => loadStore());
@@ -2856,7 +2889,7 @@ const AppStoreApp = {
 
     function sAppName(app) { const loc = useSettingsStore().locale; const l = (app.lang||{})[loc] || (app.lang||{}).tr; return l && l.name ? l.name : app.name; }
     function sAppDesc(app) { const loc = useSettingsStore().locale; const l = (app.lang||{})[loc] || (app.lang||{}).tr; return l && l.description ? l.description : (app.description||''); }
-    return { storeApps, storeCategories, activeCategory, loading, install, uninstall, t, appName: sAppName, appDesc: sAppDesc };
+    return { storeApps, storeCategories, activeCategory, loading, install, uninstall, uninstallingApps, t, appName: sAppName, appDesc: sAppDesc };
   }
 };
 
@@ -3310,7 +3343,15 @@ createApp({
           }
         } catch {}
       };
-      wsConn.onclose = () => { setTimeout(connectWS, 5000); };
+      wsConn.onclose = (e) => {
+        if (e.code === 4001) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('auth_token');
+          location.replace('/login.html');
+          return;
+        }
+        setTimeout(connectWS, 5000);
+      };
       wsConn.onerror = () => { wsConn.close(); };
     }
 

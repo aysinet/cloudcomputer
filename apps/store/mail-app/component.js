@@ -61,7 +61,12 @@
         all:'Tümü',
         unread:'Okunmamış',
         searchContacts:'Kişi ara...',
-        noContacts:'Kişi bulunamadı'
+        noContacts:'Kişi bulunamadı',
+        selectAll:'Tümünü Seç',
+        deselectAll:'Seçimi Kaldır',
+        deleteSelected:'Seçilenleri Sil',
+        markReadSelected:'Okundu İşaretle',
+        selected:'seçili'
       },
       en: {
         title:'Mail',
@@ -119,7 +124,12 @@
         all:'All',
         unread:'Unread',
         searchContacts:'Search contacts...',
-        noContacts:'No contacts found'
+        noContacts:'No contacts found',
+        selectAll:'Select All',
+        deselectAll:'Deselect All',
+        deleteSelected:'Delete Selected',
+        markReadSelected:'Mark as Read',
+        selected:'selected'
       },
       de: {
         title:'Mail',
@@ -177,7 +187,12 @@
         all:'Alle',
         unread:'Ungelesen',
         searchContacts:'Kontakte suchen...',
-        noContacts:'Keine Kontakte gefunden'
+        noContacts:'Keine Kontakte gefunden',
+        selectAll:'Alle auswählen',
+        deselectAll:'Auswahl aufheben',
+        deleteSelected:'Ausgewählte löschen',
+        markReadSelected:'Als gelesen markieren',
+        selected:'ausgewählt'
       },
       fr: {
         title:'Mail',
@@ -235,7 +250,12 @@
         all:'Tous',
         unread:'Non lus',
         searchContacts:'Rechercher...',
-        noContacts:'Aucun contact trouvé'
+        noContacts:'Aucun contact trouvé',
+        selectAll:'Tout sélectionner',
+        deselectAll:'Tout désélectionner',
+        deleteSelected:'Supprimer la sélection',
+        markReadSelected:'Marquer comme lu',
+        selected:'sélectionné(s)'
       },
       es: {
         title:'Correo',
@@ -293,7 +313,12 @@
         all:'Todos',
         unread:'No leídos',
         searchContacts:'Buscar contactos...',
-        noContacts:'No se encontraron contactos'
+        noContacts:'No se encontraron contactos',
+        selectAll:'Seleccionar todo',
+        deselectAll:'Deseleccionar',
+        deleteSelected:'Eliminar seleccionados',
+        markReadSelected:'Marcar como leído',
+        selected:'seleccionado(s)'
       },
       ru: {
         title:'Почта',
@@ -351,7 +376,12 @@
         all:'Все',
         unread:'Непрочитанные',
         searchContacts:'Поиск контактов...',
-        noContacts:'Контакты не найдены'
+        noContacts:'Контакты не найдены',
+        selectAll:'Выбрать все',
+        deselectAll:'Снять выделение',
+        deleteSelected:'Удалить выбранные',
+        markReadSelected:'Отметить прочитанным',
+        selected:'выбрано'
       },
       zh: {
         title:'邮件',
@@ -771,6 +801,8 @@
     const loading = ref(false);
     const fetchingMail = ref(false);
     const filterUnread = ref(false);
+    const selectMode = ref(false);
+    const selectedIds = ref(new Set());
 
     // Compose state
     const compose = reactive({ to: '', cc: '', bcc: '', subject: '', text: '', draftId: null, showCc: false });
@@ -917,6 +949,70 @@
           view.value = 'list';
           selectedMsg.value = null;
         }
+      } catch {}
+    }
+
+    function getMsgId(msg) { return msg.uid || msg.messageId || msg.id; }
+
+    function toggleSelect(msg) {
+      const id = getMsgId(msg);
+      const s = new Set(selectedIds.value);
+      if (s.has(id)) s.delete(id); else s.add(id);
+      selectedIds.value = s;
+    }
+
+    function toggleSelectAll() {
+      if (selectedIds.value.size === filteredMessages.value.length) {
+        selectedIds.value = new Set();
+      } else {
+        selectedIds.value = new Set(filteredMessages.value.map(m => getMsgId(m)));
+      }
+    }
+
+    function exitSelectMode() {
+      selectMode.value = false;
+      selectedIds.value = new Set();
+    }
+
+    async function deleteSelected() {
+      const ids = [...selectedIds.value];
+      if (!ids.length) return;
+      try {
+        await ElMessageBox.confirm(ids.length + ' ' + L('selected') + ' - ' + L('deleteSelected') + '?', { confirmButtonText: 'OK', cancelButtonText: L('cancel'), type: 'warning' });
+      } catch { return; }
+      for (const uid of ids) {
+        try {
+          await fetch('/api/mail/messages/' + folder.value + '/' + encodeURIComponent(uid), {
+            method: 'DELETE', headers: authHeaders()
+          });
+          messages.value = messages.value.filter(m => getMsgId(m) !== uid);
+        } catch {}
+      }
+      selectedIds.value = new Set();
+      if (filteredMessages.value.length === 0) selectMode.value = false;
+    }
+
+    async function markSelectedRead() {
+      const ids = [...selectedIds.value];
+      if (!ids.length) return;
+      for (const uid of ids) {
+        try {
+          await fetch('/api/mail/read/' + uid, { method: 'POST', headers: authHeaders() });
+          const msg = messages.value.find(m => getMsgId(m) === uid);
+          if (msg) msg.read = true;
+        } catch {}
+      }
+      selectedIds.value = new Set();
+      ElMessage.success(ids.length + ' ' + L('markRead'));
+    }
+
+    async function deleteMessageFromList(msg) {
+      const uid = getMsgId(msg);
+      try {
+        await fetch('/api/mail/messages/' + folder.value + '/' + encodeURIComponent(uid), {
+          method: 'DELETE', headers: authHeaders()
+        });
+        messages.value = messages.value.filter(m => getMsgId(m) !== uid);
       } catch {}
     }
 
@@ -1068,7 +1164,7 @@
     }
 
     // Watchers
-    watch(folder, () => { view.value = 'list'; selectedMsg.value = null; loadMessages(); });
+    watch(folder, () => { view.value = 'list'; selectedMsg.value = null; selectMode.value = false; selectedIds.value = new Set(); loadMessages(); });
 
     // Incoming compose from other apps
     function onMailCompose(e) {
@@ -1112,6 +1208,8 @@
     return {
       L, accounts, activeAccountId, activeAccount, folder, view, messages, selectedMsg,
       loading, fetchingMail, filterUnread, filteredMessages, unreadCount,
+      selectMode, selectedIds, toggleSelect, toggleSelectAll, exitSelectMode,
+      deleteSelected, markSelectedRead, deleteMessageFromList, getMsgId,
       compose, sendingMail, sendResult, sendMail, saveDraft, resetCompose,
       accForm, accFormError, testing, openAddAccount, openEditAccount, saveAccount, deleteAccount,
       setActiveAccount, testConn,

@@ -1,0 +1,27 @@
+{
+  "id": "resume-builder",
+  "icon": "📄",
+  "name": "Resume Builder",
+  "lang": {
+    "tr": { "name": "CV Oluşturucu", "description": "Profesyonel CV / özgeçmiş oluşturucu — PDF dışa aktarma desteği" },
+    "en": { "name": "Resume Builder", "description": "Professional resume / CV builder with PDF export" },
+    "de": { "name": "Lebenslauf-Editor", "description": "Professioneller Lebenslauf-Editor mit PDF-Export" },
+    "fr": { "name": "Créateur de CV", "description": "Créateur de CV professionnel avec export PDF" },
+    "es": { "name": "Constructor de CV", "description": "Constructor de currículum profesional con exportación PDF" },
+    "ru": { "name": "Конструктор резюме", "description": "Профессиональный конструктор резюме с экспортом в PDF" },
+    "zh": { "name": "简历生成器", "description": "专业简历生成器，支持PDF导出" },
+    "ja": { "name": "履歴書ビルダー", "description": "PDF出力対応のプロフェッショナル履歴書ビルダー" },
+    "it": { "name": "Creatore CV", "description": "Creatore di curriculum professionale con esportazione PDF" },
+    "ar": { "name": "منشئ السيرة الذاتية", "description": "منشئ سيرة ذاتية احترافي مع تصدير PDF" },
+    "ko": { "name": "이력서 빌더", "description": "PDF 내보내기를 지원하는 전문 이력서 작성기" },
+    "hi": { "name": "रिज्यूमे बिल्डर", "description": "PDF निर्यात के साथ पेशेवर रिज्यूमे बिल्डर" },
+    "pt": { "name": "Criador de Currículo", "description": "Criador de currículo profissional com exportação PDF" }
+  },
+  "category": "productivity",
+  "version": "1.0.0",
+  "author": "CloudComputer",
+  "color": "linear-gradient(135deg,#1e3a5f,#2980b9)",
+  "width": 1100,
+  "height": 700,
+  "singleInstance": true
+}

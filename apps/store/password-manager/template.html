@@ -47,7 +47,7 @@
     </div>
 
     <!-- Detail Panel (dialog) -->
-    <el-dialog v-model="showDetail" :title="isEditing ? (editingEntry.id ? L('editTitle') : L('newEntry')) : detailEntry?.title" width="420px" :close-on-click-modal="false" append-to-body>
+    <el-dialog v-model="showDetail" :title="isEditing ? (editingEntry.id ? L('editTitle') : L('newEntry')) : detailEntry?.title" width="420px" :close-on-click-modal="false">
       <template v-if="isEditing">
         <el-form label-position="top" size="small">
           <el-form-item :label="L('lblTitle')">
@@ -134,7 +134,7 @@
     </el-dialog>
 
     <!-- Group Manager Dialog -->
-    <el-dialog v-model="showGroups" :title="L('manageGroups')" width="380px" append-to-body>
+    <el-dialog v-model="showGroups" :title="L('manageGroups')" width="380px">
       <div class="pm-group-list">
         <div v-for="(g, i) in groups" :key="i" class="pm-group-item">
           <span>{{g}}</span>
@@ -155,7 +155,7 @@
     </el-dialog>
 
     <!-- Change Master Password Dialog -->
-    <el-dialog v-model="showChangePw" :title="L('changePwTitle')" width="380px" append-to-body :close-on-click-modal="false">
+    <el-dialog v-model="showChangePw" :title="L('changePwTitle')" width="380px" :close-on-click-modal="false">
       <el-form label-position="top" size="small">
         <el-form-item :label="L('currentPw')">
           <el-input v-model="changePwCurrent" type="password" show-password />

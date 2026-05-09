@@ -1,0 +1,64 @@
+{
+  "id": "deepseek",
+  "name": "DeepSeek",
+  "icon": "🐋",
+  "color": "linear-gradient(135deg,#4d6bfe,#3b52cc)",
+  "type": "internal",
+  "size": {
+    "w": 1000,
+    "h": 700
+  },
+  "global": false,
+  "description": "DeepSeek — Yapay zeka sohbet asistanı",
+  "category": "ai",
+  "lang": {
+    "tr": {
+      "name": "DeepSeek",
+      "description": "DeepSeek — Yapay zeka sohbet asistanı"
+    },
+    "en": {
+      "name": "DeepSeek",
+      "description": "DeepSeek — AI chat assistant"
+    },
+    "de": {
+      "name": "DeepSeek",
+      "description": "DeepSeek — KI-Chat-Assistent"
+    },
+    "fr": {
+      "name": "DeepSeek",
+      "description": "DeepSeek — Assistant de chat IA"
+    },
+    "es": {
+      "name": "DeepSeek",
+      "description": "DeepSeek — Asistente de chat con IA"
+    },
+    "ru": {
+      "name": "DeepSeek",
+      "description": "DeepSeek — ИИ-чат-ассистент"
+    },
+    "zh": {
+      "name": "DeepSeek",
+      "description": "DeepSeek — AI聊天助手"
+    },
+    "ja": {
+      "name": "DeepSeek",
+      "description": "DeepSeek — AIチャットアシスタント"
+    },
+    "it": {
+      "name": "DeepSeek",
+      "description": "DeepSeek — Assistente chat IA"
+    },
+    "ar": {
+      "name": "DeepSeek",
+      "description": "DeepSeek — مساعد الدردشة بالذكاء الاصطناعي"
+    },
+    "pt": {
+      "name": "DeepSeek",
+      "description": "DeepSeek — Assistente de chat com IA"
+    },
+    "ko": {
+      "name": "DeepSeek",
+      "description": "DeepSeek — AI 채팅 어시스턴트"
+    }
+  }
+}

@@ -1,0 +1,148 @@
+.litellm-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #0f1729;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.ll-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.ll-icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.ll-status-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.ll-sub-text {
+  font-size: 13px;
+  color: #5b9cf5;
+  max-width: 360px;
+}
+
+.ll-error-msg {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.ll-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #1a73e8;
+  border-radius: 50%;
+  animation: ll-spin 0.8s linear infinite;
+}
+
+@keyframes ll-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ll-btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: all 0.2s;
+  background: #1a2744;
+  color: #e0e0e0;
+}
+
+.ll-btn:hover {
+  background: #243759;
+}
+
+.ll-btn-primary {
+  background: #1a73e8;
+  color: #fff;
+  font-weight: 600;
+}
+
+.ll-btn-primary:hover {
+  background: #2b84f5;
+}
+
+.ll-btn-large {
+  padding: 12px 32px;
+  font-size: 16px;
+  border-radius: 12px;
+}
+
+.ll-btn-small {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.ll-btn-danger {
+  background: #c62828;
+  color: #fff;
+}
+
+.ll-btn-danger:hover {
+  background: #e53935;
+}
+
+.ll-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ll-running {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.ll-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: #0d1220;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  min-height: 36px;
+}
+
+.ll-info {
+  font-size: 13px;
+  font-weight: 500;
+  color: #c5cde8;
+}
+
+.ll-toolbar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.ll-iframe {
+  flex: 1;
+  border: none;
+  width: 100%;
+  background: #0f1729;
+}

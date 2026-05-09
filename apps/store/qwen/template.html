@@ -1,0 +1,24 @@
+<div class="qwen-app">
+  <!-- Toolbar -->
+  <div class="qwen-toolbar">
+    <span class="qwen-toolbar-title">🤖 Qwen</span>
+    <div class="qwen-toolbar-actions">
+      <button class="qwen-btn" @click="navigateHome" :title="t.home">🏠</button>
+      <button class="qwen-btn" @click="goBack" :title="t.back">◀</button>
+      <button class="qwen-btn" @click="goForward" :title="t.forward">▶</button>
+      <button class="qwen-btn" @click="refresh" :title="t.refresh">🔄</button>
+      <div class="qwen-separator"></div>
+      <button class="qwen-btn" @click="openExternal" :title="t.openTab">🔗</button>
+    </div>
+  </div>
+
+  <!-- Qwen iframe -->
+  <iframe
+    :src="iframeSrc"
+    class="qwen-frame"
+    ref="qwenFrame"
+    frameborder="0"
+    allow="fullscreen"
+    referrerpolicy="no-referrer"
+  ></iframe>
+</div>

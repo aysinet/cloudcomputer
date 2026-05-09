@@ -1,0 +1,84 @@
+<div class="mmed-app">
+  <!-- TOOLBAR -->
+  <div class="mmed-toolbar">
+    <div class="mmed-toolbar-group">
+      <el-button size="small" @click="newDiagram">📄 {{L('new')}}</el-button>
+      <el-button size="small" @click="openFile">📂 {{L('open')}}</el-button>
+      <el-button size="small" @click="saveFile" type="success">💾 {{L('save')}}</el-button>
+    </div>
+    <div class="mmed-toolbar-group">
+      <el-select v-model="currentTemplate" size="small" :placeholder="L('templates')" style="width:180px" @change="applyTemplate">
+        <el-option v-for="t in templates" :key="t.key" :label="L('tpl_'+t.key)" :value="t.key" />
+      </el-select>
+    </div>
+    <div class="mmed-toolbar-group">
+      <el-button size="small" @click="exportSvg" :disabled="!!errorMsg">📤 SVG</el-button>
+      <el-button size="small" @click="exportPng" :disabled="!!errorMsg">🖼️ PNG</el-button>
+    </div>
+    <div class="mmed-toolbar-group">
+      <el-select v-model="theme" size="small" style="width:120px" @change="renderDiagram">
+        <el-option value="default" :label="L('themeDefault')" />
+        <el-option value="dark" :label="L('themeDark')" />
+        <el-option value="forest" :label="L('themeForest')" />
+        <el-option value="neutral" :label="L('themeNeutral')" />
+      </el-select>
+    </div>
+    <div class="mmed-toolbar-spacer"></div>
+    <div class="mmed-toolbar-group">
+      <el-button size="small" :type="layout==='split'?'primary':''" @click="layout='split'" circle>◫</el-button>
+      <el-button size="small" :type="layout==='editor'?'primary':''" @click="layout='editor'" circle>📝</el-button>
+      <el-button size="small" :type="layout==='preview'?'primary':''" @click="layout='preview'" circle>👁</el-button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="mmed-main" :class="'mmed-layout-'+layout">
+    <!-- EDITOR PANEL -->
+    <div class="mmed-editor-panel" v-show="layout!=='preview'">
+      <div class="mmed-editor-header">
+        <span>📝 {{L('code')}}</span>
+        <span class="mmed-line-info">{{L('line')}}: {{cursorLine}} | {{L('col')}}: {{cursorCol}}</span>
+      </div>
+      <div class="mmed-editor-wrap">
+        <textarea ref="editorEl" class="mmed-textarea" v-model="code" @input="onCodeInput" @keydown="onKeyDown" @click="updateCursor" @keyup="updateCursor" spellcheck="false"></textarea>
+        <div class="mmed-line-numbers" ref="lineNumbersEl">
+          <div v-for="n in lineCount" :key="n" class="mmed-ln" :class="{active: n===cursorLine}">{{n}}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESIZER -->
+    <div class="mmed-resizer" v-if="layout==='split'" @mousedown="startResize"></div>
+
+    <!-- PREVIEW PANEL -->
+    <div class="mmed-preview-panel" v-show="layout!=='editor'">
+      <div class="mmed-preview-header">
+        <span>👁 {{L('preview')}}</span>
+        <div class="mmed-zoom-group">
+          <el-button size="small" @click="zoomOut" circle>−</el-button>
+          <span class="mmed-zoom-label">{{zoomPercent}}%</span>
+          <el-button size="small" @click="zoomIn" circle>+</el-button>
+          <el-button size="small" @click="zoomReset" circle>↺</el-button>
+        </div>
+      </div>
+      <div class="mmed-preview-wrap" ref="previewWrap" @wheel.ctrl.prevent="onWheel">
+        <div class="mmed-preview-content" :style="{transform:'scale('+zoom+')',transformOrigin:'top center'}">
+          <div ref="previewEl" class="mmed-preview-svg"></div>
+        </div>
+        <div v-if="errorMsg" class="mmed-error">
+          <div class="mmed-error-icon">⚠️</div>
+          <div class="mmed-error-text">{{errorMsg}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUSBAR -->
+  <div class="mmed-statusbar">
+    <span>{{L('chars')}}: {{code.length}}</span>
+    <span>{{L('lines')}}: {{lineCount}}</span>
+    <span v-if="lastSaved">{{L('lastSaved')}}: {{lastSaved}}</span>
+    <span v-if="fileName" class="mmed-filename">📄 {{fileName}}</span>
+  </div>
+
+</div>

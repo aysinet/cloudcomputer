@@ -233,16 +233,32 @@
         <!-- LIST VIEW -->
         <div v-else class="mail-list">
           <div class="mail-content-header">
-            <h3>{{ L(folder) }}</h3>
+            <h3 v-if="!selectMode">{{ L(folder) }}</h3>
+            <div v-if="selectMode" class="mail-select-bar">
+              <el-checkbox :model-value="selectedIds.size === filteredMessages.length && filteredMessages.length > 0"
+                :indeterminate="selectedIds.size > 0 && selectedIds.size < filteredMessages.length"
+                @change="toggleSelectAll" style="margin-right:8px" />
+              <span class="mail-select-count">{{ selectedIds.size }} {{ L('selected') }}</span>
+              <el-button size="small" type="danger" :disabled="selectedIds.size===0" @click="deleteSelected" title="Delete selected">
+                🗑️ {{ L('deleteSelected') }}
+              </el-button>
+              <el-button v-if="folder==='inbox'" size="small" type="primary" :disabled="selectedIds.size===0" @click="markSelectedRead" title="Mark as read">
+                ✉️ {{ L('markReadSelected') }}
+              </el-button>
+              <el-button size="small" @click="exitSelectMode">✕</el-button>
+            </div>
             <div class="mail-list-actions">
-              <el-button-group v-if="folder==='inbox'" size="small">
+              <el-button v-if="!selectMode && filteredMessages.length > 0" size="small" @click="selectMode=true" title="Select">
+                ☑️
+              </el-button>
+              <el-button-group v-if="folder==='inbox' && !selectMode" size="small">
                 <el-button :type="!filterUnread?'primary':''" @click="filterUnread=false">{{ L('all') }}</el-button>
                 <el-button :type="filterUnread?'primary':''" @click="filterUnread=true">{{ L('unread') }}</el-button>
               </el-button-group>
-              <el-button size="small" @click="fetchMail" :loading="fetchingMail" v-if="folder==='inbox'" type="success">
+              <el-button size="small" @click="fetchMail" :loading="fetchingMail" v-if="folder==='inbox' && !selectMode" type="success">
                 {{ fetchingMail ? L('fetching') : '📥 ' + L('fetchMail') }}
               </el-button>
-              <el-button size="small" @click="loadMessages" :loading="loading" circle>🔄</el-button>
+              <el-button v-if="!selectMode" size="small" @click="loadMessages" :loading="loading" circle>🔄</el-button>
             </div>
           </div>
 
@@ -250,14 +266,16 @@
           <div v-else-if="filteredMessages.length===0" class="mail-empty">{{ L('noMails') }}</div>
           <div v-else class="mail-message-list">
             <div v-for="msg in filteredMessages" :key="msg.uid||msg.messageId||msg.id"
-              :class="['mail-msg-row', { unread: !msg.read && folder==='inbox' }]"
-              @click="folder==='drafts' ? openDraft(msg) : openMessage(msg)">
-              <div class="mail-msg-dot" v-if="folder==='inbox' && !msg.read"></div>
+              :class="['mail-msg-row', { unread: !msg.read && folder==='inbox', selected: selectMode && selectedIds.has(getMsgId(msg)) }]"
+              @click="selectMode ? toggleSelect(msg) : (folder==='drafts' ? openDraft(msg) : openMessage(msg))">
+              <el-checkbox v-if="selectMode" :model-value="selectedIds.has(getMsgId(msg))"
+                @click.stop @change="toggleSelect(msg)" class="mail-msg-checkbox" />
+              <div class="mail-msg-dot" v-if="folder==='inbox' && !msg.read && !selectMode"></div>
               <div class="mail-msg-from">{{ folder==='sent' ? (msg.to||'') : shortFrom(msg.from||'') }}</div>
               <div class="mail-msg-subject">{{ msg.subject || L('noSubject') }}</div>
               <div class="mail-msg-date">{{ formatDate(msg.date) }}</div>
-              <div class="mail-msg-del" @click.stop="folder==='drafts' ? deleteMessage(msg) : null">
-                <span v-if="folder==='drafts'" class="mail-del-icon">🗑️</span>
+              <div class="mail-msg-del" @click.stop="deleteMessageFromList(msg)" v-if="!selectMode">
+                <span class="mail-del-icon">🗑️</span>
               </div>
             </div>
           </div>

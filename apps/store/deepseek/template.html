@@ -1,0 +1,42 @@
+<div class="deepseek-app">
+  <!-- Toolbar -->
+  <div class="deepseek-toolbar">
+    <span class="deepseek-toolbar-title">🐋 DeepSeek</span>
+    <div class="deepseek-toolbar-actions">
+      <button class="deepseek-btn" @click="navigateHome" :title="t.home">🏠</button>
+      <button class="deepseek-btn" @click="goBack" :title="t.back">◀</button>
+      <button class="deepseek-btn" @click="goForward" :title="t.forward">▶</button>
+      <button class="deepseek-btn" @click="refresh" :title="t.refresh">🔄</button>
+      <div class="deepseek-separator"></div>
+      <button class="deepseek-btn" @click="openExternal" :title="t.openTab">🔗</button>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="deepseek-loading" v-if="isLoading && !loadFailed">
+    <div class="deepseek-loading-icon">🐋</div>
+    <div class="deepseek-loading-text">{{ t.loading }}</div>
+    <div class="deepseek-spinner"></div>
+  </div>
+
+  <!-- Blocked fallback -->
+  <div class="deepseek-blocked" v-if="loadFailed">
+    <div class="deepseek-blocked-icon">🐋</div>
+    <div class="deepseek-blocked-text">{{ t.blocked }}</div>
+    <button class="deepseek-open-btn" @click="openExternal">{{ t.openNew }}</button>
+    <button class="deepseek-retry-btn" @click="refresh">🔄 {{ t.refresh }}</button>
+  </div>
+
+  <!-- DeepSeek iframe -->
+  <iframe
+    v-show="!loadFailed"
+    :src="iframeSrc"
+    class="deepseek-frame"
+    ref="deepseekFrame"
+    frameborder="0"
+    allow="fullscreen"
+    referrerpolicy="no-referrer"
+    @load="onIframeLoad"
+    @error="onIframeError"
+  ></iframe>
+</div>

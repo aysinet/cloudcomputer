@@ -169,8 +169,25 @@
   text-align: right;
 }
 .mail-msg-del { width: 24px; text-align: center; }
-.mail-del-icon { font-size: 12px; opacity: .5; cursor: pointer; }
-.mail-del-icon:hover { opacity: 1; }
+.mail-del-icon { font-size: 12px; opacity: 0; cursor: pointer; transition: opacity .15s; }
+.mail-msg-row:hover .mail-del-icon { opacity: .6; }
+.mail-del-icon:hover { opacity: 1 !important; }
+
+/* Selection mode */
+.mail-msg-row.selected { background: rgba(74,144,217,.12); }
+.mail-msg-checkbox { margin-right: 4px; flex-shrink: 0; }
+.mail-select-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.mail-select-count {
+  font-size: 13px;
+  color: #6aabf7;
+  font-weight: 600;
+  margin-right: 4px;
+}
 
 /* Read view */
 .mail-read {
