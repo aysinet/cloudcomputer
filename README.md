@@ -1,4 +1,4 @@
-# ☁️ Cloud Computer
+# ☁️ Aysi Cloud Computer
 
 A full-featured web-based desktop operating system built with **Node.js**, **Express**, **Vue 3**, and **WebSocket**. Run your own personal cloud PC in the browser — complete with 140+ applications, AI assistant, Docker container management, multi-language support, and a community platform.
 
