@@ -1,0 +1,104 @@
+<div class="pyodide-root">
+  <!-- Loading State -->
+  <div v-if="pyStatus === 'loading' || pyStatus === 'loadingPkg'" class="py-status-screen">
+    <div class="py-spinner"></div>
+    <div class="py-icon-large">🐍</div>
+    <div class="py-status-text">{{ pyStatus === 'loading' ? L('loading') : L('loadingPkg') }}</div>
+    <div class="py-sub-text">WebAssembly</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="pyStatus === 'error'" class="py-status-screen">
+    <div class="py-icon-large">⚠️</div>
+    <div class="py-status-text">{{ L('loadError') }}</div>
+    <div class="py-error-msg">{{ errorMsg }}</div>
+    <button class="py-btn py-btn-primary" @click="initPyodide">🔄 {{ L('run') }}</button>
+  </div>
+
+  <!-- Ready State -->
+  <div v-else class="py-main">
+    <!-- Toolbar -->
+    <div class="py-toolbar">
+      <div class="py-toolbar-left">
+        <span class="py-brand">🐍 Pyodide</span>
+        <button class="py-btn py-btn-tab" :class="{ active: activeTab === 'editor' }" @click="activeTab = 'editor'">📝 {{ L('editor') }}</button>
+        <button class="py-btn py-btn-tab" :class="{ active: activeTab === 'console' }" @click="activeTab = 'console'">💻 {{ L('console') }}</button>
+      </div>
+      <div class="py-toolbar-right">
+        <select class="py-select" @change="loadSnippet($event.target.value); $event.target.value = ''" :title="L('snippet')">
+          <option value="">📋 {{ L('snippet') }}</option>
+          <option value="numpy">{{ L('snippetNumpy') }}</option>
+          <option value="pandas">{{ L('snippetPandas') }}</option>
+          <option value="plot">{{ L('snippetPlot') }}</option>
+        </select>
+        <button class="py-btn py-btn-pkg" @click="showPkgPanel = !showPkgPanel" :title="L('packages')">📦 {{ loadedPackages.length }}</button>
+        <button class="py-btn" @click="uploadFile" :title="L('loadFile')">📂</button>
+        <button class="py-btn" @click="downloadFile" :title="L('saveFile')">💾</button>
+        <button class="py-btn py-btn-sm" @click="fontSize = Math.max(10, fontSize - 1)">A-</button>
+        <button class="py-btn py-btn-sm" @click="fontSize = Math.min(24, fontSize + 1)">A+</button>
+      </div>
+    </div>
+
+    <!-- Package Panel -->
+    <div v-if="showPkgPanel" class="py-pkg-panel">
+      <div class="py-pkg-list">
+        <span class="py-pkg-badge" v-for="p in loadedPackages" :key="p">{{ p }}</span>
+      </div>
+      <div class="py-pkg-install">
+        <input class="py-pkg-input" v-model="newPkg" :placeholder="L('pkgPlaceholder')" @keydown.enter="installPackage" :disabled="installingPkg" />
+        <button class="py-btn py-btn-primary py-btn-sm" @click="installPackage" :disabled="installingPkg">
+          {{ installingPkg ? '⏳' : '📥' }} {{ L('installPkg') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="py-content">
+      <!-- Editor Panel -->
+      <div v-show="activeTab === 'editor'" class="py-editor-panel">
+        <div class="py-editor-toolbar">
+          <button class="py-btn py-btn-run" @click="runCode" :disabled="isRunning">
+            {{ isRunning ? '⏳ ' + L('running') : '▶ ' + L('run') }}
+          </button>
+          <span class="py-hint">Ctrl+Enter</span>
+        </div>
+        <textarea
+          ref="editorRef"
+          class="py-editor"
+          v-model="editorCode"
+          @keydown="editorKeyDown"
+          :style="{ fontSize: fontSize + 'px' }"
+          spellcheck="false"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+        ></textarea>
+      </div>
+
+      <!-- Console Panel -->
+      <div v-show="activeTab === 'console'" class="py-console-panel">
+        <div class="py-console-toolbar">
+          <button class="py-btn py-btn-sm" @click="clearConsole">🗑️ {{ L('clear') }}</button>
+        </div>
+        <div ref="outputRef" class="py-output" :style="{ fontSize: fontSize + 'px' }">
+          <div v-for="(line, i) in consoleOutput" :key="i" class="py-output-line" :class="'py-' + line.type">{{ line.text }}</div>
+          <div id="pyodide-plot-area"></div>
+        </div>
+        <div class="py-repl-bar">
+          <span class="py-prompt">&gt;&gt;&gt;</span>
+          <input
+            ref="replRef"
+            class="py-repl-input"
+            v-model="replInput"
+            @keydown="replKeyDown"
+            :placeholder="L('replHint')"
+            :style="{ fontSize: fontSize + 'px' }"
+            :disabled="isRunning"
+            spellcheck="false"
+            autocomplete="off"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

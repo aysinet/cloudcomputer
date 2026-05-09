@@ -1,0 +1,48 @@
+<div class="docuseal-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="ds-status-screen">
+    <div class="ds-spinner"></div>
+    <div class="ds-icon-large">📝</div>
+    <div class="ds-status-text">{{ pullProgress }}</div>
+    <div class="ds-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="ds-status-screen">
+    <div class="ds-spinner"></div>
+    <div class="ds-icon-large">📝</div>
+    <div class="ds-status-text">DocuSeal başlatılıyor...</div>
+    <div class="ds-sub-text">Doküman imzalama platformu hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="ds-status-screen ds-error">
+    <div class="ds-icon-large">⚠️</div>
+    <div class="ds-status-text">Bir hata oluştu</div>
+    <div class="ds-error-msg">{{ errorMsg }}</div>
+    <div class="ds-actions">
+      <button class="ds-btn ds-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="ds-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="ds-running">
+    <div class="ds-toolbar">
+      <span class="ds-info">📝 DocuSeal — Port: {{ port }}</span>
+      <div class="ds-toolbar-actions">
+        <button class="ds-btn ds-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="ds-btn ds-btn-small ds-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="ds-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="ds-status-screen">
+    <div class="ds-icon-large">📝</div>
+    <div class="ds-status-text">DocuSeal</div>
+    <div class="ds-sub-text">Açık kaynaklı dijital doküman imzalama ve doldurma platformu</div>
+    <button class="ds-btn ds-btn-primary ds-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+<div class="vim-root">
+  <!-- Toolbar -->
+  <div class="vim-toolbar">
+    <div class="vim-toolbar-left">
+      <span class="vim-title">📟 Vim Editor</span>
+      <span class="vim-version">v8.2 (WebAssembly)</span>
+    </div>
+    <div class="vim-toolbar-right">
+      <select class="vim-feature-select" :value="featureSet" @change="switchFeature($event.target.value)">
+        <option value="normal">Normal (Full Features)</option>
+        <option value="small">Small (Lightweight)</option>
+      </select>
+      <select class="vim-font-select" :value="fontSize" @change="setFontSize(Number($event.target.value))">
+        <option v-for="s in [12,13,14,15,16,18,20,22,24]" :key="s" :value="s">{{ s }}px</option>
+      </select>
+      <button class="vim-tb-btn" @click="restartVim" title="Restart Vim">🔄</button>
+      <button class="vim-tb-btn" @click="toggleFullscreen" title="Fullscreen">⛶</button>
+    </div>
+  </div>
+
+  <!-- Vim Screen -->
+  <div class="vim-screen-wrap" ref="screenWrap">
+    <!-- Compatibility warning -->
+    <div v-if="errorMsg" class="vim-error-overlay">
+      <div class="vim-error-box">
+        <h3>⚠️ Browser Compatibility</h3>
+        <p>{{ errorMsg }}</p>
+        <p class="vim-error-hint">SharedArrayBuffer requires secure context (HTTPS) and specific headers:<br>
+          <code>Cross-Origin-Opener-Policy: same-origin</code><br>
+          <code>Cross-Origin-Embedder-Policy: require-corp</code>
+        </p>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loading && !errorMsg" class="vim-loading-overlay">
+      <div class="vim-loading-box">
+        <div class="vim-spinner"></div>
+        <p>{{ loadingText }}</p>
+      </div>
+    </div>
+
+    <!-- Canvas -->
+    <canvas ref="vimCanvas" class="vim-canvas"></canvas>
+    <input ref="vimInput" class="vim-input" autocomplete="off" autofocus />
+  </div>
+
+  <!-- Status Bar -->
+  <div class="vim-statusbar">
+    <span>{{ statusText }}</span>
+    <span class="vim-statusbar-right">{{ featureSet === 'normal' ? 'Normal Feature Set' : 'Small Feature Set' }}</span>
+  </div>
+</div>

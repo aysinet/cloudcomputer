@@ -1,0 +1,379 @@
+.pyodide-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1a1b26;
+  color: #c0caf5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+/* Status Screens */
+.py-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.py-icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.py-status-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.py-sub-text {
+  font-size: 13px;
+  color: #565f89;
+}
+
+.py-error-msg {
+  font-size: 13px;
+  color: #f7768e;
+  background: rgba(247,118,142,0.1);
+  border: 1px solid rgba(247,118,142,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.py-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #7aa2f7;
+  border-radius: 50%;
+  animation: py-spin 0.8s linear infinite;
+}
+
+@keyframes py-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Main Layout */
+.py-main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Toolbar */
+.py-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background: #16161e;
+  border-bottom: 1px solid #292e42;
+  gap: 6px;
+  flex-shrink: 0;
+  min-height: 36px;
+}
+
+.py-toolbar-left,
+.py-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.py-brand {
+  font-weight: 700;
+  font-size: 14px;
+  color: #FFD43B;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+/* Buttons */
+.py-btn {
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 5px 10px;
+  transition: all 0.15s;
+  background: #292e42;
+  color: #c0caf5;
+  white-space: nowrap;
+}
+
+.py-btn:hover {
+  background: #3b4261;
+}
+
+.py-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.py-btn-primary {
+  background: #7aa2f7;
+  color: #1a1b26;
+  font-weight: 600;
+}
+
+.py-btn-primary:hover {
+  background: #89b4fa;
+}
+
+.py-btn-run {
+  background: #9ece6a;
+  color: #1a1b26;
+  font-weight: 600;
+  padding: 5px 14px;
+}
+
+.py-btn-run:hover {
+  background: #73daca;
+}
+
+.py-btn-tab {
+  border-radius: 6px 6px 0 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+}
+
+.py-btn-tab.active {
+  background: #1a1b26;
+  border-bottom-color: #7aa2f7;
+  color: #7aa2f7;
+}
+
+.py-btn-sm {
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+.py-btn-pkg {
+  background: #2f334d;
+}
+
+.py-select {
+  background: #292e42;
+  color: #c0caf5;
+  border: 1px solid #3b4261;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+}
+
+.py-select:hover {
+  border-color: #7aa2f7;
+}
+
+/* Package Panel */
+.py-pkg-panel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  background: #16161e;
+  border-bottom: 1px solid #292e42;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.py-pkg-list {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.py-pkg-badge {
+  background: #2f334d;
+  color: #9ece6a;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-family: 'Consolas', 'Fira Code', monospace;
+}
+
+.py-pkg-install {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.py-pkg-input {
+  background: #292e42;
+  border: 1px solid #3b4261;
+  border-radius: 6px;
+  color: #c0caf5;
+  padding: 4px 8px;
+  font-size: 12px;
+  width: 160px;
+  outline: none;
+}
+
+.py-pkg-input:focus {
+  border-color: #7aa2f7;
+}
+
+/* Content */
+.py-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Editor Panel */
+.py-editor-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.py-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: #1e2030;
+  border-bottom: 1px solid #292e42;
+  flex-shrink: 0;
+}
+
+.py-hint {
+  font-size: 11px;
+  color: #565f89;
+}
+
+.py-editor {
+  flex: 1;
+  width: 100%;
+  background: #1a1b26;
+  color: #c0caf5;
+  border: none;
+  padding: 12px;
+  font-family: 'Consolas', 'Fira Code', 'Monaco', monospace;
+  line-height: 1.6;
+  resize: none;
+  outline: none;
+  tab-size: 4;
+  white-space: pre;
+  overflow: auto;
+}
+
+.py-editor::selection {
+  background: #33467c;
+}
+
+/* Console Panel */
+.py-console-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.py-console-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: #1e2030;
+  border-bottom: 1px solid #292e42;
+  flex-shrink: 0;
+}
+
+.py-output {
+  flex: 1;
+  overflow: auto;
+  padding: 10px 12px;
+  font-family: 'Consolas', 'Fira Code', 'Monaco', monospace;
+  line-height: 1.5;
+  background: #1a1b26;
+}
+
+.py-output-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 1px 0;
+}
+
+.py-stdout { color: #c0caf5; }
+.py-stderr { color: #f7768e; }
+.py-result { color: #9ece6a; }
+.py-input { color: #7aa2f7; font-weight: 600; }
+.py-info { color: #bb9af7; font-style: italic; }
+
+#pyodide-plot-area {
+  margin: 8px 0;
+  text-align: center;
+}
+
+#pyodide-plot-area img {
+  max-width: 100%;
+  border-radius: 8px;
+  border: 1px solid #292e42;
+}
+
+/* REPL Bar */
+.py-repl-bar {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  background: #16161e;
+  border-top: 1px solid #292e42;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.py-prompt {
+  color: #9ece6a;
+  font-family: 'Consolas', 'Fira Code', 'Monaco', monospace;
+  font-weight: 700;
+  font-size: 14px;
+  user-select: none;
+}
+
+.py-repl-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #c0caf5;
+  font-family: 'Consolas', 'Fira Code', 'Monaco', monospace;
+  outline: none;
+  padding: 2px 0;
+}
+
+.py-repl-input::placeholder {
+  color: #3b4261;
+}
+
+/* Scrollbar */
+.py-output::-webkit-scrollbar,
+.py-editor::-webkit-scrollbar {
+  width: 8px;
+}
+
+.py-output::-webkit-scrollbar-track,
+.py-editor::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.py-output::-webkit-scrollbar-thumb,
+.py-editor::-webkit-scrollbar-thumb {
+  background: #292e42;
+  border-radius: 4px;
+}
+
+.py-output::-webkit-scrollbar-thumb:hover,
+.py-editor::-webkit-scrollbar-thumb:hover {
+  background: #3b4261;
+}

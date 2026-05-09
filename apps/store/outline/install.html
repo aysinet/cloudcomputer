@@ -1,0 +1,487 @@
+<div class="otl-install-form">
+  <div class="otl-install-header">
+    <span class="otl-install-icon">📝</span>
+    <h3>Outline</h3>
+    <p class="otl-install-subtitle" data-i18n="subtitle"></p>
+  </div>
+
+  <div class="otl-dep-check" id="otl-dep-check">
+    <div class="otl-dep-loading" data-i18n="depChecking"></div>
+  </div>
+
+  <div class="otl-install-body" id="otl-install-body" style="display:none">
+    <div class="otl-section">
+      <h4 data-i18n="pgSection"></h4>
+      <div class="otl-info-box" data-i18n="autoInfo"></div>
+      <div class="otl-field-row">
+        <label data-i18n="labelPgHost"></label>
+        <input type="text" id="otl-pg-host" readonly />
+      </div>
+      <div class="otl-field-row">
+        <label data-i18n="labelPgPort"></label>
+        <input type="text" id="otl-pg-port" value="5432" readonly />
+      </div>
+      <div class="otl-field-row">
+        <label data-i18n="labelDbName"></label>
+        <input type="text" id="otl-pg-database" value="outline" />
+      </div>
+      <div class="otl-field-row">
+        <label data-i18n="labelDbUser"></label>
+        <input type="text" id="otl-pg-user" value="outline" />
+      </div>
+      <div class="otl-field-row">
+        <label data-i18n="labelDbPass"></label>
+        <div class="otl-password-wrap">
+          <input type="password" id="otl-pg-pass" data-i18n-placeholder="placeholderMinChars" autocomplete="new-password" />
+          <button type="button" class="otl-eye-btn" onclick="toggleOtlPass('otl-pg-pass')">👁</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="otl-section">
+      <h4 data-i18n="redisSection"></h4>
+      <div class="otl-field-row">
+        <label data-i18n="labelRedisHost"></label>
+        <input type="text" id="otl-redis-host" readonly />
+      </div>
+    </div>
+
+    <div class="otl-section">
+      <h4 data-i18n="secretsSection"></h4>
+      <div class="otl-info-box" data-i18n="secretsInfo"></div>
+      <div class="otl-field-row">
+        <label data-i18n="labelSecretKey"></label>
+        <input type="text" id="otl-secret-key" readonly />
+      </div>
+      <div class="otl-field-row">
+        <label data-i18n="labelUtilsSecret"></label>
+        <input type="text" id="otl-utils-secret" readonly />
+      </div>
+    </div>
+
+    <div class="otl-install-error" id="otl-install-error" style="display:none"></div>
+  </div>
+
+  <div class="otl-install-footer" id="otl-install-footer">
+    <button class="otl-cancel-btn" onclick="cancelServiceInstall()" data-i18n="cancel"></button>
+    <button class="otl-install-btn" id="otl-confirm-btn" onclick="confirmServiceInstall()" disabled data-i18n="installBtn"></button>
+  </div>
+</div>
+
+<script>
+  const OTL_I18N = {
+    tr: {
+      subtitle: 'Bilgi tabanı ve wiki kurulumu',
+      depChecking: '⏳ Bağımlılıklar kontrol ediliyor...',
+      depOk: '✅ Tüm bağımlılıklar mevcut',
+      depMissing: '⚠️ Gerekli servisler eksik. Lütfen önce aşağıdaki servisleri kurun:',
+      depPostgres: '🐘 PostgreSQL', depRedis: '🔴 Redis',
+      pgSection: '🐘 PostgreSQL Bağlantısı',
+      redisSection: '🔴 Redis Bağlantısı',
+      secretsSection: '🔑 Güvenlik Anahtarları',
+      autoInfo: 'PostgreSQL ve Redis ayarları kurulu servislerden otomatik alınır.',
+      secretsInfo: 'Güvenlik anahtarları otomatik oluşturulur.',
+      labelPgHost: 'PostgreSQL Host', labelPgPort: 'Port',
+      labelDbName: 'Veritabanı Adı', labelDbUser: 'DB Kullanıcı', labelDbPass: 'DB Şifresi',
+      labelRedisHost: 'Redis Host',
+      labelSecretKey: 'Secret Key', labelUtilsSecret: 'Utils Secret',
+      placeholderMinChars: 'En az 4 karakter',
+      cancel: 'İptal', installBtn: 'Kur ve Başlat',
+      errorDbPass: 'Veritabanı şifresi en az 4 karakter olmalı',
+      errorFetch: 'Servis bilgileri alınamadı'
+    },
+    en: {
+      subtitle: 'Knowledge base and wiki setup',
+      depChecking: '⏳ Checking dependencies...',
+      depOk: '✅ All dependencies are installed',
+      depMissing: '⚠️ Required services are missing. Please install the following services first:',
+      depPostgres: '🐘 PostgreSQL', depRedis: '🔴 Redis',
+      pgSection: '🐘 PostgreSQL Connection',
+      redisSection: '🔴 Redis Connection',
+      secretsSection: '🔑 Security Keys',
+      autoInfo: 'PostgreSQL and Redis settings are automatically fetched from installed services.',
+      secretsInfo: 'Security keys are generated automatically.',
+      labelPgHost: 'PostgreSQL Host', labelPgPort: 'Port',
+      labelDbName: 'Database Name', labelDbUser: 'DB User', labelDbPass: 'DB Password',
+      labelRedisHost: 'Redis Host',
+      labelSecretKey: 'Secret Key', labelUtilsSecret: 'Utils Secret',
+      placeholderMinChars: 'At least 4 characters',
+      cancel: 'Cancel', installBtn: 'Install & Start',
+      errorDbPass: 'Database password must be at least 4 characters',
+      errorFetch: 'Could not fetch service info'
+    },
+    de: {
+      subtitle: 'Wissensdatenbank und Wiki einrichten',
+      depChecking: '⏳ Abhängigkeiten werden geprüft...',
+      depOk: '✅ Alle Abhängigkeiten sind installiert',
+      depMissing: '⚠️ Erforderliche Dienste fehlen. Bitte installieren Sie zuerst:',
+      depPostgres: '🐘 PostgreSQL', depRedis: '🔴 Redis',
+      pgSection: '🐘 PostgreSQL-Verbindung',
+      redisSection: '🔴 Redis-Verbindung',
+      secretsSection: '🔑 Sicherheitsschlüssel',
+      autoInfo: 'PostgreSQL- und Redis-Einstellungen werden automatisch aus installierten Diensten übernommen.',
+      secretsInfo: 'Sicherheitsschlüssel werden automatisch generiert.',
+      labelPgHost: 'PostgreSQL-Host', labelPgPort: 'Port',
+      labelDbName: 'Datenbankname', labelDbUser: 'DB-Benutzer', labelDbPass: 'DB-Passwort',
+      labelRedisHost: 'Redis-Host',
+      labelSecretKey: 'Secret Key', labelUtilsSecret: 'Utils Secret',
+      placeholderMinChars: 'Mindestens 4 Zeichen',
+      cancel: 'Abbrechen', installBtn: 'Installieren & Starten',
+      errorDbPass: 'Datenbankpasswort muss mindestens 4 Zeichen lang sein',
+      errorFetch: 'Dienstinformationen konnten nicht abgerufen werden'
+    },
+    fr: {
+      subtitle: 'Configuration de la base de connaissances et wiki',
+      depChecking: '⏳ Vérification des dépendances...',
+      depOk: '✅ Toutes les dépendances sont installées',
+      depMissing: '⚠️ Des services requis sont manquants. Veuillez d\'abord installer :',
+      depPostgres: '🐘 PostgreSQL', depRedis: '🔴 Redis',
+      pgSection: '🐘 Connexion PostgreSQL',
+      redisSection: '🔴 Connexion Redis',
+      secretsSection: '🔑 Clés de sécurité',
+      autoInfo: 'Les paramètres PostgreSQL et Redis sont récupérés automatiquement des services installés.',
+      secretsInfo: 'Les clés de sécurité sont générées automatiquement.',
+      labelPgHost: 'Hôte PostgreSQL', labelPgPort: 'Port',
+      labelDbName: 'Nom de la base de données', labelDbUser: 'Utilisateur DB', labelDbPass: 'Mot de passe DB',
+      labelRedisHost: 'Hôte Redis',
+      labelSecretKey: 'Secret Key', labelUtilsSecret: 'Utils Secret',
+      placeholderMinChars: 'Au moins 4 caractères',
+      cancel: 'Annuler', installBtn: 'Installer & Démarrer',
+      errorDbPass: 'Le mot de passe DB doit comporter au moins 4 caractères',
+      errorFetch: 'Impossible de récupérer les infos du service'
+    },
+    es: {
+      subtitle: 'Configuración de base de conocimiento y wiki',
+      depChecking: '⏳ Verificando dependencias...',
+      depOk: '✅ Todas las dependencias están instaladas',
+      depMissing: '⚠️ Faltan servicios requeridos. Por favor instale primero:',
+      depPostgres: '🐘 PostgreSQL', depRedis: '🔴 Redis',
+      pgSection: '🐘 Conexión PostgreSQL',
+      redisSection: '🔴 Conexión Redis',
+      secretsSection: '🔑 Claves de seguridad',
+      autoInfo: 'Los ajustes de PostgreSQL y Redis se obtienen automáticamente de los servicios instalados.',
+      secretsInfo: 'Las claves de seguridad se generan automáticamente.',
+      labelPgHost: 'Host PostgreSQL', labelPgPort: 'Puerto',
+      labelDbName: 'Nombre de base de datos', labelDbUser: 'Usuario DB', labelDbPass: 'Contraseña DB',
+      labelRedisHost: 'Host Redis',
+      labelSecretKey: 'Secret Key', labelUtilsSecret: 'Utils Secret',
+      placeholderMinChars: 'Al menos 4 caracteres',
+      cancel: 'Cancelar', installBtn: 'Instalar e Iniciar',
+      errorDbPass: 'La contraseña de la base de datos debe tener al menos 4 caracteres',
+      errorFetch: 'No se pudo obtener la información del servicio'
+    },
+    ru: {
+      subtitle: 'Настройка базы знаний и вики',
+      depChecking: '⏳ Проверка зависимостей...',
+      depOk: '✅ Все зависимости установлены',
+      depMissing: '⚠️ Отсутствуют необходимые сервисы. Сначала установите:',
+      depPostgres: '🐘 PostgreSQL', depRedis: '🔴 Redis',
+      pgSection: '🐘 Подключение PostgreSQL',
+      redisSection: '🔴 Подключение Redis',
+      secretsSection: '🔑 Ключи безопасности',
+      autoInfo: 'Настройки PostgreSQL и Redis автоматически берутся из установленных сервисов.',
+      secretsInfo: 'Ключи безопасности генерируются автоматически.',
+      labelPgHost: 'Хост PostgreSQL', labelPgPort: 'Порт',
+      labelDbName: 'Имя базы данных', labelDbUser: 'Пользователь БД', labelDbPass: 'Пароль БД',
+      labelRedisHost: 'Хост Redis',
+      labelSecretKey: 'Secret Key', labelUtilsSecret: 'Utils Secret',
+      placeholderMinChars: 'Минимум 4 символа',
+      cancel: 'Отмена', installBtn: 'Установить и запустить',
+      errorDbPass: 'Пароль БД должен содержать минимум 4 символа',
+      errorFetch: 'Не удалось получить информацию о сервисе'
+    },
+    zh: {
+      subtitle: '知识库和维基设置',
+      depChecking: '⏳ 正在检查依赖...',
+      depOk: '✅ 所有依赖已安装',
+      depMissing: '⚠️ 缺少必需服务，请先安装以下服务：',
+      depPostgres: '🐘 PostgreSQL', depRedis: '🔴 Redis',
+      pgSection: '🐘 PostgreSQL 连接',
+      redisSection: '🔴 Redis 连接',
+      secretsSection: '🔑 安全密钥',
+      autoInfo: 'PostgreSQL 和 Redis 设置将从已安装的服务中自动获取。',
+      secretsInfo: '安全密钥将自动生成。',
+      labelPgHost: 'PostgreSQL 主机', labelPgPort: '端口',
+      labelDbName: '数据库名', labelDbUser: '数据库用户', labelDbPass: '数据库密码',
+      labelRedisHost: 'Redis 主机',
+      labelSecretKey: 'Secret Key', labelUtilsSecret: 'Utils Secret',
+      placeholderMinChars: '至少4个字符',
+      cancel: '取消', installBtn: '安装并启动',
+      errorDbPass: '数据库密码至少需要4个字符',
+      errorFetch: '无法获取服务信息'
+    },
+    ja: {
+      subtitle: 'ナレッジベースとWikiのセットアップ',
+      depChecking: '⏳ 依存関係を確認中...',
+      depOk: '✅ すべての依存関係がインストール済みです',
+      depMissing: '⚠️ 必要なサービスが不足しています。先にインストールしてください：',
+      depPostgres: '🐘 PostgreSQL', depRedis: '🔴 Redis',
+      pgSection: '🐘 PostgreSQL接続',
+      redisSection: '🔴 Redis接続',
+      secretsSection: '🔑 セキュリティキー',
+      autoInfo: 'PostgreSQLとRedisの設定はインストール済みサービスから自動取得されます。',
+      secretsInfo: 'セキュリティキーは自動的に生成されます。',
+      labelPgHost: 'PostgreSQLホスト', labelPgPort: 'ポート',
+      labelDbName: 'データベース名', labelDbUser: 'DBユーザー', labelDbPass: 'DBパスワード',
+      labelRedisHost: 'Redisホスト',
+      labelSecretKey: 'Secret Key', labelUtilsSecret: 'Utils Secret',
+      placeholderMinChars: '4文字以上',
+      cancel: 'キャンセル', installBtn: 'インストール＆起動',
+      errorDbPass: 'DBパスワードは4文字以上必要です',
+      errorFetch: 'サービス情報を取得できませんでした'
+    },
+    it: {
+      subtitle: 'Configurazione della base di conoscenza e wiki',
+      depChecking: '⏳ Controllo delle dipendenze...',
+      depOk: '✅ Tutte le dipendenze sono installate',
+      depMissing: '⚠️ Servizi richiesti mancanti. Installare prima:',
+      depPostgres: '🐘 PostgreSQL', depRedis: '🔴 Redis',
+      pgSection: '🐘 Connessione PostgreSQL',
+      redisSection: '🔴 Connessione Redis',
+      secretsSection: '🔑 Chiavi di sicurezza',
+      autoInfo: 'Le impostazioni PostgreSQL e Redis vengono recuperate automaticamente dai servizi installati.',
+      secretsInfo: 'Le chiavi di sicurezza vengono generate automaticamente.',
+      labelPgHost: 'Host PostgreSQL', labelPgPort: 'Porta',
+      labelDbName: 'Nome database', labelDbUser: 'Utente DB', labelDbPass: 'Password DB',
+      labelRedisHost: 'Host Redis',
+      labelSecretKey: 'Secret Key', labelUtilsSecret: 'Utils Secret',
+      placeholderMinChars: 'Almeno 4 caratteri',
+      cancel: 'Annulla', installBtn: 'Installa e Avvia',
+      errorDbPass: 'La password del DB deve essere di almeno 4 caratteri',
+      errorFetch: 'Impossibile recuperare le informazioni del servizio'
+    },
+    ar: {
+      subtitle: 'إعداد قاعدة المعرفة والويكي',
+      depChecking: '⏳ جارٍ التحقق من التبعيات...',
+      depOk: '✅ جميع التبعيات مثبتة',
+      depMissing: '⚠️ خدمات مطلوبة مفقودة. يرجى تثبيت الخدمات التالية أولاً:',
+      depPostgres: '🐘 PostgreSQL', depRedis: '🔴 Redis',
+      pgSection: '🐘 اتصال PostgreSQL',
+      redisSection: '🔴 اتصال Redis',
+      secretsSection: '🔑 مفاتيح الأمان',
+      autoInfo: 'يتم جلب إعدادات PostgreSQL وRedis تلقائيًا من الخدمات المثبتة.',
+      secretsInfo: 'يتم إنشاء مفاتيح الأمان تلقائيًا.',
+      labelPgHost: 'مضيف PostgreSQL', labelPgPort: 'المنفذ',
+      labelDbName: 'اسم قاعدة البيانات', labelDbUser: 'مستخدم قاعدة البيانات', labelDbPass: 'كلمة مرور قاعدة البيانات',
+      labelRedisHost: 'مضيف Redis',
+      labelSecretKey: 'Secret Key', labelUtilsSecret: 'Utils Secret',
+      placeholderMinChars: '4 أحرف على الأقل',
+      cancel: 'إلغاء', installBtn: 'تثبيت وبدء',
+      errorDbPass: 'يجب أن تكون كلمة مرور قاعدة البيانات 4 أحرف على الأقل',
+      errorFetch: 'تعذر جلب معلومات الخدمة'
+    },
+    ko: {
+      subtitle: '지식 베이스 및 위키 설정',
+      depChecking: '⏳ 종속성 확인 중...',
+      depOk: '✅ 모든 종속성이 설치되었습니다',
+      depMissing: '⚠️ 필수 서비스가 없습니다. 먼저 설치해 주세요:',
+      depPostgres: '🐘 PostgreSQL', depRedis: '🔴 Redis',
+      pgSection: '🐘 PostgreSQL 연결',
+      redisSection: '🔴 Redis 연결',
+      secretsSection: '🔑 보안 키',
+      autoInfo: 'PostgreSQL 및 Redis 설정은 설치된 서비스에서 자동으로 가져옵니다.',
+      secretsInfo: '보안 키는 자동으로 생성됩니다.',
+      labelPgHost: 'PostgreSQL 호스트', labelPgPort: '포트',
+      labelDbName: '데이터베이스 이름', labelDbUser: 'DB 사용자', labelDbPass: 'DB 비밀번호',
+      labelRedisHost: 'Redis 호스트',
+      labelSecretKey: 'Secret Key', labelUtilsSecret: 'Utils Secret',
+      placeholderMinChars: '최소 4자 이상',
+      cancel: '취소', installBtn: '설치 및 시작',
+      errorDbPass: '데이터베이스 비밀번호는 최소 4자 이상이어야 합니다',
+      errorFetch: '서비스 정보를 가져올 수 없습니다'
+    },
+    hi: {
+      subtitle: 'ज्ञान आधार और विकी सेटअप',
+      depChecking: '⏳ निर्भरताएँ जाँच रहे हैं...',
+      depOk: '✅ सभी निर्भरताएँ स्थापित हैं',
+      depMissing: '⚠️ आवश्यक सेवाएँ गायब हैं। कृपया पहले इन्हें स्थापित करें:',
+      depPostgres: '🐘 PostgreSQL', depRedis: '🔴 Redis',
+      pgSection: '🐘 PostgreSQL कनेक्शन',
+      redisSection: '🔴 Redis कनेक्शन',
+      secretsSection: '🔑 सुरक्षा कुंजियाँ',
+      autoInfo: 'PostgreSQL और Redis सेटिंग्स स्थापित सेवाओं से स्वचालित रूप से ली जाती हैं।',
+      secretsInfo: 'सुरक्षा कुंजियाँ स्वचालित रूप से बनाई जाती हैं।',
+      labelPgHost: 'PostgreSQL होस्ट', labelPgPort: 'पोर्ट',
+      labelDbName: 'डेटाबेस नाम', labelDbUser: 'DB उपयोगकर्ता', labelDbPass: 'DB पासवर्ड',
+      labelRedisHost: 'Redis होस्ट',
+      labelSecretKey: 'Secret Key', labelUtilsSecret: 'Utils Secret',
+      placeholderMinChars: 'कम से कम 4 अक्षर',
+      cancel: 'रद्द करें', installBtn: 'स्थापित करें और शुरू करें',
+      errorDbPass: 'डेटाबेस पासवर्ड कम से कम 4 अक्षर का होना चाहिए',
+      errorFetch: 'सेवा जानकारी प्राप्त नहीं हो सकी'
+    },
+    pt: {
+      subtitle: 'Configuração da base de conhecimento e wiki',
+      depChecking: '⏳ A verificar dependências...',
+      depOk: '✅ Todas as dependências estão instaladas',
+      depMissing: '⚠️ Serviços necessários em falta. Por favor instale primeiro:',
+      depPostgres: '🐘 PostgreSQL', depRedis: '🔴 Redis',
+      pgSection: '🐘 Ligação PostgreSQL',
+      redisSection: '🔴 Ligação Redis',
+      secretsSection: '🔑 Chaves de segurança',
+      autoInfo: 'As configurações PostgreSQL e Redis são obtidas automaticamente dos serviços instalados.',
+      secretsInfo: 'As chaves de segurança são geradas automaticamente.',
+      labelPgHost: 'Host PostgreSQL', labelPgPort: 'Porta',
+      labelDbName: 'Nome da base de dados', labelDbUser: 'Utilizador DB', labelDbPass: 'Palavra-passe DB',
+      labelRedisHost: 'Host Redis',
+      labelSecretKey: 'Secret Key', labelUtilsSecret: 'Utils Secret',
+      placeholderMinChars: 'Pelo menos 4 caracteres',
+      cancel: 'Cancelar', installBtn: 'Instalar e Iniciar',
+      errorDbPass: 'A palavra-passe da BD deve ter pelo menos 4 caracteres',
+      errorFetch: 'Não foi possível obter informações do serviço'
+    }
+  };
+
+  let otlServices = {};
+
+  function getOtlLocale() { try { return window.__serviceInstallLocale || 'tr'; } catch { return 'tr'; } }
+  function otlT(key) { const loc = getOtlLocale(); return (OTL_I18N[loc] || OTL_I18N.tr)[key] || (OTL_I18N.tr)[key] || key; }
+
+  function applyOtlI18n() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      el.textContent = otlT(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      el.placeholder = otlT(el.getAttribute('data-i18n-placeholder'));
+    });
+  }
+
+  function toggleOtlPass(id) {
+    const inp = document.getElementById(id);
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  function generateHex(length) {
+    const arr = new Uint8Array(length);
+    crypto.getRandomValues(arr);
+    return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function otlApiFetch(url) {
+    const token = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('token='));
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = 'Bearer ' + token.split('=')[1];
+    return fetch(url, { headers });
+  }
+
+  async function checkDependencies() {
+    const depEl = document.getElementById('otl-dep-check');
+    const bodyEl = document.getElementById('otl-install-body');
+    const confirmBtn = document.getElementById('otl-confirm-btn');
+
+    try {
+      const res = await otlApiFetch('/api/services');
+      const services = await res.json();
+      otlServices = {};
+      services.forEach(s => { otlServices[s.id] = s; });
+
+      const hasPostgres = otlServices.postgres && otlServices.postgres.port;
+      const hasRedis = otlServices.redis && otlServices.redis.port;
+
+      if (!hasPostgres || !hasRedis) {
+        const missing = [];
+        if (!hasPostgres) missing.push(otlT('depPostgres'));
+        if (!hasRedis) missing.push(otlT('depRedis'));
+        depEl.innerHTML = '<div class="otl-dep-error">' +
+          '<p>' + otlT('depMissing') + '</p>' +
+          '<ul>' + missing.map(m => '<li>' + m + '</li>').join('') + '</ul>' +
+          '</div>';
+        bodyEl.style.display = 'none';
+        confirmBtn.disabled = true;
+        return;
+      }
+
+      depEl.innerHTML = '<div class="otl-dep-ok">' + otlT('depOk') + '</div>';
+      bodyEl.style.display = 'block';
+      confirmBtn.disabled = false;
+
+      // Auto-fill PostgreSQL connection info
+      const pgInfo = otlServices.postgres;
+      document.getElementById('otl-pg-host').value = pgInfo.containerName || pgInfo.internalHost || 'postgres';
+      document.getElementById('otl-pg-port').value = '5432';
+
+      // Auto-fill Redis connection info
+      const redisInfo = otlServices.redis;
+      document.getElementById('otl-redis-host').value = redisInfo.containerName || redisInfo.internalHost || 'redis';
+
+      // Generate security keys
+      document.getElementById('otl-secret-key').value = generateHex(32);
+      document.getElementById('otl-utils-secret').value = generateHex(32);
+    } catch (e) {
+      depEl.innerHTML = '<div class="otl-dep-error"><p>❌ ' + otlT('errorFetch') + ': ' + e.message + '</p></div>';
+    }
+  }
+
+  function getInstallConfig() {
+    const errEl = document.getElementById('otl-install-error');
+    const pgHost = document.getElementById('otl-pg-host').value.trim();
+    const pgPort = document.getElementById('otl-pg-port').value.trim() || '5432';
+    const pgDatabase = document.getElementById('otl-pg-database').value.trim() || 'outline';
+    const pgUser = document.getElementById('otl-pg-user').value.trim() || 'outline';
+    const pgPass = document.getElementById('otl-pg-pass').value.trim();
+    const redisHost = document.getElementById('otl-redis-host').value.trim();
+    const secretKey = document.getElementById('otl-secret-key').value.trim();
+    const utilsSecret = document.getElementById('otl-utils-secret').value.trim();
+
+    if (pgPass && pgPass.length < 4) { errEl.textContent = otlT('errorDbPass'); errEl.style.display = 'block'; return null; }
+
+    errEl.style.display = 'none';
+
+    // Build PostgreSQL password part for connection string
+    const pgPassPart = pgPass ? pgPass : ((otlServices.postgres && otlServices.postgres.installConfig && otlServices.postgres.installConfig.POSTGRES_PASSWORD) || '');
+    const databaseUrl = 'postgres://' + pgUser + ':' + encodeURIComponent(pgPassPart) + '@' + pgHost + ':' + pgPort + '/' + pgDatabase;
+    const redisUrl = 'redis://' + redisHost + ':6379';
+
+    return {
+      SECRET_KEY: secretKey,
+      UTILS_SECRET: utilsSecret,
+      DATABASE_URL: databaseUrl,
+      REDIS_URL: redisUrl,
+      PG_HOST: pgHost,
+      PG_DATABASE: pgDatabase,
+      PG_USER: pgUser
+    };
+  }
+
+  // Apply i18n and run dependency check on load
+  setTimeout(() => { applyOtlI18n(); checkDependencies(); }, 300);
+</script>
+
+<style>
+  .otl-install-form { padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e0e0e0; max-height: 70vh; overflow-y: auto; }
+  .otl-install-header { text-align: center; margin-bottom: 16px; }
+  .otl-install-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+  .otl-install-header h3 { margin: 0 0 4px; font-size: 22px; color: #fff; }
+  .otl-install-subtitle { margin: 0; font-size: 13px; color: #aaa; }
+
+  .otl-dep-check { margin-bottom: 16px; }
+  .otl-dep-loading { text-align: center; padding: 16px; color: #aaa; }
+  .otl-dep-ok { text-align: center; padding: 12px; background: rgba(82,196,26,0.1); border-radius: 8px; color: #52c41a; font-size: 14px; font-weight: 600; }
+  .otl-dep-error { padding: 16px; background: rgba(255,170,0,0.1); border: 1px solid rgba(255,170,0,0.3); border-radius: 8px; }
+  .otl-dep-error p { margin: 0 0 8px; color: #ffa940; font-size: 14px; font-weight: 600; }
+  .otl-dep-error ul { margin: 0; padding-left: 20px; }
+  .otl-dep-error li { color: #e0e0e0; font-size: 13px; margin-bottom: 4px; }
+
+  .otl-section { margin-bottom: 20px; padding: 16px; background: #222238; border-radius: 8px; }
+  .otl-section h4 { margin: 0 0 12px; font-size: 15px; color: #fff; }
+  .otl-info-box { font-size: 11px; color: #66bb6a; background: rgba(82,196,26,0.08); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; }
+
+  .otl-field-row { margin-bottom: 10px; }
+  .otl-field-row label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #aaa; }
+  .otl-field-row input { width: 100%; padding: 8px 12px; border: 1px solid #444; border-radius: 6px; background: #1e1e2e; color: #fff; font-size: 13px; outline: none; box-sizing: border-box; }
+  .otl-field-row input:focus { border-color: #0366d6; }
+  .otl-field-row input[readonly] { color: #888; background: #181828; }
+
+  .otl-password-wrap { display: flex; gap: 6px; }
+  .otl-password-wrap input { flex: 1; }
+  .otl-eye-btn { background: #2a2a3a; border: 1px solid #444; border-radius: 6px; padding: 0 12px; cursor: pointer; font-size: 16px; flex-shrink: 0; }
+
+  .otl-install-error { color: #ff6b6b; font-size: 12px; margin-top: 8px; padding: 6px 10px; background: rgba(255,0,0,0.1); border-radius: 4px; }
+
+  .otl-install-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid #333; }
+  .otl-cancel-btn { padding: 8px 20px; border: 1px solid #555; border-radius: 6px; background: transparent; color: #ccc; cursor: pointer; font-size: 13px; }
+  .otl-cancel-btn:hover { background: #333; }
+  .otl-install-btn { padding: 8px 24px; border: none; border-radius: 6px; background: linear-gradient(135deg, #0366d6, #6c5ce7); color: #fff; cursor: pointer; font-size: 13px; font-weight: 600; }
+  .otl-install-btn:hover { opacity: 0.9; }
+  .otl-install-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+</style>

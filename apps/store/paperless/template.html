@@ -1,0 +1,54 @@
+<div class="paperless-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="pl-status-screen">
+    <div class="pl-spinner"></div>
+    <div class="pl-icon-large">📄</div>
+    <div class="pl-status-text">{{ pullProgress }}</div>
+    <div class="pl-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="pl-status-screen">
+    <div class="pl-spinner"></div>
+    <div class="pl-icon-large">📄</div>
+    <div class="pl-status-text">Paperless-ngx başlatılıyor...</div>
+    <div class="pl-sub-text">Doküman yönetim sistemi ve OCR motoru hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="pl-status-screen pl-error">
+    <div class="pl-icon-large">⚠️</div>
+    <div class="pl-status-text">Bir hata oluştu</div>
+    <div class="pl-error-msg">{{ errorMsg }}</div>
+    <div class="pl-actions">
+      <button class="pl-btn pl-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="pl-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="pl-running">
+    <div class="pl-toolbar">
+      <span class="pl-info">📄 Paperless-ngx — Port: {{ port }}</span>
+      <div class="pl-toolbar-actions">
+        <button class="pl-btn pl-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="pl-btn pl-btn-small pl-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="pl-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="pl-status-screen">
+    <div class="pl-icon-large">📄</div>
+    <div class="pl-status-text">Paperless-ngx</div>
+    <div class="pl-sub-text">Akıllı doküman yönetimi ve OCR arşiv sistemi. Belgelerinizi tarayın, OCR ile indeksleyin ve kolayca arayın.</div>
+    <div class="pl-features">
+      <div class="pl-feature">🔍 OCR ile tam metin arama</div>
+      <div class="pl-feature">🏷️ Otomatik etiketleme ve sınıflandırma</div>
+      <div class="pl-feature">📥 Otomatik doküman tüketici</div>
+      <div class="pl-feature">🤖 Makine öğrenimi destekli eşleştirme</div>
+    </div>
+    <button class="pl-btn pl-btn-primary pl-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

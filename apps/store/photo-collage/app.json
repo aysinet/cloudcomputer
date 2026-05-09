@@ -1,0 +1,26 @@
+{
+  "id": "photo-collage",
+  "name": "Fotoğraf Kolaj",
+  "icon": "🖼️",
+  "color": "linear-gradient(135deg,#e91e63,#9c27b0)",
+  "type": "internal",
+  "size": { "w": 1000, "h": 680 },
+  "global": false,
+  "description": "Fotoğraf kolaj yapıcı — şablonlar, çerçeveler, arka plan, metin",
+  "category": "productivity",
+  "lang": {
+    "tr": { "name": "Fotoğraf Kolaj", "description": "Fotoğraf kolaj yapıcı — şablonlar, çerçeveler, arka plan, metin" },
+    "en": { "name": "Photo Collage", "description": "Photo collage maker — templates, frames, backgrounds, text" },
+    "de": { "name": "Fotokollage", "description": "Fotokollage-Ersteller — Vorlagen, Rahmen, Hintergründe, Text" },
+    "fr": { "name": "Photo Collage", "description": "Créateur de collage photo — modèles, cadres, arrière-plans, texte" },
+    "es": { "name": "Foto Collage", "description": "Creador de collage de fotos — plantillas, marcos, fondos, texto" },
+    "ru": { "name": "Фотоколлаж", "description": "Создание фотоколлажей — шаблоны, рамки, фоны, текст" },
+    "zh": { "name": "照片拼贴", "description": "照片拼贴制作器 — 模板、边框、背景、文字" },
+    "ja": { "name": "フォトコラージュ", "description": "フォトコラージュメーカー — テンプレート、フレーム、背景、テキスト" },
+    "it": { "name": "Foto Collage", "description": "Creatore di collage fotografici — modelli, cornici, sfondi, testo" },
+    "ar": { "name": "كولاج صور", "description": "صانع كولاج الصور — قوالب، إطارات، خلفيات، نص" },
+    "ko": { "name": "사진 콜라주", "description": "사진 콜라주 메이커 — 템플릿, 프레임, 배경, 텍스트" },
+    "hi": { "name": "फोटो कोलाज", "description": "फोटो कोलाज मेकर — टेम्पलेट, फ्रेम, बैकग्राउंड, टेक्स्ट" },
+    "pt": { "name": "Foto Colagem", "description": "Criador de colagem de fotos — modelos, molduras, fundos, texto" }
+  }
+}

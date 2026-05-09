@@ -1,0 +1,54 @@
+<div class="uptime-kuma-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="uk-status-screen">
+    <div class="uk-spinner"></div>
+    <div class="uk-icon-large">📡</div>
+    <div class="uk-status-text">{{ pullProgress }}</div>
+    <div class="uk-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="uk-status-screen">
+    <div class="uk-spinner"></div>
+    <div class="uk-icon-large">📡</div>
+    <div class="uk-status-text">Uptime Kuma başlatılıyor...</div>
+    <div class="uk-sub-text">Servis izleme platformu hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="uk-status-screen uk-error">
+    <div class="uk-icon-large">⚠️</div>
+    <div class="uk-status-text">Bir hata oluştu</div>
+    <div class="uk-error-msg">{{ errorMsg }}</div>
+    <div class="uk-actions">
+      <button class="uk-btn uk-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="uk-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="uk-running">
+    <div class="uk-toolbar">
+      <span class="uk-info">📡 Uptime Kuma — Port: {{ port }}</span>
+      <div class="uk-toolbar-actions">
+        <button class="uk-btn uk-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="uk-btn uk-btn-small uk-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="uk-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="uk-status-screen">
+    <div class="uk-icon-large">📡</div>
+    <div class="uk-status-text">Uptime Kuma</div>
+    <div class="uk-sub-text">Servis izleme ve uptime monitör aracı — web sitelerinizi ve servislerinizi izleyin</div>
+    <div class="uk-feature-list">
+      <div class="uk-feature">🌐 HTTP(s) / TCP / Ping izleme</div>
+      <div class="uk-feature">🔔 Bildirim entegrasyonları</div>
+      <div class="uk-feature">📊 Uptime geçmişi ve grafikler</div>
+      <div class="uk-feature">📋 Durum sayfası oluşturma</div>
+    </div>
+    <button class="uk-btn uk-btn-primary uk-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

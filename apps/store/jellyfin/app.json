@@ -1,0 +1,81 @@
+{
+  "id": "jellyfin",
+  "name": "Jellyfin",
+  "icon": "🎬",
+  "color": "linear-gradient(135deg,#0b0e2a,#00a4dc)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Docker tabanlı video medya sunucusu (Jellyfin)",
+  "lang": {
+    "tr": {
+      "name": "Jellyfin",
+      "description": "Docker tabanlı video medya sunucusu — kendi Netflix'iniz"
+    },
+    "en": {
+      "name": "Jellyfin",
+      "description": "Docker-based video media server — your personal Netflix"
+    },
+    "de": {
+      "name": "Jellyfin",
+      "description": "Docker-basierter Video-Medienserver — Ihr persönliches Netflix"
+    },
+    "fr": {
+      "name": "Jellyfin",
+      "description": "Serveur multimédia Docker — votre Netflix personnel"
+    },
+    "es": {
+      "name": "Jellyfin",
+      "description": "Servidor multimedia Docker — tu Netflix personal"
+    },
+    "ru": {
+      "name": "Jellyfin",
+      "description": "Медиасервер Docker — ваш личный Netflix"
+    },
+    "zh": {
+      "name": "Jellyfin",
+      "description": "视频流媒体服务器"
+    },
+    "ja": {
+      "name": "Jellyfin",
+      "description": "動画ストリーミングサーバー"
+    },
+    "it": {
+      "name": "Jellyfin",
+      "description": "Server multimediale basato su Docker — il tuo Netflix personale"
+    },
+    "ar": {
+      "name": "جيليفين",
+      "description": "خادم وسائط فيديو يعتمد على Docker — Netflix الشخصي الخاص بك"
+    },
+    "ko": {
+      "name": "젤리핀",
+      "description": "Docker 기반 비디오 미디어 서버 — 나만의 Netflix"
+    },
+    "hi": {
+      "name": "जेलीफिन",
+      "description": "Docker-आधारित वीडियो मीडिया सर्वर — आपका निजी Netflix"
+    },
+    "pt": {
+      "name": "Jellyfin",
+      "description": "Servidor de mídia baseado em Docker — seu Netflix pessoal"
+    }
+  },
+  "category": "media",
+  "docker": {
+    "image": "jellyfin/jellyfin:latest",
+    "containerPort": 8096,
+    "volumes": [
+      "${DATA_VOLUME}:/media:ro",
+      "${APP_VOLUME}/config:/config",
+      "${APP_VOLUME}/cache:/cache"
+    ],
+    "env": [
+      "JELLYFIN_PublishedServerUrl=/proxy/jellyfin"
+    ]
+  }
+}

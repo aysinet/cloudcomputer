@@ -1,0 +1,402 @@
+.fv-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #12121a;
+  color: #e1e4ea;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
+
+/* Toolbar */
+.fv-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: #1a1a2e;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+
+.fv-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #c5cde8;
+}
+
+.fv-toolbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.fv-btn {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  color: #c5cde8;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all .15s;
+  font-family: inherit;
+}
+
+.fv-btn:hover {
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.2);
+}
+
+.fv-btn.active {
+  background: rgba(109, 86, 196, .35);
+  border-color: rgba(109, 86, 196, .6);
+  color: #d4c8ff;
+}
+
+.fv-btn-icon {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all .15s;
+}
+
+.fv-btn-icon:hover {
+  background: rgba(255,80,80,.2);
+  color: #ff6b6b;
+}
+
+/* Controls Bar */
+.fv-controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 16px;
+  background: #16162a;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.fv-control-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fv-control-group label {
+  font-size: 11px;
+  color: #8888aa;
+  white-space: nowrap;
+}
+
+.fv-input {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  color: #e1e4ea;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .15s;
+}
+
+.fv-input:focus {
+  border-color: rgba(109, 86, 196, .5);
+}
+
+.fv-sample-input {
+  width: 200px;
+}
+
+.fv-select {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  color: #e1e4ea;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+}
+
+.fv-select option,
+.fv-select optgroup {
+  background: #1e1e2e;
+  color: #e1e4ea;
+}
+
+.fv-range {
+  width: 90px;
+  accent-color: #6d56c4;
+}
+
+.fv-range-sm {
+  width: 70px;
+}
+
+.fv-range-val {
+  font-size: 11px;
+  color: #6d56c4;
+  min-width: 35px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fv-color {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 6px;
+  cursor: pointer;
+  background: none;
+}
+
+.fv-inline {
+  margin-left: 8px;
+}
+
+/* Search Bar */
+.fv-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: #14142a;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  flex-shrink: 0;
+}
+
+.fv-search-input {
+  flex: 1;
+  max-width: 340px;
+}
+
+/* Content Area */
+.fv-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.fv-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fv-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fv-content::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.12);
+  border-radius: 3px;
+}
+
+/* Compare Mode */
+.fv-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+.fv-compare-panel {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.fv-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,.04);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.fv-font-select {
+  flex: 1;
+}
+
+.fv-preview-box {
+  padding: 20px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  transition: background .2s;
+}
+
+.fv-preview-text {
+  margin: 0;
+  word-break: break-word;
+  text-align: center;
+  width: 100%;
+}
+
+.fv-glyph-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  text-align: center;
+  border-top: 1px solid rgba(255,255,255,.06);
+  padding-top: 12px;
+  word-break: break-all;
+}
+
+.fv-panel-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: rgba(255,255,255,.02);
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+
+.fv-font-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #c5cde8;
+}
+
+.fv-font-meta {
+  font-size: 11px;
+  color: #6d6d8a;
+}
+
+.fv-compare-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+/* Catalog Mode */
+.fv-catalog-content {
+  padding: 12px;
+}
+
+.fv-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.fv-catalog-card {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.fv-catalog-card:hover {
+  border-color: rgba(109, 86, 196, .4);
+  background: rgba(109, 86, 196, .06);
+  transform: translateY(-1px);
+}
+
+.fv-card-preview {
+  padding: 18px 14px;
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.fv-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: rgba(255,255,255,.02);
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+
+.fv-font-cat {
+  font-size: 10px;
+  color: #6d56c4;
+  background: rgba(109, 86, 196, .15);
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+/* Waterfall Mode */
+.fv-waterfall-content {
+  padding: 12px 16px;
+}
+
+.fv-waterfall-head {
+  margin-bottom: 12px;
+}
+
+.fv-waterfall-list {
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.fv-waterfall-row {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+
+.fv-waterfall-row:last-child {
+  border-bottom: none;
+}
+
+.fv-wf-size {
+  font-size: 11px;
+  color: #6d6d8a;
+  min-width: 42px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.fv-wf-text {
+  word-break: break-word;
+}
+
+/* Empty State */
+.fv-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  color: #6d6d8a;
+  font-size: 15px;
+}
+
+/* Status Bar */
+.fv-statusbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 5px 16px;
+  background: #1a1a2e;
+  border-top: 1px solid rgba(255,255,255,.08);
+  font-size: 11px;
+  color: #6d6d8a;
+  flex-shrink: 0;
+}

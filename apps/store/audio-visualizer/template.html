@@ -1,0 +1,71 @@
+<div class="av-root">
+  <!-- Toolbar -->
+  <div class="av-toolbar">
+    <div class="av-toolbar-left">
+      <button class="av-btn av-btn-file" @click="openFile" :title="L('openFile')">📂 {{ L('openFile') }}</button>
+      <button class="av-btn av-btn-mic" :class="{ active: micActive }" @click="toggleMic" :title="L('mic')">🎙️ {{ L('mic') }}</button>
+      <button class="av-btn av-btn-url" @click="showUrlInput = !showUrlInput" :title="L('fromUrl')">🔗</button>
+    </div>
+    <div class="av-toolbar-center">
+      <span class="av-track-name" v-if="trackName">🎵 {{ trackName }}</span>
+    </div>
+    <div class="av-toolbar-right">
+      <button class="av-btn" @click="toggleFullscreen" :title="L('fullscreen')">{{ isFullscreen ? '⛶' : '⛶' }}</button>
+    </div>
+  </div>
+
+  <!-- URL input bar -->
+  <div class="av-url-bar" v-if="showUrlInput">
+    <input class="av-url-input" v-model="audioUrl" :placeholder="L('urlPlaceholder')" @keyup.enter="loadUrl" />
+    <button class="av-btn av-btn-sm" @click="loadUrl">{{ L('load') }}</button>
+  </div>
+
+  <!-- Canvas area -->
+  <div class="av-canvas-wrap" ref="canvasWrap" @dragover.prevent @drop.prevent="onDrop">
+    <canvas ref="vizCanvas"></canvas>
+    <div class="av-idle-msg" v-if="!isPlaying && !micActive">
+      <div class="av-idle-icon">🎧</div>
+      <div class="av-idle-text">{{ L('dropOrOpen') }}</div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="av-controls">
+    <div class="av-controls-left">
+      <button class="av-ctrl-btn" @click="togglePlay" :disabled="!hasSource && !micActive">
+        {{ isPlaying ? '⏸' : '▶️' }}
+      </button>
+      <button class="av-ctrl-btn" @click="stop" :disabled="!hasSource">⏹</button>
+      <div class="av-volume-wrap">
+        <span class="av-vol-icon">🔊</span>
+        <input type="range" class="av-volume" min="0" max="100" v-model.number="volume" />
+      </div>
+      <div class="av-time" v-if="hasSource">{{ formatTime(elapsed) }} / {{ formatTime(duration) }}</div>
+    </div>
+    <div class="av-controls-right">
+      <div class="av-mode-selector">
+        <button
+          v-for="m in vizModes" :key="m"
+          class="av-mode-btn"
+          :class="{ active: vizMode === m }"
+          @click="vizMode = m"
+        >{{ L('mode_' + m) }}</button>
+      </div>
+      <div class="av-color-selector">
+        <button
+          v-for="c in colorThemes" :key="c.id"
+          class="av-color-btn"
+          :class="{ active: colorTheme === c.id }"
+          :style="{ background: c.preview }"
+          @click="colorTheme = c.id"
+          :title="c.name"
+        ></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="av-progress-wrap" v-if="hasSource" @click="seek($event)">
+    <div class="av-progress-bar" :style="{ width: progressPct + '%' }"></div>
+  </div>
+</div>

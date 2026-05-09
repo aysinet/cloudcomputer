@@ -1,0 +1,55 @@
+{
+  "id": "vim-editor",
+  "name": "Vim Editör",
+  "icon": "📟",
+  "color": "linear-gradient(135deg,#019833,#1e1e1e)",
+  "type": "internal",
+  "size": {
+    "w": 900,
+    "h": 640
+  },
+  "global": false,
+  "description": "vim-wasm tabanlı Vim editörü — tarayıcıda gerçek Vim deneyimi",
+  "lang": {
+    "tr": {
+      "name": "Vim Editör",
+      "description": "vim-wasm tabanlı Vim editörü — tarayıcıda gerçek Vim deneyimi"
+    },
+    "en": {
+      "name": "Vim Editor",
+      "description": "vim-wasm based Vim editor — real Vim experience in the browser"
+    },
+    "de": {
+      "name": "Vim Editor",
+      "description": "vim-wasm basierter Vim-Editor — echtes Vim-Erlebnis im Browser"
+    },
+    "fr": {
+      "name": "Éditeur Vim",
+      "description": "Éditeur Vim basé sur vim-wasm — expérience Vim réelle dans le navigateur"
+    },
+    "es": {
+      "name": "Editor Vim",
+      "description": "Editor Vim basado en vim-wasm — experiencia Vim real en el navegador"
+    },
+    "ru": {
+      "name": "Редактор Vim",
+      "description": "Редактор Vim на основе vim-wasm — настоящий Vim в браузере"
+    },
+    "zh": {
+      "name": "Vim 编辑器",
+      "description": "基于 vim-wasm 的 Vim 编辑器 — 浏览器中的真实 Vim 体验"
+    },
+    "ja": {
+      "name": "Vim エディタ",
+      "description": "vim-wasm ベースの Vim エディタ — ブラウザで本物の Vim 体験"
+    },
+    "ar": {
+      "name": "محرر Vim",
+      "description": "محرر Vim مبني على vim-wasm — تجربة Vim حقيقية في المتصفح"
+    }
+  },
+  "category": "development",
+  "keywords": ["vim", "editor", "wasm", "terminal", "code", "text"],
+  "author": "CloudComputer",
+  "version": "1.0.0"
+}

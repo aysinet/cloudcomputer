@@ -1,0 +1,46 @@
+<div class="otl-root">
+  <template v-if="status === 'running' && iframeSrc">
+    <div class="otl-toolbar">
+      <div class="otl-toolbar-left">
+        <span class="otl-toolbar-icon">📝</span>
+        <span class="otl-toolbar-title">Outline</span>
+        <span class="otl-status-badge running">● {{ t('running') }}</span>
+      </div>
+      <div class="otl-toolbar-right">
+        <button class="otl-toolbar-btn" @click="restart" :title="t('restart')">🔄</button>
+        <button class="otl-toolbar-btn" @click="loadStatus" :title="t('refresh')">↻</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="otl-iframe" frameborder="0" allow="clipboard-read; clipboard-write"></iframe>
+  </template>
+
+  <template v-else>
+    <div class="otl-panel">
+      <div class="otl-panel-header">
+        <span class="otl-panel-icon">📝</span>
+        <h3>Outline</h3>
+        <span :class="['otl-status-badge', status]">
+          {{ status === 'loading' ? '◌ ' + t('loading') : status === 'stopped' ? '○ ' + t('stopped') : status === 'restarting' ? '◌ ' + t('restarting') : '⚠ ' + t('error') }}
+        </span>
+      </div>
+
+      <div v-if="status === 'error'" class="otl-error">
+        <p>{{ errorMsg }}</p>
+        <button @click="loadStatus">{{ t('tryAgain') }}</button>
+      </div>
+
+      <div v-if="connInfo && status === 'stopped'" class="otl-conn-info">
+        <h4>{{ t('serviceInfo') }}</h4>
+        <div class="otl-conn-row"><span class="otl-conn-label">{{ t('container') }}:</span><code>{{ connInfo.containerName }}</code></div>
+        <div class="otl-conn-row"><span class="otl-conn-label">{{ t('port') }}:</span><code>{{ connInfo.port }}</code></div>
+        <div class="otl-conn-row"><span class="otl-conn-label">{{ t('pgHost') }}:</span><code>{{ connInfo.pgHost }}</code></div>
+        <div class="otl-conn-row"><span class="otl-conn-label">{{ t('database') }}:</span><code>{{ connInfo.pgDatabase }}</code></div>
+      </div>
+
+      <div v-if="status === 'stopped'" class="otl-actions">
+        <button class="otl-start-btn" @click="restart" :disabled="status === 'restarting'">▶ {{ t('start') }}</button>
+        <button class="otl-refresh-btn" @click="loadStatus">↻ {{ t('refresh') }}</button>
+      </div>
+    </div>
+  </template>
+</div>

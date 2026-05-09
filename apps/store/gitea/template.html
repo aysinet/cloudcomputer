@@ -1,0 +1,48 @@
+<div class="gitea-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="gt-status-screen">
+    <div class="gt-spinner"></div>
+    <div class="gt-icon-large">☕</div>
+    <div class="gt-status-text">{{ pullProgress }}</div>
+    <div class="gt-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="gt-status-screen">
+    <div class="gt-spinner"></div>
+    <div class="gt-icon-large">☕</div>
+    <div class="gt-status-text">Gitea başlatılıyor...</div>
+    <div class="gt-sub-text">Git servisi hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="gt-status-screen gt-error">
+    <div class="gt-icon-large">⚠️</div>
+    <div class="gt-status-text">Bir hata oluştu</div>
+    <div class="gt-error-msg">{{ errorMsg }}</div>
+    <div class="gt-actions">
+      <button class="gt-btn gt-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="gt-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="gt-running">
+    <div class="gt-toolbar">
+      <span class="gt-info">☕ Gitea — Port: {{ port }}</span>
+      <div class="gt-toolbar-actions">
+        <button class="gt-btn gt-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="gt-btn gt-btn-small gt-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="gt-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="gt-status-screen">
+    <div class="gt-icon-large">☕</div>
+    <div class="gt-status-text">Gitea</div>
+    <div class="gt-sub-text">Self-hosted Git servisi — repo, issue, PR, CI/CD, wiki desteği</div>
+    <button class="gt-btn gt-btn-primary gt-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

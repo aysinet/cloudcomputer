@@ -1,0 +1,91 @@
+{
+  "id": "outline",
+  "name": "Outline",
+  "icon": "📝",
+  "color": "linear-gradient(135deg,#0366d6,#6c5ce7)",
+  "type": "service",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Bilgi tabanı ve wiki — ekipler için hızlı ve modern bilgi yönetimi (Notion alternatifi)",
+  "requires": ["postgres", "redis"],
+  "lang": {
+    "tr": {
+      "name": "Outline",
+      "description": "Bilgi tabanı ve wiki — ekipler için hızlı ve modern bilgi yönetimi (Notion alternatifi)"
+    },
+    "en": {
+      "name": "Outline",
+      "description": "Knowledge base & wiki — fast and modern knowledge management for teams (Notion alternative)"
+    },
+    "de": {
+      "name": "Outline",
+      "description": "Wissensdatenbank & Wiki — schnelles und modernes Wissensmanagement für Teams (Notion-Alternative)"
+    },
+    "fr": {
+      "name": "Outline",
+      "description": "Base de connaissances & wiki — gestion rapide et moderne des connaissances (alternative à Notion)"
+    },
+    "es": {
+      "name": "Outline",
+      "description": "Base de conocimiento & wiki — gestión rápida y moderna del conocimiento (alternativa a Notion)"
+    },
+    "ru": {
+      "name": "Outline",
+      "description": "База знаний и вики — быстрое и современное управление знаниями (альтернатива Notion)"
+    },
+    "zh": {
+      "name": "Outline",
+      "description": "知识库与维基 — 快速现代的团队知识管理工具（Notion 替代品）"
+    },
+    "ja": {
+      "name": "Outline",
+      "description": "ナレッジベース＆Wiki — 高速でモダンなチーム向けナレッジ管理（Notion代替）"
+    },
+    "it": {
+      "name": "Outline",
+      "description": "Base di conoscenza e wiki — gestione rapida e moderna della conoscenza (alternativa a Notion)"
+    },
+    "ar": {
+      "name": "Outline",
+      "description": "قاعدة معرفية وويكي — إدارة معرفية سريعة وحديثة للفرق (بديل Notion)"
+    },
+    "ko": {
+      "name": "Outline",
+      "description": "지식 베이스 & 위키 — 팀을 위한 빠르고 현대적인 지식 관리 (Notion 대안)"
+    },
+    "hi": {
+      "name": "Outline",
+      "description": "ज्ञान आधार और विकी — टीमों के लिए तेज़ और आधुनिक ज्ञान प्रबंधन (Notion विकल्प)"
+    },
+    "pt": {
+      "name": "Outline",
+      "description": "Base de conhecimento & wiki — gestão rápida e moderna de conhecimento (alternativa ao Notion)"
+    }
+  },
+  "category": "productivity",
+  "docker": {
+    "image": "outlinewiki/outline:latest",
+    "containerPort": 3000,
+    "volumes": [
+      "${APP_VOLUME}:/var/lib/outline/data"
+    ],
+    "env": [
+      "SECRET_KEY=${SECRET_KEY}",
+      "UTILS_SECRET=${UTILS_SECRET}",
+      "DATABASE_URL=${DATABASE_URL}",
+      "REDIS_URL=${REDIS_URL}",
+      "URL=${URL}",
+      "PORT=3000",
+      "FILE_STORAGE=local",
+      "FILE_STORAGE_LOCAL_ROOT_DIR=/var/lib/outline/data",
+      "FILE_STORAGE_UPLOAD_MAX_SIZE=26214400",
+      "FORCE_HTTPS=false",
+      "PGSSLMODE=disable",
+      "NODE_ENV=production"
+    ]
+  }
+}

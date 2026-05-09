@@ -1,0 +1,48 @@
+<div class="stirling-pdf-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="spdf-status-screen">
+    <div class="spdf-spinner"></div>
+    <div class="spdf-icon-large">📄</div>
+    <div class="spdf-status-text">{{ pullProgress }}</div>
+    <div class="spdf-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="spdf-status-screen">
+    <div class="spdf-spinner"></div>
+    <div class="spdf-icon-large">📄</div>
+    <div class="spdf-status-text">Stirling PDF başlatılıyor...</div>
+    <div class="spdf-sub-text">PDF araçları hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="spdf-status-screen spdf-error">
+    <div class="spdf-icon-large">⚠️</div>
+    <div class="spdf-status-text">Bir hata oluştu</div>
+    <div class="spdf-error-msg">{{ errorMsg }}</div>
+    <div class="spdf-actions">
+      <button class="spdf-btn spdf-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="spdf-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="spdf-running">
+    <div class="spdf-toolbar">
+      <span class="spdf-info">📄 Stirling PDF — Port: {{ port }}</span>
+      <div class="spdf-toolbar-actions">
+        <button class="spdf-btn spdf-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="spdf-btn spdf-btn-small spdf-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="spdf-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="spdf-status-screen">
+    <div class="spdf-icon-large">📄</div>
+    <div class="spdf-status-text">Stirling PDF</div>
+    <div class="spdf-sub-text">Güçlü PDF araç seti — birleştir, böl, dönüştür, sıkıştır, imzala ve daha fazlası</div>
+    <button class="spdf-btn spdf-btn-primary spdf-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

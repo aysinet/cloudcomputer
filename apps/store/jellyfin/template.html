@@ -1,0 +1,48 @@
+<div class="jellyfin-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="jf-status-screen">
+    <div class="jf-spinner"></div>
+    <div class="jf-icon-large">🎬</div>
+    <div class="jf-status-text">{{ pullProgress }}</div>
+    <div class="jf-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="jf-status-screen">
+    <div class="jf-spinner"></div>
+    <div class="jf-icon-large">🎬</div>
+    <div class="jf-status-text">Jellyfin başlatılıyor...</div>
+    <div class="jf-sub-text">Video medya sunucusu hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="jf-status-screen jf-error">
+    <div class="jf-icon-large">⚠️</div>
+    <div class="jf-status-text">Bir hata oluştu</div>
+    <div class="jf-error-msg">{{ errorMsg }}</div>
+    <div class="jf-actions">
+      <button class="jf-btn jf-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="jf-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="jf-running">
+    <div class="jf-toolbar">
+      <span class="jf-info">🎬 Jellyfin — Port: {{ port }}</span>
+      <div class="jf-toolbar-actions">
+        <button class="jf-btn jf-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="jf-btn jf-btn-small jf-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="jf-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="jf-status-screen">
+    <div class="jf-icon-large">🎬</div>
+    <div class="jf-status-text">Jellyfin</div>
+    <div class="jf-sub-text">Kendi video medya sunucunuz — Netflix alternatifi</div>
+    <button class="jf-btn jf-btn-primary jf-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

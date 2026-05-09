@@ -1,0 +1,68 @@
+{
+  "id": "pyodide",
+  "name": "Pyodide",
+  "icon": "🐍",
+  "color": "linear-gradient(135deg,#306998,#FFD43B)",
+  "type": "internal",
+  "size": {
+    "w": 900,
+    "h": 600
+  },
+  "global": false,
+  "description": "Tarayıcıda çalışan Python yorumlayıcı (NumPy, Pandas dahil)",
+  "category": "development",
+  "lang": {
+    "tr": {
+      "name": "Pyodide",
+      "description": "Tarayıcıda çalışan Python yorumlayıcı — NumPy, Pandas ve daha fazlası"
+    },
+    "en": {
+      "name": "Pyodide",
+      "description": "Python interpreter in the browser — NumPy, Pandas and more"
+    },
+    "de": {
+      "name": "Pyodide",
+      "description": "Python-Interpreter im Browser — NumPy, Pandas und mehr"
+    },
+    "fr": {
+      "name": "Pyodide",
+      "description": "Interpréteur Python dans le navigateur — NumPy, Pandas et plus"
+    },
+    "es": {
+      "name": "Pyodide",
+      "description": "Intérprete Python en el navegador — NumPy, Pandas y más"
+    },
+    "ru": {
+      "name": "Pyodide",
+      "description": "Интерпретатор Python в браузере — NumPy, Pandas и другие"
+    },
+    "zh": {
+      "name": "Pyodide",
+      "description": "浏览器中的 Python 解释器 — 含 NumPy、Pandas 等"
+    },
+    "ja": {
+      "name": "Pyodide",
+      "description": "ブラウザで動くPythonインタープリター — NumPy、Pandas対応"
+    },
+    "it": {
+      "name": "Pyodide",
+      "description": "Interprete Python nel browser — NumPy, Pandas e altro"
+    },
+    "ar": {
+      "name": "Pyodide",
+      "description": "مترجم Python في المتصفح — NumPy و Pandas والمزيد"
+    },
+    "ko": {
+      "name": "Pyodide",
+      "description": "브라우저에서 실행되는 Python 인터프리터 — NumPy, Pandas 포함"
+    },
+    "hi": {
+      "name": "Pyodide",
+      "description": "ब्राउज़र में Python इंटरप्रेटर — NumPy, Pandas सहित"
+    },
+    "pt": {
+      "name": "Pyodide",
+      "description": "Interpretador Python no navegador — NumPy, Pandas e mais"
+    }
+  }
+}

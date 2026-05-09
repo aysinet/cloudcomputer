@@ -5125,7 +5125,6 @@ app.delete('/api/wordcloud/delete/:id', authMiddleware, (req, res) => {
 });
 
 // #endregion
-
 // #region Presentation API
 function getPresentationDir(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -5451,7 +5450,6 @@ app.post('/api/presentation/export-pptx', authMiddleware, (req, res) => {
   }
 });
 // #endregion
-
 // #region Notification API
 app.get('/api/notifications', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
@@ -9261,7 +9259,7 @@ app.delete('/api/map/views/:id', authMiddleware, (req, res) => {
 });
 
 // #endregion
-// #region Backup & Restore
+// #region Backup & Restorae
 const BACKUPS_DIR = path.join(__dirname, 'backups');
 ensureDir(BACKUPS_DIR);
 const SEVENZ_PATH = 'C:\\Program Files\\7-Zip\\7z.exe';

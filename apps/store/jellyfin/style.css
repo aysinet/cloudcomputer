@@ -1,0 +1,147 @@
+.jellyfin-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #0b0e2a;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.jf-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.jf-icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.jf-status-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.jf-sub-text {
+  font-size: 13px;
+  color: #00a4dc;
+  max-width: 360px;
+}
+
+.jf-error-msg {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.jf-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #00a4dc;
+  border-radius: 50%;
+  animation: jf-spin 0.8s linear infinite;
+}
+
+@keyframes jf-spin {
+  to { transform: rotate(360deg); }
+}
+
+.jf-btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: all 0.2s;
+  background: #1a1d4e;
+  color: #e0e0e0;
+}
+
+.jf-btn:hover {
+  background: #252966;
+}
+
+.jf-btn-primary {
+  background: #00a4dc;
+  color: #fff;
+  font-weight: 600;
+}
+
+.jf-btn-primary:hover {
+  background: #0bbae8;
+}
+
+.jf-btn-large {
+  padding: 12px 32px;
+  font-size: 16px;
+  border-radius: 12px;
+}
+
+.jf-btn-small {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.jf-btn-danger {
+  background: #c62828;
+  color: #fff;
+}
+
+.jf-btn-danger:hover {
+  background: #e53935;
+}
+
+.jf-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.jf-running {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.jf-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: #0d1035;
+  border-bottom: 1px solid #00a4dc33;
+  min-height: 32px;
+}
+
+.jf-info {
+  font-size: 12px;
+  color: #00a4dc;
+}
+
+.jf-toolbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.jf-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}

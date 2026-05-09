@@ -1,0 +1,77 @@
+{
+  "id": "actualbudget",
+  "name": "Actual Budget",
+  "icon": "💰",
+  "color": "linear-gradient(135deg,#1B4332,#2D6A4F)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1050,
+    "h": 720
+  },
+  "global": false,
+  "description": "Envelope bütçeleme uygulaması — kişisel finans yönetimi",
+  "category": "finance",
+  "lang": {
+    "tr": {
+      "name": "Actual Budget",
+      "description": "Envelope bütçeleme uygulaması — kişisel finans yönetimi"
+    },
+    "en": {
+      "name": "Actual Budget",
+      "description": "Envelope budgeting app — personal finance management"
+    },
+    "de": {
+      "name": "Actual Budget",
+      "description": "Umschlag-Budgetierungs-App — persönliche Finanzverwaltung"
+    },
+    "fr": {
+      "name": "Actual Budget",
+      "description": "Application de budgétisation par enveloppes — gestion des finances personnelles"
+    },
+    "es": {
+      "name": "Actual Budget",
+      "description": "Aplicación de presupuesto por sobres — gestión de finanzas personales"
+    },
+    "ru": {
+      "name": "Actual Budget",
+      "description": "Конвертное бюджетирование — управление личными финансами"
+    },
+    "zh": {
+      "name": "Actual Budget",
+      "description": "信封预算应用 — 个人财务管理"
+    },
+    "ja": {
+      "name": "Actual Budget",
+      "description": "封筒予算管理アプリ — 個人財務管理"
+    },
+    "it": {
+      "name": "Actual Budget",
+      "description": "App di budgeting a buste — gestione delle finanze personali"
+    },
+    "ar": {
+      "name": "Actual Budget",
+      "description": "تطبيق ميزانية الأظرف — إدارة الشؤون المالية الشخصية"
+    },
+    "ko": {
+      "name": "Actual Budget",
+      "description": "봉투 예산 관리 앱 — 개인 재무 관리"
+    },
+    "hi": {
+      "name": "Actual Budget",
+      "description": "एनवेलोप बजटिंग ऐप — व्यक्तिगत वित्त प्रबंधन"
+    },
+    "pt": {
+      "name": "Actual Budget",
+      "description": "Aplicativo de orçamento por envelopes — gestão de finanças pessoais"
+    }
+  },
+  "docker": {
+    "image": "actualbudget/actual-server:latest",
+    "containerPort": 5006,
+    "volumes": [
+      "${APP_VOLUME}:/data"
+    ],
+    "env": []
+  }
+}

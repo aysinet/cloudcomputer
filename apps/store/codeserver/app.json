@@ -1,0 +1,84 @@
+{
+  "id": "codeserver",
+  "name": "Code Server",
+  "icon": "🖥️",
+  "color": "linear-gradient(135deg,#007acc,#1e1e1e)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Docker tabanlı VS Code deneyimi — tarayıcıda tam özellikli kod editörü",
+  "lang": {
+    "tr": {
+      "name": "Code Server",
+      "description": "Docker tabanlı VS Code deneyimi — tarayıcıda tam özellikli kod editörü"
+    },
+    "en": {
+      "name": "Code Server",
+      "description": "Docker-based VS Code experience — full-featured code editor in the browser"
+    },
+    "de": {
+      "name": "Code Server",
+      "description": "Docker-basiertes VS Code — voll funktionsfähiger Code-Editor im Browser"
+    },
+    "fr": {
+      "name": "Code Server",
+      "description": "VS Code basé sur Docker — éditeur de code complet dans le navigateur"
+    },
+    "es": {
+      "name": "Code Server",
+      "description": "VS Code basado en Docker — editor de código completo en el navegador"
+    },
+    "ru": {
+      "name": "Code Server",
+      "description": "VS Code на базе Docker — полнофункциональный редактор кода в браузере"
+    },
+    "zh": {
+      "name": "Code Server",
+      "description": "基于Docker的VS Code — 浏览器中的完整代码编辑器"
+    },
+    "ja": {
+      "name": "Code Server",
+      "description": "Docker版VS Code — ブラウザで完全なコードエディタ"
+    },
+    "it": {
+      "name": "Code Server",
+      "description": "VS Code basato su Docker — editor di codice completo nel browser"
+    },
+    "ar": {
+      "name": "كود سيرفر",
+      "description": "VS Code عبر Docker — محرر أكواد كامل في المتصفح"
+    },
+    "ko": {
+      "name": "Code Server",
+      "description": "Docker 기반 VS Code — 브라우저에서 완전한 코드 편집기"
+    },
+    "hi": {
+      "name": "Code Server",
+      "description": "Docker-आधारित VS Code — ब्राउज़र में पूर्ण कोड एडिटर"
+    },
+    "pt": {
+      "name": "Code Server",
+      "description": "VS Code baseado em Docker — editor de código completo no navegador"
+    }
+  },
+  "category": "development",
+  "docker": {
+    "image": "lscr.io/linuxserver/code-server:latest",
+    "containerPort": 8443,
+    "volumes": [
+      "${APP_VOLUME}:/config",
+      "${DATA_VOLUME}:/config/workspace"
+    ],
+    "env": [
+      "PUID=1000",
+      "PGID=1000",
+      "TZ=Etc/UTC",
+      "PASSWORD=cloudcomputer",
+      "DEFAULT_WORKSPACE=/config/workspace"
+    ]
+  }
+}

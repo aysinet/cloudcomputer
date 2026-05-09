@@ -1,0 +1,44 @@
+{
+  "id": "gitea",
+  "name": "Gitea",
+  "icon": "☕",
+  "color": "linear-gradient(135deg,#476745,#2a3a28)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Self-hosted Git servisi — GitHub alternatifi, hafif ve hızlı",
+  "lang": {
+    "tr": { "name": "Gitea", "description": "Self-hosted Git servisi — GitHub alternatifi, hafif ve hızlı" },
+    "en": { "name": "Gitea", "description": "Self-hosted Git service — lightweight GitHub alternative" },
+    "de": { "name": "Gitea", "description": "Selbst gehosteter Git-Dienst — leichte GitHub-Alternative" },
+    "fr": { "name": "Gitea", "description": "Service Git auto-hébergé — alternative légère à GitHub" },
+    "es": { "name": "Gitea", "description": "Servicio Git autoalojado — alternativa ligera a GitHub" },
+    "ru": { "name": "Gitea", "description": "Самостоятельно размещённый Git-сервис — лёгкая альтернатива GitHub" },
+    "zh": { "name": "Gitea", "description": "自托管Git服务 — 轻量级GitHub替代方案" },
+    "ja": { "name": "Gitea", "description": "セルフホスト型Gitサービス — 軽量なGitHub代替" },
+    "it": { "name": "Gitea", "description": "Servizio Git self-hosted — alternativa leggera a GitHub" },
+    "ar": { "name": "جيتي", "description": "خدمة Git ذاتية الاستضافة — بديل خفيف لـ GitHub" },
+    "ko": { "name": "Gitea", "description": "셀프 호스팅 Git 서비스 — 가벼운 GitHub 대안" },
+    "hi": { "name": "Gitea", "description": "सेल्फ-होस्टेड Git सेवा — हल्का GitHub विकल्प" },
+    "pt": { "name": "Gitea", "description": "Serviço Git auto-hospedado — alternativa leve ao GitHub" }
+  },
+  "category": "development",
+  "docker": {
+    "image": "gitea/gitea:latest",
+    "containerPort": 3000,
+    "volumes": [
+      "${APP_VOLUME}:/data",
+      "${DATA_VOLUME}:/appdata:ro"
+    ],
+    "env": [
+      "USER_UID=1000",
+      "USER_GID=1000",
+      "GITEA__database__DB_TYPE=sqlite3",
+      "GITEA__server__ROOT_URL=/"
+    ]
+  }
+}

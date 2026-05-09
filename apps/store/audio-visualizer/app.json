@@ -1,0 +1,26 @@
+{
+  "id": "audio-visualizer",
+  "name": "Ses Görselleştirici",
+  "icon": "🌈",
+  "color": "linear-gradient(135deg,#6c3ce0,#e040fb)",
+  "type": "internal",
+  "size": { "w": 900, "h": 640 },
+  "global": false,
+  "description": "Web Audio API ile müzik görselleştirici — spektrum, dalga, daire ve parçacık efektleri",
+  "category": "media",
+  "lang": {
+    "tr": { "name": "Ses Görselleştirici", "description": "Web Audio API ile müzik görselleştirici — spektrum, dalga, daire ve parçacık efektleri" },
+    "en": { "name": "Audio Visualizer", "description": "Music visualizer with Web Audio API — spectrum, wave, circle and particle effects" },
+    "de": { "name": "Audio-Visualizer", "description": "Musik-Visualizer mit Web Audio API — Spektrum, Welle, Kreis und Partikeleffekte" },
+    "fr": { "name": "Visualiseur Audio", "description": "Visualiseur musical avec Web Audio API — spectre, onde, cercle et effets de particules" },
+    "es": { "name": "Visualizador de Audio", "description": "Visualizador de música con Web Audio API — espectro, onda, círculo y efectos de partículas" },
+    "ru": { "name": "Аудио-визуализатор", "description": "Музыкальный визуализатор на Web Audio API — спектр, волна, круг и эффекты частиц" },
+    "zh": { "name": "音频可视化", "description": "使用Web Audio API的音乐可视化 — 频谱、波形、圆形和粒子效果" },
+    "ja": { "name": "オーディオビジュアライザー", "description": "Web Audio APIによる音楽ビジュアライザー — スペクトラム、波形、サークル、パーティクル" },
+    "it": { "name": "Visualizzatore Audio", "description": "Visualizzatore musicale con Web Audio API — spettro, onda, cerchio ed effetti particellari" },
+    "ar": { "name": "مُصوِّر الصوت", "description": "مُصوِّر موسيقي بـ Web Audio API — طيف، موجة، دائرة وتأثيرات جسيمات" },
+    "ko": { "name": "오디오 비주얼라이저", "description": "Web Audio API 음악 시각화 — 스펙트럼, 파형, 원형 및 파티클 효과" },
+    "hi": { "name": "ऑडियो विज़ुअलाइज़र", "description": "Web Audio API के साथ म्यूज़िक विज़ुअलाइज़र — स्पेक्ट्रम, वेव, सर्कल और पार्टिकल इफ़ेक्ट" },
+    "pt": { "name": "Visualizador de Áudio", "description": "Visualizador de música com Web Audio API — espectro, onda, círculo e efeitos de partículas" }
+  }
+}

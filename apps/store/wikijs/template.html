@@ -1,0 +1,46 @@
+<div class="wjs-root">
+  <template v-if="status === 'running' && iframeSrc">
+    <div class="wjs-toolbar">
+      <div class="wjs-toolbar-left">
+        <span class="wjs-toolbar-icon">📚</span>
+        <span class="wjs-toolbar-title">Wiki.js</span>
+        <span class="wjs-status-badge running">● {{ t('running') }}</span>
+      </div>
+      <div class="wjs-toolbar-right">
+        <button class="wjs-toolbar-btn" @click="restart" :title="t('restart')">🔄</button>
+        <button class="wjs-toolbar-btn" @click="loadStatus" :title="t('refresh')">↻</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="wjs-iframe" frameborder="0" allow="clipboard-read; clipboard-write"></iframe>
+  </template>
+
+  <template v-else>
+    <div class="wjs-panel">
+      <div class="wjs-panel-header">
+        <span class="wjs-panel-icon">📚</span>
+        <h3>Wiki.js</h3>
+        <span :class="['wjs-status-badge', status]">
+          {{ status === 'loading' ? '◌ ' + t('loading') : status === 'stopped' ? '○ ' + t('stopped') : status === 'restarting' ? '◌ ' + t('restarting') : '⚠ ' + t('error') }}
+        </span>
+      </div>
+
+      <div v-if="status === 'error'" class="wjs-error">
+        <p>{{ errorMsg }}</p>
+        <button @click="loadStatus">{{ t('tryAgain') }}</button>
+      </div>
+
+      <div v-if="connInfo && status === 'stopped'" class="wjs-conn-info">
+        <h4>{{ t('serviceInfo') }}</h4>
+        <div class="wjs-conn-row"><span class="wjs-conn-label">{{ t('container') }}:</span><code>{{ connInfo.containerName }}</code></div>
+        <div class="wjs-conn-row"><span class="wjs-conn-label">{{ t('port') }}:</span><code>{{ connInfo.port }}</code></div>
+        <div class="wjs-conn-row"><span class="wjs-conn-label">{{ t('pgHost') }}:</span><code>{{ connInfo.pgHost }}</code></div>
+        <div class="wjs-conn-row"><span class="wjs-conn-label">{{ t('database') }}:</span><code>{{ connInfo.pgDatabase }}</code></div>
+      </div>
+
+      <div v-if="status === 'stopped'" class="wjs-actions">
+        <button class="wjs-start-btn" @click="restart" :disabled="status === 'restarting'">▶ {{ t('start') }}</button>
+        <button class="wjs-refresh-btn" @click="loadStatus">↻ {{ t('refresh') }}</button>
+      </div>
+    </div>
+  </template>
+</div>

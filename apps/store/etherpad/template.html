@@ -1,0 +1,48 @@
+<div class="etherpad-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="ep-status-screen">
+    <div class="ep-spinner"></div>
+    <div class="ep-icon-large">📝</div>
+    <div class="ep-status-text">{{ pullProgress }}</div>
+    <div class="ep-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="ep-status-screen">
+    <div class="ep-spinner"></div>
+    <div class="ep-icon-large">📝</div>
+    <div class="ep-status-text">Etherpad başlatılıyor...</div>
+    <div class="ep-sub-text">Gerçek zamanlı editör hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="ep-status-screen ep-error">
+    <div class="ep-icon-large">⚠️</div>
+    <div class="ep-status-text">Bir hata oluştu</div>
+    <div class="ep-error-msg">{{ errorMsg }}</div>
+    <div class="ep-actions">
+      <button class="ep-btn ep-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="ep-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="ep-running">
+    <div class="ep-toolbar">
+      <span class="ep-info">📝 Etherpad — Port: {{ port }}</span>
+      <div class="ep-toolbar-actions">
+        <button class="ep-btn ep-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="ep-btn ep-btn-small ep-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="ep-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="ep-status-screen">
+    <div class="ep-icon-large">📝</div>
+    <div class="ep-status-text">Etherpad</div>
+    <div class="ep-sub-text">Gerçek zamanlı işbirlikçi metin editörü — birlikte yazın, birlikte düzenleyin</div>
+    <button class="ep-btn ep-btn-primary ep-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

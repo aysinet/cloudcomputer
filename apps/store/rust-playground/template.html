@@ -1,0 +1,113 @@
+<div class="rp-app">
+  <!-- Toolbar -->
+  <div class="rp-toolbar">
+    <div class="rp-toolbar-left">
+      <span class="rp-logo">🦀</span>
+      <span class="rp-title">Rust Playground</span>
+      <span class="rp-sep"></span>
+      <button class="rp-btn rp-btn-run" @click="runCode" :disabled="running" :title="L('run')">
+        <span v-if="!running">▶</span>
+        <span v-else class="rp-spinner"></span>
+        {{ running ? L('compiling') : L('run') }}
+      </button>
+      <button class="rp-btn" @click="formatCode" :disabled="running" :title="L('format')">✨ {{ L('format') }}</button>
+      <button class="rp-btn" @click="shareCode" :title="L('share')">🔗 {{ L('share') }}</button>
+      <span class="rp-sep"></span>
+      <button class="rp-btn" @click="openLocalFile" :title="L('openFile')">📂</button>
+      <button class="rp-btn" @click="saveLocalFile" :title="L('saveFile')">💾</button>
+    </div>
+    <div class="rp-toolbar-right">
+      <select v-model="channel" class="rp-select" :title="L('channel')">
+        <option value="stable">Stable</option>
+        <option value="beta">Beta</option>
+        <option value="nightly">Nightly</option>
+      </select>
+      <select v-model="edition" class="rp-select" :title="L('edition')">
+        <option value="2021">Edition 2021</option>
+        <option value="2024">Edition 2024</option>
+        <option value="2018">Edition 2018</option>
+        <option value="2015">Edition 2015</option>
+      </select>
+      <select v-model="mode" class="rp-select" :title="L('mode')">
+        <option value="debug">Debug</option>
+        <option value="release">Release</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="rp-main">
+    <!-- Editor -->
+    <div class="rp-editor-area" :style="{ flex: outputVisible ? '1 1 60%' : '1 1 100%' }">
+      <div ref="editorContainer" class="rp-editor-container"></div>
+    </div>
+
+    <!-- Resize handle -->
+    <div v-if="outputVisible" class="rp-resize-handle" @mousedown="startResize">⋯</div>
+
+    <!-- Output panel -->
+    <div v-if="outputVisible" class="rp-output-area" :style="{ flex: '0 0 ' + outputHeight + 'px' }">
+      <div class="rp-output-header">
+        <div class="rp-output-tabs">
+          <button class="rp-output-tab" :class="{ active: outputTab === 'output' }" @click="outputTab='output'">
+            📋 {{ L('output') }}
+          </button>
+          <button class="rp-output-tab" :class="{ active: outputTab === 'stderr' }" @click="outputTab='stderr'">
+            ⚠️ {{ L('errors') }}
+            <span v-if="stderrText" class="rp-badge">!</span>
+          </button>
+          <button v-if="asmText" class="rp-output-tab" :class="{ active: outputTab === 'asm' }" @click="outputTab='asm'">
+            🔧 ASM
+          </button>
+          <button v-if="llvmIr" class="rp-output-tab" :class="{ active: outputTab === 'llvm' }" @click="outputTab='llvm'">
+            ⚙️ LLVM IR
+          </button>
+          <button v-if="mirText" class="rp-output-tab" :class="{ active: outputTab === 'mir' }" @click="outputTab='mir'">
+            🧩 MIR
+          </button>
+          <button v-if="wasmText" class="rp-output-tab" :class="{ active: outputTab === 'wasm' }" @click="outputTab='wasm'">
+            🌐 WASM
+          </button>
+        </div>
+        <div class="rp-output-actions">
+          <span v-if="execTime" class="rp-exec-time">⏱ {{ execTime }}</span>
+          <button class="rp-btn-sm" @click="copyOutput" title="Copy">📋</button>
+          <button class="rp-btn-sm" @click="clearOutput">✕</button>
+        </div>
+      </div>
+      <pre class="rp-output-body" :class="{ 'has-error': outputTab === 'stderr' && stderrText }"><code>{{ currentOutput }}</code></pre>
+    </div>
+  </div>
+
+  <!-- Statusbar -->
+  <div class="rp-statusbar">
+    <span class="rp-status-item">🦀 Rust {{ channel }}</span>
+    <span class="rp-status-item">{{ edition }}</span>
+    <span class="rp-status-item">{{ cursorInfo }}</span>
+    <span style="flex:1"></span>
+    <span v-if="exitCode !== null" class="rp-status-item" :class="exitCode === 0 ? 'rp-status-ok' : 'rp-status-err'">
+      {{ exitCode === 0 ? '✅ ' + L('success') : '❌ Exit: ' + exitCode }}
+    </span>
+    <span class="rp-status-item">{{ L('lines') }}: {{ lineCount }}</span>
+  </div>
+
+  <!-- Hidden file input -->
+  <input type="file" ref="fileInput" accept=".rs" style="display:none" @change="onFileSelected" />
+
+  <!-- Share dialog -->
+  <div v-if="showShareDialog" class="rp-overlay" @click.self="showShareDialog=false">
+    <div class="rp-dialog">
+      <div class="rp-dialog-header">
+        <span>🔗 {{ L('share') }}</span>
+        <button class="rp-btn-sm" @click="showShareDialog=false">✕</button>
+      </div>
+      <div class="rp-dialog-body">
+        <p>{{ L('shareMsg') }}</p>
+        <div class="rp-share-link">
+          <input type="text" :value="shareUrl" readonly class="rp-share-input" ref="shareInput" />
+          <button class="rp-btn" @click="copyShareLink">📋 {{ L('copy') }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,48 @@
+<div class="actualbudget-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="ab-status-screen">
+    <div class="ab-spinner"></div>
+    <div class="ab-icon-large">💰</div>
+    <div class="ab-status-text">{{ pullProgress }}</div>
+    <div class="ab-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="ab-status-screen">
+    <div class="ab-spinner"></div>
+    <div class="ab-icon-large">💰</div>
+    <div class="ab-status-text">Actual Budget başlatılıyor...</div>
+    <div class="ab-sub-text">Bütçe sunucusu hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="ab-status-screen ab-error">
+    <div class="ab-icon-large">⚠️</div>
+    <div class="ab-status-text">Bir hata oluştu</div>
+    <div class="ab-error-msg">{{ errorMsg }}</div>
+    <div class="ab-actions">
+      <button class="ab-btn ab-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="ab-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="ab-running">
+    <div class="ab-toolbar">
+      <span class="ab-info">💰 Actual Budget — Port: {{ port }}</span>
+      <div class="ab-toolbar-actions">
+        <button class="ab-btn ab-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="ab-btn ab-btn-small ab-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="ab-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="ab-status-screen">
+    <div class="ab-icon-large">💰</div>
+    <div class="ab-status-text">Actual Budget</div>
+    <div class="ab-sub-text">Envelope bütçeleme — kişisel finans yönetimi</div>
+    <button class="ab-btn ab-btn-primary ab-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

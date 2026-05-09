@@ -1,0 +1,146 @@
+.adguardhome-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1a3a2a;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.ag-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.ag-icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.ag-status-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.ag-sub-text {
+  font-size: 13px;
+  color: #68bc71;
+  max-width: 360px;
+}
+
+.ag-error-msg {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.ag-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #68bc71;
+  border-radius: 50%;
+  animation: ag-spin 0.8s linear infinite;
+}
+
+@keyframes ag-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ag-btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: all 0.2s;
+  background: #2d5a3a;
+  color: #e0e0e0;
+}
+
+.ag-btn:hover {
+  background: #3a7048;
+}
+
+.ag-btn-primary {
+  background: #68bc71;
+  color: #1a3a2a;
+  font-weight: 600;
+}
+
+.ag-btn-primary:hover {
+  background: #7ecc87;
+}
+
+.ag-btn-large {
+  padding: 12px 32px;
+  font-size: 16px;
+  border-radius: 12px;
+}
+
+.ag-btn-small {
+  padding: 4px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+.ag-btn-danger {
+  background: #5a2d2d;
+}
+
+.ag-btn-danger:hover {
+  background: #7a3d3d;
+}
+
+.ag-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ag-running {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ag-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: #122a1e;
+  border-bottom: 1px solid #2d5a3a;
+}
+
+.ag-info {
+  font-size: 13px;
+  font-weight: 500;
+  color: #68bc71;
+}
+
+.ag-toolbar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.ag-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}

@@ -77,7 +77,7 @@
   <!-- SHOW SECRET KEY (Backup) -->
   <div v-else-if="screen==='show-key'" class="solw-phrase-screen">
     <h3>{{ L('secretKey') }}</h3>
-    <el-alert type="warning" title="Bu gizli anahtarı güvenli bir yere kaydedin! Bir daha gösterilmeyecek."
+    <el-alert type="warning" :title="L('backupWarning')"
       :closable="false" show-icon style="margin-bottom:14px" />
     <div class="solw-key-box">
       <code>{{ wallets[0] ? wallets[0].secretKey : '' }}</code>
@@ -234,20 +234,20 @@
               {{ new Date(tx.blockTime * 1000).toLocaleString() }}
             </div>
           </div>
-          <div class="solw-tx-slot">Slot {{ tx.slot }}</div>
+          <div class="solw-tx-slot">{{ L('slotLabel') }} {{ tx.slot }}</div>
         </div>
       </div>
 
       <!-- TOKENS -->
       <div v-else-if="tab==='tokens'">
-        <div v-if="tokensLoading" class="solw-empty"><i class="el-icon-loading"></i> Loading...</div>
+        <div v-if="tokensLoading" class="solw-empty"><i class="el-icon-loading"></i> {{ L('loading') }}</div>
         <div v-else-if="tokens.length===0" class="solw-empty">{{ L('noTokens') }}</div>
         <div v-for="t in tokens" :key="t.mint" class="solw-token-item"
           @click="openExplorer('address', t.mint)">
           <div class="solw-token-icon">🪙</div>
           <div class="solw-token-info">
             <div class="solw-token-mint">{{ t.mint.slice(0,8) }}...{{ t.mint.slice(-4) }}</div>
-            <div class="solw-token-dec">Decimals: {{ t.decimals }}</div>
+            <div class="solw-token-dec">{{ L('decimalsLabel') }}: {{ t.decimals }}</div>
           </div>
           <div class="solw-token-amount">{{ t.amount }}</div>
         </div>

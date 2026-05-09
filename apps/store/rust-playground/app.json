@@ -1,0 +1,32 @@
+{
+  "id": "rust-playground",
+  "name": "Rust Playground",
+  "icon": "🦀",
+  "color": "linear-gradient(135deg,#b7410e,#f74c00)",
+  "type": "internal",
+  "size": {
+    "w": 1050,
+    "h": 700,
+    "minWidth": 600,
+    "minHeight": 420
+  },
+  "hasStyle": true,
+  "global": false,
+  "description": "Rust kodunu tarayıcıda derle ve çalıştır — Monaco editör, söz dizimi vurgulama",
+  "category": "development",
+  "lang": {
+    "tr": { "name": "Rust Playground", "description": "Rust kodunu tarayıcıda derle ve çalıştır — Monaco editör, söz dizimi vurgulama" },
+    "en": { "name": "Rust Playground", "description": "Compile and run Rust code in the browser — Monaco editor, syntax highlighting" },
+    "de": { "name": "Rust Playground", "description": "Rust-Code im Browser kompilieren und ausführen — Monaco-Editor, Syntaxhervorhebung" },
+    "fr": { "name": "Rust Playground", "description": "Compiler et exécuter du code Rust dans le navigateur — éditeur Monaco, coloration syntaxique" },
+    "es": { "name": "Rust Playground", "description": "Compila y ejecuta código Rust en el navegador — editor Monaco, resaltado de sintaxis" },
+    "ru": { "name": "Rust Playground", "description": "Компиляция и запуск кода Rust в браузере — редактор Monaco, подсветка синтаксиса" },
+    "zh": { "name": "Rust Playground", "description": "在浏览器中编译和运行 Rust 代码 — Monaco 编辑器、语法高亮" },
+    "ja": { "name": "Rust Playground", "description": "ブラウザでRustコードをコンパイル・実行 — Monacoエディタ、シンタックスハイライト" },
+    "it": { "name": "Rust Playground", "description": "Compila ed esegui codice Rust nel browser — editor Monaco, evidenziazione della sintassi" },
+    "ar": { "name": "Rust Playground", "description": "ترجمة وتشغيل كود Rust في المتصفح — محرر Monaco، تلوين بناء الجملة" },
+    "ko": { "name": "Rust Playground", "description": "브라우저에서 Rust 코드 컴파일 및 실행 — Monaco 편집기, 구문 강조" },
+    "hi": { "name": "Rust Playground", "description": "ब्राउज़र में Rust कोड संकलित और चलाएँ — Monaco संपादक, सिंटैक्स हाइलाइटिंग" },
+    "pt": { "name": "Rust Playground", "description": "Compile e execute código Rust no navegador — editor Monaco, destaque de sintaxe" }
+  }
+}

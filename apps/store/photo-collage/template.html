@@ -1,0 +1,102 @@
+<div class="pc-root">
+  <!-- TOOLBAR -->
+  <div class="pc-toolbar">
+    <div class="pc-tb-group">
+      <button class="pc-tb-btn" @click="addPhotos" :title="L('addPhotos')">📤 {{L('addPhotos')}}</button>
+      <input type="file" ref="fileInput" multiple accept="image/*" style="display:none" @change="onFilesSelected" />
+      <div class="pc-tb-sep"></div>
+      <label class="pc-tb-label">{{L('layout')}}:</label>
+      <select class="pc-tb-sel" v-model="selectedLayout" @change="applyLayout">
+        <option v-for="(lay, idx) in layouts" :key="idx" :value="idx">{{lay.name}}</option>
+      </select>
+    </div>
+    <div class="pc-tb-group">
+      <label class="pc-tb-label">{{L('spacing')}}:</label>
+      <input type="range" class="pc-tb-range" v-model.number="spacing" min="0" max="30" step="1" @input="renderCollage" />
+      <span class="pc-tb-val">{{spacing}}px</span>
+      <div class="pc-tb-sep"></div>
+      <label class="pc-tb-label">{{L('borderRadius')}}:</label>
+      <input type="range" class="pc-tb-range" v-model.number="borderRadius" min="0" max="30" step="1" @input="renderCollage" />
+      <span class="pc-tb-val">{{borderRadius}}px</span>
+    </div>
+    <div class="pc-tb-group">
+      <label class="pc-tb-label">{{L('bgColor')}}:</label>
+      <input type="color" class="pc-tb-color" v-model="bgColor" @input="renderCollage" />
+      <div class="pc-tb-sep"></div>
+      <label class="pc-tb-label">{{L('canvasSize')}}:</label>
+      <input type="number" class="pc-tb-num" v-model.number="canvasW" min="200" max="4000" @change="renderCollage" />
+      <span class="pc-tb-x">×</span>
+      <input type="number" class="pc-tb-num" v-model.number="canvasH" min="200" max="4000" @change="renderCollage" />
+    </div>
+    <div class="pc-tb-group">
+      <button class="pc-tb-btn pc-primary" @click="downloadCollage" :disabled="photos.length===0" :title="L('download')">💾 {{L('download')}}</button>
+      <button class="pc-tb-btn" @click="saveToFiles" :disabled="photos.length===0" :title="L('saveToFiles')">📁 {{L('saveToFiles')}}</button>
+      <div class="pc-tb-sep"></div>
+      <button class="pc-tb-btn pc-danger" @click="clearAll" :disabled="photos.length===0" :title="L('clearAll')">🗑️ {{L('clearAll')}}</button>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="pc-main">
+    <!-- Photos panel -->
+    <div class="pc-photos-panel">
+      <div class="pc-panel-header">
+        <span>📷 {{L('photos')}} ({{photos.length}})</span>
+      </div>
+      <div class="pc-photos-list" @dragover.prevent="onDragOverList" @drop.prevent="onDropList">
+        <div v-for="(photo, idx) in photos" :key="photo.id"
+             class="pc-photo-item" :class="{active: selectedPhoto===idx}"
+             @click="selectedPhoto=idx"
+             draggable="true"
+             @dragstart="onPhotoDragStart(idx, $event)"
+             @dragover.prevent="onPhotoDragOver(idx, $event)"
+             @drop.prevent="onPhotoDrop(idx, $event)">
+          <span class="pc-photo-num">{{idx+1}}</span>
+          <img :src="photo.thumb" class="pc-photo-thumb" />
+          <div class="pc-photo-actions">
+            <button class="pc-sm-btn" @click.stop="movePhoto(idx,-1)" :disabled="idx===0" title="↑">▲</button>
+            <button class="pc-sm-btn" @click.stop="movePhoto(idx,1)" :disabled="idx===photos.length-1" title="↓">▼</button>
+            <button class="pc-sm-btn pc-del-btn" @click.stop="removePhoto(idx)" title="✕">✕</button>
+          </div>
+        </div>
+        <div v-if="photos.length===0" class="pc-empty-drop"
+             @dragover.prevent="onDragOverList" @drop.prevent="onDropList">
+          <div class="pc-empty-icon">📷</div>
+          <div>{{L('dropHint')}}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Canvas area -->
+    <div class="pc-canvas-area" @dragover.prevent="onDragOverCanvas" @drop.prevent="onDropCanvas">
+      <div v-if="photos.length===0" class="pc-empty-canvas">
+        <div class="pc-empty-big-icon">🖼️</div>
+        <div class="pc-empty-text">{{L('emptyHint')}}</div>
+      </div>
+      <canvas v-show="photos.length>0" ref="collageCanvas" class="pc-canvas"
+              @mousedown="onCanvasMouseDown" @mousemove="onCanvasMouseMove"
+              @mouseup="onCanvasMouseUp" @mouseleave="onCanvasMouseUp"></canvas>
+    </div>
+
+    <!-- Layout templates panel -->
+    <div class="pc-templates-panel">
+      <div class="pc-panel-header">
+        <span>📐 {{L('templates')}}</span>
+      </div>
+      <div class="pc-templates-list">
+        <div v-for="(lay, idx) in layouts" :key="idx"
+             class="pc-template-item" :class="{active: selectedLayout===idx}"
+             @click="selectedLayout=idx; applyLayout()">
+          <canvas :ref="el => { if(el) templateCanvasRefs[idx]=el }" width="60" height="60" class="pc-template-preview"></canvas>
+          <span class="pc-template-name">{{lay.name}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="pc-statusbar">
+    <span>{{photos.length}} {{L('photos').toLowerCase()}} | {{canvasW}}×{{canvasH}}px</span>
+    <span v-if="statusMsg" class="pc-status-msg">{{statusMsg}}</span>
+  </div>
+</div>

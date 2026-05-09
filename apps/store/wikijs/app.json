@@ -1,0 +1,85 @@
+{
+  "id": "wikijs",
+  "name": "Wiki.js",
+  "icon": "📚",
+  "color": "linear-gradient(135deg,#1976d2,#0d47a1)",
+  "type": "service",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Modern, hafif ve güçlü wiki platformu — NodeJS üzerine inşa edilmiştir",
+  "requires": ["postgres"],
+  "lang": {
+    "tr": {
+      "name": "Wiki.js",
+      "description": "Modern, hafif ve güçlü wiki platformu — NodeJS üzerine inşa edilmiştir"
+    },
+    "en": {
+      "name": "Wiki.js",
+      "description": "Modern, lightweight and powerful wiki platform built on NodeJS"
+    },
+    "de": {
+      "name": "Wiki.js",
+      "description": "Moderne, leichtgewichtige und leistungsstarke Wiki-Plattform auf NodeJS-Basis"
+    },
+    "fr": {
+      "name": "Wiki.js",
+      "description": "Plateforme wiki moderne, légère et puissante construite sur NodeJS"
+    },
+    "es": {
+      "name": "Wiki.js",
+      "description": "Plataforma wiki moderna, ligera y potente construida sobre NodeJS"
+    },
+    "ru": {
+      "name": "Wiki.js",
+      "description": "Современная, лёгкая и мощная вики-платформа на NodeJS"
+    },
+    "zh": {
+      "name": "Wiki.js",
+      "description": "基于 NodeJS 的现代、轻量且强大的维基平台"
+    },
+    "ja": {
+      "name": "Wiki.js",
+      "description": "NodeJS上に構築されたモダンで軽量かつ強力なWikiプラットフォーム"
+    },
+    "it": {
+      "name": "Wiki.js",
+      "description": "Piattaforma wiki moderna, leggera e potente basata su NodeJS"
+    },
+    "ar": {
+      "name": "Wiki.js",
+      "description": "منصة ويكي حديثة وخفيفة وقوية مبنية على NodeJS"
+    },
+    "ko": {
+      "name": "Wiki.js",
+      "description": "NodeJS 기반의 현대적이고 가벼우며 강력한 위키 플랫폼"
+    },
+    "hi": {
+      "name": "Wiki.js",
+      "description": "NodeJS पर निर्मित आधुनिक, हल्का और शक्तिशाली विकी प्लेटफ़ॉर्म"
+    },
+    "pt": {
+      "name": "Wiki.js",
+      "description": "Plataforma wiki moderna, leve e poderosa construída sobre NodeJS"
+    }
+  },
+  "category": "productivity",
+  "docker": {
+    "image": "requarks/wiki:2",
+    "containerPort": 3000,
+    "volumes": [
+      "${APP_VOLUME}:/wiki/data"
+    ],
+    "env": [
+      "DB_TYPE=postgres",
+      "DB_HOST=${PG_HOST}",
+      "DB_PORT=5432",
+      "DB_USER=${PG_USER}",
+      "DB_PASS=${PG_PASS}",
+      "DB_NAME=${PG_DATABASE}"
+    ]
+  }
+}

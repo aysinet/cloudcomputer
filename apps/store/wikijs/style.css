@@ -1,0 +1,39 @@
+.wjs-root { height: 100%; display: flex; flex-direction: column; background: #0d1b2a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+
+.wjs-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; background: #1b2838; border-bottom: 1px solid #2a3f5f; flex-shrink: 0; }
+.wjs-toolbar-left { display: flex; align-items: center; gap: 8px; }
+.wjs-toolbar-icon { font-size: 20px; }
+.wjs-toolbar-title { font-size: 14px; font-weight: 600; color: #fff; }
+.wjs-toolbar-right { display: flex; gap: 4px; }
+.wjs-toolbar-btn { width: 28px; height: 28px; border: none; border-radius: 6px; background: rgba(255,255,255,0.06); color: #ccc; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.wjs-toolbar-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+.wjs-iframe { flex: 1; width: 100%; border: none; background: #fff; }
+
+.wjs-panel { padding: 20px; color: #e0e0e0; }
+.wjs-panel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.wjs-panel-icon { font-size: 36px; }
+.wjs-panel-header h3 { margin: 0; font-size: 18px; color: #fff; flex: 1; }
+.wjs-status-badge { font-size: 12px; padding: 4px 12px; border-radius: 12px; font-weight: 600; }
+.wjs-status-badge.running { background: rgba(82,196,26,0.15); color: #52c41a; }
+.wjs-status-badge.stopped { background: rgba(255,77,79,0.15); color: #ff4d4f; }
+.wjs-status-badge.loading, .wjs-status-badge.restarting { background: rgba(24,144,255,0.15); color: #1890ff; }
+.wjs-status-badge.error { background: rgba(255,77,79,0.15); color: #ff4d4f; }
+
+.wjs-conn-info { background: #1b2838; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.wjs-conn-info h4 { margin: 0 0 12px; font-size: 14px; color: #aaa; }
+.wjs-conn-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; }
+.wjs-conn-label { color: #888; min-width: 130px; }
+.wjs-conn-row code { background: #0d1b2a; padding: 2px 8px; border-radius: 4px; color: #64b5f6; font-size: 13px; }
+
+.wjs-actions { display: flex; gap: 10px; }
+.wjs-start-btn, .wjs-refresh-btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.wjs-start-btn { background: linear-gradient(135deg, #1976d2, #0d47a1); color: #fff; }
+.wjs-start-btn:hover { opacity: 0.9; }
+.wjs-start-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.wjs-refresh-btn { background: #1b2838; color: #ccc; border: 1px solid #2a3f5f; }
+.wjs-refresh-btn:hover { background: #243447; }
+
+.wjs-error { background: rgba(255,0,0,0.1); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.wjs-error p { margin: 0 0 8px; color: #ff6b6b; font-size: 13px; }
+.wjs-error button { padding: 6px 14px; border: none; border-radius: 4px; background: #1976d2; color: #fff; cursor: pointer; font-size: 12px; }

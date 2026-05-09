@@ -1,0 +1,207 @@
+.av-root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #0a0a14 0%, #12122a 100%);
+  color: #e1e4ea;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Toolbar */
+.av-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  gap: 8px;
+  min-height: 38px;
+}
+.av-toolbar-left, .av-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.av-toolbar-center {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+}
+.av-track-name {
+  font-size: 13px;
+  color: #c5cde8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 300px;
+}
+
+/* Buttons */
+.av-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #e1e4ea;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.av-btn:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.2); }
+.av-btn-sm { padding: 4px 10px; font-size: 11px; }
+.av-btn-mic.active {
+  background: rgba(239,68,68,0.25);
+  border-color: rgba(239,68,68,0.5);
+  color: #f87171;
+}
+
+/* URL bar */
+.av-url-bar {
+  display: flex;
+  padding: 5px 10px;
+  gap: 6px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.av-url-input {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 5px;
+  color: #e1e4ea;
+  padding: 5px 8px;
+  font-size: 12px;
+  outline: none;
+}
+.av-url-input:focus { border-color: rgba(224,64,251,0.5); }
+
+/* Canvas */
+.av-canvas-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #0a0a14;
+}
+.av-canvas-wrap canvas {
+  display: block;
+}
+.av-idle-msg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.av-idle-icon { font-size: 56px; opacity: 0.3; margin-bottom: 12px; }
+.av-idle-text { font-size: 14px; color: #5a5e72; }
+
+/* Controls */
+.av-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: rgba(255,255,255,0.04);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.av-controls-left, .av-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.av-ctrl-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #e1e4ea;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.av-ctrl-btn:hover:not(:disabled) { background: rgba(255,255,255,0.15); }
+.av-ctrl-btn:disabled { opacity: 0.35; cursor: default; }
+
+.av-volume-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.av-vol-icon { font-size: 14px; }
+.av-volume {
+  width: 70px;
+  accent-color: #e040fb;
+  cursor: pointer;
+}
+.av-time {
+  font-size: 11px;
+  color: #8a8ea0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Mode selector */
+.av-mode-selector {
+  display: flex;
+  gap: 3px;
+}
+.av-mode-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #8a8ea0;
+  padding: 4px 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.av-mode-btn:hover { color: #e1e4ea; background: rgba(255,255,255,0.1); }
+.av-mode-btn.active {
+  background: rgba(224,64,251,0.2);
+  border-color: rgba(224,64,251,0.45);
+  color: #e040fb;
+}
+
+/* Color selector */
+.av-color-selector {
+  display: flex;
+  gap: 4px;
+}
+.av-color-btn {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.av-color-btn:hover { transform: scale(1.15); }
+.av-color-btn.active { border-color: #fff; }
+
+/* Progress */
+.av-progress-wrap {
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  cursor: pointer;
+  position: relative;
+}
+.av-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #e040fb, #00e5ff);
+  border-radius: 0 2px 2px 0;
+  transition: width 0.1s linear;
+}

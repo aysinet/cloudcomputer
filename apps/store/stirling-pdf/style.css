@@ -1,0 +1,147 @@
+.stirling-pdf-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.spdf-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.spdf-icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.spdf-status-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.spdf-sub-text {
+  font-size: 13px;
+  color: #8888aa;
+  max-width: 360px;
+}
+
+.spdf-error-msg {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.spdf-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #e53935;
+  border-radius: 50%;
+  animation: spdf-spin 0.8s linear infinite;
+}
+
+@keyframes spdf-spin {
+  to { transform: rotate(360deg); }
+}
+
+.spdf-btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: all 0.2s;
+  background: #16213e;
+  color: #e0e0e0;
+}
+
+.spdf-btn:hover {
+  background: #1a2744;
+}
+
+.spdf-btn-primary {
+  background: #e53935;
+  color: #fff;
+  font-weight: 600;
+}
+
+.spdf-btn-primary:hover {
+  background: #ef5350;
+}
+
+.spdf-btn-large {
+  padding: 12px 32px;
+  font-size: 16px;
+  border-radius: 12px;
+}
+
+.spdf-btn-small {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.spdf-btn-danger {
+  background: #c62828;
+  color: #fff;
+}
+
+.spdf-btn-danger:hover {
+  background: #e53935;
+}
+
+.spdf-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.spdf-running {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.spdf-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: #0f1a30;
+  border-bottom: 1px solid #1a237e;
+  min-height: 32px;
+}
+
+.spdf-info {
+  font-size: 12px;
+  color: #8888aa;
+}
+
+.spdf-toolbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.spdf-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}

@@ -1,0 +1,78 @@
+{
+  "id": "adguardhome",
+  "name": "AdGuard Home",
+  "icon": "🛡️",
+  "color": "linear-gradient(135deg,#1a3a2a,#68bc71)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "DNS tabanlı ağ genelinde reklam ve izleyici engelleyici",
+  "lang": {
+    "tr": {
+      "name": "AdGuard Home",
+      "description": "DNS tabanlı ağ genelinde reklam ve izleyici engelleyici"
+    },
+    "en": {
+      "name": "AdGuard Home",
+      "description": "Network-wide DNS-based ad and tracker blocker"
+    },
+    "de": {
+      "name": "AdGuard Home",
+      "description": "Netzwerkweiter DNS-basierter Werbe- und Tracker-Blocker"
+    },
+    "fr": {
+      "name": "AdGuard Home",
+      "description": "Bloqueur de publicités et de trackers DNS à l'échelle du réseau"
+    },
+    "es": {
+      "name": "AdGuard Home",
+      "description": "Bloqueador de anuncios y rastreadores DNS a nivel de red"
+    },
+    "ru": {
+      "name": "AdGuard Home",
+      "description": "Сетевой DNS-блокировщик рекламы и трекеров"
+    },
+    "zh": {
+      "name": "AdGuard Home",
+      "description": "基于DNS的全网广告和跟踪器拦截器"
+    },
+    "ja": {
+      "name": "AdGuard Home",
+      "description": "DNSベースのネットワーク全体広告・トラッカーブロッカー"
+    },
+    "it": {
+      "name": "AdGuard Home",
+      "description": "Blocco annunci e tracker DNS a livello di rete"
+    },
+    "ar": {
+      "name": "AdGuard Home",
+      "description": "حاجب إعلانات ومتتبعات DNS على مستوى الشبكة"
+    },
+    "ko": {
+      "name": "AdGuard Home",
+      "description": "네트워크 전체 DNS 기반 광고 및 추적기 차단기"
+    },
+    "hi": {
+      "name": "AdGuard Home",
+      "description": "नेटवर्क-व्यापी DNS-आधारित विज्ञापन और ट्रैकर अवरोधक"
+    },
+    "pt": {
+      "name": "AdGuard Home",
+      "description": "Bloqueador de anúncios e rastreadores DNS em toda a rede"
+    }
+  },
+  "category": "security",
+  "docker": {
+    "image": "adguard/adguardhome:latest",
+    "containerPort": 3000,
+    "volumes": [
+      "${APP_VOLUME}/work:/opt/adguardhome/work",
+      "${APP_VOLUME}/conf:/opt/adguardhome/conf"
+    ],
+    "env": []
+  }
+}

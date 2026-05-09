@@ -1,0 +1,77 @@
+{
+  "id": "uptime-kuma",
+  "name": "Uptime Kuma",
+  "icon": "📡",
+  "color": "linear-gradient(135deg,#5cdd8b,#2b8a3e)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Servis izleme ve uptime monitör aracı (Uptime Kuma)",
+  "lang": {
+    "tr": {
+      "name": "Uptime Kuma",
+      "description": "Servis izleme ve uptime monitör aracı — web sitelerinizi ve servislerinizi izleyin"
+    },
+    "en": {
+      "name": "Uptime Kuma",
+      "description": "Service monitoring & uptime monitor — track your websites and services"
+    },
+    "de": {
+      "name": "Uptime Kuma",
+      "description": "Dienst-Überwachung & Uptime-Monitor — Ihre Websites und Dienste überwachen"
+    },
+    "fr": {
+      "name": "Uptime Kuma",
+      "description": "Surveillance de services & moniteur de disponibilité — surveillez vos sites et services"
+    },
+    "es": {
+      "name": "Uptime Kuma",
+      "description": "Monitoreo de servicios & monitor de disponibilidad — supervise sus sitios y servicios"
+    },
+    "ru": {
+      "name": "Uptime Kuma",
+      "description": "Мониторинг сервисов и времени работы — отслеживайте ваши сайты и сервисы"
+    },
+    "zh": {
+      "name": "Uptime Kuma",
+      "description": "服务监控和正常运行时间监视器 — 跟踪您的网站和服务"
+    },
+    "ja": {
+      "name": "Uptime Kuma",
+      "description": "サービス監視 & 稼働時間モニター — ウェブサイトとサービスを監視"
+    },
+    "it": {
+      "name": "Uptime Kuma",
+      "description": "Monitoraggio servizi & monitor uptime — monitora i tuoi siti e servizi"
+    },
+    "ar": {
+      "name": "أبتايم كوما",
+      "description": "مراقبة الخدمات ومراقبة وقت التشغيل — تتبع مواقعك وخدماتك"
+    },
+    "ko": {
+      "name": "Uptime Kuma",
+      "description": "서비스 모니터링 & 가동시간 모니터 — 웹사이트와 서비스를 추적하세요"
+    },
+    "hi": {
+      "name": "Uptime Kuma",
+      "description": "सेवा निगरानी और अपटाइम मॉनिटर — अपनी वेबसाइटों और सेवाओं को ट्रैक करें"
+    },
+    "pt": {
+      "name": "Uptime Kuma",
+      "description": "Monitoramento de serviços & monitor de disponibilidade — acompanhe seus sites e serviços"
+    }
+  },
+  "category": "tools",
+  "docker": {
+    "image": "louislam/uptime-kuma:1",
+    "containerPort": 3001,
+    "volumes": [
+      "${APP_VOLUME}:/app/data"
+    ],
+    "env": []
+  }
+}

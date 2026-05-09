@@ -1,0 +1,77 @@
+{
+  "id": "docuseal",
+  "name": "DocuSeal",
+  "icon": "📝",
+  "color": "linear-gradient(135deg,#1a237e,#1565c0)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Dijital doküman imzalama ve işleme platformu (DocuSeal)",
+  "category": "productivity",
+  "lang": {
+    "tr": {
+      "name": "DocuSeal",
+      "description": "Açık kaynaklı dijital doküman imzalama ve doldurma platformu"
+    },
+    "en": {
+      "name": "DocuSeal",
+      "description": "Open source digital document signing and filling platform"
+    },
+    "de": {
+      "name": "DocuSeal",
+      "description": "Open-Source-Plattform zum digitalen Signieren und Ausfüllen von Dokumenten"
+    },
+    "fr": {
+      "name": "DocuSeal",
+      "description": "Plateforme open source de signature et remplissage de documents numériques"
+    },
+    "es": {
+      "name": "DocuSeal",
+      "description": "Plataforma de firma y llenado de documentos digitales de código abierto"
+    },
+    "ru": {
+      "name": "DocuSeal",
+      "description": "Платформа для цифровой подписи и заполнения документов с открытым исходным кодом"
+    },
+    "zh": {
+      "name": "DocuSeal",
+      "description": "开源数字文档签署和填写平台"
+    },
+    "ja": {
+      "name": "DocuSeal",
+      "description": "オープンソースのデジタル文書署名・記入プラットフォーム"
+    },
+    "it": {
+      "name": "DocuSeal",
+      "description": "Piattaforma open source per la firma e compilazione di documenti digitali"
+    },
+    "pt": {
+      "name": "DocuSeal",
+      "description": "Plataforma de assinatura e preenchimento de documentos digitais de código aberto"
+    },
+    "ar": {
+      "name": "DocuSeal",
+      "description": "منصة مفتوحة المصدر لتوقيع وملء المستندات الرقمية"
+    },
+    "hi": {
+      "name": "DocuSeal",
+      "description": "ओपन सोर्स डिजिटल दस्तावेज़ हस्ताक्षर और भरने का प्लेटफॉर्म"
+    },
+    "ko": {
+      "name": "DocuSeal",
+      "description": "오픈소스 디지털 문서 서명 및 작성 플랫폼"
+    }
+  },
+  "docker": {
+    "image": "docuseal/docuseal:latest",
+    "containerPort": 3000,
+    "volumes": [
+      "${APP_VOLUME}:/data"
+    ],
+    "env": []
+  }
+}

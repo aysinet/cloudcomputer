@@ -1,0 +1,48 @@
+<div class="codeserver-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="cs-status-screen">
+    <div class="cs-spinner"></div>
+    <div class="cs-icon-large">🖥️</div>
+    <div class="cs-status-text">{{ pullProgress }}</div>
+    <div class="cs-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="cs-status-screen">
+    <div class="cs-spinner"></div>
+    <div class="cs-icon-large">🖥️</div>
+    <div class="cs-status-text">Code Server başlatılıyor...</div>
+    <div class="cs-sub-text">VS Code ortamı hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="cs-status-screen cs-error">
+    <div class="cs-icon-large">⚠️</div>
+    <div class="cs-status-text">Bir hata oluştu</div>
+    <div class="cs-error-msg">{{ errorMsg }}</div>
+    <div class="cs-actions">
+      <button class="cs-btn cs-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="cs-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="cs-running">
+    <div class="cs-toolbar">
+      <span class="cs-info">🖥️ Code Server — Port: {{ port }}</span>
+      <div class="cs-toolbar-actions">
+        <button class="cs-btn cs-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="cs-btn cs-btn-small cs-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="cs-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="cs-status-screen">
+    <div class="cs-icon-large">🖥️</div>
+    <div class="cs-status-text">Code Server</div>
+    <div class="cs-sub-text">Tarayıcıda tam VS Code deneyimi — uzantılar, terminal, Git desteği</div>
+    <button class="cs-btn cs-btn-primary cs-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

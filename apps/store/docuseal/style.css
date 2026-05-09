@@ -1,0 +1,147 @@
+.docuseal-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #0d1b3e;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.ds-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.ds-icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.ds-status-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.ds-sub-text {
+  font-size: 13px;
+  color: #64b5f6;
+  max-width: 360px;
+}
+
+.ds-error-msg {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.ds-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #42a5f5;
+  border-radius: 50%;
+  animation: ds-spin 0.8s linear infinite;
+}
+
+@keyframes ds-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ds-btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: all 0.2s;
+  background: #1a237e;
+  color: #e0e0e0;
+}
+
+.ds-btn:hover {
+  background: #283593;
+}
+
+.ds-btn-primary {
+  background: #1565c0;
+  color: #fff;
+  font-weight: 600;
+}
+
+.ds-btn-primary:hover {
+  background: #1976d2;
+}
+
+.ds-btn-large {
+  padding: 12px 32px;
+  font-size: 16px;
+  border-radius: 12px;
+}
+
+.ds-btn-small {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.ds-btn-danger {
+  background: #c62828;
+  color: #fff;
+}
+
+.ds-btn-danger:hover {
+  background: #e53935;
+}
+
+.ds-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ds-running {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ds-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: #0a1628;
+  border-bottom: 1px solid #1a237e;
+  min-height: 32px;
+}
+
+.ds-info {
+  font-size: 12px;
+  color: #64b5f6;
+}
+
+.ds-toolbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.ds-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}

@@ -1,0 +1,29 @@
+{
+  "id": "font-viewer",
+  "name": "Font Viewer",
+  "icon": "🔤",
+  "color": "linear-gradient(135deg,#1a1a2e,#2d1b69)",
+  "type": "internal",
+  "size": {
+    "w": 1050,
+    "h": 700
+  },
+  "global": false,
+  "category": "design",
+  "description": "Tipografi karşılaştırma aracı",
+  "lang": {
+    "tr": { "name": "Font Görüntüleyici", "description": "Fontları karşılaştırın, önizleyin ve tipografi ayarlarını keşfedin" },
+    "en": { "name": "Font Viewer", "description": "Compare fonts, preview and explore typography settings" },
+    "de": { "name": "Schriftarten-Viewer", "description": "Schriftarten vergleichen, Vorschau und Typografie-Einstellungen erkunden" },
+    "fr": { "name": "Visionneuse de polices", "description": "Comparer les polices, prévisualiser et explorer les paramètres typographiques" },
+    "es": { "name": "Visor de fuentes", "description": "Compare fuentes, previsualice y explore configuraciones tipográficas" },
+    "ru": { "name": "Просмотр шрифтов", "description": "Сравнивайте шрифты, просматривайте и изучайте типографские настройки" },
+    "zh": { "name": "字体查看器", "description": "比较字体、预览和探索排版设置" },
+    "ja": { "name": "フォントビューア", "description": "フォントの比較、プレビュー、タイポグラフィ設定の探索" },
+    "it": { "name": "Visualizzatore font", "description": "Confronta font, anteprima e esplora le impostazioni tipografiche" },
+    "ar": { "name": "عارض الخطوط", "description": "قارن بين الخطوط واستعرض إعدادات الطباعة" },
+    "ko": { "name": "글꼴 뷰어", "description": "글꼴을 비교하고 타이포그래피 설정을 탐색하세요" },
+    "hi": { "name": "फ़ॉन्ट व्यूअर", "description": "फ़ॉन्ट की तुलना करें, पूर्वावलोकन करें और टाइपोग्राफी सेटिंग्स का अन्वेषण करें" },
+    "pt": { "name": "Visualizador de fontes", "description": "Compare fontes, visualize e explore configurações tipográficas" }
+  }
+}

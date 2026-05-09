@@ -1,0 +1,48 @@
+<div class="adguardhome-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="ag-status-screen">
+    <div class="ag-spinner"></div>
+    <div class="ag-icon-large">🛡️</div>
+    <div class="ag-status-text">{{ pullProgress }}</div>
+    <div class="ag-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir...</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="ag-status-screen">
+    <div class="ag-spinner"></div>
+    <div class="ag-icon-large">🛡️</div>
+    <div class="ag-status-text">AdGuard Home başlatılıyor...</div>
+    <div class="ag-sub-text">DNS reklam engelleyici hazırlanıyor</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="ag-status-screen ag-error">
+    <div class="ag-icon-large">⚠️</div>
+    <div class="ag-status-text">Bir hata oluştu</div>
+    <div class="ag-error-msg">{{ errorMsg }}</div>
+    <div class="ag-actions">
+      <button class="ag-btn ag-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+    </div>
+    <div class="ag-sub-text">Docker'ın yüklü ve çalışır durumda olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="ag-running">
+    <div class="ag-toolbar">
+      <span class="ag-info">🛡️ AdGuard Home — Port: {{ port }}</span>
+      <div class="ag-toolbar-actions">
+        <button class="ag-btn ag-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="ag-btn ag-btn-small ag-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="ag-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="ag-status-screen">
+    <div class="ag-icon-large">🛡️</div>
+    <div class="ag-status-text">AdGuard Home</div>
+    <div class="ag-sub-text">DNS tabanlı ağ genelinde reklam ve izleyici engelleyici</div>
+    <button class="ag-btn ag-btn-primary ag-btn-large" @click="checkAndStart">▶ Başlat</button>
+  </div>
+</div>

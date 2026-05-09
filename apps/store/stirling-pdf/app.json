@@ -1,0 +1,84 @@
+{
+  "id": "stirling-pdf",
+  "name": "Stirling PDF",
+  "icon": "📄",
+  "color": "linear-gradient(135deg,#1a237e,#e53935)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Güçlü PDF araç seti — birleştir, böl, dönüştür, sıkıştır, imzala ve daha fazlası",
+  "lang": {
+    "tr": {
+      "name": "Stirling PDF",
+      "description": "Güçlü PDF araç seti — birleştir, böl, dönüştür, sıkıştır, imzala ve daha fazlası"
+    },
+    "en": {
+      "name": "Stirling PDF",
+      "description": "Powerful PDF toolkit — merge, split, convert, compress, sign and more"
+    },
+    "de": {
+      "name": "Stirling PDF",
+      "description": "Leistungsstarkes PDF-Toolkit — zusammenführen, teilen, konvertieren, komprimieren, signieren und mehr"
+    },
+    "fr": {
+      "name": "Stirling PDF",
+      "description": "Boîte à outils PDF puissante — fusionner, diviser, convertir, compresser, signer et plus"
+    },
+    "es": {
+      "name": "Stirling PDF",
+      "description": "Kit de herramientas PDF potente — combinar, dividir, convertir, comprimir, firmar y más"
+    },
+    "ru": {
+      "name": "Stirling PDF",
+      "description": "Мощный набор инструментов для PDF — объединение, разделение, конвертация, сжатие, подпись и другое"
+    },
+    "zh": {
+      "name": "Stirling PDF",
+      "description": "强大的PDF工具包 — 合并、拆分、转换、压缩、签名等"
+    },
+    "ja": {
+      "name": "Stirling PDF",
+      "description": "強力なPDFツールキット — 結合、分割、変換、圧縮、署名など"
+    },
+    "it": {
+      "name": "Stirling PDF",
+      "description": "Potente toolkit PDF — unisci, dividi, converti, comprimi, firma e altro"
+    },
+    "ar": {
+      "name": "Stirling PDF",
+      "description": "مجموعة أدوات PDF قوية — دمج، تقسيم، تحويل، ضغط، توقيع والمزيد"
+    },
+    "ko": {
+      "name": "Stirling PDF",
+      "description": "강력한 PDF 도구 모음 — 병합, 분할, 변환, 압축, 서명 등"
+    },
+    "hi": {
+      "name": "Stirling PDF",
+      "description": "शक्तिशाली PDF टूलकिट — मर्ज, स्प्लिट, कन्वर्ट, कंप्रेस, साइन और अधिक"
+    },
+    "pt": {
+      "name": "Stirling PDF",
+      "description": "Kit de ferramentas PDF poderoso — mesclar, dividir, converter, comprimir, assinar e mais"
+    }
+  },
+  "category": "productivity",
+  "docker": {
+    "image": "stirlingtools/stirling-pdf:latest",
+    "containerPort": 8080,
+    "volumes": [
+      "${APP_VOLUME}:/configs",
+      "${APP_VOLUME}/logs:/logs",
+      "${APP_VOLUME}/customFiles:/customFiles",
+      "${APP_VOLUME}/pipeline:/pipeline"
+    ],
+    "env": [
+      "DOCKER_ENABLE_SECURITY=false",
+      "INSTALL_BOOK_AND_ADVANCED_HTML_OPS=true",
+      "LANGS=tr_TR,en_GB"
+    ]
+  }
+}

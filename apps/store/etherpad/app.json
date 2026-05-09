@@ -1,0 +1,81 @@
+{
+  "id": "etherpad",
+  "name": "Etherpad",
+  "icon": "📝",
+  "color": "linear-gradient(135deg,#1a1a2e,#16213e)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1050,
+    "h": 700
+  },
+  "global": false,
+  "description": "Gerçek zamanlı işbirlikçi metin editörü (Etherpad)",
+  "lang": {
+    "tr": {
+      "name": "Etherpad",
+      "description": "Gerçek zamanlı işbirlikçi metin editörü — birlikte yazın, birlikte düzenleyin"
+    },
+    "en": {
+      "name": "Etherpad",
+      "description": "Real-time collaborative text editor — write and edit together"
+    },
+    "de": {
+      "name": "Etherpad",
+      "description": "Echtzeit-kollaborativer Texteditor — gemeinsam schreiben und bearbeiten"
+    },
+    "fr": {
+      "name": "Etherpad",
+      "description": "Éditeur de texte collaboratif en temps réel"
+    },
+    "es": {
+      "name": "Etherpad",
+      "description": "Editor de texto colaborativo en tiempo real"
+    },
+    "ru": {
+      "name": "Etherpad",
+      "description": "Совместный текстовый редактор в реальном времени"
+    },
+    "zh": {
+      "name": "Etherpad",
+      "description": "实时协作文本编辑器"
+    },
+    "ja": {
+      "name": "Etherpad",
+      "description": "リアルタイム共同テキストエディタ"
+    },
+    "it": {
+      "name": "Etherpad",
+      "description": "Editor di testo collaborativo in tempo reale"
+    },
+    "ar": {
+      "name": "إيثرباد",
+      "description": "محرر نصوص تعاوني في الوقت الحقيقي"
+    },
+    "ko": {
+      "name": "이더패드",
+      "description": "실시간 협업 텍스트 편집기"
+    },
+    "hi": {
+      "name": "ईथरपैड",
+      "description": "रीयल-टाइम सहयोगी टेक्स्ट संपादक"
+    },
+    "pt": {
+      "name": "Etherpad",
+      "description": "Editor de texto colaborativo em tempo real"
+    }
+  },
+  "category": "productivity",
+  "docker": {
+    "image": "etherpad/etherpad:latest",
+    "containerPort": 9001,
+    "volumes": [
+      "${APP_VOLUME}:/opt/etherpad-lite/var"
+    ],
+    "env": [
+      "TITLE=Etherpad",
+      "DEFAULT_PAD_TEXT=Welcome to Etherpad!",
+      "SUPPRESS_ERRORS_IN_PAD_TEXT=true"
+    ]
+  }
+}

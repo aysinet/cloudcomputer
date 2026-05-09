@@ -1,0 +1,147 @@
+.codeserver-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1e1e1e;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.cs-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.cs-icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.cs-status-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.cs-sub-text {
+  font-size: 13px;
+  color: #569cd6;
+  max-width: 360px;
+}
+
+.cs-error-msg {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.cs-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #007acc;
+  border-radius: 50%;
+  animation: cs-spin 0.8s linear infinite;
+}
+
+@keyframes cs-spin {
+  to { transform: rotate(360deg); }
+}
+
+.cs-btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: all 0.2s;
+  background: #252526;
+  color: #e0e0e0;
+}
+
+.cs-btn:hover {
+  background: #333333;
+}
+
+.cs-btn-primary {
+  background: #007acc;
+  color: #fff;
+  font-weight: 600;
+}
+
+.cs-btn-primary:hover {
+  background: #1a8ad4;
+}
+
+.cs-btn-large {
+  padding: 12px 32px;
+  font-size: 16px;
+  border-radius: 12px;
+}
+
+.cs-btn-small {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.cs-btn-danger {
+  background: #c62828;
+  color: #fff;
+}
+
+.cs-btn-danger:hover {
+  background: #e53935;
+}
+
+.cs-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.cs-running {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cs-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: #252526;
+  border-bottom: 1px solid #007acc;
+  min-height: 32px;
+}
+
+.cs-info {
+  font-size: 12px;
+  color: #569cd6;
+}
+
+.cs-toolbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.cs-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #1e1e1e;
+}

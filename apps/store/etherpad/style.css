@@ -1,0 +1,147 @@
+.etherpad-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.ep-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.ep-icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.ep-status-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.ep-sub-text {
+  font-size: 13px;
+  color: #7c8cbf;
+  max-width: 360px;
+}
+
+.ep-error-msg {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.ep-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #4a90d9;
+  border-radius: 50%;
+  animation: ep-spin 0.8s linear infinite;
+}
+
+@keyframes ep-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ep-btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: all 0.2s;
+  background: #16213e;
+  color: #e0e0e0;
+}
+
+.ep-btn:hover {
+  background: #1f3060;
+}
+
+.ep-btn-primary {
+  background: #4a90d9;
+  color: #fff;
+  font-weight: 600;
+}
+
+.ep-btn-primary:hover {
+  background: #5da0e8;
+}
+
+.ep-btn-large {
+  padding: 12px 32px;
+  font-size: 16px;
+  border-radius: 12px;
+}
+
+.ep-btn-small {
+  padding: 4px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+
+.ep-btn-danger {
+  background: #c0392b;
+}
+
+.ep-btn-danger:hover {
+  background: #e74c3c;
+}
+
+.ep-running {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ep-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
+  background: #16213e;
+  border-bottom: 1px solid #253557;
+  min-height: 38px;
+}
+
+.ep-info {
+  font-size: 13px;
+  font-weight: 500;
+  color: #b0c4de;
+}
+
+.ep-toolbar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.ep-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+}
+
+.ep-actions {
+  display: flex;
+  gap: 10px;
+}

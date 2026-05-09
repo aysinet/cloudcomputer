@@ -1,0 +1,173 @@
+<div class="fv-root">
+  <!-- Toolbar -->
+  <div class="fv-toolbar">
+    <span class="fv-title">🔤 {{ L('title') }}</span>
+    <div class="fv-toolbar-actions">
+      <button class="fv-btn" :class="{ active: mode === 'compare' }" @click="mode = 'compare'" :title="L('compare')">⚖️ {{ L('compare') }}</button>
+      <button class="fv-btn" :class="{ active: mode === 'catalog' }" @click="mode = 'catalog'" :title="L('catalog')">📋 {{ L('catalog') }}</button>
+      <button class="fv-btn" :class="{ active: mode === 'waterfall' }" @click="mode = 'waterfall'" :title="L('waterfall')">📐 {{ L('waterfall') }}</button>
+    </div>
+  </div>
+
+  <!-- Controls Bar -->
+  <div class="fv-controls">
+    <div class="fv-control-group">
+      <label>{{ L('sampleText') }}</label>
+      <input type="text" v-model="sampleText" class="fv-input fv-sample-input" :placeholder="L('typeHere')" />
+    </div>
+    <div class="fv-control-group">
+      <label>{{ L('fontSize') }}</label>
+      <input type="range" v-model.number="fontSize" min="10" max="120" class="fv-range" />
+      <span class="fv-range-val">{{ fontSize }}px</span>
+    </div>
+    <div class="fv-control-group">
+      <label>{{ L('fontWeight') }}</label>
+      <select v-model.number="fontWeight" class="fv-select">
+        <option :value="100">100 - Thin</option>
+        <option :value="200">200 - Extra Light</option>
+        <option :value="300">300 - Light</option>
+        <option :value="400">400 - Regular</option>
+        <option :value="500">500 - Medium</option>
+        <option :value="600">600 - Semi Bold</option>
+        <option :value="700">700 - Bold</option>
+        <option :value="800">800 - Extra Bold</option>
+        <option :value="900">900 - Black</option>
+      </select>
+    </div>
+    <div class="fv-control-group">
+      <label>{{ L('fontStyle') }}</label>
+      <select v-model="fontStyle" class="fv-select">
+        <option value="normal">Normal</option>
+        <option value="italic">Italic</option>
+      </select>
+    </div>
+    <div class="fv-control-group">
+      <label>{{ L('color') }}</label>
+      <input type="color" v-model="textColor" class="fv-color" />
+    </div>
+    <div class="fv-control-group">
+      <label>{{ L('bgColor') }}</label>
+      <input type="color" v-model="bgColor" class="fv-color" />
+    </div>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="fv-search-bar" v-if="mode !== 'compare'">
+    <input type="text" v-model="searchQuery" class="fv-input fv-search-input" :placeholder="L('searchFont')" />
+    <select v-model="categoryFilter" class="fv-select">
+      <option value="all">{{ L('allCategories') }}</option>
+      <option value="serif">Serif</option>
+      <option value="sans-serif">Sans-Serif</option>
+      <option value="monospace">Monospace</option>
+      <option value="cursive">Cursive</option>
+      <option value="fantasy">Fantasy</option>
+      <option value="system">{{ L('system') }}</option>
+    </select>
+  </div>
+
+  <!-- Compare Mode -->
+  <div class="fv-content" v-if="mode === 'compare'">
+    <div class="fv-compare-grid">
+      <div class="fv-compare-panel" v-for="(panel, idx) in comparePanels" :key="idx">
+        <div class="fv-panel-header">
+          <select v-model="panel.font" class="fv-select fv-font-select">
+            <optgroup v-for="cat in fontCategories" :key="cat.key" :label="cat.label">
+              <option v-for="f in cat.fonts" :key="f" :value="f">{{ f }}</option>
+            </optgroup>
+          </select>
+          <button class="fv-btn-icon" @click="removePanel(idx)" v-if="comparePanels.length > 2" title="✕">✕</button>
+        </div>
+        <div class="fv-preview-box" :style="{ background: bgColor }">
+          <p class="fv-preview-text" :style="{
+            fontFamily: panel.font,
+            fontSize: fontSize + 'px',
+            fontWeight: fontWeight,
+            fontStyle: fontStyle,
+            color: textColor,
+            letterSpacing: letterSpacing + 'px',
+            lineHeight: lineHeight
+          }">{{ sampleText || L('defaultSample') }}</p>
+          <div class="fv-glyph-row" v-if="showGlyphs">
+            <span :style="{ fontFamily: panel.font, fontSize: '22px', color: textColor }">A B C D E F G H I J K L M N O P Q R S T U V W X Y Z</span>
+            <span :style="{ fontFamily: panel.font, fontSize: '22px', color: textColor }">a b c d e f g h i j k l m n o p q r s t u v w x y z</span>
+            <span :style="{ fontFamily: panel.font, fontSize: '22px', color: textColor }">0 1 2 3 4 5 6 7 8 9 ! @ # $ % & * ( )</span>
+          </div>
+        </div>
+        <div class="fv-panel-info">
+          <span class="fv-font-label">{{ panel.font }}</span>
+          <span class="fv-font-meta">{{ fontSize }}px · {{ fontWeight }} · {{ fontStyle }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="fv-compare-actions">
+      <button class="fv-btn" @click="addPanel" v-if="comparePanels.length < 6">➕ {{ L('addPanel') }}</button>
+      <button class="fv-btn" @click="showGlyphs = !showGlyphs">{{ showGlyphs ? '🔠' : '🔡' }} {{ L('glyphs') }}</button>
+      <div class="fv-control-group fv-inline">
+        <label>{{ L('letterSpacing') }}</label>
+        <input type="range" v-model.number="letterSpacing" min="-5" max="20" step="0.5" class="fv-range fv-range-sm" />
+        <span class="fv-range-val">{{ letterSpacing }}px</span>
+      </div>
+      <div class="fv-control-group fv-inline">
+        <label>{{ L('lineHeight') }}</label>
+        <input type="range" v-model.number="lineHeight" min="0.8" max="3" step="0.1" class="fv-range fv-range-sm" />
+        <span class="fv-range-val">{{ lineHeight }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Catalog Mode -->
+  <div class="fv-content fv-catalog-content" v-else-if="mode === 'catalog'">
+    <div class="fv-catalog-grid">
+      <div class="fv-catalog-card" v-for="f in filteredFonts" :key="f" @click="selectFontForCompare(f)">
+        <div class="fv-card-preview" :style="{ background: bgColor }">
+          <span :style="{
+            fontFamily: f,
+            fontSize: Math.min(fontSize, 48) + 'px',
+            fontWeight: fontWeight,
+            fontStyle: fontStyle,
+            color: textColor
+          }">{{ sampleText || L('defaultSample') }}</span>
+        </div>
+        <div class="fv-card-footer">
+          <span class="fv-font-label">{{ f }}</span>
+          <span class="fv-font-cat">{{ getFontCategory(f) }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="fv-empty" v-if="filteredFonts.length === 0">
+      <span>🔍 {{ L('noResults') }}</span>
+    </div>
+  </div>
+
+  <!-- Waterfall Mode -->
+  <div class="fv-content fv-waterfall-content" v-else-if="mode === 'waterfall'">
+    <div class="fv-waterfall-head">
+      <select v-model="waterfallFont" class="fv-select fv-font-select">
+        <optgroup v-for="cat in fontCategories" :key="cat.key" :label="cat.label">
+          <option v-for="f in cat.fonts" :key="f" :value="f">{{ f }}</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="fv-waterfall-list" :style="{ background: bgColor }">
+      <div class="fv-waterfall-row" v-for="size in waterfallSizes" :key="size">
+        <span class="fv-wf-size">{{ size }}px</span>
+        <span class="fv-wf-text" :style="{
+          fontFamily: waterfallFont,
+          fontSize: size + 'px',
+          fontWeight: fontWeight,
+          fontStyle: fontStyle,
+          color: textColor,
+          letterSpacing: letterSpacing + 'px',
+          lineHeight: lineHeight
+        }">{{ sampleText || L('defaultSample') }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="fv-statusbar">
+    <span>{{ L('totalFonts') }}: {{ allFonts.length }}</span>
+    <span v-if="mode === 'catalog'">{{ L('showing') }}: {{ filteredFonts.length }}</span>
+    <span>{{ fontSize }}px · {{ fontWeight }} · {{ fontStyle }}</span>
+  </div>
+</div>

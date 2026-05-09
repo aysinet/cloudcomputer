@@ -1,0 +1,95 @@
+{
+  "id": "paperless",
+  "name": "Paperless-ngx",
+  "icon": "📄",
+  "color": "linear-gradient(135deg,#1b5e20,#2e7d32)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Akıllı doküman yönetimi ve OCR arşiv sistemi (Paperless-ngx)",
+  "category": "productivity",
+  "lang": {
+    "tr": {
+      "name": "Paperless-ngx",
+      "description": "Akıllı doküman yönetimi ve OCR arşiv sistemi"
+    },
+    "en": {
+      "name": "Paperless-ngx",
+      "description": "Smart document management system with OCR archive"
+    },
+    "de": {
+      "name": "Paperless-ngx",
+      "description": "Intelligentes Dokumentenmanagementsystem mit OCR-Archiv"
+    },
+    "fr": {
+      "name": "Paperless-ngx",
+      "description": "Système intelligent de gestion de documents avec archivage OCR"
+    },
+    "es": {
+      "name": "Paperless-ngx",
+      "description": "Sistema inteligente de gestión de documentos con archivo OCR"
+    },
+    "ru": {
+      "name": "Paperless-ngx",
+      "description": "Интеллектуальная система управления документами с OCR-архивом"
+    },
+    "zh": {
+      "name": "Paperless-ngx",
+      "description": "智能文档管理与OCR归档系统"
+    },
+    "ja": {
+      "name": "Paperless-ngx",
+      "description": "OCRアーカイブ付きスマート文書管理システム"
+    },
+    "it": {
+      "name": "Paperless-ngx",
+      "description": "Sistema intelligente di gestione documenti con archivio OCR"
+    },
+    "pt": {
+      "name": "Paperless-ngx",
+      "description": "Sistema inteligente de gerenciamento de documentos com arquivo OCR"
+    },
+    "ar": {
+      "name": "Paperless-ngx",
+      "description": "نظام إدارة المستندات الذكي مع أرشيف التعرف الضوئي على الحروف"
+    },
+    "hi": {
+      "name": "Paperless-ngx",
+      "description": "OCR संग्रह के साथ स्मार्ट दस्तावेज़ प्रबंधन प्रणाली"
+    },
+    "ko": {
+      "name": "Paperless-ngx",
+      "description": "OCR 아카이브를 갖춘 스마트 문서 관리 시스템"
+    }
+  },
+  "docker": {
+    "image": "paperlessngx/paperless-ngx:latest",
+    "containerPort": 8000,
+    "volumes": [
+      "${APP_VOLUME}/data:/usr/src/paperless/data",
+      "${APP_VOLUME}/media:/usr/src/paperless/media",
+      "${APP_VOLUME}/export:/usr/src/paperless/export",
+      "${APP_VOLUME}/consume:/usr/src/paperless/consume"
+    ],
+    "env": [
+      "PAPERLESS_URL=",
+      "PAPERLESS_DBENGINE=sqlite",
+      "PAPERLESS_OCR_LANGUAGE=tur+eng",
+      "PAPERLESS_OCR_LANGUAGES=tur eng deu fra spa",
+      "PAPERLESS_ADMIN_USER=admin",
+      "PAPERLESS_ADMIN_PASSWORD=cloudcomputer",
+      "PAPERLESS_TIME_ZONE=UTC",
+      "PAPERLESS_SECRET_KEY=cloudcomputer-paperless-secret-key-change-me",
+      "PAPERLESS_CONSUMER_POLLING=30",
+      "PAPERLESS_TASK_WORKERS=2",
+      "PAPERLESS_THREADS_PER_WORKER=1",
+      "PAPERLESS_WEBSERVER_WORKERS=1",
+      "USERMAP_UID=0",
+      "USERMAP_GID=0"
+    ]
+  }
+}

@@ -1,0 +1,330 @@
+.rp-app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
+
+/* Toolbar */
+.rp-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: linear-gradient(180deg, #252540, #1e1e35);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  gap: 6px;
+  flex-wrap: wrap;
+  min-height: 40px;
+}
+.rp-toolbar-left, .rp-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.rp-logo {
+  font-size: 20px;
+  margin-right: 2px;
+}
+.rp-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #f74c00;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+.rp-sep {
+  width: 1px;
+  height: 20px;
+  background: rgba(255,255,255,0.12);
+  margin: 0 4px;
+}
+
+/* Buttons */
+.rp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.05);
+  color: #e0e0e0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.rp-btn:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.2);
+}
+.rp-btn:active {
+  transform: scale(0.97);
+}
+.rp-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.rp-btn-run {
+  background: linear-gradient(135deg, #b7410e, #f74c00);
+  border-color: #f74c00;
+  color: #fff;
+  font-weight: 600;
+}
+.rp-btn-run:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d4520f, #ff6a20);
+  box-shadow: 0 0 12px rgba(247,76,0,0.4);
+}
+.rp-btn-sm {
+  padding: 2px 6px;
+  border: none;
+  background: transparent;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 4px;
+}
+.rp-btn-sm:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+/* Selects */
+.rp-select {
+  padding: 4px 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.05);
+  color: #e0e0e0;
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+}
+.rp-select:hover {
+  border-color: rgba(255,255,255,0.2);
+}
+.rp-select option {
+  background: #1e1e35;
+  color: #e0e0e0;
+}
+
+/* Main area */
+.rp-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+.rp-editor-area {
+  display: flex;
+  flex: 1 1 60%;
+  min-height: 120px;
+  overflow: hidden;
+}
+.rp-editor-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Resize handle */
+.rp-resize-handle {
+  height: 6px;
+  background: #252540;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-size: 10px;
+  letter-spacing: 2px;
+  user-select: none;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.rp-resize-handle:hover {
+  background: #2a2a4a;
+  color: #888;
+}
+
+/* Output area */
+.rp-output-area {
+  display: flex;
+  flex-direction: column;
+  min-height: 80px;
+  background: #16162b;
+  overflow: hidden;
+}
+.rp-output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: #1c1c38;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  min-height: 32px;
+}
+.rp-output-tabs {
+  display: flex;
+  gap: 2px;
+}
+.rp-output-tab {
+  padding: 3px 10px;
+  border: none;
+  background: transparent;
+  color: #888;
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: all .15s;
+}
+.rp-output-tab:hover {
+  background: rgba(255,255,255,0.06);
+  color: #bbb;
+}
+.rp-output-tab.active {
+  background: rgba(247,76,0,0.15);
+  color: #f74c00;
+  font-weight: 500;
+}
+.rp-badge {
+  background: #e74c3c;
+  color: #fff;
+  font-size: 9px;
+  padding: 0 4px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+.rp-output-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rp-exec-time {
+  font-size: 11px;
+  color: #888;
+}
+.rp-output-body {
+  flex: 1;
+  overflow: auto;
+  padding: 10px 14px;
+  margin: 0;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #c8d6e5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.rp-output-body.has-error {
+  color: #ff6b6b;
+}
+.rp-output-body::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.rp-output-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.rp-output-body::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+  border-radius: 3px;
+}
+
+/* Statusbar */
+.rp-statusbar {
+  display: flex;
+  align-items: center;
+  padding: 3px 10px;
+  background: #16162b;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-size: 11px;
+  color: #777;
+  gap: 12px;
+  min-height: 22px;
+}
+.rp-status-item {
+  white-space: nowrap;
+}
+.rp-status-ok {
+  color: #2ecc71;
+}
+.rp-status-err {
+  color: #e74c3c;
+}
+
+/* Spinner */
+@keyframes rp-spin {
+  to { transform: rotate(360deg); }
+}
+.rp-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: rp-spin .6s linear infinite;
+}
+
+/* Share dialog */
+.rp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+.rp-dialog {
+  background: #1e1e35;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  width: 480px;
+  max-width: 95vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.rp-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  font-size: 15px;
+  font-weight: 600;
+  color: #f74c00;
+}
+.rp-dialog-body {
+  padding: 16px;
+}
+.rp-dialog-body p {
+  margin: 0 0 10px;
+  color: #aaa;
+  font-size: 13px;
+}
+.rp-share-link {
+  display: flex;
+  gap: 8px;
+}
+.rp-share-input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  background: rgba(0,0,0,0.3);
+  color: #e0e0e0;
+  font-size: 12px;
+  outline: none;
+}
+.rp-share-input:focus {
+  border-color: #f74c00;
+}
