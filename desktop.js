@@ -646,9 +646,7 @@ app.post('/api/setup', (req, res) => {
   if (!config.auth.users.includes(username)) config.auth.users.push(username);
   delete config.auth.username;
   delete config.auth.password;
-  if (config.auth.jwtSecret === 'vue-desktop-jwt-secret-change-me') {
-    config.auth.jwtSecret = crypto.randomBytes(32).toString('hex');
-  }
+  config.auth.jwtSecret = crypto.randomBytes(32).toString('hex');
   try {
     fs.writeFileSync(path.join(__dirname, 'desktop.config.json'), JSON.stringify(config, null, 2));
   } catch (e) {

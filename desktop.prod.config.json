@@ -4,7 +4,7 @@
     "host": "0.0.0.0"
   },
   "auth": {
-    "jwtSecret": "62cc267bce025bfe314d22028b6a064741ace4caa5a214718543c794ae25ebde",
+    "jwtSecret": "vue-desktop-jwt-secret-change-me",
     "jwtExpiresIn": "240h",
     "users": [
     ]
