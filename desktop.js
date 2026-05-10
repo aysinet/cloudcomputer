@@ -3478,13 +3478,56 @@ app.get('/api/ai/models', authMiddleware, async (req, res) => {
       return res.json({ provider: 'ollama', models: merged });
     } catch {
       // Fallback to static list
+      const staticList = [
+        { id: 'llama3.2', name: 'Llama 3.2 (3B)', default: true },
+        { id: 'llama3.1', name: 'Llama 3.1 (8B)' },
+        { id: 'gemma3', name: 'Gemma 3 (4B)' },
+        { id: 'mistral', name: 'Mistral (7B)' },
+        { id: 'phi4', name: 'Phi-4 (14B)' },
+        { id: 'deepseek-r1', name: 'DeepSeek-R1 (7B)' },
+        { id: 'qwen3', name: 'Qwen 3 (8B)' },
+        { id: 'codellama', name: 'CodeLlama (7B)' }
+      ];
       const p = models.ollama;
-      return res.json({ provider: 'ollama', models: p ? p.models : [] });
+      return res.json({ provider: 'ollama', models: (p && p.models && p.models.length) ? p.models : staticList });
     }
   }
   if (providerId) {
     const p = models[providerId];
     return res.json({ provider: providerId, models: p ? p.models : [] });
+  }
+  // For bulk load: dynamically inject Ollama models when OLLAMA_URL is set
+  if (OLLAMA_URL) {
+    if (!models.ollama) {
+      models.ollama = { name: 'Ollama (Local)', icon: '🦙', models: [
+        { id: 'llama3.2', name: 'Llama 3.2 (3B)', default: true },
+        { id: 'llama3.1', name: 'Llama 3.1 (8B)' },
+        { id: 'gemma3', name: 'Gemma 3 (4B)' },
+        { id: 'mistral', name: 'Mistral (7B)' },
+        { id: 'phi4', name: 'Phi-4 (14B)' },
+        { id: 'deepseek-r1', name: 'DeepSeek-R1 (7B)' },
+        { id: 'qwen3', name: 'Qwen 3 (8B)' },
+        { id: 'codellama', name: 'CodeLlama (7B)' }
+      ]};
+    }
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const resp = await fetch(OLLAMA_URL + '/api/tags', { signal: controller.signal });
+      clearTimeout(timeout);
+      const data = await resp.json();
+      const installedModels = (data.models || []).map(m => ({
+        id: m.name,
+        name: m.name + (m.details?.parameter_size ? ' (' + m.details.parameter_size + ')' : ''),
+        installed: true
+      }));
+      const staticModels = (models.ollama.models || []).map(m => ({ ...m, installed: false }));
+      const installedIds = new Set(installedModels.map(m => m.id));
+      const uninstalledStatic = staticModels.filter(m => !installedIds.has(m.id));
+      const merged = [...installedModels, ...uninstalledStatic];
+      if (merged.length && !merged.some(m => m.default)) merged[0].default = true;
+      models.ollama = { ...models.ollama, models: merged };
+    } catch {}
   }
   res.json(models);
 });
@@ -4153,32 +4196,28 @@ app.post('/api/chatgpt/conversations', authMiddleware, (req, res) => {
 app.get('/api/chatgpt/providers', authMiddleware, async (req, res) => {
   const data = getUserAISettings(req.user.username);
   const available = (data.providers || [])
-    .filter(p => p.enabled && p.apiKey)
+    .filter(p => p.enabled && (p.apiKey || (AI_PROVIDER_ENDPOINTS[p.id] && AI_PROVIDER_ENDPOINTS[p.id].noKeyRequired)))
     .map(p => ({ id: p.id, name: p.name, icon: p.icon, model: p.model || p.defaultModel }));
 
-  // Include Ollama as built-in provider if available (no API key needed)
-  if (OLLAMA_URL) {
-    const alreadyHasOllama = available.some(p => p.id === 'ollama');
-    if (!alreadyHasOllama) {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 3000);
-        const resp = await fetch(OLLAMA_URL + '/api/tags', { signal: controller.signal });
-        clearTimeout(timeout);
-        const tags = await resp.json();
-        const defaultModel = (tags.models && tags.models.length > 0) ? tags.models[0].name : '';
-        // Check if user has a preferred Ollama model in their settings
-        const userOllama = (data.providers || []).find(p => p.id === 'ollama');
-        available.unshift({
-          id: 'ollama',
-          name: 'Ollama (Local)',
-          icon: '🦙',
-          model: userOllama?.model || defaultModel,
-          system: true
-        });
-      } catch {
-        // Ollama not reachable — skip
-      }
+  // Include Ollama as built-in provider if available (no API key needed) and not already present
+  if (OLLAMA_URL && !available.some(p => p.id === 'ollama')) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+      const resp = await fetch(OLLAMA_URL + '/api/tags', { signal: controller.signal });
+      clearTimeout(timeout);
+      const tags = await resp.json();
+      const defaultModel = (tags.models && tags.models.length > 0) ? tags.models[0].name : '';
+      const userOllama = (data.providers || []).find(p => p.id === 'ollama');
+      available.unshift({
+        id: 'ollama',
+        name: 'Ollama (Local)',
+        icon: '🦙',
+        model: userOllama?.model || defaultModel,
+        system: true
+      });
+    } catch {
+      // Ollama not reachable — skip
     }
   }
 

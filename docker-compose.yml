@@ -46,7 +46,7 @@ services:
 networks:
   cloudpc-net:
     name: cloudpc-net
-    driver: bridge
+    external: true
 
 volumes:
   cloudpc-data:
