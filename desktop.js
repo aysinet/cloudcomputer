@@ -532,12 +532,20 @@ function writeUserSettings(username, settings) {
 // #region Setup check
 function needsSetup() {
   // If config has users, setup is done
-  if (Array.isArray(config.auth.users) && config.auth.users.length > 0) return false;
+  if (Array.isArray(config.auth.users) && config.auth.users.length > 0) {
+    console.log('[Setup] Skipped: config.auth.users has entries:', config.auth.users);
+    return false;
+  }
   // Even if config is empty, check if any user directory exists (recovery)
   try {
     const entries = fs.readdirSync(DATA_DIR, { withFileTypes: true });
-    if (entries.some(e => e.isDirectory())) return false;
+    const dirs = entries.filter(e => e.isDirectory()).map(e => e.name);
+    if (dirs.length > 0) {
+      console.log('[Setup] Skipped: user directories found in', DATA_DIR, ':', dirs);
+      return false;
+    }
   } catch {}
+  console.log('[Setup] Setup needed: no users in config, no user directories');
   return true;
 }
 
