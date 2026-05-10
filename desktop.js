@@ -3453,9 +3453,35 @@ function getAIModels() {
   try { return JSON.parse(fs.readFileSync(AI_MODELS_PATH, 'utf-8')); } catch { return {}; }
 }
 
-app.get('/api/ai/models', authMiddleware, (req, res) => {
+app.get('/api/ai/models', authMiddleware, async (req, res) => {
   const models = getAIModels();
   const providerId = req.query.provider;
+  if (providerId === 'ollama' && OLLAMA_URL) {
+    // Dynamically fetch installed models from Ollama
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const resp = await fetch(OLLAMA_URL + '/api/tags', { signal: controller.signal });
+      clearTimeout(timeout);
+      const data = await resp.json();
+      const installedModels = (data.models || []).map(m => ({
+        id: m.name,
+        name: m.name + (m.details?.parameter_size ? ' (' + m.details.parameter_size + ')' : ''),
+        installed: true
+      }));
+      // Merge with static list: installed models first, then uninstalled suggestions
+      const staticModels = (models.ollama?.models || []).map(m => ({ ...m, installed: false }));
+      const installedIds = new Set(installedModels.map(m => m.id));
+      const uninstalledStatic = staticModels.filter(m => !installedIds.has(m.id));
+      const merged = [...installedModels, ...uninstalledStatic];
+      if (merged.length && !merged.some(m => m.default)) merged[0].default = true;
+      return res.json({ provider: 'ollama', models: merged });
+    } catch {
+      // Fallback to static list
+      const p = models.ollama;
+      return res.json({ provider: 'ollama', models: p ? p.models : [] });
+    }
+  }
   if (providerId) {
     const p = models[providerId];
     return res.json({ provider: providerId, models: p ? p.models : [] });

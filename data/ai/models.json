@@ -132,5 +132,19 @@
       { "id": "google/gemma-2-27b-it", "name": "Gemma 2 27B" },
       { "id": "NousResearch/Hermes-3-Llama-3.1-8B", "name": "Hermes 3 8B" }
     ]
+  },
+  "ollama": {
+    "name": "Ollama (Local)",
+    "icon": "🦙",
+    "models": [
+      { "id": "llama3.2", "name": "Llama 3.2 (3B)", "default": true },
+      { "id": "llama3.1", "name": "Llama 3.1 (8B)" },
+      { "id": "gemma3", "name": "Gemma 3 (4B)" },
+      { "id": "mistral", "name": "Mistral (7B)" },
+      { "id": "phi4", "name": "Phi-4 (14B)" },
+      { "id": "deepseek-r1", "name": "DeepSeek-R1 (7B)" },
+      { "id": "qwen3", "name": "Qwen 3 (8B)" },
+      { "id": "codellama", "name": "CodeLlama (7B)" }
+    ]
   }
 }
