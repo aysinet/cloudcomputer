@@ -25,7 +25,7 @@ A full-featured web-based desktop operating system built with **Node.js**, **Exp
 ┌──────────────────────────────────────────────────────┐
 │                    Docker Host                       │
 │                                                      │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────┐ │
+│  ┌──────────────┐  ┌──────────────┐  ┌─────────────┐ │
 │  │   Ollama     │  │ Cloud        │  │  Docker     │ │
 │  │  (Local LLM) │  │ Computer     │  │  Manager    │ │
 │  │  :11434      │  │  :8080       │  │  :9800      │ │
@@ -36,11 +36,11 @@ A full-featured web-based desktop operating system built with **Node.js**, **Exp
 └──────────────────────────────────────────────────────┘
 ```
 
-| Service | Description | Port |
-|---------|-------------|------|
-| **cloudcomputer** | Main application (Express + Vue 3) | 8080 |
-| **docker-manager** | Container lifecycle manager sidecar | 9800 |
-| **ollama** | Local LLM inference server (GPU-accelerated) | 11434 |
+| Service            | Description                                  | Port  |
+|--------------------|----------------------------------------------|-------|
+| **cloudcomputer**  | Main application (Express + Vue 3)           | 8080  |
+| **docker-manager** | Container lifecycle manager sidecar          | 9800  |
+| **ollama**         | Local LLM inference server (GPU-accelerated) | 11434 |
 
 ---
 
@@ -123,16 +123,16 @@ docker exec -it cloudpc-ollama ollama list
 
 ### Popular Models
 
-| Model | Size | Command |
-|-------|------|---------|
-| Llama 3.2 (3B) | ~2 GB | `ollama pull llama3.2` |
-| Llama 3.1 (8B) | ~4.7 GB | `ollama pull llama3.1` |
-| Gemma 3 (4B) | ~3 GB | `ollama pull gemma3` |
-| Mistral (7B) | ~4.1 GB | `ollama pull mistral` |
-| Phi-4 (14B) | ~9 GB | `ollama pull phi4` |
+| Model            | Size    | Command                   |
+|------------------|---------|---------------------------|
+| Llama 3.2 (3B)   | ~2 GB   | `ollama pull llama3.2`    |
+| Llama 3.1 (8B)   | ~4.7 GB | `ollama pull llama3.1`    |
+| Gemma 3 (4B)     | ~3 GB   | `ollama pull gemma3`      |
+| Mistral (7B)     | ~4.1 GB | `ollama pull mistral`     |
+| Phi-4 (14B)      | ~9 GB   | `ollama pull phi4`        |
 | DeepSeek-R1 (7B) | ~4.7 GB | `ollama pull deepseek-r1` |
-| Qwen 3 (8B) | ~5 GB | `ollama pull qwen3` |
-| CodeLlama (7B) | ~3.8 GB | `ollama pull codellama` |
+| Qwen 3 (8B)      | ~5 GB   | `ollama pull qwen3`       |
+| CodeLlama (7B)   | ~3.8 GB | `ollama pull codellama`   |
 
 > After pulling a model, it automatically appears in the AI provider dropdown — no configuration needed.
 
@@ -303,11 +303,11 @@ Each instance gets:
 
 ## 📦 Docker Volumes
 
-| Volume | Purpose |
-|--------|---------|
-| `cloudpc-ollama-models` | Ollama model weights (shared) |
-| `cloudpc-{INSTANCE_ID}-data` | Application data, user files, settings |
-| `cloudpc-{INSTANCE_ID}-dm-data` | Docker Manager state |
+| Volume                          | Purpose                                |
+|---------------------------------|----------------------------------------|
+| `cloudpc-ollama-models`         | Ollama model weights (shared)          |
+| `cloudpc-{INSTANCE_ID}-data`    | Application data, user files, settings |
+| `cloudpc-{INSTANCE_ID}-dm-data` | Docker Manager state                   |
 
 ---
 
@@ -320,7 +320,7 @@ Each instance gets:
 
 ---
 
-## � Sponsor
+## ❤️ Sponsor
 
 If you find Cloud Computer useful, please consider supporting its development through **GitHub Sponsors**.
 
@@ -346,6 +346,6 @@ Every contribution, no matter the size, makes a difference. Thank you for suppor
 
 ---
 
-## �📄 License
+## 📄 License
 
 MIT

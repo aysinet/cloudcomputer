@@ -13,6 +13,7 @@ RUN npm install --production
 FROM node:20-alpine
 
 RUN apk add --no-cache 7zip curl \
+    cairo pango pixman jpeg giflib librsvg \
     && ARCH=$(uname -m) \
     && if [ "$ARCH" = "x86_64" ]; then GOARCH=amd64; \
        elif [ "$ARCH" = "aarch64" ]; then GOARCH=arm64; \

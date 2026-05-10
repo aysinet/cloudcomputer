@@ -23,9 +23,5 @@
     "pingInterval": 30000
   },
   "weather": {
-    "city": "İstanbul",
-    "country": "Türkiye",
-    "latitude": 41.0082,
-    "longitude": 28.9784
   }
 }

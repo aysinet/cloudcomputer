@@ -8,7 +8,15 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const multer = require('multer');
-const config = require('./desktop.config.json');
+
+// Load config from data/ (persisted volume); copy default on first run
+const CONFIG_PATH = path.join(__dirname, 'data', 'desktop.config.json');
+const CONFIG_DEFAULT = path.join(__dirname, 'desktop.config.json');
+if (!fs.existsSync(CONFIG_PATH) && fs.existsSync(CONFIG_DEFAULT)) {
+  if (!fs.existsSync(path.join(__dirname, 'data'))) fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+  fs.copyFileSync(CONFIG_DEFAULT, CONFIG_PATH);
+}
+const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
 const Database = require('better-sqlite3');
 const archiver = require('archiver');
 const AdmZip = require('adm-zip');
@@ -648,7 +656,7 @@ app.post('/api/setup', (req, res) => {
   delete config.auth.password;
   config.auth.jwtSecret = crypto.randomBytes(32).toString('hex');
   try {
-    fs.writeFileSync(path.join(__dirname, 'desktop.config.json'), JSON.stringify(config, null, 2));
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
   } catch (e) {
     return res.status(500).json({ error: 'Failed to save config: ' + e.message });
   }
@@ -763,7 +771,7 @@ app.post('/api/users/create', authMiddleware, (req, res) => {
   const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
   config.auth.users.push(username);
   try {
-    fs.writeFileSync(path.join(__dirname, 'desktop.config.json'), JSON.stringify(config, null, 2));
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
   } catch (e) {
     config.auth.users = config.auth.users.filter(u => u !== username);
     return res.status(500).json({ error: 'Failed to save config' });
@@ -809,7 +817,7 @@ app.post('/api/users/:username/delete', authMiddleware, (req, res) => {
 
   config.auth.users = config.auth.users.filter(u => u !== username);
   try {
-    fs.writeFileSync(path.join(__dirname, 'desktop.config.json'), JSON.stringify(config, null, 2));
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
   } catch (e) {
     config.auth.users.push(username);
     return res.status(500).json({ error: 'Failed to save config' });
