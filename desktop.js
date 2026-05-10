@@ -3318,7 +3318,7 @@ const OLLAMA_URL = process.env.OLLAMA_URL || null;
 
 // Metadata for free (noKeyRequired) providers — used for auto-setup in user settings
 const FREE_PROVIDER_META = {
-  ollama: { name: 'Ollama (Local)', icon: '🦙', defaultModel: '' }
+  ollama: { name: 'Ollama (Local)', icon: '🦙', defaultModel: 'llama3.2' }
 };
 
 const AI_PROVIDER_ENDPOINTS = {
@@ -3939,6 +3939,9 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
   }
 
   const model = requestModel ? String(requestModel).slice(0, 100) : (provider.model || provider.defaultModel);
+  if (!model) {
+    return res.status(400).json({ error: 'Model is required. Please pull a model first (e.g. ollama pull llama3.2)' });
+  }
   const conversationMsgs = messages.slice(-50).map(m => ({
     role: String(m.role || 'user').slice(0, 20),
     content: String(m.content || '').slice(0, 8000)
