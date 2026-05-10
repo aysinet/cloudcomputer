@@ -773,40 +773,63 @@
           cueGrad.addColorStop(0, '#ffffff');
           cueGrad.addColorStop(1, '#d0d0d0');
           c.fillStyle = cueGrad;
+          c.fill();
         } else if (isStripe(b.id)) {
-          // Stripe ball - white with colored band
+          // Stripe ball - white base with colored band
           c.fillStyle = '#ffffff';
           c.fill();
           c.shadowColor = 'transparent';
+          // Draw colored band in middle
           c.beginPath();
           c.arc(b.x, b.y, BALL_R, 0, Math.PI * 2);
           c.clip();
           c.fillStyle = BALL_COLORS[b.id];
-          c.fillRect(b.x - BALL_R, b.y - BALL_R * 0.5, BALL_R * 2, BALL_R);
+          c.fillRect(b.x - BALL_R, b.y - BALL_R * 0.45, BALL_R * 2, BALL_R * 0.9);
+          // Add sheen highlight
+          const stripeGrad = c.createRadialGradient(b.x - 2, b.y - 2, 1, b.x, b.y, BALL_R);
+          stripeGrad.addColorStop(0, 'rgba(255,255,255,0.4)');
+          stripeGrad.addColorStop(1, 'rgba(255,255,255,0)');
+          c.fillStyle = stripeGrad;
+          c.fillRect(b.x - BALL_R, b.y - BALL_R, BALL_R * 2, BALL_R * 2);
+        } else if (b.id === 8) {
+          // 8-ball - solid black with sheen
+          const eightGrad = c.createRadialGradient(b.x - 3, b.y - 3, 1, b.x, b.y, BALL_R);
+          eightGrad.addColorStop(0, '#333333');
+          eightGrad.addColorStop(1, '#000000');
+          c.fillStyle = eightGrad;
+          c.fill();
         } else {
-          // Solid ball
+          // Solid ball - full color with gradient
           const grad = c.createRadialGradient(b.x - 3, b.y - 3, 1, b.x, b.y, BALL_R);
-          grad.addColorStop(0, lighten(BALL_COLORS[b.id], 40));
+          grad.addColorStop(0, lighten(BALL_COLORS[b.id], 60));
           grad.addColorStop(1, BALL_COLORS[b.id]);
           c.fillStyle = grad;
+          c.fill();
         }
-        c.fill();
         c.shadowColor = 'transparent';
 
         // Number on ball
         if (b.id > 0) {
-          c.fillStyle = b.id === 8 ? '#fff' : (isStripe(b.id) ? BALL_COLORS[b.id] : '#fff');
-          // Number circle for contrast
+          // White circle background for number
           c.beginPath();
           c.arc(b.x, b.y, 5, 0, Math.PI * 2);
           c.fillStyle = '#fff';
           c.fill();
+          // Number text
           c.fillStyle = '#000';
           c.font = 'bold 8px Arial';
           c.textAlign = 'center';
           c.textBaseline = 'middle';
           c.fillText(b.id, b.x, b.y + 0.5);
         }
+
+        // Ball outline for better visibility
+        c.beginPath();
+        c.arc(b.x, b.y, BALL_R, 0, Math.PI * 2);
+        c.strokeStyle = 'rgba(0,0,0,0.3)';
+        c.lineWidth = 0.5;
+        c.stroke();
+
         c.restore();
       }
 

@@ -1735,6 +1735,44 @@ app.post('/api/wikipedia/save-pdf', authMiddleware, async (req, res) => {
 
 // #endregion
 // #region Browser Proxy (CORS bypass)
+
+// Catch-all for relative asset requests from proxied pages (e.g. /_next/*, /static/*)
+app.get(['/_next/*', '/static/*', '/__nextjs*'], async (req, res, next) => {
+  const referer = req.headers.referer || '';
+  // Only intercept if request originated from a proxied page
+  const proxyMatch = referer.match(/\/api\/browser\/proxy[^?]*\?[^#]*url=([^&#]+)/);
+  if (!proxyMatch) return next();
+  try {
+    const refOrigin = new URL(decodeURIComponent(proxyMatch[1])).origin;
+    const targetUrl = refOrigin + req.originalUrl;
+    // Block internal/private IPs
+    const hostname = new URL(targetUrl).hostname;
+    if (/^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.|localhost|::1|\[::1\])/i.test(hostname)) {
+      return next();
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const resp = await fetch(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': req.headers.accept || '*/*',
+        'Accept-Language': req.headers['accept-language'] || 'en-US,en;q=0.5'
+      },
+      signal: controller.signal,
+      redirect: 'follow'
+    });
+    clearTimeout(timeout);
+    const contentType = resp.headers.get('content-type') || 'application/octet-stream';
+    res.set('Content-Type', contentType);
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Cache-Control', 'public, max-age=31536000, immutable');
+    const buffer = Buffer.from(await resp.arrayBuffer());
+    res.send(buffer);
+  } catch (e) {
+    next();
+  }
+});
+
 app.get('/api/browser/proxy', authMiddleware, async (req, res) => {
   const targetUrl = req.query.url;
   if (!targetUrl) return res.status(400).json({ error: 'url required' });
@@ -1768,33 +1806,61 @@ app.get('/api/browser/proxy', authMiddleware, async (req, res) => {
     const contentType = resp.headers.get('content-type') || 'text/html';
     res.set('Content-Type', contentType);
     res.set('X-Final-URL', resp.url);
+    // Strip security headers that break proxied content
+    res.removeHeader('content-security-policy');
+    res.removeHeader('content-security-policy-report-only');
+    res.removeHeader('x-frame-options');
+    res.set('Access-Control-Allow-Origin', '*');
 
     // For HTML content, inject base tag to fix relative URLs
     if (contentType.includes('text/html')) {
       let html = await resp.text();
       const baseUrl = new URL(resp.url);
       const baseHref = baseUrl.origin + baseUrl.pathname.replace(/\/[^/]*$/, '/');
-      // Inject <base> tag right after <head>
-      html = html.replace(/(<head[^>]*>)/i, '$1<base href="' + baseHref + '">');
+      // Rewrite link/script/img src and href attributes to go through proxy
+      html = html.replace(/(href|src)=(["'])(?!data:|blob:|#|javascript:|about:|mailto:)([^"']+)\2/gi, function(match, attr, q, url) {
+        try {
+          var absUrl = new URL(url, baseUrl.href).href;
+          if (new URL(absUrl).protocol === 'http:' || new URL(absUrl).protocol === 'https:') {
+            return attr + '=' + q + '/api/browser/proxy?url=' + encodeURIComponent(absUrl) + q;
+          }
+          return match;
+        } catch(e) { return match; }
+      });
+      // Remove CSP meta tags
+      html = html.replace(/<meta[^>]*http-equiv=["']content-security-policy["'][^>]*>/gi, '');
+      // Rewrite url() references inside inline <style> tags
+      html = html.replace(/(<style[^>]*>)([\s\S]*?)(<\/style>)/gi, function(m, open, css, close) {
+        css = css.replace(/url\(\s*['"]?(?!data:|blob:|#|about:)([^)'"\s]+)['"]?\s*\)/gi, function(um, urlVal) {
+          try {
+            var absUrl = new URL(urlVal, baseUrl.href).href;
+            return 'url(/api/browser/proxy?url=' + encodeURIComponent(absUrl) + ')';
+          } catch(e) { return um; }
+        });
+        return open + css + close;
+      });
       // Inject script to intercept link clicks and window.open inside iframe
       const interceptAll = req.query.interceptAll === '1';
       const proxyDomain = req.query.proxyDomain || (interceptAll ? baseUrl.hostname : '');
+      const reqToken = extractToken(req) || '';
       const xhrIntercept = proxyDomain ? `
-        var _authTk=(function(){try{var c=document.cookie.match(/token=([^;]+)/);if(c)return 'Bearer '+c[1];}catch(e){}try{var t=localStorage.getItem('auth_token');if(t)return 'Bearer '+t;}catch(e){}return '';})();
+        var _authTk='Bearer ${reqToken.replace(/'/g, "\\'")}';
         var _pDomain='${proxyDomain.replace(/'/g, "\\'")}';var _pDomains=[_pDomain];try{var _bd=new URL('${baseHref}');if(_bd.hostname!==_pDomain)_pDomains.push(_bd.hostname);}catch(e){}
+        var _baseOrigin='${baseUrl.origin}';
         var _interceptAllOrigins=${interceptAll ? 'true' : 'false'};
+        function _resolveUrl(url){try{var u=new URL(url,location.href);if(u.hostname===location.hostname&&u.hostname!==new URL(_baseOrigin).hostname){return new URL(u.pathname+u.search+u.hash,_baseOrigin);}return u;}catch(e){return null;}}
         function _matchDomain(h){if(_interceptAllOrigins&&h!==location.hostname)return true;for(var i=0;i<_pDomains.length;i++)if(h.includes(_pDomains[i]))return true;return false;}
         var _origXhrOpen=XMLHttpRequest.prototype.open;
         var _origXhrSend=XMLHttpRequest.prototype.send;
         XMLHttpRequest.prototype.open=function(method,url,async,user,pass){
           this._pMethod=method;this._pUrl=url;this._pAsync=async;this._pUser=user;this._pPass=pass;
-          try{var u=new URL(url,location.href);if(_matchDomain(u.hostname)){this._pIntercept=true;this._pFullUrl=u.href;return;}}catch(e){}
+          try{var u=_resolveUrl(url);if(u&&_matchDomain(u.hostname)){this._pIntercept=true;this._pFullUrl=u.href;return;}}catch(e){}
           return _origXhrOpen.apply(this,arguments);
         };
         XMLHttpRequest.prototype.send=function(body){
           if(this._pIntercept){
             var self=this;var hdrs=this._pHeaders||{};
-            fetch('/api/browser/proxy-xhr',{method:'POST',headers:{'Content-Type':'application/json','Authorization':_authTk},body:JSON.stringify({url:self._pFullUrl,method:self._pMethod,body:body,headers:hdrs})}).then(function(r){return r.text().then(function(t){Object.defineProperty(self,'readyState',{writable:true});self.readyState=4;Object.defineProperty(self,'status',{writable:true});self.status=r.status;Object.defineProperty(self,'statusText',{writable:true});self.statusText=r.statusText||'';Object.defineProperty(self,'responseText',{writable:true});self.responseText=t;Object.defineProperty(self,'response',{writable:true});self.response=t;if(typeof self.onreadystatechange==='function')self.onreadystatechange();if(typeof self.onload==='function')self.onload();self.dispatchEvent(new Event('readystatechange'));self.dispatchEvent(new Event('load'));self.dispatchEvent(new Event('loadend'));});}).catch(function(e){Object.defineProperty(self,'readyState',{writable:true});self.readyState=4;Object.defineProperty(self,'status',{writable:true});self.status=0;if(typeof self.onerror==='function')self.onerror(e);self.dispatchEvent(new Event('error'));self.dispatchEvent(new Event('loadend'));});
+            fetch(location.origin+'/api/browser/proxy-xhr',{method:'POST',headers:{'Content-Type':'application/json','Authorization':_authTk},body:JSON.stringify({url:self._pFullUrl,method:self._pMethod,body:body,headers:hdrs})}).then(function(r){return r.text().then(function(t){Object.defineProperty(self,'readyState',{writable:true});self.readyState=4;Object.defineProperty(self,'status',{writable:true});self.status=r.status;Object.defineProperty(self,'statusText',{writable:true});self.statusText=r.statusText||'';Object.defineProperty(self,'responseText',{writable:true});self.responseText=t;Object.defineProperty(self,'response',{writable:true});self.response=t;if(typeof self.onreadystatechange==='function')self.onreadystatechange();if(typeof self.onload==='function')self.onload();self.dispatchEvent(new Event('readystatechange'));self.dispatchEvent(new Event('load'));self.dispatchEvent(new Event('loadend'));});}).catch(function(e){Object.defineProperty(self,'readyState',{writable:true});self.readyState=4;Object.defineProperty(self,'status',{writable:true});self.status=0;if(typeof self.onerror==='function')self.onerror(e);self.dispatchEvent(new Event('error'));self.dispatchEvent(new Event('loadend'));});
             return;
           }
           return _origXhrSend.apply(this,arguments);
@@ -1807,17 +1873,59 @@ app.get('/api/browser/proxy', authMiddleware, async (req, res) => {
         var _origFetch=window.fetch;
         window.fetch=function(input,init){
           var url=typeof input==='string'?input:(input&&input.url?input.url:'');
-          try{var u=new URL(url,location.href);if(_matchDomain(u.hostname)){
+          try{var u=_resolveUrl(url);if(u&&_matchDomain(u.hostname)){
             var method=(init&&init.method)||'GET';var body=(init&&init.body)||undefined;var fHeaders={};
             if(init&&init.headers){if(typeof init.headers.forEach==='function'){init.headers.forEach(function(v,k){fHeaders[k]=v;});}else if(typeof init.headers==='object'){for(var hk in init.headers)fHeaders[hk]=init.headers[hk];}}
-            return _origFetch('/api/browser/proxy-xhr',{method:'POST',headers:{'Content-Type':'application/json','Authorization':_authTk},body:JSON.stringify({url:u.href,method:method,body:typeof body==='string'?body:undefined,headers:fHeaders})});
+            return _origFetch(location.origin+'/api/browser/proxy-xhr',{method:'POST',headers:{'Content-Type':'application/json','Authorization':_authTk},body:JSON.stringify({url:u.href,method:method,body:typeof body==='string'?body:undefined,headers:fHeaders})});
           }}catch(e){}
           return _origFetch.apply(this,arguments);
         };` : '';
       const interceptScript = `<script>(function(){
+        var _proxyBase='${baseUrl.origin}';
+        function _toProxy(url){
+          try{
+            var u=new URL(url,_proxyBase);
+            if(u.protocol==='http:'||u.protocol==='https:'){
+              return location.origin+'/api/browser/proxy?url='+encodeURIComponent(u.href);
+            }
+          }catch(e){}
+          return url;
+        }
+        function _needsProxy(url){
+          if(!url||typeof url!=='string')return false;
+          if(url.startsWith('data:')||url.startsWith('blob:')||url.startsWith('about:')||url.startsWith('javascript:'))return false;
+          if(url.indexOf('/api/browser/proxy')!==-1)return false;
+          try{var u=new URL(url,location.href);return u.origin===location.origin&&!url.startsWith(location.origin+'/api/');}catch(e){return false;}
+        }
+        // Patch script.src setter
+        var _scriptSrcDesc=Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype,'src');
+        if(_scriptSrcDesc&&_scriptSrcDesc.set){
+          Object.defineProperty(HTMLScriptElement.prototype,'src',{
+            set:function(v){if(typeof v==='string'&&_needsProxy(v)){v=_toProxy(v);}return _scriptSrcDesc.set.call(this,v);},
+            get:_scriptSrcDesc.get,configurable:true,enumerable:true
+          });
+        }
+        // Patch link.href setter
+        var _linkHrefDesc=Object.getOwnPropertyDescriptor(HTMLLinkElement.prototype,'href');
+        if(_linkHrefDesc&&_linkHrefDesc.set){
+          Object.defineProperty(HTMLLinkElement.prototype,'href',{
+            set:function(v){if(typeof v==='string'&&_needsProxy(v)){v=_toProxy(v);}return _linkHrefDesc.set.call(this,v);},
+            get:_linkHrefDesc.get,configurable:true,enumerable:true
+          });
+        }
+        // Patch setAttribute for src/href
+        var _origSetAttr=Element.prototype.setAttribute;
+        Element.prototype.setAttribute=function(name,value){
+          if((name==='src'||name==='href')&&typeof value==='string'&&_needsProxy(value)){value=_toProxy(value);}
+          return _origSetAttr.call(this,name,value);
+        };
         var origOpen=window.open;
         window.open=function(url){
           if(url){try{var u=new URL(url,location.href);parent.postMessage({type:'browser-navigate',url:u.href},'*');}catch(e){}}return null;};
+        var _origReplaceState=history.replaceState.bind(history);
+        var _origPushState=history.pushState.bind(history);
+        history.replaceState=function(state,title,url){try{_origReplaceState(state,title,url);}catch(e){}};
+        history.pushState=function(state,title,url){try{_origPushState(state,title,url);}catch(e){}};
         document.addEventListener('click',function(e){
           var a=e.target.closest('a');
           if(!a)return;
@@ -1831,6 +1939,27 @@ app.get('/api/browser/proxy', authMiddleware, async (req, res) => {
       })();<\/script>`;
       html = html.replace(/(<head[^>]*>)/i, '$1' + interceptScript);
       res.send(html);
+    } else if (contentType.includes('text/css')) {
+      let css = await resp.text();
+      const cssBase = resp.url;
+      css = css.replace(/url\(\s*['"]?(?!data:|blob:|#|about:)([^)'"\s]+)['"]?\s*\)/gi, function(match, urlVal) {
+        try {
+          var absUrl = new URL(urlVal, cssBase).href;
+          return 'url(/api/browser/proxy?url=' + encodeURIComponent(absUrl) + ')';
+        } catch(e) { return match; }
+      });
+      res.send(css);
+    } else if (contentType.includes('javascript') || contentType.includes('application/x-javascript')) {
+      let js = await resp.text();
+      const jsBase = resp.url;
+      // Rewrite font/asset references in JS bundles (Next.js CSS-in-JS patterns)
+      js = js.replace(/url\(\s*\\?['"]?(?!data:|blob:|#|about:)([^)'"\\\s]+\.(?:woff2?|ttf|eot|otf|svg|png|jpg|gif|webp))\\?['"]?\s*\)/gi, function(match, urlVal) {
+        try {
+          var absUrl = new URL(urlVal, jsBase).href;
+          return 'url(/api/browser/proxy?url=' + encodeURIComponent(absUrl) + ')';
+        } catch(e) { return match; }
+      });
+      res.send(js);
     } else {
       const buffer = Buffer.from(await resp.arrayBuffer());
       res.send(buffer);
@@ -2957,10 +3086,21 @@ app.use('/proxy/:appId', async (req, res, next) => {
         changeOrigin: true,
         pathRewrite: (p) => p.replace(new RegExp(`^/proxy/${appId}`), ''),
         ws: true,
-        onProxyRes: (proxyRes) => {
-          delete proxyRes.headers['x-frame-options'];
-          delete proxyRes.headers['content-security-policy'];
-          delete proxyRes.headers['content-security-policy-report-only'];
+        on: {
+          proxyRes: (proxyRes) => {
+            delete proxyRes.headers['x-frame-options'];
+            delete proxyRes.headers['content-security-policy'];
+            delete proxyRes.headers['content-security-policy-report-only'];
+            proxyRes.headers['cross-origin-resource-policy'] = 'same-origin';
+            proxyRes.headers['cross-origin-embedder-policy'] = 'credentialless';
+          },
+          error: (err, req, res) => {
+            console.error(`[PROXY-HPM] ${appId} error:`, err.message);
+            if (res && !res.headersSent && typeof res.writeHead === 'function') {
+              res.writeHead(502, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Proxy error: ' + err.message }));
+            }
+          }
         }
       });
     }
@@ -4100,8 +4240,12 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
         // OpenAI-compatible (openai, mistral, deepseek, groq, xai, github, openrouter, perplexity, custom)
         const url = provider.custom ? (provider.apiEndpoint || endpointConfig?.url || '') : endpointConfig.url;
         if (!url) return res.status(400).json({ error: 'No endpoint configured' });
-        const body = { model, messages: conversationMsgs, max_tokens: 4096 };
-        if (enableTools && toolDefs.length) {
+        const isOllama = providerId === 'ollama';
+        const body = { model, messages: conversationMsgs, max_tokens: isOllama ? 2048 : 4096 };
+        if (isOllama) {
+          body.options = { num_ctx: 8192 };
+        }
+        if (enableTools && toolDefs.length && !isOllama) {
           body.tools = toolDefs.map(t => ({
             type: 'function',
             function: { name: t.name, description: t.description, parameters: t.parameters }
@@ -4373,7 +4517,11 @@ app.post('/api/chatgpt/stream', authMiddleware, async (req, res) => {
       // OpenAI-compatible streaming (openai, mistral, deepseek, groq, xai, github, openrouter, perplexity, cohere, custom)
       const url = provider.custom ? (provider.apiEndpoint || endpointConfig?.url || '') : endpointConfig.url;
       if (!url) { sse('error', { message: 'No endpoint' }); res.end(); return; }
-      const body = { model, messages: sanitizedMessages, max_tokens: 4096, stream: true };
+      const isOllama = providerId === 'ollama';
+      const body = { model, messages: sanitizedMessages, max_tokens: isOllama ? 2048 : 4096, stream: true };
+      if (isOllama) {
+        body.options = { num_ctx: 8192 };
+      }
       const hdrs = isNoKeyProvider
         ? { 'Content-Type': 'application/json' }
         : { 'Authorization': 'Bearer ' + provider.apiKey, 'Content-Type': 'application/json' };
@@ -4801,6 +4949,16 @@ function getUserDb(username) {
       FOREIGN KEY (project_id) REFERENCES wp_projects(id) ON DELETE CASCADE
     );
     CREATE INDEX IF NOT EXISTS idx_wp_edges_proj ON wp_flow_edges(project_id);
+
+    CREATE TABLE IF NOT EXISTS ssh_connections (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      host TEXT NOT NULL,
+      port INTEGER DEFAULT 22,
+      username TEXT DEFAULT 'root',
+      auth_method TEXT DEFAULT 'password',
+      created_at TEXT DEFAULT (datetime('now'))
+    );
   `);
 
   /* Seed default budget categories if empty */
@@ -5726,6 +5884,389 @@ app.delete('/api/wordcloud/delete/:id', authMiddleware, (req, res) => {
 });
 
 // #endregion
+// #region GIF Maker API (server-side generation)
+const { createCanvas: createGifCanvas, loadImage: loadGifImage } = require('canvas');
+
+// Minimal GIF89a encoder (NeuQuant color quantization + LZW compression)
+function encodeGif(frames, width, height, quality) {
+  const q = Math.max(1, Math.min(30, quality || 10));
+  const buf = [];
+  function writeByte(b) { buf.push(b & 0xff); }
+  function writeShort(s) { buf.push(s & 0xff); buf.push((s >> 8) & 0xff); }
+  function writeBytes(arr) { for (let i = 0; i < arr.length; i++) buf.push(arr[i]); }
+  function writeStr(s) { for (let i = 0; i < s.length; i++) buf.push(s.charCodeAt(i)); }
+
+  // NeuQuant color quantization
+  function neuQuant(pixels, sampleFac) {
+    const netsize = 256, prime1 = 499, prime2 = 491, prime3 = 487, prime4 = 503;
+    const minpicturebytes = 3 * prime4;
+    const ncycles = 100, maxnetpos = netsize - 1;
+    const netbiasshift = 4, intbiasshift = 16, intbias = 1 << intbiasshift;
+    const gammashift = 10, betashift = 10, beta = intbias >> betashift, betagamma = intbias << (gammashift - betashift);
+    const initrad = netsize >> 3, radiusbiasshift = 6, radiusbias = 1 << radiusbiasshift;
+    const initradius = initrad * radiusbias, radiusdec = 30;
+    const alphabiasshift = 10, initalpha = 1 << alphabiasshift;
+    const radbiasshift = 8, radbias = 1 << radbiasshift;
+    const alpharadbshift = alphabiasshift + radbiasshift, alpharadbias = 1 << alpharadbshift;
+
+    let network = [], netindex = new Int32Array(256), bias = new Int32Array(netsize), freq = new Int32Array(netsize), radpower = new Int32Array(netsize >> 3);
+    const lengthcount = pixels.length / 4;
+    const samplepixels = lengthcount / sampleFac;
+
+    for (let i = 0; i < netsize; i++) {
+      const v = (i << (netbiasshift + 8)) / netsize;
+      network[i] = [v, v, v, 0]; bias[i] = 0; freq[i] = intbias / netsize;
+    }
+
+    function contest(b, g, r) {
+      let bestd = ~(1 << 31), bestbiasd = bestd, bestpos = -1, bestbiaspos = bestpos;
+      for (let i = 0; i < netsize; i++) {
+        const n = network[i];
+        let dist = Math.abs(n[0] - b) + Math.abs(n[1] - g) + Math.abs(n[2] - r);
+        if (dist < bestd) { bestd = dist; bestpos = i; }
+        let biasdist = dist - ((bias[i]) >> (intbiasshift - netbiasshift));
+        if (biasdist < bestbiasd) { bestbiasd = biasdist; bestbiaspos = i; }
+        const betafreq = freq[i] >> betashift;
+        freq[i] -= betafreq; bias[i] += betafreq << gammashift;
+      }
+      freq[bestpos] += beta; bias[bestpos] -= betagamma;
+      return bestbiaspos;
+    }
+
+    function altersingle(alpha, i, b, g, r) {
+      network[i][0] -= (alpha * (network[i][0] - b)) / initalpha;
+      network[i][1] -= (alpha * (network[i][1] - g)) / initalpha;
+      network[i][2] -= (alpha * (network[i][2] - r)) / initalpha;
+    }
+
+    function alterneigh(rad, i, b, g, r) {
+      const lo = Math.max(i - rad, 0), hi = Math.min(i + rad, netsize - 1);
+      let j = i + 1, k = i - 1, m = 1;
+      while (j <= hi || k >= lo) {
+        const a = radpower[m++];
+        if (j <= hi) { const p = network[j++]; p[0] -= (a * (p[0] - b)) / alpharadbias; p[1] -= (a * (p[1] - g)) / alpharadbias; p[2] -= (a * (p[2] - r)) / alpharadbias; }
+        if (k >= lo) { const p = network[k--]; p[0] -= (a * (p[0] - b)) / alpharadbias; p[1] -= (a * (p[1] - g)) / alpharadbias; p[2] -= (a * (p[2] - r)) / alpharadbias; }
+      }
+    }
+
+    function learn() {
+      const alphadec = 30 + ((sampleFac - 1) / 3);
+      let alpha = initalpha, radius = initradius, rad = radius >> radiusbiasshift;
+      if (rad <= 1) rad = 0;
+      for (let i = 0; i < rad; i++) radpower[i] = alpha * (((rad * rad - i * i) * radbias) / (rad * rad));
+
+      let step;
+      if (lengthcount < minpicturebytes) step = 1;
+      else if (lengthcount % prime1 !== 0) step = prime1;
+      else if (lengthcount % prime2 !== 0) step = prime2;
+      else if (lengthcount % prime3 !== 0) step = prime3;
+      else step = prime4;
+
+      let pix = 0, delta = Math.max(1, samplepixels / ncycles | 0);
+      for (let i = 0; i < samplepixels; ) {
+        const idx = pix * 4;
+        const b = pixels[idx], g = pixels[idx + 1], r = pixels[idx + 2];
+        const j = contest(b, g, r);
+        altersingle(alpha, j, b, g, r);
+        if (rad !== 0) alterneigh(rad, j, b, g, r);
+        pix += step;
+        if (pix >= lengthcount) pix -= lengthcount;
+        i++;
+        if (i % delta === 0) {
+          alpha -= alpha / alphadec;
+          radius -= radius / radiusdec;
+          rad = radius >> radiusbiasshift;
+          if (rad <= 1) rad = 0;
+          for (let k = 0; k < rad; k++) radpower[k] = alpha * (((rad * rad - k * k) * radbias) / (rad * rad));
+        }
+      }
+    }
+
+    function buildIndex() {
+      for (let i = 0; i < netsize; i++) {
+        network[i][0] = Math.max(0, Math.min(255, Math.round(network[i][0])));
+        network[i][1] = Math.max(0, Math.min(255, Math.round(network[i][1])));
+        network[i][2] = Math.max(0, Math.min(255, Math.round(network[i][2])));
+        network[i][3] = i;
+      }
+      network.sort((a, b) => a[1] - b[1]);
+      for (let i = 0; i < netsize; i++) {
+        const g = network[i][1];
+        if (i === 0 || g !== network[i - 1][1]) netindex[g] = i;
+      }
+      // Fill gaps in index
+      let prev = 0;
+      for (let i = 0; i < 256; i++) { if (netindex[i] === 0 && i > 0) netindex[i] = prev; else prev = netindex[i]; }
+    }
+
+    function lookup(b, g, r) {
+      let bestd = 1000, best = -1;
+      let i = netindex[g], j = i - 1;
+      while (i < netsize || j >= 0) {
+        if (i < netsize) {
+          const n = network[i];
+          let dist = n[1] - g; if (dist >= bestd) i = netsize; else {
+            i++; if (dist < 0) dist = -dist;
+            dist += Math.abs(n[0] - b); if (dist < bestd) { dist += Math.abs(n[2] - r); if (dist < bestd) { bestd = dist; best = n[3]; } }
+          }
+        }
+        if (j >= 0) {
+          const n = network[j];
+          let dist = g - n[1]; if (dist >= bestd) j = -1; else {
+            j--; if (dist < 0) dist = -dist;
+            dist += Math.abs(n[0] - b); if (dist < bestd) { dist += Math.abs(n[2] - r); if (dist < bestd) { bestd = dist; best = n[3]; } }
+          }
+        }
+      }
+      return best;
+    }
+
+    learn();
+    buildIndex();
+    return { colorMap: network.map(n => [n[0], n[1], n[2]]), lookup };
+  }
+
+  // LZW encoder for GIF
+  function lzwEncode(indexedPixels, colorDepth) {
+    const initCodeSize = Math.max(2, colorDepth);
+    const data = [];
+    let curSubBlock = [];
+    function flushSubBlock() { if (curSubBlock.length) { data.push(curSubBlock.length); for (const b of curSubBlock) data.push(b); curSubBlock = []; } }
+    function emitByte(b) { curSubBlock.push(b); if (curSubBlock.length === 255) flushSubBlock(); }
+
+    const clearCode = 1 << initCodeSize, eoiCode = clearCode + 1;
+    let codeSize = initCodeSize + 1, nextCode = eoiCode + 1, maxCode = (1 << codeSize);
+    let table = {}, curBits = 0, curByte = 0, bitPos = 0;
+
+    function emit(code) {
+      curByte |= (code << bitPos);
+      bitPos += codeSize;
+      while (bitPos >= 8) { emitByte(curByte & 0xff); curByte >>= 8; bitPos -= 8; }
+    }
+
+    function resetTable() { table = {}; codeSize = initCodeSize + 1; nextCode = eoiCode + 1; maxCode = 1 << codeSize; }
+
+    data.push(initCodeSize);
+    emit(clearCode);
+    resetTable();
+
+    let prev = indexedPixels[0].toString();
+    for (let i = 1; i < indexedPixels.length; i++) {
+      const cur = indexedPixels[i].toString();
+      const key = prev + ',' + cur;
+      if (table[key] !== undefined) { prev = key; }
+      else {
+        emit(prev.indexOf(',') >= 0 ? table[prev] : parseInt(prev));
+        table[key] = nextCode++;
+        if (nextCode > maxCode && codeSize < 12) { codeSize++; maxCode = 1 << codeSize; }
+        if (nextCode > 4095) { emit(clearCode); resetTable(); }
+        prev = cur;
+      }
+    }
+    emit(prev.indexOf(',') >= 0 ? table[prev] : parseInt(prev));
+    emit(eoiCode);
+    if (bitPos > 0) emitByte(curByte & 0xff);
+    flushSubBlock();
+    data.push(0); // block terminator
+    return data;
+  }
+
+  // Header
+  writeStr('GIF89a');
+  writeShort(width);
+  writeShort(height);
+
+  // Quantize first frame for global color table
+  const firstPixels = frames[0].data;
+  const nq = neuQuant(firstPixels, q);
+  const colorTab = nq.colorMap;
+
+  // Global Color Table flags: has GCT, 256 colors (7), not sorted
+  writeByte(0xf7); // packed: GCT flag=1, color res=7, sort=0, GCT size=7 (2^(7+1)=256)
+  writeByte(0); // bg color index
+  writeByte(0); // pixel aspect ratio
+
+  // Write global color table
+  for (let i = 0; i < 256; i++) {
+    const c = colorTab[i] || [0, 0, 0];
+    writeByte(c[0]); writeByte(c[1]); writeByte(c[2]);
+  }
+
+  // Netscape loop extension
+  writeByte(0x21); writeByte(0xff); writeByte(11);
+  writeStr('NETSCAPE2.0');
+  writeByte(3); writeByte(1); writeShort(0); writeByte(0);
+
+  // Frames
+  for (const frame of frames) {
+    const delay = Math.round((frame.delay || 100) / 10);
+    // Graphic Control Extension
+    writeByte(0x21); writeByte(0xf9); writeByte(4);
+    writeByte(0x04); // disposal=none, no transparent
+    writeShort(delay);
+    writeByte(0); writeByte(0);
+
+    // Image descriptor
+    writeByte(0x2c);
+    writeShort(0); writeShort(0);
+    writeShort(width); writeShort(height);
+    writeByte(0); // no local color table
+
+    // Quantize frame pixels
+    const pixels = frame.data;
+    const indexed = new Uint8Array(width * height);
+    for (let i = 0; i < width * height; i++) {
+      const idx = i * 4;
+      indexed[i] = nq.lookup(pixels[idx], pixels[idx + 1], pixels[idx + 2]);
+    }
+
+    // LZW compress
+    const lzwData = lzwEncode(indexed, 8);
+    writeBytes(lzwData);
+  }
+
+  // Trailer
+  writeByte(0x3b);
+  return Buffer.from(buf);
+}
+
+// POST /api/gif-maker/generate - Generate GIF from server-side images
+app.post('/api/gif-maker/generate', authMiddleware, async (req, res) => {
+  try {
+    const { images, width, height, delays, quality, globalDelay } = req.body;
+    if (!Array.isArray(images) || images.length < 2) return res.status(400).json({ error: 'At least 2 images required' });
+    if (images.length > 100) return res.status(400).json({ error: 'Maximum 100 images allowed' });
+
+    const w = Math.min(Math.max(parseInt(width) || 480, 16), 1920);
+    const h = Math.min(Math.max(parseInt(height) || 320, 16), 1080);
+    const q = Math.min(Math.max(parseInt(quality) || 10, 1), 30);
+    const gDelay = Math.min(Math.max(parseInt(globalDelay) || 200, 20), 5000);
+    const root = getUserFilesRoot(req.user.username);
+
+    const canvas = createGifCanvas(w, h);
+    const ctx = canvas.getContext('2d');
+    const framesData = [];
+
+    for (let i = 0; i < images.length; i++) {
+      const imgPath = images[i];
+      let resolved;
+
+      if (imgPath.startsWith('data:')) {
+        // Base64 data URI
+        const img = await loadGifImage(imgPath);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, w, h);
+        const sx = w / img.width, sy = h / img.height;
+        const scale = Math.min(sx, sy);
+        const dw = img.width * scale, dh = img.height * scale;
+        const dx = (w - dw) / 2, dy = (h - dh) / 2;
+        ctx.drawImage(img, dx, dy, dw, dh);
+      } else {
+        // File path from user storage
+        resolved = safePath(root, imgPath);
+        if (!resolved) return res.status(403).json({ error: 'Invalid path: ' + imgPath });
+        if (!fs.existsSync(resolved)) return res.status(404).json({ error: 'File not found: ' + imgPath });
+
+        const img = await loadGifImage(resolved);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, w, h);
+        const sx = w / img.width, sy = h / img.height;
+        const scale = Math.min(sx, sy);
+        const dw = img.width * scale, dh = img.height * scale;
+        const dx = (w - dw) / 2, dy = (h - dh) / 2;
+        ctx.drawImage(img, dx, dy, dw, dh);
+      }
+
+      const imageData = ctx.getImageData(0, 0, w, h);
+      const delay = (Array.isArray(delays) && delays[i]) ? Math.min(Math.max(parseInt(delays[i]), 20), 5000) : gDelay;
+      framesData.push({ data: imageData.data, delay });
+    }
+
+    const gifBuffer = encodeGif(framesData, w, h, q);
+    const base64 = gifBuffer.toString('base64');
+
+    res.json({ ok: true, gif: 'data:image/gif;base64,' + base64, size: gifBuffer.length });
+  } catch (e) {
+    console.error('[GIF-Maker] generate error:', e);
+    res.status(500).json({ error: 'GIF generation failed: ' + e.message });
+  }
+});
+
+// POST /api/gif-maker/save - Save generated GIF to user's file system
+app.post('/api/gif-maker/save', authMiddleware, (req, res) => {
+  try {
+    const { filePath: fp, data } = req.body;
+    if (!fp || !data) return res.status(400).json({ error: 'filePath and data required' });
+    const root = getUserFilesRoot(req.user.username);
+    const resolved = safePath(root, fp);
+    if (!resolved) return res.status(403).json({ error: 'Invalid path' });
+    const dir = path.dirname(resolved);
+    ensureDir(dir);
+    const base64Data = data.replace(/^data:image\/gif;base64,/, '');
+    fs.writeFileSync(resolved, Buffer.from(base64Data, 'base64'));
+    const stat = fs.statSync(resolved);
+    res.json({ ok: true, path: path.relative(root, resolved).replace(/\\/g, '/'), size: stat.size });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/gif-maker/browse-images - List images from a directory in user's files
+app.get('/api/gif-maker/browse-images', authMiddleware, (req, res) => {
+  try {
+    const root = getUserFilesRoot(req.user.username);
+    const dir = safePath(root, req.query.path || '');
+    if (!dir) return res.status(403).json({ error: 'Invalid path' });
+    if (!fs.existsSync(dir)) return res.json({ folders: [], images: [] });
+
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const imageExts = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp']);
+    const folders = [];
+    const images = [];
+
+    for (const e of entries) {
+      const relPath = path.relative(root, path.join(dir, e.name)).replace(/\\/g, '/');
+      if (e.isDirectory()) {
+        folders.push({ name: e.name, path: relPath });
+      } else {
+        const ext = path.extname(e.name).toLowerCase();
+        if (imageExts.has(ext)) {
+          const stat = fs.statSync(path.join(dir, e.name));
+          images.push({ name: e.name, path: relPath, size: stat.size, ext });
+        }
+      }
+    }
+
+    folders.sort((a, b) => a.name.localeCompare(b.name));
+    images.sort((a, b) => a.name.localeCompare(b.name));
+    res.json({ folders, images, currentPath: path.relative(root, dir).replace(/\\/g, '/') || '' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/gif-maker/image-thumb - Get image thumbnail as base64
+app.get('/api/gif-maker/image-thumb', authMiddleware, async (req, res) => {
+  try {
+    const root = getUserFilesRoot(req.user.username);
+    const fp = safePath(root, req.query.path);
+    if (!fp) return res.status(403).json({ error: 'Invalid path' });
+    if (!fs.existsSync(fp)) return res.status(404).json({ error: 'File not found' });
+
+    const img = await loadGifImage(fp);
+    const maxW = 120, maxH = 90;
+    const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+    const tw = Math.round(img.width * scale), th = Math.round(img.height * scale);
+
+    const canvas = createGifCanvas(tw, th);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, tw, th);
+
+    res.json({
+      thumb: canvas.toDataURL('image/jpeg', 0.7),
+      width: img.width,
+      height: img.height
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// #endregion
 // #region Presentation API
 function getPresentationDir(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -6554,7 +7095,7 @@ const wss = new WebSocketServer({ noServer: true });
 const wsClients = new Set();
 
 // Route WebSocket upgrades
-server.on('upgrade', (req, socket, head) => {
+server.on('upgrade', async (req, socket, head) => {
   const pathname = new URL(req.url, `http://${req.headers.host}`).pathname;
 
   if (pathname === '/api/vnc/proxy') {
@@ -6583,13 +7124,50 @@ server.on('upgrade', (req, socket, head) => {
     const match = pathname.match(/^\/proxy\/([a-zA-Z0-9_-]+)/);
     if (match) {
       const appId = match[1];
-      const dynP = proxyCache[appId];
-      if (dynP && dynP.proxyMode === 'hpm' && dynP.middleware && dynP.middleware.upgrade) {
+      let dynP = proxyCache[appId];
+
+      // Auto-discover container if not in cache
+      if (!dynP) {
+        try {
+          const data = await dmFetch('/status/' + appId);
+          if (data.running) {
+            const proxyTarget = IS_DOCKER ? data.internalUrl : `http://localhost:${data.hostPort}`;
+            dockerContainers[appId] = { containerId: data.containerId, containerName: data.containerName, hostPort: data.hostPort, internalUrl: data.internalUrl };
+            proxyCache[appId] = { target: proxyTarget, appId, dynamic: true, proxyMode: getProxyMode(appId) };
+            dynP = proxyCache[appId];
+          }
+        } catch {}
+      }
+
+      // Create HPM middleware on-the-fly if needed
+      if (dynP && dynP.proxyMode === 'hpm' && !dynP.middleware) {
+        dynP.middleware = createProxyMiddleware({
+          target: dynP.target,
+          changeOrigin: true,
+          pathRewrite: (p) => p.replace(new RegExp(`^/proxy/${appId}`), ''),
+          ws: true,
+          on: {
+            proxyRes: (proxyRes) => {
+              delete proxyRes.headers['x-frame-options'];
+              delete proxyRes.headers['content-security-policy'];
+              delete proxyRes.headers['content-security-policy-report-only'];
+              proxyRes.headers['cross-origin-resource-policy'] = 'same-origin';
+              proxyRes.headers['cross-origin-embedder-policy'] = 'credentialless';
+            },
+            error: (err, req, res) => {
+              console.error(`[PROXY-HPM] ${appId} error:`, err.message);
+            }
+          }
+        });
+      }
+
+      if (dynP && dynP.middleware && dynP.middleware.upgrade) {
         dynP.middleware.upgrade(req, socket, head);
         return;
       }
     }
-    // If no HPM middleware found, don't destroy — let it timeout naturally
+    // If no HPM middleware found, destroy socket
+    socket.destroy();
   } else {
     // Let http-proxy-middleware handle other upgrades (e.g. /proxy/:appId)
     // Don't destroy - the proxy middleware attaches its own upgrade handler
@@ -11954,6 +12532,59 @@ app.post('/api/ssh/sftp-write', authMiddleware, async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
+});
+
+/* ── SSH Saved Connections (SQLite) ── */
+app.get('/api/ssh/connections', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  try { db.prepare('SELECT 1 FROM ssh_connections LIMIT 1').get(); } catch {
+    db.exec(`CREATE TABLE IF NOT EXISTS ssh_connections (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, host TEXT NOT NULL, port INTEGER DEFAULT 22, username TEXT DEFAULT 'root', auth_method TEXT DEFAULT 'password', created_at TEXT DEFAULT (datetime('now')))`);
+  }
+  const rows = db.prepare('SELECT * FROM ssh_connections ORDER BY id DESC').all();
+  res.json(rows);
+});
+
+app.post('/api/ssh/connections', authMiddleware, (req, res) => {
+  const { name, host, port, username, authMethod } = req.body;
+  if (!host) return res.status(400).json({ error: 'host required' });
+  const db = getUserDb(req.user.username);
+  try { db.prepare('SELECT 1 FROM ssh_connections LIMIT 1').get(); } catch {
+    db.exec(`CREATE TABLE IF NOT EXISTS ssh_connections (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, host TEXT NOT NULL, port INTEGER DEFAULT 22, username TEXT DEFAULT 'root', auth_method TEXT DEFAULT 'password', created_at TEXT DEFAULT (datetime('now')))`);
+  }
+  const connName = (name || (host + ':' + (port || 22))).slice(0, 200);
+  const info = db.prepare('INSERT INTO ssh_connections (name, host, port, username, auth_method) VALUES (?, ?, ?, ?, ?)').run(
+    connName,
+    String(host).slice(0, 200),
+    parseInt(port) || 22,
+    String(username || 'root').slice(0, 100),
+    String(authMethod || 'password').slice(0, 20)
+  );
+  res.json({ ok: true, id: info.lastInsertRowid, name: connName, host, port: parseInt(port) || 22, username: username || 'root', auth_method: authMethod || 'password' });
+});
+
+app.put('/api/ssh/connections/:id', authMiddleware, (req, res) => {
+  const { name, host, port, username, authMethod } = req.body;
+  const db = getUserDb(req.user.username);
+  const existing = db.prepare('SELECT id FROM ssh_connections WHERE id = ?').get(req.params.id);
+  if (!existing) return res.status(404).json({ error: 'not found' });
+  if (name !== undefined) db.prepare('UPDATE ssh_connections SET name = ? WHERE id = ?').run(String(name).slice(0, 200), req.params.id);
+  if (host !== undefined) db.prepare('UPDATE ssh_connections SET host = ? WHERE id = ?').run(String(host).slice(0, 200), req.params.id);
+  if (port !== undefined) db.prepare('UPDATE ssh_connections SET port = ? WHERE id = ?').run(parseInt(port) || 22, req.params.id);
+  if (username !== undefined) db.prepare('UPDATE ssh_connections SET username = ? WHERE id = ?').run(String(username).slice(0, 100), req.params.id);
+  if (authMethod !== undefined) db.prepare('UPDATE ssh_connections SET auth_method = ? WHERE id = ?').run(String(authMethod).slice(0, 20), req.params.id);
+  res.json({ ok: true });
+});
+
+app.delete('/api/ssh/connections/:id', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM ssh_connections WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+app.delete('/api/ssh/connections', authMiddleware, (req, res) => {
+  const db = getUserDb(req.user.username);
+  db.prepare('DELETE FROM ssh_connections').run();
+  res.json({ ok: true });
 });
 
 // #endregion

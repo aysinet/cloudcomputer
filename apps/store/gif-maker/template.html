@@ -3,6 +3,7 @@
   <div class="gm-toolbar">
     <button class="gm-tb-btn" @click="triggerImageUpload">📤 {{L('addImages')}}</button>
     <button class="gm-tb-btn" @click="triggerVideoUpload">🎬 {{L('fromVideo')}}</button>
+    <button class="gm-tb-btn" @click="openFileBrowser">📂 {{L('fromFiles')}}</button>
     <div class="gm-sep"></div>
     <label class="gm-tb-label">{{L('delay')}}:</label>
     <input type="number" class="gm-tb-num" v-model.number="globalDelay" min="20" max="5000" step="10"> ms
@@ -19,9 +20,14 @@
       <option :value="10">{{L('good')}}</option>
       <option :value="20">{{L('fast')}}</option>
     </select>
+    <div class="gm-sep"></div>
+    <label class="gm-tb-check gm-mode-toggle">
+      <input type="checkbox" v-model="useServer">
+      <span>🖥️ {{useServer ? L('serverMode') : L('clientMode')}}</span>
+    </label>
     <div style="flex:1"></div>
-    <button class="gm-tb-btn gm-primary" @click="generateGif" :disabled="frames.length < 2 || generating">
-      {{generating ? '⏳ ' + progress + '%' : '✨ ' + L('generate')}}
+    <button class="gm-tb-btn gm-primary" @click="useServer ? generateGifServer() : generateGif()" :disabled="frames.length < 2 || generating">
+      {{generating ? '⏳ ' + progress + '%' : '✨ ' + (useServer ? L('generateServer') : L('generate'))}}
     </button>
   </div>
 
@@ -91,7 +97,7 @@
         </div>
         <div class="gm-output-actions">
           <button class="gm-tb-btn gm-primary" @click="downloadGif">💾 {{L('download')}}</button>
-          <button class="gm-tb-btn" @click="saveToFiles">📁 {{L('saveToFiles')}}</button>
+          <button class="gm-tb-btn" @click="saveToFilesServer">📁 {{L('saveToFiles')}}</button>
           <button class="gm-tb-btn" @click="outputUrl=null">✕ {{L('close')}}</button>
         </div>
       </div>
@@ -131,6 +137,51 @@
         <button class="gm-tb-btn" @click="showVideoModal=false">{{L('cancel')}}</button>
         <button class="gm-tb-btn gm-primary" @click="extractVideoFrames" :disabled="extracting">
           {{extracting ? '⏳ ' + extractProgress + '%' : '🎬 ' + L('extract')}}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- File browser modal -->
+  <div v-if="showFileBrowser" class="gm-modal-overlay" @click.self="showFileBrowser=false">
+    <div class="gm-modal gm-filebrowser-modal">
+      <div class="gm-modal-header">
+        <span>📂 {{L('browseFiles')}}</span>
+        <button class="gm-modal-close" @click="showFileBrowser=false">✕</button>
+      </div>
+      <div class="gm-modal-body">
+        <div class="gm-fb-path">
+          <button class="gm-sm-btn" @click="browseGoUp" :disabled="!browsePath" title="Up">⬆️</button>
+          <span class="gm-fb-crumb">/{{browsePath}}</span>
+          <span v-if="browseSelected.length" class="gm-fb-sel-count">{{browseSelected.length}} selected</span>
+        </div>
+        <div class="gm-fb-list" v-if="!browseLoading">
+          <!-- Folders -->
+          <div v-for="folder in browseItems.folders" :key="'d_'+folder.path"
+               class="gm-fb-item gm-fb-folder" @click="browseDir(folder.path)">
+            <span class="gm-fb-icon">📁</span>
+            <span class="gm-fb-name">{{folder.name}}</span>
+          </div>
+          <!-- Images -->
+          <div v-for="img in browseItems.images" :key="'f_'+img.path"
+               class="gm-fb-item gm-fb-image" :class="{selected: browseSelected.includes(img.path)}"
+               @click="toggleBrowseSelect(img.path)">
+            <span class="gm-fb-icon">🖼️</span>
+            <span class="gm-fb-name">{{img.name}}</span>
+            <span class="gm-fb-size">{{(img.size/1024).toFixed(0)}}KB</span>
+            <span v-if="browseSelected.includes(img.path)" class="gm-fb-check">✓</span>
+          </div>
+          <!-- Empty state -->
+          <div v-if="!browseItems.folders.length && !browseItems.images.length" class="gm-fb-empty">
+            {{L('noImages')}}
+          </div>
+        </div>
+        <div v-if="browseLoading" class="gm-fb-loading">⏳</div>
+      </div>
+      <div class="gm-modal-footer">
+        <button class="gm-tb-btn" @click="showFileBrowser=false">{{L('cancel')}}</button>
+        <button class="gm-tb-btn gm-primary" @click="addBrowseSelected" :disabled="!browseSelected.length">
+          📥 {{L('addSelected')}} ({{browseSelected.length}})
         </button>
       </div>
     </div>

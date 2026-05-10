@@ -1,0 +1,48 @@
+{
+  "id": "chatjimmy",
+  "name": "ChatJimmy",
+  "icon": "🤖",
+  "color": "linear-gradient(135deg, #6c5ce7, #a855f7)",
+  "type": "internal",
+  "size": {
+    "w": 860,
+    "h": 640
+  },
+  "global": false,
+  "description": "ChatJimmy — Yapay zeka sohbet asistanına hızlı erişim",
+  "category": "ai",
+  "lang": {
+    "tr": {
+      "name": "ChatJimmy",
+      "description": "ChatJimmy — Yapay zeka sohbet asistanına hızlı erişim"
+    },
+    "en": {
+      "name": "ChatJimmy",
+      "description": "ChatJimmy — Quick access to AI chat assistant"
+    },
+    "de": {
+      "name": "ChatJimmy",
+      "description": "ChatJimmy — Schneller Zugriff auf den KI-Chat-Assistenten"
+    },
+    "fr": {
+      "name": "ChatJimmy",
+      "description": "ChatJimmy — Accès rapide à l'assistant de chat IA"
+    },
+    "es": {
+      "name": "ChatJimmy",
+      "description": "ChatJimmy — Acceso rápido al asistente de chat IA"
+    },
+    "ru": {
+      "name": "ChatJimmy",
+      "description": "ChatJimmy — Быстрый доступ к ИИ-чат-ассистенту"
+    },
+    "zh": {
+      "name": "ChatJimmy",
+      "description": "ChatJimmy — 快速访问AI聊天助手"
+    },
+    "ja": {
+      "name": "ChatJimmy",
+      "description": "ChatJimmy — AIチャットアシスタントへのクイックアクセス"
+    }
+  }
+}

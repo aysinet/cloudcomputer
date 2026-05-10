@@ -1,0 +1,28 @@
+<div class="chatjimmy-app">
+  <!-- Toolbar -->
+  <div class="cj-toolbar">
+    <span class="cj-toolbar-title">🤖 {{ t.title }}</span>
+    <div class="cj-toolbar-actions">
+      <button class="cj-btn" @click="navigateHome" :title="t.home">🏠</button>
+      <button class="cj-btn" @click="refreshPage" :title="t.refresh">🔄</button>
+      <div class="cj-separator"></div>
+      <button class="cj-btn" @click="openExternal" :title="t.openTab">🔗</button>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="cj-loading" v-if="!iframeLoaded">
+    <div class="cj-loading-icon">🤖</div>
+    <div class="cj-loading-text">{{ t.loading }}</div>
+    <div class="cj-spinner"></div>
+  </div>
+
+  <!-- ChatJimmy iframe -->
+  <iframe
+    :src="iframeSrc"
+    class="cj-iframe"
+    frameborder="0"
+    referrerpolicy="no-referrer"
+    @load="onIframeLoad"
+  ></iframe>
+</div>

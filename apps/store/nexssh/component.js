@@ -1160,18 +1160,28 @@
     }
 
     /* ── Saved connections ── */
-    function loadSavedConns() {
-      try { savedConns.value = JSON.parse(localStorage.getItem('nexssh_connections') || '[]'); } catch { savedConns.value = []; }
+    async function loadSavedConns() {
+      try {
+        const res = await fetch('/api/ssh/connections', { headers: authHeaders() });
+        if (res.ok) {
+          const rows = await res.json();
+          savedConns.value = rows.map(r => ({ id: r.id, name: r.name, host: r.host, port: r.port, username: r.username, authMethod: r.auth_method || 'password' }));
+        } else { savedConns.value = []; }
+      } catch { savedConns.value = []; }
     }
 
-    function saveConn() {
+    async function saveConn() {
       const name = connForm.name || (connForm.host + ':' + connForm.port);
-      const entry = { name, host: connForm.host, port: connForm.port, username: connForm.username, authMethod: connForm.authMethod };
-      const existing = savedConns.value.findIndex(c => c.name === name);
-      if (existing >= 0) savedConns.value[existing] = entry;
-      else savedConns.value.push(entry);
-      localStorage.setItem('nexssh_connections', JSON.stringify(savedConns.value));
-      ElMessage.success(t('save') + ' ✓');
+      try {
+        const existing = savedConns.value.find(c => c.name === name);
+        if (existing && existing.id) {
+          await fetch('/api/ssh/connections/' + existing.id, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ name, host: connForm.host, port: connForm.port, username: connForm.username, authMethod: connForm.authMethod }) });
+        } else {
+          await fetch('/api/ssh/connections', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name, host: connForm.host, port: connForm.port, username: connForm.username, authMethod: connForm.authMethod }) });
+        }
+        await loadSavedConns();
+        ElMessage.success(t('save') + ' ✓');
+      } catch (e) { ElMessage.error(e.message); }
     }
 
     function loadConn(c) {
@@ -1185,14 +1195,17 @@
       showSavedPanel.value = false;
     }
 
-    function deleteConn(idx) {
-      savedConns.value.splice(idx, 1);
-      localStorage.setItem('nexssh_connections', JSON.stringify(savedConns.value));
+    async function deleteConn(idx) {
+      const c = savedConns.value[idx];
+      if (c && c.id) {
+        try { await fetch('/api/ssh/connections/' + c.id, { method: 'DELETE', headers: authHeaders() }); } catch {}
+      }
+      await loadSavedConns();
     }
 
-    function deleteAllConns() {
+    async function deleteAllConns() {
+      try { await fetch('/api/ssh/connections', { method: 'DELETE', headers: authHeaders() }); } catch {}
       savedConns.value = [];
-      localStorage.setItem('nexssh_connections', '[]');
     }
 
     /* ── Connect / Disconnect ── */

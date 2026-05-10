@@ -332,6 +332,7 @@
         iframe.src = '/proxy/' + appId + '/';
         iframe.style.cssText = 'width:100%;height:100%;border:none';
         iframe.allow = 'clipboard-read; clipboard-write';
+        iframe.setAttribute('credentialless', '');
         wb.body.appendChild(iframe);
         vmWindows.push(wb);
       }
