@@ -1,7 +1,8 @@
 # ── Build stage ──
 FROM node:20-alpine AS builder
 
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache python3 make g++ \
+    pkgconf cairo-dev pango-dev pixman-dev jpeg-dev giflib-dev librsvg-dev
 
 WORKDIR /app
 
