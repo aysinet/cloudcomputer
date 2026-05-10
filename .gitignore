@@ -151,3 +151,4 @@ yarn.lock
 data/appdata/admin.db-shm
 data/appdata/admin.db-wal
 /data/appdata
+data/users.7z

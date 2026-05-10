@@ -11,10 +11,14 @@ const multer = require('multer');
 
 // Load config from data/ (persisted volume); copy default on first run
 const CONFIG_PATH = path.join(__dirname, 'data', 'desktop.config.json');
-const CONFIG_DEFAULT = path.join(__dirname, 'desktop.config.json');
-if (!fs.existsSync(CONFIG_PATH) && fs.existsSync(CONFIG_DEFAULT)) {
+const CONFIG_DEFAULT = path.join(__dirname, 'desktop.config.default.json');
+if (!fs.existsSync(CONFIG_PATH)) {
   if (!fs.existsSync(path.join(__dirname, 'data'))) fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
-  fs.copyFileSync(CONFIG_DEFAULT, CONFIG_PATH);
+  if (fs.existsSync(CONFIG_DEFAULT)) {
+    fs.copyFileSync(CONFIG_DEFAULT, CONFIG_PATH);
+  } else if (fs.existsSync(path.join(__dirname, 'desktop.config.json'))) {
+    fs.copyFileSync(path.join(__dirname, 'desktop.config.json'), CONFIG_PATH);
+  }
 }
 const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
 const Database = require('better-sqlite3');

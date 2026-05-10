@@ -27,6 +27,9 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY . .
 
+# Keep a copy of default config outside the data volume
+RUN cp desktop.config.json desktop.config.default.json
+
 ENV IS_DOCKER=true
 ENV INSTANCE_ID=default
 ENV DOCKER_MANAGER_URL=http://docker-manager:9800
