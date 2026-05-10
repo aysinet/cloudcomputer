@@ -1,0 +1,27 @@
+{
+  "server": {
+    "port": 8080,
+    "host": "0.0.0.0"
+  },
+  "auth": {
+    "jwtSecret": "vue-desktop-jwt-secret-change-me",
+    "jwtExpiresIn": "240h",
+    "users": [
+      "test"
+    ]
+  },
+  "docker": {
+    "managerUrl": "http://localhost:8081",
+    "secret": "cloudpc-docker-manager-secret",
+    "network": "cloudpc-net",
+    "portRange": {
+      "start": 9000,
+      "end": 9999
+    }
+  },
+  "websocket": {
+    "pingInterval": 30000
+  },
+  "weather": {
+  }
+}
