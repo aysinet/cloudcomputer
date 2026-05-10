@@ -320,6 +320,32 @@ Each instance gets:
 
 ---
 
-## 📄 License
+## � Sponsor
+
+If you find Cloud Computer useful, please consider supporting its development through **GitHub Sponsors**.
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-pink?logo=github-sponsors&style=for-the-badge)](https://github.com/sponsors/aysinet)
+
+### Why Sponsor?
+
+Aysi Cloud Computer is a free and open-source project maintained with passion. Your sponsorship helps:
+
+- 🚀 **New Features** — Development of new apps, AI integrations, and platform improvements
+- 🐛 **Bug Fixes & Maintenance** — Keeping dependencies up to date and fixing issues
+- 📖 **Documentation** — Better guides, tutorials, and examples
+- 🌍 **Community** — Growing the community and supporting contributors
+- ☁️ **Infrastructure** — Hosting, CI/CD, and testing resources
+
+### How to Sponsor
+
+1. Visit the [GitHub Sponsors page](https://github.com/sponsors/aysinet)
+2. Choose a sponsorship tier or set a custom amount
+3. Your profile will be featured in the **Sponsors** section (if opted in)
+
+Every contribution, no matter the size, makes a difference. Thank you for supporting open source! 🙏
+
+---
+
+## �📄 License
 
 MIT
