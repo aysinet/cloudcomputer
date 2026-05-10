@@ -1,27 +1,7 @@
 services:
   # ══════════════════════════════════════════════════════════
-  # INFRASTRUCTURE (managed by superadmin, shared across all instances)
-  # ══════════════════════════════════════════════════════════
-  ollama:
-    image: ollama/ollama
-    container_name: cloudpc-ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_models:/root/.ollama
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: all
-    #           capabilities: [gpu]
-    networks:
-      - cloudpc-net
-    restart: always
-
-  # ══════════════════════════════════════════════════════════
   # CLOUDCOMPUTER INSTANCE (one per deployment / user group)
+  # Ollama runs separately: docker compose -f docker-compose.ollama.yml up -d
   # ══════════════════════════════════════════════════════════
   cloudcomputer:
     build:
@@ -43,7 +23,6 @@ services:
       - cloudpc-net
     depends_on:
       - docker-manager
-      - ollama
     restart: unless-stopped
 
   docker-manager:
@@ -55,8 +34,8 @@ services:
       - DOCKER_NETWORK=cloudpc-net
       - DM_SECRET=cloudpc-docker-manager-secret
       - DM_PORT=8081
-      - DM_PORT_START=9000
-      - DM_PORT_END=9999
+      - DM_PORT_START=${DM_PORT_START:-9000}
+      - DM_PORT_END=${DM_PORT_END:-9999}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - cloudpc-dm-data:/data
@@ -70,8 +49,6 @@ networks:
     driver: bridge
 
 volumes:
-  ollama_models:
-    name: cloudpc-ollama-models
   cloudpc-data:
     name: cloudpc-${INSTANCE_ID:-default}-data
   cloudpc-dm-data:

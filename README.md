@@ -22,25 +22,29 @@ A full-featured web-based desktop operating system built with **Node.js**, **Exp
 ## 🏗️ Architecture
 
 ```
-┌──────────────────────────────────────────────────────┐
-│                    Docker Host                       │
-│                                                      │
-│  ┌──────────────┐  ┌──────────────┐  ┌─────────────┐ │
-│  │   Ollama     │  │ Cloud        │  │  Docker     │ │
-│  │  (Local LLM) │  │ Computer     │  │  Manager    │ │
-│  │  :11434      │  │  :8080       │  │  :8081      │ │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬──────┘ │
-│         │                 │                 │        │
-│         └─────────────────┴─────────────────┘        │
-│                     cloudpc-net                      │
-└──────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                         Docker Host                              │
+│                                                                  │
+│  ┌──────────────┐   ┌───────────────────────────────────────┐    │
+│  │   Ollama     │   │  Instance (per team / user group)     │    │
+│  │  (Shared)    │   │                                       │    │
+│  │  :11434      │   │  ┌──────────────┐  ┌──────────────┐   │    │
+│  │              │   │  │ Cloud        │  │  Docker      │   │    │
+│  │              │   │  │ Computer     │  │  Manager     │   │    │
+│  │              │   │  │  :8080       │  │  :8081       │   │    │
+│  │              │   │  └──────┬───────┘  └──────┬───────┘   │    │
+│  └──────┬───────┘   │         └─────────────────┘           │    │
+│         │           └───────────────────┬───────────────────┘    │
+│         └───────────────────────────────┘                        │
+│                        cloudpc-net                               │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
-| Service            | Description                                  | Port  |
-|--------------------|----------------------------------------------|-------|
-| **cloudcomputer**  | Main application (Express + Vue 3)           | 8080  |
-| **docker-manager** | Container lifecycle manager sidecar          | 8081  |
-| **ollama**         | Local LLM inference server (GPU-accelerated) | 11434 |
+| Service            | Compose File                  | Description                                  | Port  |
+|--------------------|-------------------------------|----------------------------------------------|-------|
+| **ollama**         | `docker-compose.ollama.yml`   | Shared local LLM server (GPU-accelerated)    | 11434 |
+| **cloudcomputer**  | `docker-compose.yml`          | Main application (Express + Vue 3)           | 8080  |
+| **docker-manager** | `docker-compose.yml`          | Container lifecycle manager sidecar          | 8081  |
 
 ---
 
@@ -72,8 +76,9 @@ Create a `.env` file in the project root:
 INSTANCE_ID=default          # Unique ID for this instance (for multi-instance deployments)
 APP_PORT=8080                # Host port to expose the web UI
 
-# ── Ollama (Local LLM) ──
-OLLAMA_URL=http://cloudpc-ollama:11434   # Internal Docker URL (no change needed)
+# ── Docker App Port Range ──
+DM_PORT_START=9000           # Start of port range for Docker-managed apps
+DM_PORT_END=9999             # End of port range (use non-overlapping ranges for multi-instance)
 
 # ── Optional API Keys ──
 FINNHUB_API_KEY=             # Finnhub API key for stock tracker app
@@ -82,11 +87,15 @@ FINNHUB_API_KEY=             # Finnhub API key for stock tracker app
 ### 3. Start with Docker Compose
 
 ```bash
-docker compose up -d
+# Start Ollama (shared infrastructure, run once)
+docker compose -f docker-compose.ollama.yml up -d
+
+# Start Cloud Computer instance
+docker compose up -d --build
 ```
 
 This will start three services:
-- **Ollama** — Local LLM server (port 11434)
+- **Ollama** — Shared local LLM server (port 11434) — runs independently
 - **Cloud Computer** — Main application (port 8080)
 - **Docker Manager** — Container management sidecar (port 8081)
 
@@ -138,25 +147,24 @@ docker exec -it cloudpc-ollama ollama list
 
 ### CPU-Only Mode (No NVIDIA GPU)
 
-Remove the GPU reservation from `docker-compose.yml`:
+Ollama runs in its own compose file (`docker-compose.ollama.yml`). For CPU-only mode, simply leave the `deploy` block commented out (default).
+
+For GPU acceleration, uncomment the GPU reservation block in `docker-compose.ollama.yml`:
 
 ```yaml
   ollama:
-    image: ollama/ollama
-    container_name: cloudpc-ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_models:/root/.ollama
-    # Remove the entire 'deploy' block for CPU-only mode
-    networks:
-      - cloudpc-net
-    restart: always
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 ```
 
 ### Disable Ollama
 
-To run without Ollama, remove or comment out the `ollama` service from `docker-compose.yml` and remove `OLLAMA_URL` from the cloudcomputer environment:
+To run without Ollama, simply don't start it and remove `OLLAMA_URL` from the cloudcomputer environment:
 
 ```yaml
   cloudcomputer:
@@ -219,7 +227,8 @@ Users can configure cloud AI providers from **Settings → AI** by entering API 
 cloudcomputer/
 ├── desktop.js                 # Main Express server (~10K lines)
 ├── desktop.config.json        # Server configuration
-├── docker-compose.yml         # Docker stack definition
+├── docker-compose.yml         # Instance stack (Cloud Computer + Docker Manager)
+├── docker-compose.ollama.yml  # Shared Ollama LLM server
 ├── Dockerfile                 # Main app container
 ├── Dockerfile.docker-manager  # Docker Manager sidecar container
 ├── docker-manager.js          # Docker Manager service
@@ -284,30 +293,65 @@ The app runs on `http://localhost:8080` by default (configurable in `desktop.con
 
 ## 🐳 Multi-Instance Deployment
 
-Deploy multiple Cloud Computer instances sharing a single Ollama server:
+Deploy multiple Cloud Computer instances sharing a single Ollama server. Each instance needs a unique `INSTANCE_ID`, `APP_PORT`, and **port range** for Docker-managed apps.
 
 ```bash
-# Instance 1
-INSTANCE_ID=team-alpha APP_PORT=8080 docker compose up -d
+# 1. Start shared Ollama (once)
+docker compose -f docker-compose.ollama.yml up -d
 
-# Instance 2
-INSTANCE_ID=team-beta APP_PORT=8081 docker compose up -d
+# 2. Instance 1
+INSTANCE_ID=team-alpha APP_PORT=8080 DM_PORT_START=9000 DM_PORT_END=9099 \
+  docker compose -p team-alpha up -d --build
+
+# 3. Instance 2
+INSTANCE_ID=team-beta APP_PORT=8082 DM_PORT_START=9100 DM_PORT_END=9199 \
+  docker compose -p team-beta up -d --build
+
+# 4. Instance 3
+INSTANCE_ID=team-gamma APP_PORT=8083 DM_PORT_START=9200 DM_PORT_END=9299 \
+  docker compose -p team-gamma up -d --build
 ```
+
+> **Important:** Use `-p <name>` (project name) to isolate each instance's containers. Without it, the second `up` would replace the first.
 
 Each instance gets:
 - Its own data volume (`cloudpc-{INSTANCE_ID}-data`)
-- Its own Docker Manager
+- Its own Docker Manager with isolated port range
 - Shared access to Ollama (stateless — no data leakage between instances)
+
+### Using .env Files
+
+For convenience, create a `.env` file per instance:
+
+```bash
+# team-alpha.env
+INSTANCE_ID=team-alpha
+APP_PORT=8080
+DM_PORT_START=9000
+DM_PORT_END=9099
+```
+
+```bash
+docker compose -p team-alpha --env-file team-alpha.env up -d --build
+```
+
+### Reset an Instance
+
+To fully reset an instance (deletes all user data):
+
+```bash
+INSTANCE_ID=team-alpha docker compose -p team-alpha down -v
+```
 
 ---
 
 ## 📦 Docker Volumes
 
-| Volume                          | Purpose                                |
-|---------------------------------|----------------------------------------|
-| `cloudpc-ollama-models`         | Ollama model weights (shared)          |
-| `cloudpc-{INSTANCE_ID}-data`    | Application data, user files, settings |
-| `cloudpc-{INSTANCE_ID}-dm-data` | Docker Manager state                   |
+| Volume                          | Compose File               | Purpose                                |
+|---------------------------------|----------------------------|----------------------------------------|
+| `cloudpc-ollama-models`         | `docker-compose.ollama.yml`| Ollama model weights (shared)          |
+| `cloudpc-{INSTANCE_ID}-data`    | `docker-compose.yml`       | Application data, user files, settings |
+| `cloudpc-{INSTANCE_ID}-dm-data` | `docker-compose.yml`       | Docker Manager state                   |
 
 ---
 
