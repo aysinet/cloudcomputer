@@ -32,7 +32,7 @@ RUN cp desktop.config.json desktop.config.default.json
 
 ENV IS_DOCKER=true
 ENV INSTANCE_ID=default
-ENV DOCKER_MANAGER_URL=http://docker-manager:9800
+ENV DOCKER_MANAGER_URL=http://docker-manager:8081
 ENV OLLAMA_URL=http://cloudpc-ollama:11434
 
 EXPOSE 8080

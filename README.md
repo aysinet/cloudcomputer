@@ -28,7 +28,7 @@ A full-featured web-based desktop operating system built with **Node.js**, **Exp
 │  ┌──────────────┐  ┌──────────────┐  ┌─────────────┐ │
 │  │   Ollama     │  │ Cloud        │  │  Docker     │ │
 │  │  (Local LLM) │  │ Computer     │  │  Manager    │ │
-│  │  :11434      │  │  :8080       │  │  :9800      │ │
+│  │  :11434      │  │  :8080       │  │  :8081      │ │
 │  └──────┬───────┘  └──────┬───────┘  └──────┬──────┘ │
 │         │                 │                 │        │
 │         └─────────────────┴─────────────────┘        │
@@ -39,7 +39,7 @@ A full-featured web-based desktop operating system built with **Node.js**, **Exp
 | Service            | Description                                  | Port  |
 |--------------------|----------------------------------------------|-------|
 | **cloudcomputer**  | Main application (Express + Vue 3)           | 8080  |
-| **docker-manager** | Container lifecycle manager sidecar          | 9800  |
+| **docker-manager** | Container lifecycle manager sidecar          | 8081  |
 | **ollama**         | Local LLM inference server (GPU-accelerated) | 11434 |
 
 ---
@@ -88,7 +88,7 @@ docker compose up -d
 This will start three services:
 - **Ollama** — Local LLM server (port 11434)
 - **Cloud Computer** — Main application (port 8080)
-- **Docker Manager** — Container management sidecar (port 9800)
+- **Docker Manager** — Container management sidecar (port 8081)
 
 ### 4. Access the Application
 
@@ -175,7 +175,7 @@ To run without Ollama, remove or comment out the `ollama` service from `docker-c
 | `INSTANCE_ID` | `default` | Unique identifier for this instance |
 | `APP_PORT` | `8080` | Host port for the web UI |
 | `IS_DOCKER` | `true` | Set automatically in Docker |
-| `DOCKER_MANAGER_URL` | `http://docker-manager:9800` | Docker Manager sidecar URL |
+| `DOCKER_MANAGER_URL` | `http://docker-manager:8081` | Docker Manager sidecar URL |
 | `DM_SECRET` | `cloudpc-docker-manager-secret` | Shared secret between app and Docker Manager |
 | `OLLAMA_URL` | `http://cloudpc-ollama:11434` | Ollama server URL (unset to disable) |
 | `FINNHUB_API_KEY` | — | API key for stock market data |
@@ -186,7 +186,7 @@ To run without Ollama, remove or comment out the `ollama` service from `docker-c
 |----------|---------|-------------|
 | `DOCKER_NETWORK` | `cloudpc-net` | Docker network for managed containers |
 | `DM_SECRET` | `cloudpc-docker-manager-secret` | Shared authentication secret |
-| `DM_PORT` | `9800` | Docker Manager listen port |
+| `DM_PORT` | `8081` | Docker Manager listen port |
 | `DM_PORT_START` | `9000` | Start of port range for managed containers |
 | `DM_PORT_END` | `9999` | End of port range for managed containers |
 

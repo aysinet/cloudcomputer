@@ -7,6 +7,6 @@ WORKDIR /app
 COPY docker-manager.js package-docker-manager.json ./
 RUN mv package-docker-manager.json package.json && npm install --production
 
-EXPOSE 9800
+EXPOSE 8081
 
 CMD ["node", "docker-manager.js"]

@@ -33,7 +33,7 @@ services:
     environment:
       - IS_DOCKER=true
       - INSTANCE_ID=${INSTANCE_ID:-default}
-      - DOCKER_MANAGER_URL=http://docker-manager-${INSTANCE_ID:-default}:9800
+      - DOCKER_MANAGER_URL=http://docker-manager-${INSTANCE_ID:-default}:8081
       - DM_SECRET=cloudpc-docker-manager-secret
       - OLLAMA_URL=http://cloudpc-ollama:11434
       - FINNHUB_API_KEY=${FINNHUB_API_KEY:-}
@@ -54,7 +54,7 @@ services:
     environment:
       - DOCKER_NETWORK=cloudpc-net
       - DM_SECRET=cloudpc-docker-manager-secret
-      - DM_PORT=9800
+      - DM_PORT=8081
       - DM_PORT_START=9000
       - DM_PORT_END=9999
     volumes:
