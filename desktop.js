@@ -3949,7 +3949,7 @@ app.get('/api/ai/ollama-status', authMiddleware, async (req, res) => {
   }
 });
 
-function aiProxyRequest(endpoint, headers, body) {
+function aiProxyRequest(endpoint, headers, body, timeoutMs) {
   return new Promise((resolve, reject) => {
     try {
     const parsedUrl = new URL(endpoint);
@@ -3972,7 +3972,7 @@ function aiProxyRequest(endpoint, headers, body) {
       });
     });
     req.on('error', (err) => { console.error('[AI Proxy] Request error:', endpoint, err.message); reject(err); });
-    req.setTimeout(60000, () => { req.destroy(); const err = new Error('Request timeout'); console.error('[AI Proxy] Timeout:', endpoint); reject(err); });
+    req.setTimeout(timeoutMs || 120000, () => { req.destroy(); const err = new Error('Request timeout'); console.error('[AI Proxy] Timeout:', endpoint); reject(err); });
     req.write(postData);
     req.end();
     } catch (e) {
@@ -4109,7 +4109,7 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
           body.tool_choice = 'auto';
         }
         const headers = isNoKeyProvider ? {} : { 'Authorization': 'Bearer ' + provider.apiKey };
-        const result = await aiProxyRequest(url, headers, body);
+        const result = await aiProxyRequest(url, headers, body, isNoKeyProvider ? 300000 : 120000);
         if (result.status !== 200) {
           console.error('[AI Chat] OpenAI-compatible error:', providerId, result.status, JSON.stringify(result.data?.error || result.data).slice(0, 500));
           return res.status(502).json({ error: result.data?.error?.message || 'API error' });
@@ -4413,7 +4413,7 @@ app.post('/api/chatgpt/stream', authMiddleware, async (req, res) => {
         apiRes.on('end', () => { sse('done', {}); res.end(); });
       });
       apiReq.on('error', e => { sse('error', { message: e.message }); res.end(); });
-      apiReq.setTimeout(120000, () => { apiReq.destroy(); sse('error', { message: 'Timeout' }); res.end(); });
+      apiReq.setTimeout(isNoKeyProvider ? 300000 : 120000, () => { apiReq.destroy(); sse('error', { message: 'Timeout' }); res.end(); });
       apiReq.write(postData);
       apiReq.end();
     }

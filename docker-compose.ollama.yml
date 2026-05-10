@@ -27,7 +27,7 @@ services:
 networks:
   cloudpc-net:
     name: cloudpc-net
-    driver: bridge
+    external: true
 
 volumes:
   ollama_models:
