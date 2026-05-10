@@ -7,7 +7,6 @@
     "jwtSecret": "vue-desktop-jwt-secret-change-me",
     "jwtExpiresIn": "240h",
     "users": [
-      "test"
     ]
   },
   "docker": {
