@@ -227,3 +227,61 @@
   transition: background 0.15s;
 }
 .sudoku-modal-btn:hover { background: #a29bfe; }
+
+/* Mobile responsive */
+@media (max-height: 700px), (max-width: 480px) {
+  .sudoku-header {
+    padding: 6px 10px;
+  }
+  .sudoku-board-wrap {
+    padding: 6px;
+  }
+  .sudoku-cell {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+  .sudoku-numpad {
+    gap: 4px;
+    padding: 6px 8px;
+  }
+  .sudoku-num-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+    border-radius: 6px;
+  }
+  .sudoku-actions {
+    gap: 4px;
+    padding: 4px 8px 8px;
+  }
+  .sudoku-action-btn {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+  .sudoku-note {
+    font-size: 7px;
+  }
+}
+
+@media (max-height: 560px) {
+  .sudoku-cell {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+  .sudoku-num-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+  .sudoku-header {
+    padding: 4px 8px;
+  }
+  .sudoku-board-wrap {
+    padding: 4px;
+  }
+  .sudoku-actions {
+    padding: 2px 8px 6px;
+  }
+}

@@ -387,7 +387,8 @@
         const cn = comp.country && comp.country.name ? comp.country.name : '';
         const compName = comp.name || '';
         const compNameLower = compName.toLowerCase();
-        const isSuperLeague = compNameLower.includes('süper') || compNameLower.includes('super');
+        const isAmateur = compNameLower.includes('amatör') || compNameLower.includes('amateur');
+        const isSuperLeague = !isAmateur && (compNameLower.includes('süper') || compNameLower.includes('super'));
 
         // 1. User's country super league (highest priority)
         if (userCountryName && cn === userCountryName && isSuperLeague) return 5;
@@ -440,7 +441,8 @@
         const compName = (comp.name || '').toLowerCase();
         const cn = comp.country && comp.country.name ? comp.country.name : '';
         const uc = COUNTRY_MAP[userCountry.value] || '';
-        if (compName.includes('süper') || compName.includes('super')) return true;
+        const isAmateur = compName.includes('amatör') || compName.includes('amateur');
+        if (!isAmateur && (compName.includes('süper') || compName.includes('super'))) return true;
         if (['Avrupa', 'Dünya', 'Güney Amerika', 'Kuzey / Orta Amerika', 'Afrika', 'Asya'].includes(cn)) return true;
         if (uc && cn === uc) return true;
         if (compName.includes('premier') || compName === 'la liga' || compName.includes('bundesliga') || compName.includes('serie a') || compName.includes('ligue 1') || compName === 'nba' || compName === 'euroleague') return true;

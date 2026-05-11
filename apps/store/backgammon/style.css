@@ -133,7 +133,8 @@
   .bg-labels{padding:0 40px}
   .bg-top-bar{padding:4px 6px;flex-wrap:wrap}
   .bg-winner-banner{font-size:14px;padding:8px;gap:6px}
-  .bg-board{border-width:3px}
+  .bg-board{border-width:3px;max-height:45vh}
+  .bg-board-outer{justify-content:center}
   .bg-mode-toggle{flex-direction:row}
   .bg-btn-toggle{font-size:12px;padding:6px 8px}
 }
