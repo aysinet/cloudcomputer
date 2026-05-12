@@ -29,6 +29,7 @@ const nodemailer = require('nodemailer');
 const Pop3Command = require('node-pop3');
 const { simpleParser } = require('mailparser');
 const QRCode = require('qrcode');
+const pluginLoader = require('./plugin-loader');
 
 // #region Server-side i18n for API messages
 const SERVER_I18N = {
@@ -7025,6 +7026,68 @@ app.delete('/api/pets/:id', authMiddleware, (req, res) => {
 });
 
 // #endregion
+// #region Dynamic Plugin System
+// Plugin context is built lazily to ensure all server globals are initialized
+
+let pluginContext = null;
+function getPluginContext() {
+  if (!pluginContext) {
+    pluginContext = {
+      app,
+      express,
+      server,
+      authMiddleware,
+      getUserDb,
+      addNotificationToDb,
+      broadcastWS: (...args) => broadcastWS(...args),
+      wsClients,
+      DATA_DIR,
+      STORE_DIR,
+      APPDATA_DIR,
+      ensureDir,
+      getUserSettings,
+      saveUserSettings,
+      getUserLocale: (u) => getUserLocale(u),
+      serverT: (key, locale) => serverT(key, locale),
+      config,
+      crypto,
+      path,
+      fs
+    };
+  }
+  return pluginContext;
+}
+
+// Plugin management API — allows hot-reload without restart
+app.get('/api/plugins', authMiddleware, (req, res) => {
+  res.json(pluginLoader.getLoadedPlugins());
+});
+
+app.post('/api/plugins/:appId/load', authMiddleware, (req, res) => {
+  const { appId } = req.params;
+  const safeId = appId.replace(/[^a-zA-Z0-9_-]/g, '');
+  if (!safeId) return res.status(400).json({ error: 'invalid appId' });
+  const ok = pluginLoader.loadPlugin(safeId, getPluginContext());
+  res.json({ ok, appId: safeId });
+});
+
+app.post('/api/plugins/:appId/unload', authMiddleware, (req, res) => {
+  const { appId } = req.params;
+  const safeId = appId.replace(/[^a-zA-Z0-9_-]/g, '');
+  if (!safeId) return res.status(400).json({ error: 'invalid appId' });
+  const ok = pluginLoader.unloadPlugin(safeId, getPluginContext());
+  res.json({ ok, appId: safeId });
+});
+
+app.post('/api/plugins/:appId/reload', authMiddleware, (req, res) => {
+  const { appId } = req.params;
+  const safeId = appId.replace(/[^a-zA-Z0-9_-]/g, '');
+  if (!safeId) return res.status(400).json({ error: 'invalid appId' });
+  const ok = pluginLoader.reloadPlugin(safeId, getPluginContext());
+  res.json({ ok, appId: safeId });
+});
+
+// #endregion
 // #region Static files (css, js, images etc.)
 app.use(express.static(path.join(__dirname), {
   index: false
@@ -7263,15 +7326,6 @@ function handleWSMessage(ws, msg) {
     case 'ping':
       ws.send(JSON.stringify({ type: 'pong' }));
       break;
-    case 'coin-subscribe':
-      ws.coinSubscribed = true;
-      startCoinPolling();
-      ws.send(JSON.stringify({ type: 'coin-prices', data: coinPrices }));
-      break;
-    case 'coin-unsubscribe':
-      ws.coinSubscribed = false;
-      stopCoinPollingIfIdle();
-      break;
     case 'stock-subscribe':
       ws.stockSubscribed = true;
       startStockPolling();
@@ -7364,8 +7418,16 @@ function handleWSMessage(ws, msg) {
       saveUserSettings(ws.user.username, { ...settings, windowStates });
       break;
     }
-    default:
-      ws.send(JSON.stringify({ type: 'echo', data: msg }));
+    default: {
+      // Check plugin WS handlers before echoing
+      const pluginHandlers = pluginLoader.getPluginWsHandlers();
+      if (pluginHandlers[msg.type]) {
+        pluginHandlers[msg.type](ws, msg);
+      } else {
+        ws.send(JSON.stringify({ type: 'echo', data: msg }));
+      }
+      break;
+    }
   }
 }
 
@@ -7398,177 +7460,7 @@ function handleTerminalExec(ws, data) {
   });
 }
 
-// #endregion
-// #region Coin Tracker (Binance)
-let coinPrices = [];
-let coinFetchInterval = null;
 
-async function fetchBinancePrices() {
-  try {
-    const resp = await fetch('https://fapi.binance.com/fapi/v2/ticker/price');
-    if (!resp.ok) return;
-    const data = await resp.json();
-    // Filter USDT pairs only, sort by symbol
-    coinPrices = data
-      .filter(d => d.symbol.endsWith('USDT'))
-      .map(d => ({ symbol: d.symbol, price: parseFloat(d.price), time: d.time }))
-      .sort((a, b) => a.symbol.localeCompare(b.symbol));
-    broadcastWS({ type: 'coin-prices', data: coinPrices });
-  } catch (e) { console.error('Binance fetch error:', e.message); }
-}
-
-app.get('/api/coins', authMiddleware, (req, res) => {
-  res.json(coinPrices);
-});
-
-app.get('/api/coins/favorites', authMiddleware, (req, res) => {
-  const userData = getUserCoinPrefs(req.user.username);
-  res.json(userData);
-});
-
-app.post('/api/coins/favorites', authMiddleware, (req, res) => {
-  const { favorites, hidden, portfolio, defaultTab, usdtBalance } = req.body;
-  const filePath = getCoinPrefsPath(req.user.username);
-  const cur = getUserCoinPrefs(req.user.username);
-  const data = {
-    favorites: favorites !== undefined ? (favorites || []) : cur.favorites,
-    hidden: hidden !== undefined ? (hidden || []) : cur.hidden,
-    portfolio: portfolio !== undefined ? (portfolio || []) : (cur.portfolio || []),
-    defaultTab: defaultTab !== undefined ? defaultTab : (cur.defaultTab || ''),
-    usdtBalance: usdtBalance !== undefined ? usdtBalance : (cur.usdtBalance || 0)
-  };
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-  res.json({ ok: true });
-});
-
-function getCoinPrefsPath(username) {
-  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
-  const dir = path.join(DATA_DIR, safe);
-  ensureDir(dir);
-  return path.join(dir, 'coin-prefs.json');
-}
-
-function getUserCoinPrefs(username) {
-  const filePath = getCoinPrefsPath(username);
-  if (!fs.existsSync(filePath)) return { favorites: ['BTCUSDT', 'ETHUSDT', 'BNBUSDT'], hidden: [], portfolio: [], defaultTab: '', usdtBalance: 0 };
-  try {
-    const d = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    if (d.usdtBalance === undefined) d.usdtBalance = 0;
-    return d;
-  } catch { return { favorites: [], hidden: [], usdtBalance: 0 }; }
-}
-
-function hasCoinSubscribers() {
-  for (const c of wsClients) {
-    if (c.readyState === 1 && c.coinSubscribed) return true;
-  }
-  return false;
-}
-
-function startCoinPolling() {
-  if (coinFetchInterval) return;
-  fetchBinancePrices();
-  coinFetchInterval = setInterval(fetchBinancePrices, 5000);
-}
-
-function stopCoinPollingIfIdle() {
-  if (!coinFetchInterval) return;
-  if (hasCoinSubscribers()) return;
-  clearInterval(coinFetchInterval);
-  coinFetchInterval = null;
-}
-
-// #endregion
-// #region Coin Price Alerts
-function getCoinAlertsPath(username) {
-  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
-  const dir = path.join(DATA_DIR, safe);
-  ensureDir(dir);
-  return path.join(dir, 'coin-alerts.json');
-}
-
-function getUserCoinAlerts(username) {
-  const fp = getCoinAlertsPath(username);
-  if (!fs.existsSync(fp)) return [];
-  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return []; }
-}
-
-function saveUserCoinAlerts(username, alerts) {
-  fs.writeFileSync(getCoinAlertsPath(username), JSON.stringify(alerts, null, 2));
-}
-
-app.get('/api/coins/alerts', authMiddleware, (req, res) => {
-  res.json(getUserCoinAlerts(req.user.username));
-});
-
-app.post('/api/coins/alerts', authMiddleware, (req, res) => {
-  const { alerts } = req.body;
-  if (!Array.isArray(alerts)) return res.status(400).json({ error: 'alerts must be array' });
-  const clean = alerts.map(a => ({
-    symbol: String(a.symbol || '').toUpperCase(),
-    min: a.min !== null && a.min !== undefined && a.min !== '' ? Number(a.min) : null,
-    max: a.max !== null && a.max !== undefined && a.max !== '' ? Number(a.max) : null
-  })).filter(a => a.symbol && (a.min !== null || a.max !== null));
-  saveUserCoinAlerts(req.user.username, clean);
-  res.json({ ok: true });
-});
-
-let coinAlertInterval = null;
-
-function checkCoinAlerts() {
-  if (!coinPrices.length) return;
-  try {
-    const entries = fs.readdirSync(DATA_DIR, { withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-      const username = entry.name;
-      const alerts = getUserCoinAlerts(username);
-      if (!alerts.length) continue;
-      const triggered = [];
-      const remaining = [];
-      for (const alert of alerts) {
-        const coin = coinPrices.find(c => c.symbol === alert.symbol);
-        if (!coin) { remaining.push(alert); continue; }
-        let fired = false;
-        if (alert.min !== null && coin.price <= alert.min) {
-          const notif = {
-            id: crypto.randomUUID(),
-            icon: '📉',
-            bg: '#fef0f0',
-            title: alert.symbol.replace('USDT', '') + '/USDT',
-            text: coin.price.toLocaleString('en-US', { maximumFractionDigits: 8 }) + ' ≤ ' + alert.min.toLocaleString('en-US', { maximumFractionDigits: 8 }) + ' (MIN)',
-            time: new Date().toISOString(),
-            read: false,
-            createdAt: Date.now()
-          };
-          addNotificationToDb(username, notif);
-          broadcastWS({ type: 'notification', data: notif });
-          fired = true;
-        }
-        if (alert.max !== null && coin.price >= alert.max) {
-          const notif = {
-            id: crypto.randomUUID(),
-            icon: '📈',
-            bg: '#f0f9eb',
-            title: alert.symbol.replace('USDT', '') + '/USDT',
-            text: coin.price.toLocaleString('en-US', { maximumFractionDigits: 8 }) + ' ≥ ' + alert.max.toLocaleString('en-US', { maximumFractionDigits: 8 }) + ' (MAX)',
-            time: new Date().toISOString(),
-            read: false,
-            createdAt: Date.now()
-          };
-          addNotificationToDb(username, notif);
-          broadcastWS({ type: 'notification', data: notif });
-          fired = true;
-        }
-        if (fired) triggered.push(alert);
-        else remaining.push(alert);
-      }
-      if (triggered.length) saveUserCoinAlerts(username, remaining);
-    }
-  } catch (e) { console.error('checkCoinAlerts error:', e.message); }
-}
-
-coinAlertInterval = setInterval(checkCoinAlerts, 5 * 60 * 1000);
 
 // #endregion
 // #region Stock Tracker (Finnhub)
@@ -11930,52 +11822,50 @@ const spreadsheetUpload = multer({
   }
 });
 
-app.post('/api/spreadsheet/import', authMiddleware, spreadsheetUpload.single('file'), (req, res) => {
+app.post('/api/spreadsheet/import', authMiddleware, spreadsheetUpload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   try {
-    const XLSX = require('xlsx');
+    const ExcelJS = require('exceljs');
     const ext = path.extname(req.file.originalname).toLowerCase();
-    let workbook;
+    const workbook = new ExcelJS.Workbook();
     if (ext === '.csv') {
       const csvText = req.file.buffer.toString('utf-8');
-      workbook = XLSX.read(csvText, { type: 'string' });
+      const csvWs = await workbook.csv.read(require('stream').Readable.from(csvText));
     } else {
-      workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+      await workbook.xlsx.load(req.file.buffer);
     }
     const sheets = [];
-    for (const sheetName of workbook.SheetNames.slice(0, 20)) {
-      const ws = workbook.Sheets[sheetName];
+    for (const ws of workbook.worksheets.slice(0, 20)) {
       const rows = {};
-      const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-      for (let r = range.s.r; r <= Math.min(range.e.r, 9999); r++) {
+      ws.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+        const r = rowNumber - 1;
+        if (r > 9999) return;
         const rowObj = { cells: {} };
         let hasData = false;
-        for (let c = range.s.c; c <= Math.min(range.e.c, 255); c++) {
-          const addr = XLSX.utils.encode_cell({ r, c });
-          const cell = ws[addr];
-          if (cell) {
-            const text = cell.w !== undefined ? cell.w : (cell.v !== undefined ? String(cell.v) : '');
-            rowObj.cells[c] = { text };
-            hasData = true;
-          }
-        }
+        row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
+          const c = colNumber - 1;
+          if (c > 255) return;
+          const text = cell.text !== undefined ? String(cell.text) : (cell.value !== undefined ? String(cell.value) : '');
+          rowObj.cells[c] = { text };
+          hasData = true;
+        });
         if (hasData) rows[r] = rowObj;
-      }
+      });
       // Column widths
       const cols = {};
-      if (ws['!cols']) {
-        ws['!cols'].forEach((col, i) => {
-          if (col && col.wpx) cols[i] = { width: Math.min(Math.max(col.wpx, 40), 500) };
-        });
-      }
+      ws.columns.forEach((col, i) => {
+        if (col && col.width) {
+          const wpx = Math.round(col.width * 7);
+          cols[i] = { width: Math.min(Math.max(wpx, 40), 500) };
+        }
+      });
       // Merge cells
       const merges = [];
-      if (ws['!merges']) {
-        ws['!merges'].slice(0, 500).forEach(m => {
-          merges.push(XLSX.utils.encode_range(m));
-        });
-      }
-      sheets.push({ name: String(sheetName).slice(0, 50), rows, cols, merges });
+      const mergeMap = ws.model && ws.model.merges ? ws.model.merges : [];
+      mergeMap.slice(0, 500).forEach(m => {
+        merges.push(m);
+      });
+      sheets.push({ name: String(ws.name).slice(0, 50), rows, cols, merges });
     }
     res.json({ ok: true, sheets });
   } catch (err) {
@@ -15404,6 +15294,8 @@ function cronFieldMatch(value, field, min, max) {
 server.listen(config.server.port, config.server.host, () => {
   console.log(`Desktop Server running at http://${config.server.host}:${config.server.port}`);
   console.log(`WebSocket endpoint: ws://${config.server.host}:${config.server.port}/ws`);
+  // Load all store-app plugins dynamically
+  pluginLoader.loadAllPlugins(getPluginContext());
   startRssChecker();
   startReminderChecker();
   startSchedulerChecker();
