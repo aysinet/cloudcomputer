@@ -82,6 +82,12 @@ function loadPlugin(appId, context) {
     return false; // No server-side plugin — that's fine, most apps are client-only
   }
 
+  // Skip apps that have their own standalone server (not a plugin)
+  const noPluginMarker = path.join(STORE_DIR, appId, '.noplugin');
+  if (fs.existsSync(noPluginMarker)) {
+    return false;
+  }
+
   try {
     // Install required packages first
     installPluginPackages(appId);

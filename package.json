@@ -23,6 +23,7 @@
     "node-pop3": "^0.11.0",
     "nodemailer": "^8.0.6",
     "pdfkit": "^0.18.0",
+    "playwright": "^1.60.0",
     "qrcode": "^1.5.4",
     "ssh2": "^1.16.0",
     "webtorrent": "^2.8.5",
