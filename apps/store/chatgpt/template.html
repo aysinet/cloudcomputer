@@ -1,28 +1,157 @@
 <div class="chatgpt-app">
-  <!-- Toolbar -->
-  <div class="cg-toolbar">
-    <span class="cg-toolbar-title">💬 {{ t.title }}</span>
-    <div class="cg-toolbar-actions">
-      <button class="cg-btn" @click="navigateHome" :title="t.home">🏠</button>
-      <button class="cg-btn" @click="refreshPage" :title="t.refresh">🔄</button>
-      <div class="cg-separator"></div>
-      <button class="cg-btn" @click="openExternal" :title="t.openTab">🔗</button>
+  <!-- Sidebar -->
+  <div class="cg-sidebar" :class="{ 'cg-sidebar-hidden': !showSidebar }">
+    <div class="cg-sidebar-header">
+      <button class="cg-btn cg-btn-new" @click="newChat">✨ {{ L('newChat') }}</button>
+    </div>
+
+    <div class="cg-sidebar-search">
+      <input type="text" v-model="searchQuery" :placeholder="L('searchConv')" class="cg-search-input" />
+    </div>
+
+    <div class="cg-conv-list">
+      <div v-if="filteredConversations.length === 0" class="cg-no-conv">
+        {{ L('noConversations') }}
+      </div>
+      <div
+        v-for="conv in filteredConversations"
+        :key="conv.id"
+        class="cg-conv-item"
+        :class="{ 'cg-conv-active': conv.id === activeConvId }"
+        @click="selectConversation(conv.id)"
+      >
+        <div v-if="editingConvId === conv.id" class="cg-conv-edit">
+          <input
+            v-model="editingTitle"
+            class="cg-edit-input"
+            @keyup.enter="saveRename"
+            @keyup.escape="cancelRename"
+            @click.stop
+          />
+          <button class="cg-btn-sm" @click.stop="saveRename">✓</button>
+          <button class="cg-btn-sm" @click.stop="cancelRename">✕</button>
+        </div>
+        <template v-else>
+          <div class="cg-conv-title">💬 {{ conv.title }}</div>
+          <div class="cg-conv-date">{{ formatTime(conv.updatedAt) }}</div>
+          <div class="cg-conv-actions" @click.stop>
+            <button class="cg-btn-icon" @click.stop="startRename(conv)" :title="L('rename')">✏️</button>
+            <button class="cg-btn-icon" @click.stop="deleteConversation(conv.id)" :title="L('deleteConv')">🗑️</button>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <div class="cg-sidebar-footer">
+      <button class="cg-btn cg-btn-danger" @click="clearAllConversations" v-if="conversations.length > 0">
+        🗑️ {{ L('clearAll') }}
+      </button>
     </div>
   </div>
 
-  <!-- Loading overlay -->
-  <div class="cg-loading" v-if="!iframeLoaded">
-    <div class="cg-loading-icon">💬</div>
-    <div class="cg-loading-text">{{ t.loading }}</div>
-    <div class="cg-spinner"></div>
-  </div>
+  <!-- Main Chat Area -->
+  <div class="cg-main">
+    <!-- Toolbar -->
+    <div class="cg-toolbar">
+      <div class="cg-toolbar-left">
+        <button class="cg-btn cg-btn-toggle" @click="toggleSidebar">☰</button>
+        <span class="cg-toolbar-title">💬 {{ activeConversation ? activeConversation.title : L('title') }}</span>
+      </div>
+      <div class="cg-toolbar-right">
+        <!-- Provider selector -->
+        <select v-model="selectedProvider" @change="onProviderChange" class="cg-select" v-if="providers.length > 0">
+          <option v-for="p in providers" :key="p.id" :value="p.id">{{ p.icon || '🤖' }} {{ p.name }}</option>
+        </select>
+        <!-- Model selector -->
+        <select v-model="selectedModel" class="cg-select" v-if="models.length > 0">
+          <option v-for="m in models" :key="m.id" :value="m.id">{{ m.name || m.id }}</option>
+        </select>
+        <button class="cg-btn" @click="toggleSettings" :title="L('settings')">⚙️</button>
+        <button class="cg-btn" @click="exportChat" :title="L('exportChat')" v-if="activeConversation">📥</button>
+      </div>
+    </div>
 
-  <!-- ChatGPT iframe -->
-  <iframe
-    :src="iframeSrc"
-    class="cg-iframe"
-    frameborder="0"
-    referrerpolicy="no-referrer"
-    @load="onIframeLoad"
-  ></iframe>
+    <!-- Settings Panel -->
+    <div class="cg-settings-panel" v-if="showSettings">
+      <div class="cg-settings-row">
+        <label>{{ L('temperature') }}: {{ temperature }}</label>
+        <input type="range" min="0" max="2" step="0.1" v-model.number="temperature" class="cg-range" />
+      </div>
+      <div class="cg-settings-row">
+        <label>{{ L('systemPrompt') }}</label>
+        <textarea v-model="systemPrompt" :placeholder="L('systemPromptPlaceholder')" class="cg-sys-prompt" rows="3"></textarea>
+      </div>
+    </div>
+
+    <!-- No provider warning -->
+    <div class="cg-no-provider" v-if="providers.length === 0">
+      <div class="cg-no-provider-icon">🔑</div>
+      <div class="cg-no-provider-text">{{ L('noProviders') }}</div>
+    </div>
+
+    <!-- Messages -->
+    <div class="cg-messages" v-if="providers.length > 0">
+      <!-- Welcome state -->
+      <div class="cg-welcome" v-if="!activeConversation || activeMessages.length === 0">
+        <div class="cg-welcome-icon">💬</div>
+        <div class="cg-welcome-text">{{ L('welcome') }}</div>
+      </div>
+
+      <!-- Message list -->
+      <div v-for="msg in activeMessages" :key="msg.id" class="cg-msg" :class="'cg-msg-' + msg.role">
+        <div class="cg-msg-avatar">{{ msg.role === 'user' ? '👤' : '🤖' }}</div>
+        <div class="cg-msg-body">
+          <div class="cg-msg-content" v-if="msg.role === 'user'">{{ msg.content }}</div>
+          <div class="cg-msg-content cg-msg-md" v-else v-html="renderMarkdown(msg.content)"></div>
+          <div class="cg-msg-footer">
+            <span class="cg-msg-time">{{ formatTime(msg.timestamp) }}</span>
+            <button class="cg-btn-icon" @click="copyMessage(msg.content)" :title="L('copy')">📋</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Streaming indicator -->
+      <div class="cg-msg cg-msg-assistant" v-if="isStreaming">
+        <div class="cg-msg-avatar">🤖</div>
+        <div class="cg-msg-body">
+          <div class="cg-msg-content cg-msg-md" v-if="streamContent" v-html="renderMarkdown(streamContent)"></div>
+          <div class="cg-typing" v-else>
+            <span class="cg-dot"></span>
+            <span class="cg-dot"></span>
+            <span class="cg-dot"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error message -->
+      <div class="cg-error" v-if="errorMsg">
+        <span>⚠️ {{ errorMsg }}</span>
+        <button class="cg-btn cg-btn-retry" @click="retryLast">🔄 {{ L('retry') }}</button>
+      </div>
+    </div>
+
+    <!-- Copy feedback -->
+    <div class="cg-copy-toast" v-if="copyFeedback">{{ copyFeedback }}</div>
+
+    <!-- Input Area -->
+    <div class="cg-input-area" v-if="providers.length > 0">
+      <textarea
+        v-model="userInput"
+        :placeholder="L('typeMessage')"
+        class="cg-input"
+        @keydown="onKeyDown"
+        rows="1"
+        :disabled="isStreaming"
+      ></textarea>
+      <button
+        class="cg-send-btn"
+        @click="sendMessage"
+        :disabled="!userInput.trim() || isStreaming"
+        :title="L('send')"
+      >
+        <span v-if="isStreaming" class="cg-send-spinner"></span>
+        <span v-else>➤</span>
+      </button>
+    </div>
+  </div>
 </div>

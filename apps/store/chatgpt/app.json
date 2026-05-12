@@ -9,60 +9,60 @@
     "h": 640
   },
   "global": false,
-  "description": "ChatGPT — OpenAI yapay zeka sohbet platformuna hızlı erişim",
+  "description": "ChatGPT — Çoklu AI sağlayıcı destekli yapay zeka sohbet istemcisi",
   "category": "ai",
   "lang": {
     "tr": {
       "name": "ChatGPT",
-      "description": "ChatGPT — OpenAI yapay zeka sohbet platformuna hızlı erişim"
+      "description": "ChatGPT — Çoklu AI sağlayıcı destekli yapay zeka sohbet istemcisi"
     },
     "en": {
       "name": "ChatGPT",
-      "description": "ChatGPT — Quick access to OpenAI AI chat platform"
+      "description": "ChatGPT — Multi-provider AI chat client with streaming responses"
     },
     "de": {
       "name": "ChatGPT",
-      "description": "ChatGPT — Schneller Zugriff auf die OpenAI KI-Chat-Plattform"
+      "description": "ChatGPT — Multi-Provider KI-Chat-Client mit Streaming-Antworten"
     },
     "fr": {
       "name": "ChatGPT",
-      "description": "ChatGPT — Accès rapide à la plateforme de chat IA OpenAI"
+      "description": "ChatGPT — Client de chat IA multi-fournisseurs avec réponses en streaming"
     },
     "es": {
       "name": "ChatGPT",
-      "description": "ChatGPT — Acceso rápido a la plataforma de chat IA de OpenAI"
+      "description": "ChatGPT — Cliente de chat IA multi-proveedor con respuestas en streaming"
     },
     "ru": {
       "name": "ChatGPT",
-      "description": "ChatGPT — Быстрый доступ к платформе чата ИИ OpenAI"
+      "description": "ChatGPT — Мультипровайдерный ИИ-чат клиент с потоковыми ответами"
     },
     "zh": {
       "name": "ChatGPT",
-      "description": "ChatGPT — 快速访问OpenAI AI聊天平台"
+      "description": "ChatGPT — 多供应商AI聊天客户端，支持流式响应"
     },
     "ja": {
       "name": "ChatGPT",
-      "description": "ChatGPT — OpenAI AIチャットプラットフォームへのクイックアクセス"
+      "description": "ChatGPT — マルチプロバイダーAIチャットクライアント"
     },
     "it": {
       "name": "ChatGPT",
-      "description": "ChatGPT — Accesso rapido alla piattaforma di chat IA OpenAI"
+      "description": "ChatGPT — Client di chat IA multi-provider con risposte in streaming"
     },
     "ar": {
       "name": "ChatGPT",
-      "description": "ChatGPT — وصول سريع إلى منصة دردشة الذكاء الاصطناعي OpenAI"
+      "description": "ChatGPT — عميل دردشة AI متعدد الموفرين مع استجابات بث مباشر"
     },
     "ko": {
       "name": "ChatGPT",
-      "description": "ChatGPT — OpenAI AI 채팅 플랫폼 빠른 접속"
+      "description": "ChatGPT — 스트리밍 응답을 지원하는 멀티 프로바이더 AI 채팅 클라이언트"
     },
     "hi": {
       "name": "ChatGPT",
-      "description": "ChatGPT — OpenAI AI चैट प्लेटफ़ॉर्म पर त्वरित पहुँच"
+      "description": "ChatGPT — स्ट्रीमिंग प्रतिक्रियाओं के साथ मल्टी-प्रदाता AI चैट क्लाइंट"
     },
     "pt": {
       "name": "ChatGPT",
-      "description": "ChatGPT — Acesso rápido à plataforma de chat IA da OpenAI"
+      "description": "ChatGPT — Cliente de chat IA multi-provedor com respostas em streaming"
     }
   }
 }
