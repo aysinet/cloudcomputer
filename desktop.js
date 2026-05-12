@@ -4810,7 +4810,6 @@ app.delete('/api/todos/:id', authMiddleware, (req, res) => {
 });
 
 // #endregion
-
 // #region Contacts API
 app.get('/api/contacts', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
@@ -5158,9 +5157,14 @@ server.on('upgrade', async (req, socket, head) => {
       wss.emit('connection', ws, req);
     });
   } else if (pathname === '/api/sync/ws') {
-    syncWss.handleUpgrade(req, socket, head, (ws) => {
-      syncWss.emit('connection', ws, req);
-    });
+    const syncWss = pluginLoader.getPluginUpgradeHandler('/api/sync/ws');
+    if (syncWss) {
+      syncWss.handleUpgrade(req, socket, head, (ws) => {
+        syncWss.emit('connection', ws, req);
+      });
+    } else {
+      socket.destroy();
+    }
   } else if (pathname.startsWith('/proxy/')) {
     // Forward WebSocket upgrades to HPM proxy middleware
     const match = pathname.match(/^\/proxy\/([a-zA-Z0-9_-]+)/);
@@ -5431,9 +5435,6 @@ function handleTerminalExec(ws, data) {
 
 
 // #endregion
-// #region VIX Index → plugin: apps/store/vix-index/server.js
-
-// #endregion
 // #region Password Vault (AES-256-GCM encrypted storage)
 const VAULT_ALGO = 'aes-256-gcm';
 
@@ -5529,70 +5530,6 @@ app.post('/api/vault/change-password', authMiddleware, (req, res) => {
     const data = decryptVault(vaultObj, currentPassword);
     const encrypted = encryptVault(data, newPassword);
     saveVault(req.user.username, encrypted);
-    res.json({ ok: true });
-  } catch {
-    res.status(403).json({ error: 'Wrong current password' });
-  }
-});
-
-// #endregion
-// #region SecureNote (AES-256-GCM encrypted notes & media)
-
-function getSecureNotePath(username) {
-  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
-  const dir = path.join(DATA_DIR, safe);
-  ensureDir(dir);
-  return path.join(dir, 'secure-note.enc');
-}
-
-function loadSecureNote(username) {
-  const filePath = getSecureNotePath(username);
-  if (!fs.existsSync(filePath)) return null;
-  try { return JSON.parse(fs.readFileSync(filePath, 'utf-8')); } catch { return null; }
-}
-
-function saveSecureNote(username, vaultObj) {
-  const filePath = getSecureNotePath(username);
-  fs.writeFileSync(filePath, JSON.stringify(vaultObj));
-}
-
-app.get('/api/secure-note/exists', authMiddleware, (req, res) => {
-  const vaultObj = loadSecureNote(req.user.username);
-  res.json({ exists: !!vaultObj });
-});
-
-app.post('/api/secure-note/unlock', authMiddleware, (req, res) => {
-  const { masterPassword } = req.body;
-  if (!masterPassword) return res.status(400).json({ error: 'masterPassword required' });
-  const vaultObj = loadSecureNote(req.user.username);
-  if (!vaultObj) return res.json({ notes: [], media: [] });
-  try {
-    const data = decryptVault(vaultObj, masterPassword);
-    res.json(data);
-  } catch {
-    res.status(403).json({ error: 'wrong_password' });
-  }
-});
-
-app.post('/api/secure-note/save', authMiddleware, (req, res) => {
-  const { masterPassword, notes, media } = req.body;
-  if (!masterPassword) return res.status(400).json({ error: 'masterPassword required' });
-  const data = { notes: (notes || []).slice(0, 500), media: (media || []).slice(0, 200) };
-  const encrypted = encryptVault(data, masterPassword);
-  saveSecureNote(req.user.username, encrypted);
-  res.json({ ok: true });
-});
-
-app.post('/api/secure-note/change-password', authMiddleware, (req, res) => {
-  const { currentPassword, newPassword } = req.body;
-  if (!currentPassword || !newPassword) return res.status(400).json({ error: 'currentPassword and newPassword required' });
-  if (newPassword.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
-  const vaultObj = loadSecureNote(req.user.username);
-  if (!vaultObj) return res.status(404).json({ error: 'Vault not found' });
-  try {
-    const data = decryptVault(vaultObj, currentPassword);
-    const encrypted = encryptVault(data, newPassword);
-    saveSecureNote(req.user.username, encrypted);
     res.json({ ok: true });
   } catch {
     res.status(403).json({ error: 'Wrong current password' });
@@ -5911,9 +5848,6 @@ app.post('/api/video/playlist', authMiddleware, (req, res) => {
   saveUserVideoPlaylist(req.user.username, playlist);
   res.json({ ok: true });
 });
-
-// #endregion
-// #region Start
 
 // #endregion
 // #region Photos API
