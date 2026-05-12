@@ -2,7 +2,7 @@
   "id": "resume-builder",
   "icon": "📄",
   "name": "Resume Builder",
-  "type": "internal",
+  "type": "external",
   "global": false,
   "description": "Profesyonel CV / özgeçmiş oluşturucu — PDF dışa aktarma desteği",
   "lang": {
