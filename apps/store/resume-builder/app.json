@@ -2,6 +2,9 @@
   "id": "resume-builder",
   "icon": "📄",
   "name": "Resume Builder",
+  "type": "internal",
+  "global": false,
+  "description": "Profesyonel CV / özgeçmiş oluşturucu — PDF dışa aktarma desteği",
   "lang": {
     "tr": { "name": "CV Oluşturucu", "description": "Profesyonel CV / özgeçmiş oluşturucu — PDF dışa aktarma desteği" },
     "en": { "name": "Resume Builder", "description": "Professional resume / CV builder with PDF export" },
@@ -21,7 +24,6 @@
   "version": "1.0.0",
   "author": "CloudComputer",
   "color": "linear-gradient(135deg,#1e3a5f,#2980b9)",
-  "width": 1100,
-  "height": 700,
+  "size": { "w": 1100, "h": 700 },
   "singleInstance": true
 }
