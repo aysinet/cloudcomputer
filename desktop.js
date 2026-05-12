@@ -8220,26 +8220,6 @@ app.post('/api/audio-editor/save-recording', authMiddleware, (req, res, next) =>
 });
 
 // #endregion
-// #region Video Editor API
-const videoEditorUpload = multer({
-  storage: multer.diskStorage({
-    destination(req, file, cb) { cb(null, getUserVideoDir(req.user.username)); },
-    filename(req, file, cb) {
-      const name = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
-      cb(null, name);
-    }
-  }),
-  limits: { fileSize: 500 * 1024 * 1024 }
-});
-
-app.post('/api/video-editor/save', authMiddleware, videoEditorUpload.single('file'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file' });
-  res.json({ ok: true, filename: req.file.filename, size: req.file.size });
-});
-
-// #endregion
-// #region LoopStudio API — moved to apps/store/loopstudio/server.js (plugin)
-// #endregion
 // #region WebTorrent Engine
 let torrentClient = null;
 const torrentPaused = new Set();
@@ -8925,11 +8905,6 @@ app.post('/api/ftp/rename', authMiddleware, async (req, res) => {
 });
 
 // #endregion
-
-// Synchronizer Engine → moved to apps/store/synchronizer/server.js (plugin)
-
-// Gmail App → moved to apps/store/gmail/server.js (plugin)
-
 // #region Playwright Service Proxy API
 // Forward requests to the Playwright Docker container (cloudpc-playwright)
 async function playwrightFetch(apiPath, opts = {}) {
