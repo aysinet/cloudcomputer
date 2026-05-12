@@ -44,186 +44,186 @@ const SERVER_I18N = {
     twoFAAlreadyDisabled: '2FA is already disabled',
     dockerManagerTimeout: 'Docker Manager timeout',
     dockerManagerConnectionError: 'Docker Manager connection error',
-    newMailTitle: (count) => `ğŸ“§ ${count} new email(s)`,
+    newMailTitle: (count) => `📧 ${count} new email(s)`,
     newMailText: (email, count) => `${count} new email(s) received at ${email}`,
     budgetIncome: 'Income',
     budgetExpense: 'Expense'
   },
   tr: {
-    invalidCredentials: 'GeÃ§ersiz kullanÄ±cÄ± adÄ± veya ÅŸifre',
-    sessionExpired: 'Oturum sÃ¼resi doldu, tekrar giriÅŸ yapÄ±n',
-    twoFANotConfigured: 'Ä°ki faktÃ¶rlÃ¼ doÄŸrulama yapÄ±landÄ±rÄ±lmamÄ±ÅŸ',
-    invalidVerificationCode: 'GeÃ§ersiz doÄŸrulama kodu',
-    verificationCodeRequired: 'DoÄŸrulama kodu gerekli',
-    start2FASetupFirst: 'Ã–nce 2FA kurulumu baÅŸlatÄ±n',
-    invalidCodeTryAgain: 'GeÃ§ersiz kod, tekrar deneyin',
-    twoFAAlreadyDisabled: '2FA zaten devre dÄ±ÅŸÄ±',
-    dockerManagerTimeout: 'Docker Manager zaman aÅŸÄ±mÄ±',
-    dockerManagerConnectionError: 'Docker Manager baÄŸlantÄ± hatasÄ±',
-    newMailTitle: (count) => `ğŸ“§ ${count} yeni mail`,
-    newMailText: (email, count) => `${email} hesabÄ±na ${count} yeni mail geldi`,
+    invalidCredentials: 'Geçersiz kullanıcı adı veya şifre',
+    sessionExpired: 'Oturum süresi doldu, tekrar giriş yapın',
+    twoFANotConfigured: 'İki faktörlü doğrulama yapılandırılmamış',
+    invalidVerificationCode: 'Geçersiz doğrulama kodu',
+    verificationCodeRequired: 'Doğrulama kodu gerekli',
+    start2FASetupFirst: 'Önce 2FA kurulumu başlatın',
+    invalidCodeTryAgain: 'Geçersiz kod, tekrar deneyin',
+    twoFAAlreadyDisabled: '2FA zaten devre dışı',
+    dockerManagerTimeout: 'Docker Manager zaman aşımı',
+    dockerManagerConnectionError: 'Docker Manager bağlantı hatası',
+    newMailTitle: (count) => `📧 ${count} yeni mail`,
+    newMailText: (email, count) => `${email} hesabına ${count} yeni mail geldi`,
     budgetIncome: 'Gelir',
     budgetExpense: 'Gider'
   },
   de: {
-    invalidCredentials: 'UngÃ¼ltiger Benutzername oder Passwort',
+    invalidCredentials: 'Ungültiger Benutzername oder Passwort',
     sessionExpired: 'Sitzung abgelaufen, bitte erneut anmelden',
     twoFANotConfigured: 'Zwei-Faktor-Authentifizierung nicht konfiguriert',
-    invalidVerificationCode: 'UngÃ¼ltiger BestÃ¤tigungscode',
-    verificationCodeRequired: 'BestÃ¤tigungscode erforderlich',
+    invalidVerificationCode: 'Ungültiger Bestätigungscode',
+    verificationCodeRequired: 'Bestätigungscode erforderlich',
     start2FASetupFirst: '2FA-Einrichtung zuerst starten',
-    invalidCodeTryAgain: 'UngÃ¼ltiger Code, erneut versuchen',
+    invalidCodeTryAgain: 'Ungültiger Code, erneut versuchen',
     twoFAAlreadyDisabled: '2FA ist bereits deaktiviert',
-    dockerManagerTimeout: 'Docker Manager ZeitÃ¼berschreitung',
+    dockerManagerTimeout: 'Docker Manager Zeitüberschreitung',
     dockerManagerConnectionError: 'Docker Manager Verbindungsfehler',
-    newMailTitle: (count) => `ğŸ“§ ${count} neue E-Mail(s)`,
+    newMailTitle: (count) => `📧 ${count} neue E-Mail(s)`,
     newMailText: (email, count) => `${count} neue E-Mail(s) bei ${email} empfangen`,
     budgetIncome: 'Einkommen',
     budgetExpense: 'Ausgabe'
   },
   fr: {
     invalidCredentials: "Nom d'utilisateur ou mot de passe invalide",
-    sessionExpired: 'Session expirÃ©e, veuillez vous reconnecter',
-    twoFANotConfigured: "Authentification Ã  deux facteurs non configurÃ©e",
-    invalidVerificationCode: 'Code de vÃ©rification invalide',
-    verificationCodeRequired: 'Code de vÃ©rification requis',
+    sessionExpired: 'Session expirée, veuillez vous reconnecter',
+    twoFANotConfigured: "Authentification à deux facteurs non configurée",
+    invalidVerificationCode: 'Code de vérification invalide',
+    verificationCodeRequired: 'Code de vérification requis',
     start2FASetupFirst: "Commencez d'abord la configuration 2FA",
-    invalidCodeTryAgain: 'Code invalide, rÃ©essayez',
-    twoFAAlreadyDisabled: '2FA est dÃ©jÃ  dÃ©sactivÃ©',
-    dockerManagerTimeout: 'DÃ©lai Docker Manager dÃ©passÃ©',
+    invalidCodeTryAgain: 'Code invalide, réessayez',
+    twoFAAlreadyDisabled: '2FA est déjà désactivé',
+    dockerManagerTimeout: 'Délai Docker Manager dépassé',
     dockerManagerConnectionError: 'Erreur de connexion Docker Manager',
-    newMailTitle: (count) => `ğŸ“§ ${count} nouveau(x) email(s)`,
-    newMailText: (email, count) => `${count} nouveau(x) email(s) reÃ§u(s) sur ${email}`,
+    newMailTitle: (count) => `📧 ${count} nouveau(x) email(s)`,
+    newMailText: (email, count) => `${count} nouveau(x) email(s) reçu(s) sur ${email}`,
     budgetIncome: 'Revenu',
-    budgetExpense: 'DÃ©pense'
+    budgetExpense: 'Dépense'
   },
   es: {
-    invalidCredentials: 'Nombre de usuario o contraseÃ±a invÃ¡lidos',
-    sessionExpired: 'SesiÃ³n expirada, inicie sesiÃ³n de nuevo',
-    twoFANotConfigured: 'AutenticaciÃ³n de dos factores no configurada',
-    invalidVerificationCode: 'CÃ³digo de verificaciÃ³n invÃ¡lido',
-    verificationCodeRequired: 'CÃ³digo de verificaciÃ³n requerido',
-    start2FASetupFirst: 'Primero inicie la configuraciÃ³n de 2FA',
-    invalidCodeTryAgain: 'CÃ³digo invÃ¡lido, intente de nuevo',
-    twoFAAlreadyDisabled: '2FA ya estÃ¡ desactivado',
+    invalidCredentials: 'Nombre de usuario o contraseña inválidos',
+    sessionExpired: 'Sesión expirada, inicie sesión de nuevo',
+    twoFANotConfigured: 'Autenticación de dos factores no configurada',
+    invalidVerificationCode: 'Código de verificación inválido',
+    verificationCodeRequired: 'Código de verificación requerido',
+    start2FASetupFirst: 'Primero inicie la configuración de 2FA',
+    invalidCodeTryAgain: 'Código inválido, intente de nuevo',
+    twoFAAlreadyDisabled: '2FA ya está desactivado',
     dockerManagerTimeout: 'Tiempo de espera de Docker Manager',
-    dockerManagerConnectionError: 'Error de conexiÃ³n de Docker Manager',
-    newMailTitle: (count) => `ğŸ“§ ${count} correo(s) nuevo(s)`,
+    dockerManagerConnectionError: 'Error de conexión de Docker Manager',
+    newMailTitle: (count) => `📧 ${count} correo(s) nuevo(s)`,
     newMailText: (email, count) => `${count} correo(s) nuevo(s) recibido(s) en ${email}`,
     budgetIncome: 'Ingreso',
     budgetExpense: 'Gasto'
   },
   ru: {
-    invalidCredentials: 'ĞĞµĞ²ĞµÑ€Ğ½Ğ¾Ğµ Ğ¸Ğ¼Ñ Ğ¿Ğ¾Ğ»ÑŒĞ·Ğ¾Ğ²Ğ°Ñ‚ĞµĞ»Ñ Ğ¸Ğ»Ğ¸ Ğ¿Ğ°Ñ€Ğ¾Ğ»ÑŒ',
-    sessionExpired: 'Ğ¡ĞµÑÑĞ¸Ñ Ğ¸ÑÑ‚ĞµĞºĞ»Ğ°, Ğ²Ğ¾Ğ¹Ğ´Ğ¸Ñ‚Ğµ ÑĞ½Ğ¾Ğ²Ğ°',
-    twoFANotConfigured: 'Ğ”Ğ²ÑƒÑ…Ñ„Ğ°ĞºÑ‚Ğ¾Ñ€Ğ½Ğ°Ñ Ğ°ÑƒÑ‚ĞµĞ½Ñ‚Ğ¸Ñ„Ğ¸ĞºĞ°Ñ†Ğ¸Ñ Ğ½Ğµ Ğ½Ğ°ÑÑ‚Ñ€Ğ¾ĞµĞ½Ğ°',
-    invalidVerificationCode: 'ĞĞµĞ²ĞµÑ€Ğ½Ñ‹Ğ¹ ĞºĞ¾Ğ´ Ğ¿Ğ¾Ğ´Ñ‚Ğ²ĞµÑ€Ğ¶Ğ´ĞµĞ½Ğ¸Ñ',
-    verificationCodeRequired: 'Ğ¢Ñ€ĞµĞ±ÑƒĞµÑ‚ÑÑ ĞºĞ¾Ğ´ Ğ¿Ğ¾Ğ´Ñ‚Ğ²ĞµÑ€Ğ¶Ğ´ĞµĞ½Ğ¸Ñ',
-    start2FASetupFirst: 'Ğ¡Ğ½Ğ°Ñ‡Ğ°Ğ»Ğ° Ğ½Ğ°Ñ‡Ğ½Ğ¸Ñ‚Ğµ Ğ½Ğ°ÑÑ‚Ñ€Ğ¾Ğ¹ĞºÑƒ 2FA',
-    invalidCodeTryAgain: 'ĞĞµĞ²ĞµÑ€Ğ½Ñ‹Ğ¹ ĞºĞ¾Ğ´, Ğ¿Ğ¾Ğ¿Ñ€Ğ¾Ğ±ÑƒĞ¹Ñ‚Ğµ ÑĞ½Ğ¾Ğ²Ğ°',
-    twoFAAlreadyDisabled: '2FA ÑƒĞ¶Ğµ Ğ¾Ñ‚ĞºĞ»ÑÑ‡ĞµĞ½Ğ°',
-    dockerManagerTimeout: 'Ğ¢Ğ°Ğ¹Ğ¼-Ğ°ÑƒÑ‚ Docker Manager',
-    dockerManagerConnectionError: 'ĞÑˆĞ¸Ğ±ĞºĞ° Ğ¿Ğ¾Ğ´ĞºĞ»ÑÑ‡ĞµĞ½Ğ¸Ñ Docker Manager',
-    newMailTitle: (count) => `ğŸ“§ ${count} Ğ½Ğ¾Ğ²Ğ¾Ğµ Ğ¿Ğ¸ÑÑŒĞ¼Ğ¾`,
-    newMailText: (email, count) => `${count} Ğ½Ğ¾Ğ²Ñ‹Ñ… Ğ¿Ğ¸ÑĞµĞ¼ Ğ¿Ğ¾Ğ»ÑƒÑ‡ĞµĞ½Ğ¾ Ğ½Ğ° ${email}`,
-    budgetIncome: 'Ğ”Ğ¾Ñ…Ğ¾Ğ´',
-    budgetExpense: 'Ğ Ğ°ÑÑ…Ğ¾Ğ´'
+    invalidCredentials: 'ĞĞµĞ²ĞµрĞ½Ğ¾Ğµ Ğ¸Ğ¼я Ğ¿Ğ¾Ğ»ьĞ·Ğ¾Ğ²Ğ°тĞµĞ»я Ğ¸Ğ»Ğ¸ Ğ¿Ğ°рĞ¾Ğ»ь',
+    sessionExpired: 'Ğ¡ĞµссĞ¸я Ğ¸стĞµĞºĞ»Ğ°, Ğ²Ğ¾Ğ¹Ğ´Ğ¸тĞµ сĞ½Ğ¾Ğ²Ğ°',
+    twoFANotConfigured: 'Ğ”Ğ²ухфĞ°ĞºтĞ¾рĞ½Ğ°я Ğ°утĞµĞ½тĞ¸фĞ¸ĞºĞ°цĞ¸я Ğ½Ğµ Ğ½Ğ°стрĞ¾ĞµĞ½Ğ°',
+    invalidVerificationCode: 'ĞĞµĞ²ĞµрĞ½ыĞ¹ ĞºĞ¾Ğ´ Ğ¿Ğ¾Ğ´тĞ²ĞµрĞ¶Ğ´ĞµĞ½Ğ¸я',
+    verificationCodeRequired: 'Ğ¢рĞµĞ±уĞµтся ĞºĞ¾Ğ´ Ğ¿Ğ¾Ğ´тĞ²ĞµрĞ¶Ğ´ĞµĞ½Ğ¸я',
+    start2FASetupFirst: 'Ğ¡Ğ½Ğ°чĞ°Ğ»Ğ° Ğ½Ğ°чĞ½Ğ¸тĞµ Ğ½Ğ°стрĞ¾Ğ¹Ğºу 2FA',
+    invalidCodeTryAgain: 'ĞĞµĞ²ĞµрĞ½ыĞ¹ ĞºĞ¾Ğ´, Ğ¿Ğ¾Ğ¿рĞ¾Ğ±уĞ¹тĞµ сĞ½Ğ¾Ğ²Ğ°',
+    twoFAAlreadyDisabled: '2FA уĞ¶Ğµ Ğ¾тĞºĞ»ючĞµĞ½Ğ°',
+    dockerManagerTimeout: 'Ğ¢Ğ°Ğ¹Ğ¼-Ğ°ут Docker Manager',
+    dockerManagerConnectionError: 'ĞшĞ¸Ğ±ĞºĞ° Ğ¿Ğ¾Ğ´ĞºĞ»ючĞµĞ½Ğ¸я Docker Manager',
+    newMailTitle: (count) => `📧 ${count} Ğ½Ğ¾Ğ²Ğ¾Ğµ Ğ¿Ğ¸сьĞ¼Ğ¾`,
+    newMailText: (email, count) => `${count} Ğ½Ğ¾Ğ²ых Ğ¿Ğ¸сĞµĞ¼ Ğ¿Ğ¾Ğ»учĞµĞ½Ğ¾ Ğ½Ğ° ${email}`,
+    budgetIncome: 'Ğ”Ğ¾хĞ¾Ğ´',
+    budgetExpense: 'Ğ Ğ°схĞ¾Ğ´'
   },
   zh: {
-    invalidCredentials: 'ç”¨æˆ·åæˆ–å¯†ç æ— æ•ˆ',
-    sessionExpired: 'ä¼šè¯å·²è¿‡æœŸï¼Œè¯·é‡æ–°ç™»å½•',
-    twoFANotConfigured: 'æœªé…ç½®åŒå› ç´ è®¤è¯',
-    invalidVerificationCode: 'éªŒè¯ç æ— æ•ˆ',
-    verificationCodeRequired: 'éœ€è¦éªŒè¯ç ',
-    start2FASetupFirst: 'è¯·å…ˆå¼€å§‹2FAè®¾ç½®',
-    invalidCodeTryAgain: 'æ— æ•ˆä»£ç ï¼Œè¯·é‡è¯•',
-    twoFAAlreadyDisabled: '2FAå·²ç¦ç”¨',
-    dockerManagerTimeout: 'Docker Managerè¶…æ—¶',
-    dockerManagerConnectionError: 'Docker Managerè¿æ¥é”™è¯¯',
-    newMailTitle: (count) => `ğŸ“§ ${count} å°æ–°é‚®ä»¶`,
-    newMailText: (email, count) => `${email} æ”¶åˆ° ${count} å°æ–°é‚®ä»¶`,
-    budgetIncome: 'æ”¶å…¥',
-    budgetExpense: 'æ”¯å‡º'
+    invalidCredentials: '用户名或密码无效',
+    sessionExpired: '会话已过期，请重新登录',
+    twoFANotConfigured: '未配置双因素认证',
+    invalidVerificationCode: '验证码无效',
+    verificationCodeRequired: '需要验证码',
+    start2FASetupFirst: '请先开始2FA设置',
+    invalidCodeTryAgain: '无效代码，请重试',
+    twoFAAlreadyDisabled: '2FA已禁用',
+    dockerManagerTimeout: 'Docker Manager超时',
+    dockerManagerConnectionError: 'Docker Manager连接错误',
+    newMailTitle: (count) => `📧 ${count} 封新邮件`,
+    newMailText: (email, count) => `${email} 收到 ${count} 封新邮件`,
+    budgetIncome: '收入',
+    budgetExpense: '支出'
   },
   ja: {
-    invalidCredentials: 'ãƒ¦ãƒ¼ã‚¶ãƒ¼åã¾ãŸã¯ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ãŒç„¡åŠ¹ã§ã™',
-    sessionExpired: 'ã‚»ãƒƒã‚·ãƒ§ãƒ³ãŒæœŸé™åˆ‡ã‚Œã§ã™ã€‚å†åº¦ãƒ­ã‚°ã‚¤ãƒ³ã—ã¦ãã ã•ã„',
-    twoFANotConfigured: 'äºŒè¦ç´ èªè¨¼ãŒè¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“',
-    invalidVerificationCode: 'ç¢ºèªã‚³ãƒ¼ãƒ‰ãŒç„¡åŠ¹ã§ã™',
-    verificationCodeRequired: 'ç¢ºèªã‚³ãƒ¼ãƒ‰ãŒå¿…è¦ã§ã™',
-    start2FASetupFirst: 'æœ€åˆã«2FAã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—ã‚’é–‹å§‹ã—ã¦ãã ã•ã„',
-    invalidCodeTryAgain: 'ç„¡åŠ¹ãªã‚³ãƒ¼ãƒ‰ã€ã‚‚ã†ä¸€åº¦ãŠè©¦ã—ãã ã•ã„',
-    twoFAAlreadyDisabled: '2FAã¯æ—¢ã«ç„¡åŠ¹ã§ã™',
-    dockerManagerTimeout: 'Docker Managerã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆ',
-    dockerManagerConnectionError: 'Docker Manageræ¥ç¶šã‚¨ãƒ©ãƒ¼',
-    newMailTitle: (count) => `ğŸ“§ ${count} ä»¶ã®æ–°ç€ãƒ¡ãƒ¼ãƒ«`,
-    newMailText: (email, count) => `${email} ã« ${count} ä»¶ã®æ–°ç€ãƒ¡ãƒ¼ãƒ«`,
-    budgetIncome: 'åå…¥',
-    budgetExpense: 'æ”¯å‡º'
+    invalidCredentials: 'ユーザー名またはパスワードが無効です',
+    sessionExpired: 'セッションが期限切れです。再度ログインしてください',
+    twoFANotConfigured: '二要素認証が設定されていません',
+    invalidVerificationCode: '確認コードが無効です',
+    verificationCodeRequired: '確認コードが必要です',
+    start2FASetupFirst: '最初に2FAセットアップを開始してください',
+    invalidCodeTryAgain: '無効なコード、もう一度お試しください',
+    twoFAAlreadyDisabled: '2FAは既に無効です',
+    dockerManagerTimeout: 'Docker Managerタイムアウト',
+    dockerManagerConnectionError: 'Docker Manager接続エラー',
+    newMailTitle: (count) => `📧 ${count} 件の新着メール`,
+    newMailText: (email, count) => `${email} に ${count} 件の新着メール`,
+    budgetIncome: '収入',
+    budgetExpense: '支出'
   },
   ko: {
-    invalidCredentials: 'ì˜ëª»ëœ ì‚¬ìš©ì ì´ë¦„ ë˜ëŠ” ë¹„ë°€ë²ˆí˜¸',
-    sessionExpired: 'ì„¸ì…˜ì´ ë§Œë£Œë˜ì—ˆìŠµë‹ˆë‹¤. ë‹¤ì‹œ ë¡œê·¸ì¸í•˜ì„¸ìš”',
-    twoFANotConfigured: 'ì´ì¤‘ ì¸ì¦ì´ êµ¬ì„±ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤',
-    invalidVerificationCode: 'ì˜ëª»ëœ ì¸ì¦ ì½”ë“œ',
-    verificationCodeRequired: 'ì¸ì¦ ì½”ë“œê°€ í•„ìš”í•©ë‹ˆë‹¤',
-    start2FASetupFirst: 'ë¨¼ì € 2FA ì„¤ì •ì„ ì‹œì‘í•˜ì„¸ìš”',
-    invalidCodeTryAgain: 'ì˜ëª»ëœ ì½”ë“œ, ë‹¤ì‹œ ì‹œë„í•˜ì„¸ìš”',
-    twoFAAlreadyDisabled: '2FAê°€ ì´ë¯¸ ë¹„í™œì„±í™”ë˜ì–´ ìˆìŠµë‹ˆë‹¤',
-    dockerManagerTimeout: 'Docker Manager ì‹œê°„ ì´ˆê³¼',
-    dockerManagerConnectionError: 'Docker Manager ì—°ê²° ì˜¤ë¥˜',
-    newMailTitle: (count) => `ğŸ“§ ${count}ê°œì˜ ìƒˆ ë©”ì¼`,
-    newMailText: (email, count) => `${email}ì— ${count}ê°œì˜ ìƒˆ ë©”ì¼ ìˆ˜ì‹ `,
-    budgetIncome: 'ìˆ˜ì…',
-    budgetExpense: 'ì§€ì¶œ'
+    invalidCredentials: '잘못된 사용자 이름 또는 비밀번호',
+    sessionExpired: '세션이 만료되었습니다. 다시 로그인하세요',
+    twoFANotConfigured: '이중 인증이 구성되지 않았습니다',
+    invalidVerificationCode: '잘못된 인증 코드',
+    verificationCodeRequired: '인증 코드가 필요합니다',
+    start2FASetupFirst: '먼저 2FA 설정을 시작하세요',
+    invalidCodeTryAgain: '잘못된 코드, 다시 시도하세요',
+    twoFAAlreadyDisabled: '2FA가 이미 비활성화되어 있습니다',
+    dockerManagerTimeout: 'Docker Manager 시간 초과',
+    dockerManagerConnectionError: 'Docker Manager 연결 오류',
+    newMailTitle: (count) => `📧 ${count}개의 새 메일`,
+    newMailText: (email, count) => `${email}에 ${count}개의 새 메일 수신`,
+    budgetIncome: '수입',
+    budgetExpense: '지출'
   },
   ar: {
-    invalidCredentials: 'Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø£Ùˆ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ØºÙŠØ± ØµØ§Ù„Ø­Ø©',
-    sessionExpired: 'Ø§Ù†ØªÙ‡Øª Ø§Ù„Ø¬Ù„Ø³Ø©ØŒ ÙŠØ±Ø¬Ù‰ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰',
-    twoFANotConfigured: 'Ù„Ù… ÙŠØªÙ… ØªÙƒÙˆÙŠÙ† Ø§Ù„Ù…ØµØ§Ø¯Ù‚Ø© Ø§Ù„Ø«Ù†Ø§Ø¦ÙŠØ©',
-    invalidVerificationCode: 'Ø±Ù…Ø² Ø§Ù„ØªØ­Ù‚Ù‚ ØºÙŠØ± ØµØ§Ù„Ø­',
-    verificationCodeRequired: 'Ø±Ù…Ø² Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ø·Ù„ÙˆØ¨',
-    start2FASetupFirst: 'Ø§Ø¨Ø¯Ø£ Ø¥Ø¹Ø¯Ø§Ø¯ 2FA Ø£ÙˆÙ„Ø§Ù‹',
-    invalidCodeTryAgain: 'Ø±Ù…Ø² ØºÙŠØ± ØµØ§Ù„Ø­ØŒ Ø­Ø§ÙˆÙ„ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰',
-    twoFAAlreadyDisabled: '2FA Ù…Ø¹Ø·Ù„ Ø¨Ø§Ù„ÙØ¹Ù„',
-    dockerManagerTimeout: 'Ø§Ù†ØªÙ‡Øª Ù…Ù‡Ù„Ø© Docker Manager',
-    dockerManagerConnectionError: 'Ø®Ø·Ø£ ÙÙŠ Ø§ØªØµØ§Ù„ Docker Manager',
-    newMailTitle: (count) => `ğŸ“§ ${count} Ø¨Ø±ÙŠØ¯ Ø¬Ø¯ÙŠØ¯`,
-    newMailText: (email, count) => `ØªÙ… Ø§Ø³ØªÙ„Ø§Ù… ${count} Ø¨Ø±ÙŠØ¯ Ø¬Ø¯ÙŠØ¯ Ø¹Ù„Ù‰ ${email}`,
-    budgetIncome: 'Ø¯Ø®Ù„',
-    budgetExpense: 'Ù…ØµØ±ÙˆÙ'
+    invalidCredentials: 'اسم المستخدم أو كلمة المرور غير صالحة',
+    sessionExpired: 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى',
+    twoFANotConfigured: 'لم يتم تكوين المصادقة الثنائية',
+    invalidVerificationCode: 'رمز التحقق غير صالح',
+    verificationCodeRequired: 'رمز التحقق مطلوب',
+    start2FASetupFirst: 'ابدأ إعداد 2FA أولاً',
+    invalidCodeTryAgain: 'رمز غير صالح، حاول مرة أخرى',
+    twoFAAlreadyDisabled: '2FA معطل بالفعل',
+    dockerManagerTimeout: 'انتهت مهلة Docker Manager',
+    dockerManagerConnectionError: 'خطأ في اتصال Docker Manager',
+    newMailTitle: (count) => `📧 ${count} بريد جديد`,
+    newMailText: (email, count) => `تم استلام ${count} بريد جديد على ${email}`,
+    budgetIncome: 'دخل',
+    budgetExpense: 'مصروف'
   },
   pt: {
-    invalidCredentials: 'Nome de usuÃ¡rio ou senha invÃ¡lidos',
-    sessionExpired: 'SessÃ£o expirada, faÃ§a login novamente',
-    twoFANotConfigured: 'AutenticaÃ§Ã£o de dois fatores nÃ£o configurada',
-    invalidVerificationCode: 'CÃ³digo de verificaÃ§Ã£o invÃ¡lido',
-    verificationCodeRequired: 'CÃ³digo de verificaÃ§Ã£o necessÃ¡rio',
-    start2FASetupFirst: 'Inicie a configuraÃ§Ã£o 2FA primeiro',
-    invalidCodeTryAgain: 'CÃ³digo invÃ¡lido, tente novamente',
-    twoFAAlreadyDisabled: '2FA jÃ¡ estÃ¡ desativado',
+    invalidCredentials: 'Nome de usuário ou senha inválidos',
+    sessionExpired: 'Sessão expirada, faça login novamente',
+    twoFANotConfigured: 'Autenticação de dois fatores não configurada',
+    invalidVerificationCode: 'Código de verificação inválido',
+    verificationCodeRequired: 'Código de verificação necessário',
+    start2FASetupFirst: 'Inicie a configuração 2FA primeiro',
+    invalidCodeTryAgain: 'Código inválido, tente novamente',
+    twoFAAlreadyDisabled: '2FA já está desativado',
     dockerManagerTimeout: 'Tempo limite do Docker Manager',
-    dockerManagerConnectionError: 'Erro de conexÃ£o do Docker Manager',
-    newMailTitle: (count) => `ğŸ“§ ${count} novo(s) email(s)`,
+    dockerManagerConnectionError: 'Erro de conexão do Docker Manager',
+    newMailTitle: (count) => `📧 ${count} novo(s) email(s)`,
     newMailText: (email, count) => `${count} novo(s) email(s) recebido(s) em ${email}`,
     budgetIncome: 'Receita',
     budgetExpense: 'Despesa'
   },
   hi: {
-    invalidCredentials: 'à¤…à¤®à¤¾à¤¨à¥à¤¯ à¤‰à¤ªà¤¯à¥‹à¤—à¤•à¤°à¥à¤¤à¤¾ à¤¨à¤¾à¤® à¤¯à¤¾ à¤ªà¤¾à¤¸à¤µà¤°à¥à¤¡',
-    sessionExpired: 'à¤¸à¤¤à¥à¤° à¤¸à¤®à¤¾à¤ªà¥à¤¤ à¤¹à¥‹ à¤—à¤¯à¤¾, à¤•à¥ƒà¤ªà¤¯à¤¾ à¤«à¤¿à¤° à¤¸à¥‡ à¤²à¥‰à¤—à¤¿à¤¨ à¤•à¤°à¥‡à¤‚',
-    twoFANotConfigured: 'à¤¦à¥‹-à¤•à¤¾à¤°à¤• à¤ªà¥à¤°à¤®à¤¾à¤£à¥€à¤•à¤°à¤£ à¤•à¥‰à¤¨à¥à¤«à¤¼à¤¿à¤—à¤° à¤¨à¤¹à¥€à¤‚ à¤•à¤¿à¤¯à¤¾ à¤—à¤¯à¤¾',
-    invalidVerificationCode: 'à¤…à¤®à¤¾à¤¨à¥à¤¯ à¤¸à¤¤à¥à¤¯à¤¾à¤ªà¤¨ à¤•à¥‹à¤¡',
-    verificationCodeRequired: 'à¤¸à¤¤à¥à¤¯à¤¾à¤ªà¤¨ à¤•à¥‹à¤¡ à¤†à¤µà¤¶à¥à¤¯à¤•',
-    start2FASetupFirst: 'à¤ªà¤¹à¤²à¥‡ 2FA à¤¸à¥‡à¤Ÿà¤…à¤ª à¤¶à¥à¤°à¥‚ à¤•à¤°à¥‡à¤‚',
-    invalidCodeTryAgain: 'à¤…à¤®à¤¾à¤¨à¥à¤¯ à¤•à¥‹à¤¡, à¤ªà¥à¤¨à¤ƒ à¤ªà¥à¤°à¤¯à¤¾à¤¸ à¤•à¤°à¥‡à¤‚',
-    twoFAAlreadyDisabled: '2FA à¤ªà¤¹à¤²à¥‡ à¤¸à¥‡ à¤…à¤•à¥à¤·à¤® à¤¹à¥ˆ',
-    dockerManagerTimeout: 'Docker Manager à¤Ÿà¤¾à¤‡à¤®à¤†à¤‰à¤Ÿ',
-    dockerManagerConnectionError: 'Docker Manager à¤•à¤¨à¥‡à¤•à¥à¤¶à¤¨ à¤¤à¥à¤°à¥à¤Ÿà¤¿',
-    newMailTitle: (count) => `ğŸ“§ ${count} à¤¨à¤¯à¤¾ à¤ˆà¤®à¥‡à¤²`,
-    newMailText: (email, count) => `${email} à¤ªà¤° ${count} à¤¨à¤¯à¤¾ à¤ˆà¤®à¥‡à¤² à¤ªà¥à¤°à¤¾à¤ªà¥à¤¤`,
-    budgetIncome: 'à¤†à¤¯',
-    budgetExpense: 'à¤µà¥à¤¯à¤¯'
+    invalidCredentials: 'अमान्य उपयोगकर्ता नाम या पासवर्ड',
+    sessionExpired: 'सत्र समाप्त हो गया, कृपया फिर से लॉगिन करें',
+    twoFANotConfigured: 'दो-कारक प्रमाणीकरण कॉन्फ़िगर नहीं किया गया',
+    invalidVerificationCode: 'अमान्य सत्यापन कोड',
+    verificationCodeRequired: 'सत्यापन कोड आवश्यक',
+    start2FASetupFirst: 'पहले 2FA सेटअप शुरू करें',
+    invalidCodeTryAgain: 'अमान्य कोड, पुनः प्रयास करें',
+    twoFAAlreadyDisabled: '2FA पहले से अक्षम है',
+    dockerManagerTimeout: 'Docker Manager टाइमआउट',
+    dockerManagerConnectionError: 'Docker Manager कनेक्शन त्रुटि',
+    newMailTitle: (count) => `📧 ${count} नया ईमेल`,
+    newMailText: (email, count) => `${email} पर ${count} नया ईमेल प्राप्त`,
+    budgetIncome: 'आय',
+    budgetExpense: 'व्यय'
   },
   it: {
     invalidCredentials: 'Nome utente o password non validi',
@@ -233,10 +233,10 @@ const SERVER_I18N = {
     verificationCodeRequired: 'Codice di verifica richiesto',
     start2FASetupFirst: 'Avvia prima la configurazione 2FA',
     invalidCodeTryAgain: 'Codice non valido, riprova',
-    twoFAAlreadyDisabled: '2FA Ã¨ giÃ  disattivato',
+    twoFAAlreadyDisabled: '2FA è già disattivato',
     dockerManagerTimeout: 'Timeout Docker Manager',
     dockerManagerConnectionError: 'Errore di connessione Docker Manager',
-    newMailTitle: (count) => `ğŸ“§ ${count} nuova/e email`,
+    newMailTitle: (count) => `📧 ${count} nuova/e email`,
     newMailText: (email, count) => `${count} nuova/e email ricevuta/e su ${email}`,
     budgetIncome: 'Entrata',
     budgetExpense: 'Spesa'
@@ -266,7 +266,7 @@ function getUserLocale(username) {
 const app = express();
 const server = http.createServer(app);
 
-// Global error handlers â€” prevent server crash on unhandled errors
+// Global error handlers — prevent server crash on unhandled errors
 process.on('uncaughtException', (err) => {
   console.error('[FATAL] Uncaught Exception:', err.message, err.stack);
 });
@@ -362,7 +362,7 @@ async function dmFetch(dmPath, opts = {}) {
   const contentType = res.headers.get('content-type') || '';
   if (!contentType.includes('application/json')) {
     const text = (await res.text()).substring(0, 200);
-    throw new Error(`Docker Manager beklenmeyen yanÄ±t (${res.status}): ${text}`);
+    throw new Error(`Docker Manager beklenmeyen yanıt (${res.status}): ${text}`);
   }
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || `DockerManager error: ${res.status}`);
@@ -1485,7 +1485,7 @@ app.post('/api/wikipedia/save-pdf', authMiddleware, async (req, res) => {
 
     // Footer
     doc.moveDown(1);
-    doc.fontSize(8).font('Helvetica').fillColor('#999999').text('Generated from Wikipedia â€” ' + new Date().toLocaleDateString(), { align: 'center' });
+    doc.fontSize(8).font('Helvetica').fillColor('#999999').text('Generated from Wikipedia — ' + new Date().toLocaleDateString(), { align: 'center' });
 
     doc.end();
     const pdfBuffer = await pdfReady;
@@ -1868,7 +1868,7 @@ function storeCookiesFromResponse(jar, resp, requestUrl) {
     if (!c) continue;
     const domain = c.domain || '';
     if (!jar[domain]) jar[domain] = {};
-    // Check if expired â†’ delete
+    // Check if expired → delete
     if (c.expires && new Date(c.expires).getTime() < Date.now()) {
       delete jar[domain][c.name];
     } else {
@@ -1902,7 +1902,7 @@ function isPrivateHost(hostname) {
   return /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.|localhost|::1|\[::1\])/i.test(hostname);
 }
 
-// Session proxy GET â€” loads page with server-side cookies
+// Session proxy GET — loads page with server-side cookies
 app.get('/api/proxy-session/:appId', authMiddleware, async (req, res) => {
   const appId = req.params.appId;
   const targetUrl = req.query.url;
@@ -2014,7 +2014,7 @@ app.get('/api/proxy-session/:appId', authMiddleware, async (req, res) => {
   }
 });
 
-// Session proxy XHR â€” handles XHR/fetch with server-side cookies
+// Session proxy XHR — handles XHR/fetch with server-side cookies
 app.post('/api/proxy-session/:appId/xhr', authMiddleware, async (req, res) => {
   const appId = req.params.appId;
   const targetUrl = req.body.url;
@@ -2302,8 +2302,8 @@ async function checkRmqAlerts() {
         if (srv.alerts.global && srv.alerts.global.limit > 0 && totalMessages >= srv.alerts.global.limit) {
           const notif = {
             id: crypto.randomUUID(),
-            icon: 'ğŸ°', bg: '#fff3e0',
-            title: 'ğŸ° RabbitMQ Alert â€” ' + srv.name,
+            icon: '🐰', bg: '#fff3e0',
+            title: '🐰 RabbitMQ Alert — ' + srv.name,
             text: `Total ${totalMessages} messages (limit: ${srv.alerts.global.limit}) on ${srv.host}:${srv.port}`,
             time: new Date().toISOString(),
             read: false,
@@ -2321,8 +2321,8 @@ async function checkRmqAlerts() {
             if (q.messages >= rule.limit) {
               const notif = {
                 id: crypto.randomUUID(),
-                icon: 'ğŸ°', bg: '#fff3e0',
-                title: 'ğŸ° RabbitMQ Alert â€” ' + srv.name,
+                icon: '🐰', bg: '#fff3e0',
+                title: '🐰 RabbitMQ Alert — ' + srv.name,
                 text: `Queue "${rule.queue}": ${q.messages} messages (limit: ${rule.limit}) on ${srv.host}:${srv.port}`,
                 time: new Date().toISOString(),
                 read: false,
@@ -2603,7 +2603,7 @@ function getProxyMode(appId) {
   const stApps = getStoreApps();
   const appMf = stApps.find(a => a.id === appId);
   if (appMf?.proxyMode) return appMf.proxyMode;
-  // VirtPC containers use noVNC which requires WebSocket â€” use hpm mode
+  // VirtPC containers use noVNC which requires WebSocket — use hpm mode
   if (appId.startsWith('virtpc-')) return 'hpm';
   return 'default';
 }
@@ -2773,7 +2773,7 @@ app.post('/api/docker/cleanup', authMiddleware, async (req, res) => {
   }
 });
 
-// â”€â”€ Docker network info for Settings panel â”€â”€
+// ── Docker network info for Settings panel ──
 app.get('/api/docker/network', authMiddleware, async (req, res) => {
   try {
     let dmOnline = false;
@@ -2806,10 +2806,10 @@ app.get('/api/docker/network', authMiddleware, async (req, res) => {
 // #endregion
 // #region External App Proxy
 // Supports multiple proxy modes via app.json "proxyMode" field:
-//   "hpm"        â€” http-proxy-middleware (best for non-standard HTTP responses, e.g. rmeira/chess)
-//   "pathprefix" â€” keeps /proxy/{appId} prefix in forwarded path (for apps using path-prefix, e.g. TiddlyWiki)
-//   "rewrite"    â€” like default but rewrites absolute paths in HTML responses (for Vite SPA apps)
-//   "default"    â€” http.request with IPv4 forcing, strips /proxy/{appId} prefix (default)
+//   "hpm"        — http-proxy-middleware (best for non-standard HTTP responses, e.g. rmeira/chess)
+//   "pathprefix" — keeps /proxy/{appId} prefix in forwarded path (for apps using path-prefix, e.g. TiddlyWiki)
+//   "rewrite"    — like default but rewrites absolute paths in HTML responses (for Vite SPA apps)
+//   "default"    — http.request with IPv4 forcing, strips /proxy/{appId} prefix (default)
 
 app.use('/proxy/:appId', async (req, res, next) => {
   const appId = req.params.appId.replace(/[^a-zA-Z0-9_-]/g, '');
@@ -2850,7 +2850,7 @@ app.use('/proxy/:appId', async (req, res, next) => {
 
   if (!targetBase) return res.status(404).json({ error: 'App proxy not found' });
 
-  // â”€â”€ HPM mode: use http-proxy-middleware (original simple approach) â”€â”€
+  // ── HPM mode: use http-proxy-middleware (original simple approach) ──
   if (proxyMode === 'hpm') {
     const dynP = proxyCache[appId];
     if (dynP && !dynP.middleware) {
@@ -2880,7 +2880,7 @@ app.use('/proxy/:appId', async (req, res, next) => {
     if (dynP && dynP.middleware) return dynP.middleware(req, res, next);
   }
 
-  // â”€â”€ Pathprefix mode: keep /proxy/{appId} prefix (app uses path-prefix to expect it) â”€â”€
+  // ── Pathprefix mode: keep /proxy/{appId} prefix (app uses path-prefix to expect it) ──
   if (proxyMode === 'pathprefix') {
     const target = new URL(req.originalUrl, targetBase);
     const hostname = (target.hostname === 'localhost') ? '127.0.0.1' : target.hostname;
@@ -2923,7 +2923,7 @@ app.use('/proxy/:appId', async (req, res, next) => {
     return;
   }
 
-  // â”€â”€ Rewrite mode: like default but rewrites absolute paths in HTML responses â”€â”€
+  // ── Rewrite mode: like default but rewrites absolute paths in HTML responses ──
   if (proxyMode === 'rewrite') {
     const targetPath = req.originalUrl.replace(new RegExp(`^/proxy/${appId}`), '') || '/';
     const target = new URL(targetPath, targetBase);
@@ -2980,7 +2980,7 @@ app.use('/proxy/:appId', async (req, res, next) => {
           }
 
           if (ct.includes('javascript') || ct.includes('text/css')) {
-            // Rewrite absolute path string literals in JS/CSS: "/path" or '/path' â†’ "/proxy/appId/path"
+            // Rewrite absolute path string literals in JS/CSS: "/path" or '/path' → "/proxy/appId/path"
             body = body.replace(/(["'])(\/(?:api|static|library|kcab|sw\.js)[^\s"']*)\1/g, (m, q, p) => {
               if (p.startsWith(prefix + '/')) return m;
               return q + prefix + p + q;
@@ -2992,7 +2992,7 @@ app.use('/proxy/:appId', async (req, res, next) => {
             body = workerFix + body;
           }
           if (ct.includes('text/css')) {
-            // Rewrite unquoted url() paths in CSS: url(/static/...) â†’ url(/proxy/appId/static/...)
+            // Rewrite unquoted url() paths in CSS: url(/static/...) → url(/proxy/appId/static/...)
             body = body.replace(/url\(\s*(\/(?:static|api|assets|fonts|media)[^\s)"']*)\s*\)/g, (m, p) => {
               if (p.startsWith(prefix + '/')) return m;
               return 'url(' + prefix + p + ')';
@@ -3037,12 +3037,12 @@ app.use('/proxy/:appId', async (req, res, next) => {
     return;
   }
 
-  // â”€â”€ Default mode: http.request with IPv4 forcing â”€â”€
+  // ── Default mode: http.request with IPv4 forcing ──
   const targetPath = req.originalUrl.replace(new RegExp(`^/proxy/${appId}`), '') || '/';
   const target = new URL(targetPath, targetBase);
   const hostname = (target.hostname === 'localhost') ? '127.0.0.1' : target.hostname;
 
-  console.log(`[PROXY] ${appId}: ${req.method} ${req.originalUrl} â†’ ${target.href}`);
+  console.log(`[PROXY] ${appId}: ${req.method} ${req.originalUrl} → ${target.href}`);
 
   const options = {
     hostname,
@@ -3229,9 +3229,9 @@ app.post('/api/2fa/disable', authMiddleware, (req, res) => {
 // #region AI Chat & Settings
 const OLLAMA_URL = process.env.OLLAMA_URL || null;
 
-// Metadata for free (noKeyRequired) providers â€” used for auto-setup in user settings
+// Metadata for free (noKeyRequired) providers — used for auto-setup in user settings
 const FREE_PROVIDER_META = {
-  ollama: { name: 'Ollama (Local)', icon: 'ğŸ¦™', defaultModel: 'llama3.2' }
+  ollama: { name: 'Ollama (Local)', icon: '🦙', defaultModel: 'llama3.2' }
 };
 
 const AI_PROVIDER_ENDPOINTS = {
@@ -3279,7 +3279,7 @@ function getUserAISettings(username) {
   for (const [id, ep] of Object.entries(AI_PROVIDER_ENDPOINTS)) {
     if (!ep.noKeyRequired) continue;
     if (data.providers.some(p => p.id === id)) continue;
-    const meta = FREE_PROVIDER_META[id] || { name: id, icon: 'ğŸ¤–', defaultModel: '' };
+    const meta = FREE_PROVIDER_META[id] || { name: id, icon: '🤖', defaultModel: '' };
     data.providers.unshift({
       id,
       name: meta.name,
@@ -3304,10 +3304,10 @@ function saveUserAISettings(username, data) {
 
 app.get('/api/ai-settings', authMiddleware, (req, res) => {
   const data = getUserAISettings(req.user.username);
-  // Mask API keys â€” send only boolean flag of whether key is set
+  // Mask API keys — send only boolean flag of whether key is set
   const maskedProviders = (data.providers || []).map(p => ({
     ...p,
-    apiKey: p.apiKey ? 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢' : ''
+    apiKey: p.apiKey ? '••••••••' : ''
   }));
   res.json({ providers: maskedProviders, agents: data.agents || [] });
 });
@@ -3319,16 +3319,16 @@ app.post('/api/ai-settings', authMiddleware, (req, res) => {
   }
   const existing = getUserAISettings(req.user.username);
   const sanitizedProviders = providers.slice(0, 50).map(p => {
-    // If masked key (â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢) sent back, preserve the original key
+    // If masked key (••••••••) sent back, preserve the original key
     let apiKey = String(p.apiKey || '');
-    if (apiKey === 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢') {
+    if (apiKey === '••••••••') {
       const orig = (existing.providers || []).find(ep => ep.id === p.id);
       apiKey = orig ? orig.apiKey : '';
     }
     return {
       id: String(p.id || '').slice(0, 50),
       name: String(p.name || '').slice(0, 100),
-      icon: String(p.icon || 'ğŸ”§').slice(0, 10),
+      icon: String(p.icon || '🔧').slice(0, 10),
       defaultModel: String(p.defaultModel || '').slice(0, 100),
       enabled: !!p.enabled,
       apiKey: apiKey.slice(0, 500),
@@ -3412,7 +3412,7 @@ app.get('/api/ai/models', authMiddleware, async (req, res) => {
   // For bulk load: dynamically inject Ollama models when OLLAMA_URL is set
   if (OLLAMA_URL) {
     if (!models.ollama) {
-      models.ollama = { name: 'Ollama (Local)', icon: 'ğŸ¦™', models: [
+      models.ollama = { name: 'Ollama (Local)', icon: '🦙', models: [
         { id: 'llama3.2', name: 'Llama 3.2 (3B)', default: true },
         { id: 'llama3.1', name: 'Llama 3.1 (8B)' },
         { id: 'gemma3', name: 'Gemma 3 (4B)' },
@@ -3461,16 +3461,16 @@ Current date and time: ${dateStr}, ${timeStr} (${isoDate})
 Rules:
 - ALWAYS use the current date above for any date calculations (e.g., "3 days later", "next week", "tomorrow"). NEVER guess or use your training data for the current date.
 - When the user asks about system info, files, disk usage, calendar events, tasks, budgets, or any app data, USE the appropriate tools to get REAL data
-- Never guess or fabricate data â€” always use tools for factual queries
+- Never guess or fabricate data — always use tools for factual queries
 - Format responses clearly with the data you retrieve
 - You can call multiple tools if needed to answer a question
 - If a tool returns an error, explain the issue to the user
 - For conversational messages (greetings, opinions, creative writing), respond directly without tools
-- EMAIL: When the user asks to send an email, use the post_mail_send tool directly with to, subject, and text. The system uses the default/active mail account automatically â€” do NOT ask the user which account to use. If no account is configured the API will return an error, then tell the user to add an account in the Mail app settings.
-- WEATHER: When the user asks about weather/temperature, call the get_weather tool directly with NO parameters. The API reads the user's location (city, latitude, longitude) from their saved settings automatically â€” do NOT ask the user for location or coordinates.
+- EMAIL: When the user asks to send an email, use the post_mail_send tool directly with to, subject, and text. The system uses the default/active mail account automatically — do NOT ask the user which account to use. If no account is configured the API will return an error, then tell the user to add an account in the Mail app settings.
+- WEATHER: When the user asks about weather/temperature, call the get_weather tool directly with NO parameters. The API reads the user's location (city, latitude, longitude) from their saved settings automatically — do NOT ask the user for location or coordinates.
 - SETTINGS: User preferences (city, country, latitude, longitude, timezone, locale, theme, etc.) are stored in settings.json and accessible via get_settings. Use this when you need user context like location.
-- BROWSER: When the user mentions "browser", "tarayÄ±cÄ±", "web browser" or similar, they mean the Cloud Computer's built-in Browser app â€” NOT external browsers like Chrome, Firefox, Safari. Use browser tools (get_browser_bookmarks, post_browser_bookmarks, delete_browser_bookmarks) to manage bookmarks/favorites. To add a bookmark, use post_browser_bookmarks with url and title.
-- APPS: All app names (browser, calendar, notepad, file manager, etc.) refer to Cloud Computer's own built-in/installed apps. Never give instructions for external software â€” always use the appropriate tools to interact with Cloud Computer apps directly.
+- BROWSER: When the user mentions "browser", "tarayıcı", "web browser" or similar, they mean the Cloud Computer's built-in Browser app — NOT external browsers like Chrome, Firefox, Safari. Use browser tools (get_browser_bookmarks, post_browser_bookmarks, delete_browser_bookmarks) to manage bookmarks/favorites. To add a bookmark, use post_browser_bookmarks with url and title.
+- APPS: All app names (browser, calendar, notepad, file manager, etc.) refer to Cloud Computer's own built-in/installed apps. Never give instructions for external software — always use the appropriate tools to interact with Cloud Computer apps directly.
 - OPEN APP: You can open any application on the user's desktop using the open_app tool. Use this when the user asks to open/launch an app, or when your action requires opening an app visually (e.g. opening the music player to play music, opening the browser to show a webpage). Common app IDs: browser, calendar, todo, codeeditor, fileman, notepad, paint, settings, weather, calc, contacts, terminal, music-player, photos, mail-app, pdf-viewer, aichat, clock, screenshot.
 - MUSIC: When the user asks to play music/a song, use the play_music tool with the track name. This will open the music player and start playing. You can also first query available tracks via get_music_files and then use play_music with a matching trackName.`;
 }
@@ -3605,7 +3605,7 @@ function buildToolRegistry() {
         const tools = parseSkillMd(entry.name, content);
         for (const tool of tools) {
           if (AI_TOOL_REGISTRY[tool.name]) {
-            // Conflict â€” prefix with appId
+            // Conflict — prefix with appId
             const altName = (tool.appId.replace(/-/g, '_') + '_' + tool.name).slice(0, 64);
             tool.name = altName;
           }
@@ -3672,7 +3672,7 @@ async function executeToolCall(toolName, args, authToken, username) {
     const str = JSON.stringify(data);
     if (str.length > 4000) {
       if (Array.isArray(data)) {
-        // Summarize array items â€” strip large fields like text/html/content/body
+        // Summarize array items — strip large fields like text/html/content/body
         const summarized = data.slice(0, 20).map(item => {
           if (typeof item !== 'object' || item === null) return item;
           const slim = {};
@@ -3725,7 +3725,7 @@ async function executeToolCall(toolName, args, authToken, username) {
 
 buildToolRegistry();
 
-// â”€â”€ Virtual AI tools â€” open apps & trigger actions via WS â”€â”€
+// ── Virtual AI tools — open apps & trigger actions via WS ──
 AI_TOOL_REGISTRY['open_app'] = {
   name: 'open_app',
   appId: '_system',
@@ -3772,7 +3772,7 @@ function sendUserWS(username, message) {
   });
 }
 
-// Domain â†’ App mapping (from coordinator agent)
+// Domain → App mapping (from coordinator agent)
 const AI_DOMAIN_APPS = {
   files: ['fileman','archiver','backup-restore','disksize','gdrive','ftp-client','synchronizer'],
   organizer: ['calendar','todo','kanban','reminder','scheduler','keepnote','postit','contacts','work-planner'],
@@ -3786,15 +3786,15 @@ const AI_DOMAIN_APPS = {
 };
 
 const AI_DOMAIN_KEYWORDS = {
-  files: ['disk','dosya','file','storage','backup','yedek','ftp','gdrive','archive','sync','boyut','alan','depolama','yer','kapa','klasÃ¶r','folder','directory','sil','delete','upload','download','indirme','kopyala','taÅŸÄ±'],
-  organizer: ['todo','task','calendar','takvim','reminder','hatÄ±rlat','note','not','contact','kiÅŸi','kanban','schedule','gÃ¶rev','plan','toplantÄ±','meeting','etkinlik','event','ajanda','randevu'],
-  finance: ['budget','bÃ¼tÃ§e','crypto','coin','currency','dÃ¶viz','stock','hisse','wallet','cÃ¼zdan','para','gelir','gider','harcama','fiyat','kur','borsa','finans','expense','income','araÃ§','araba','car','vehicle','muayene','inspection','vergi','tax','yakÄ±t','fuel','benzin','gasoline','ceza','fine','kaza','accident','sigorta','insurance','plaka','plate','carpaper','euro','dolar','sterlin','dollar','eur','usd','gbp','try','bitcoin','kaÃ§ tl','kaÃ§ dolar','kaÃ§ euro','exchange rate','convert'],
-  media: ['music','mÃ¼zik','photo','fotoÄŸraf','video','audio','ses','record','kayÄ±t','ÅŸarkÄ±','song','album','Ã§al','play'],
+  files: ['disk','dosya','file','storage','backup','yedek','ftp','gdrive','archive','sync','boyut','alan','depolama','yer','kapa','klasör','folder','directory','sil','delete','upload','download','indirme','kopyala','taşı'],
+  organizer: ['todo','task','calendar','takvim','reminder','hatırlat','note','not','contact','kişi','kanban','schedule','görev','plan','toplantı','meeting','etkinlik','event','ajanda','randevu'],
+  finance: ['budget','bütçe','crypto','coin','currency','döviz','stock','hisse','wallet','cüzdan','para','gelir','gider','harcama','fiyat','kur','borsa','finans','expense','income','araç','araba','car','vehicle','muayene','inspection','vergi','tax','yakıt','fuel','benzin','gasoline','ceza','fine','kaza','accident','sigorta','insurance','plaka','plate','carpaper','euro','dolar','sterlin','dollar','eur','usd','gbp','try','bitcoin','kaç tl','kaç dolar','kaç euro','exchange rate','convert'],
+  media: ['music','müzik','photo','fotoğraf','video','audio','ses','record','kayıt','şarkı','song','album','çal','play'],
   communication: ['email','mail','notification','bildirim','mesaj','message','inbox','posta'],
   developer: ['code','github','api','debug','repo','commit','pull','push','rabbitmq','branch'],
-  creative: ['spreadsheet','excel','presentation','sunum','formula','word cloud','ascii','qr','3d','wiki','book','kitap','tablo','slayt','ocr','optical character recognition','scan text','text extraction','metin Ã§Ä±kar','metin cikar','gÃ¶rÃ¼ntÃ¼den yazÄ±','goruntuden yazi','resimden yazÄ±','resimden yazi','tarama'],
-  web: ['browser','wikipedia','youtube','google','sport','rss','map','harita','haber','news','arama','search','skor','score','trend','bookmark','bookmarks','favori','favoriler','yer imi','yer imleri','fav','tarayÄ±cÄ±','tarayici','web site','website','site'],
-  system: ['setting','ayar','password','ÅŸifre','weather','hava','pet','stopwatch','kronometre','monitor','cpu','ram','sistem','system','sÄ±caklÄ±k','derece']
+  creative: ['spreadsheet','excel','presentation','sunum','formula','word cloud','ascii','qr','3d','wiki','book','kitap','tablo','slayt','ocr','optical character recognition','scan text','text extraction','metin çıkar','metin cikar','görüntüden yazı','goruntuden yazi','resimden yazı','resimden yazi','tarama'],
+  web: ['browser','wikipedia','youtube','google','sport','rss','map','harita','haber','news','arama','search','skor','score','trend','bookmark','bookmarks','favori','favoriler','yer imi','yer imleri','fav','tarayıcı','tarayici','web site','website','site'],
+  system: ['setting','ayar','password','şifre','weather','hava','pet','stopwatch','kronometre','monitor','cpu','ram','sistem','system','sıcaklık','derece']
 };
 
 function getRelevantTools(userMessage, contextAppId) {
@@ -3933,7 +3933,7 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'Unknown provider' });
   }
 
-  // Tool calling setup â€” scan recent messages (not just last) for keyword matching
+  // Tool calling setup — scan recent messages (not just last) for keyword matching
   // This ensures follow-up messages like "evet"/"yes" still include the right tools
   const recentMsgs = conversationMsgs.filter(m => m.role !== 'system').slice(-6);
   const combinedText = recentMsgs.map(m => typeof m.content === 'string' ? m.content : '').join(' ');
@@ -3982,7 +3982,7 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
         return res.json({ content: responseContent.filter(c => c.type === 'text').map(c => c.text).join('\n') || '' });
 
       } else if (providerId === 'google') {
-        // Google Gemini (tool calling not yet supported â€” basic response)
+        // Google Gemini (tool calling not yet supported — basic response)
         const url = endpointConfig.url.replace('{model}', encodeURIComponent(model)) + '?key=' + encodeURIComponent(provider.apiKey);
         const geminiContents = conversationMsgs.filter(m => m.role !== 'system').map(m => ({
           role: m.role === 'assistant' ? 'model' : 'user',
@@ -4061,7 +4061,7 @@ app.post('/api/ai/chat', authMiddleware, async (req, res) => {
 });
 
 // #endregion
-// #region ChatGPT App â€” Conversations + Streaming
+// #region ChatGPT App — Conversations + Streaming
 
 function getChatGPTPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -4129,12 +4129,12 @@ app.get('/api/chatgpt/providers', authMiddleware, async (req, res) => {
       available.unshift({
         id: 'ollama',
         name: 'Ollama (Local)',
-        icon: 'ğŸ¦™',
+        icon: '🦙',
         model: userOllama?.model || defaultModel,
         system: true
       });
     } catch {
-      // Ollama not reachable â€” skip
+      // Ollama not reachable — skip
     }
   }
 
@@ -4192,7 +4192,7 @@ app.post('/api/chatgpt/stream', authMiddleware, async (req, res) => {
   req.on('close', () => { aborted = true; });
 
   try {
-    // Anthropic â€” streaming
+    // Anthropic — streaming
     if (providerId === 'anthropic') {
       const systemMsg = sanitizedMessages.find(m => m.role === 'system');
       const chatMsgs = sanitizedMessages.filter(m => m.role !== 'system');
@@ -4239,7 +4239,7 @@ app.post('/api/chatgpt/stream', authMiddleware, async (req, res) => {
       apiReq.end();
 
     } else if (providerId === 'google') {
-      // Google Gemini â€” streamGenerateContent
+      // Google Gemini — streamGenerateContent
       const url = endpointConfig.url.replace('{model}', encodeURIComponent(model)).replace(':generateContent', ':streamGenerateContent') + '?key=' + encodeURIComponent(provider.apiKey) + '&alt=sse';
       const geminiContents = sanitizedMessages.filter(m => m.role !== 'system').map(m => ({
         role: m.role === 'assistant' ? 'model' : 'user',
@@ -4461,7 +4461,7 @@ function getUserDb(username) {
 
     CREATE TABLE IF NOT EXISTS notifications (
       id TEXT PRIMARY KEY,
-      icon TEXT DEFAULT 'ğŸ“Œ',
+      icon TEXT DEFAULT '📌',
       bg TEXT DEFAULT '#ecf5ff',
       title TEXT NOT NULL,
       text TEXT NOT NULL,
@@ -4498,7 +4498,7 @@ function getUserDb(username) {
     CREATE TABLE IF NOT EXISTS budget_categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      icon TEXT DEFAULT 'ğŸ“',
+      icon TEXT DEFAULT '📁',
       type TEXT NOT NULL DEFAULT 'expense',
       color TEXT DEFAULT '#409eff',
       sort_order INTEGER DEFAULT 0
@@ -4738,12 +4738,12 @@ function getUserDb(username) {
   const catCount = db.prepare('SELECT COUNT(*) as c FROM budget_categories').get().c;
   if (catCount === 0) {
     const cats = [
-      ['Salary','ğŸ’°','income','#67c23a',1],['Extra Income','ğŸ’µ','income','#409eff',2],
-      ['Rent','ğŸ ','expense','#e6a23c',3],['Groceries','ğŸ›’','expense','#f56c6c',4],
-      ['Bills','ğŸ“„','expense','#909399',5],['Transport','ğŸš—','expense','#e91e63',6],
-      ['Health','ğŸ¥','expense','#00bcd4',7],['Education','ğŸ“š','expense','#9c27b0',8],
-      ['Entertainment','ğŸ¬','expense','#ff9800',9],['Clothing','ğŸ‘•','expense','#795548',10],
-      ['Other','ğŸ“Œ','expense','#607d8b',11]
+      ['Salary','💰','income','#67c23a',1],['Extra Income','💵','income','#409eff',2],
+      ['Rent','🏠','expense','#e6a23c',3],['Groceries','🛒','expense','#f56c6c',4],
+      ['Bills','📄','expense','#909399',5],['Transport','🚗','expense','#e91e63',6],
+      ['Health','🏥','expense','#00bcd4',7],['Education','📚','expense','#9c27b0',8],
+      ['Entertainment','🎬','expense','#ff9800',9],['Clothing','👕','expense','#795548',10],
+      ['Other','📌','expense','#607d8b',11]
     ];
     const ins = db.prepare('INSERT INTO budget_categories (name,icon,type,color,sort_order) VALUES (?,?,?,?,?)');
     const tr = db.transaction(() => cats.forEach(c => ins.run(...c)));
@@ -4761,7 +4761,7 @@ function addNotificationToDb(username, notif) {
       'INSERT OR IGNORE INTO notifications (id, icon, bg, title, text, time, read, action, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     ).run(
       notif.id,
-      notif.icon || 'ğŸ“Œ',
+      notif.icon || '📌',
       notif.bg || '#ecf5ff',
       notif.title,
       notif.text,
@@ -5087,7 +5087,7 @@ app.post('/api/wordcloud/generate', authMiddleware, (req, res) => {
     const caseM = ['original','upper','lower','capitalize'].includes(caseMode) ? caseMode : 'original';
     const wfn = ['linear','sqrt','log'].includes(weightFn) ? weightFn : 'linear';
 
-    // â”€â”€ Stop words â”€â”€
+    // ── Stop words ──
     const STOP_WORDS = new Set([
       'the','a','an','and','or','but','in','on','at','to','for','of','is','it','be',
       'was','were','are','am','been','being','have','has','had','do','does','did',
@@ -5098,9 +5098,9 @@ app.post('/api/wordcloud/generate', authMiddleware, (req, res) => {
       'who','which','what','when','how','all','each','every','both','few','more',
       'most','other','some','such','only','same','own','up','out','off','over',
       'after','before','between','under','again','there','here','where','why',
-      've','bir','ile','bu','da','de','den','dan','iÃ§in',
-      'o','ben','sen','biz','siz','ne','nasÄ±l','ama','Ã§ok','var','yok',
-      'daha','gibi','olan','olarak','kadar','sonra','Ã¶nce','her','tÃ¼m'
+      've','bir','ile','bu','da','de','den','dan','için',
+      'o','ben','sen','biz','siz','ne','nasıl','ama','çok','var','yok',
+      'daha','gibi','olan','olarak','kadar','sonra','önce','her','tüm'
     ]);
 
     function applyCase(w) {
@@ -5112,7 +5112,7 @@ app.post('/api/wordcloud/generate', authMiddleware, (req, res) => {
       }
     }
 
-    // â”€â”€ Parse text â”€â”€
+    // ── Parse text ──
     let parsed = [];
     if (inputMode === 'frequency') {
       text.split('\n').forEach(line => {
@@ -5142,7 +5142,7 @@ app.post('/api/wordcloud/generate', authMiddleware, (req, res) => {
 
     if (parsed.length === 0) return res.json({ words: [], image: null });
 
-    // â”€â”€ Weight scaling â”€â”€
+    // ── Weight scaling ──
     function scaleWeight(count, mn, mx) {
       if (mx === mn) return 0.5;
       const norm = (count - mn) / (mx - mn);
@@ -5153,7 +5153,7 @@ app.post('/api/wordcloud/generate', authMiddleware, (req, res) => {
       }
     }
 
-    // â”€â”€ Text measurement via node-canvas â”€â”€
+    // ── Text measurement via node-canvas ──
     const measureCanvas = createNodeCanvas(1, 1);
     const measureCtx = measureCanvas.getContext('2d');
 
@@ -5169,7 +5169,7 @@ app.post('/api/wordcloud/generate', authMiddleware, (req, res) => {
       return { tw, th, bw: Math.ceil(tw * cos + th * sin) + 4, bh: Math.ceil(tw * sin + th * cos) + 4 };
     }
 
-    // â”€â”€ Rotation â”€â”€
+    // ── Rotation ──
     function getRotation() {
       switch (rotMode) {
         case 'vertical': return -90;
@@ -5180,7 +5180,7 @@ app.post('/api/wordcloud/generate', authMiddleware, (req, res) => {
       }
     }
 
-    // â”€â”€ Shape masking â”€â”€
+    // ── Shape masking ──
     function isInsideShape(x, y) {
       const cx2 = cw / 2, cy2 = ch / 2;
       const nx = (x - cx2) / cx2, ny = (y - cy2) / cy2;
@@ -5199,7 +5199,7 @@ app.post('/api/wordcloud/generate', authMiddleware, (req, res) => {
       }
     }
 
-    // â”€â”€ Collision grid â”€â”€
+    // ── Collision grid ──
     const grid = new Uint8Array(cw * ch);
     function gridCheck(rx, ry, rw, rh) {
       const x0 = Math.max(0, Math.floor(rx)), y0 = Math.max(0, Math.floor(ry));
@@ -5217,7 +5217,7 @@ app.post('/api/wordcloud/generate', authMiddleware, (req, res) => {
           grid[yy * cw + xx] = 1;
     }
 
-    // â”€â”€ Placement â”€â”€
+    // ── Placement ──
     function placeWord(wordW, wordH) {
       const cx2 = cw / 2, cy2 = ch / 2;
       const isArch = spiralMode === 'archimedean';
@@ -5252,7 +5252,7 @@ app.post('/api/wordcloud/generate', authMiddleware, (req, res) => {
       return null;
     }
 
-    // â”€â”€ Build items â”€â”€
+    // ── Build items ──
     const minCount = Math.min(...parsed.map(w => w.count));
     const maxCount = Math.max(...parsed.map(w => w.count));
     const items = parsed.map((w, i) => {
@@ -5267,7 +5267,7 @@ app.post('/api/wordcloud/generate', authMiddleware, (req, res) => {
     // Sort largest first to ensure big words get placed before small ones
     items.sort((a, b) => b.fontSize - a.fontSize);
 
-    // â”€â”€ Place words â”€â”€
+    // ── Place words ──
     const placedWords = [];
     for (const item of items) {
       const pos = placeWord(item.bw, item.bh);
@@ -5275,7 +5275,7 @@ app.post('/api/wordcloud/generate', authMiddleware, (req, res) => {
       placedWords.push({ ...item, x: pos.x, y: pos.y });
     }
 
-    // â”€â”€ Render image with node-canvas â”€â”€
+    // ── Render image with node-canvas ──
     const imgCanvas = createNodeCanvas(cw, ch);
     const ctx = imgCanvas.getContext('2d');
     ctx.fillStyle = bg;
@@ -5310,7 +5310,7 @@ app.post('/api/wordcloud/generate', authMiddleware, (req, res) => {
   }
 });
 
-// â”€â”€ Word Cloud Save/Load â”€â”€
+// ── Word Cloud Save/Load ──
 function getWordcloudDir(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const dir = path.join(DATA_DIR, safe, 'files', 'wordclouds');
@@ -5407,7 +5407,7 @@ app.post('/api/notifications', authMiddleware, (req, res) => {
   if (!title || !text) return res.status(400).json({ error: 'title and text required' });
   const notif = {
     id: crypto.randomUUID(),
-    icon: icon || 'ğŸ“Œ',
+    icon: icon || '📌',
     bg: bg || '#ecf5ff',
     title,
     text,
@@ -5453,7 +5453,7 @@ app.post('/api/budget/categories', authMiddleware, (req, res) => {
   if (!name || !name.trim()) return res.status(400).json({ error: 'name required' });
   const db = getUserDb(req.user.username);
   const maxOrder = db.prepare('SELECT COALESCE(MAX(sort_order),0) as m FROM budget_categories').get().m;
-  const info = db.prepare('INSERT INTO budget_categories (name,icon,type,color,sort_order) VALUES (?,?,?,?,?)').run(name.trim(), icon || 'ğŸ“', type || 'expense', color || '#409eff', maxOrder + 1);
+  const info = db.prepare('INSERT INTO budget_categories (name,icon,type,color,sort_order) VALUES (?,?,?,?,?)').run(name.trim(), icon || '📁', type || 'expense', color || '#409eff', maxOrder + 1);
   res.json({ ok: true, id: info.lastInsertRowid });
 });
 
@@ -5517,12 +5517,12 @@ app.post('/api/budget/entries', authMiddleware, (req, res) => {
   const locale = getUserLocale(req.user.username);
   const label = description || (type === 'income' ? serverT('budgetIncome', locale) : serverT('budgetExpense', locale));
   if (isNotify) {
-    const notif = { id: 'budget-' + entryId, icon: 'ğŸ’°', bg: '#fff3e0', title: label, text: Number(amount).toFixed(2) + ' â€” ' + date, time: new Date().toISOString(), read: false, createdAt: Date.now() };
+    const notif = { id: 'budget-' + entryId, icon: '💰', bg: '#fff3e0', title: label, text: Number(amount).toFixed(2) + ' — ' + date, time: new Date().toISOString(), read: false, createdAt: Date.now() };
     addNotificationToDb(req.user.username, notif);
     broadcastWS({ type: 'notification', data: notif });
   }
   if (isCal) {
-    const calTitle = (type === 'income' ? 'ğŸ“ˆ ' : 'ğŸ“‰ ') + label + ' (' + Number(amount).toFixed(2) + ')';
+    const calTitle = (type === 'income' ? '📈 ' : '📉 ') + label + ' (' + Number(amount).toFixed(2) + ')';
     db.prepare('INSERT INTO calendar_events (date, title, color) VALUES (?, ?, ?)').run(date, calTitle, type === 'income' ? '#67c23a' : '#f56c6c');
   }
   res.json({ ok: true, id: entryId });
@@ -5553,13 +5553,13 @@ app.put('/api/budget/entries/:id', authMiddleware, (req, res) => {
     if (notify && !row.paid) {
       const existing = db.prepare('SELECT id FROM notifications WHERE id=?').get('budget-' + req.params.id);
       if (!existing) {
-        const notif = { id: 'budget-' + req.params.id, icon: 'ğŸ’°', bg: '#fff3e0', title: label, text: Number(row.amount).toFixed(2) + ' â€” ' + row.date, time: new Date().toISOString(), read: false, createdAt: Date.now() };
+        const notif = { id: 'budget-' + req.params.id, icon: '💰', bg: '#fff3e0', title: label, text: Number(row.amount).toFixed(2) + ' — ' + row.date, time: new Date().toISOString(), read: false, createdAt: Date.now() };
         addNotificationToDb(req.user.username, notif);
         broadcastWS({ type: 'notification', data: notif });
       }
     }
     if (show_calendar && !row.paid) {
-      const calTitle = (row.type === 'income' ? 'ğŸ“ˆ ' : 'ğŸ“‰ ') + label + ' (' + Number(row.amount).toFixed(2) + ')';
+      const calTitle = (row.type === 'income' ? '📈 ' : '📉 ') + label + ' (' + Number(row.amount).toFixed(2) + ')';
       const existingCal = db.prepare('SELECT id FROM calendar_events WHERE title=? AND date=?').get(calTitle, row.date);
       if (!existingCal) {
         db.prepare('INSERT INTO calendar_events (date, title, color) VALUES (?, ?, ?)').run(row.date, calTitle, row.type === 'income' ? '#67c23a' : '#f56c6c');
@@ -5575,7 +5575,7 @@ app.delete('/api/budget/entries/:id', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// Budget unpaid payment checker â€” runs every 12 hours
+// Budget unpaid payment checker — runs every 12 hours
 function startBudgetPaymentChecker() {
   const TWELVE_HOURS = 12 * 60 * 60 * 1000;
   const check = () => {
@@ -5597,13 +5597,13 @@ function startBudgetPaymentChecker() {
           if (!rows.length) continue;
           const now = new Date();
           for (const row of rows) {
-            const icon = row.category_icon || (row.type === 'income' ? 'ğŸ’°' : 'ğŸ’¸');
+            const icon = row.category_icon || (row.type === 'income' ? '💰' : '💸');
             const notif = {
               id: crypto.randomUUID(),
               icon,
               bg: row.type === 'income' ? '#f0f9eb' : '#fef0f0',
               title: icon + ' ' + (row.type === 'income' ? 'Unpaid Income' : 'Unpaid Expense'),
-              text: (row.description || row.category_name || row.type) + ' â€” ' + row.amount.toLocaleString('en') + ' (' + row.date + ')',
+              text: (row.description || row.category_name || row.type) + ' — ' + row.amount.toLocaleString('en') + ' (' + row.date + ')',
               time: now.toISOString(),
               read: false,
               createdAt: now.getTime(),
@@ -5660,7 +5660,7 @@ function getPluginContext() {
   return pluginContext;
 }
 
-// Plugin management API â€” allows hot-reload without restart
+// Plugin management API — allows hot-reload without restart
 app.get('/api/plugins', authMiddleware, (req, res) => {
   res.json(pluginLoader.getLoadedPlugins());
 });
@@ -5722,7 +5722,7 @@ vncWss.on('connection', (ws, req) => {
 
   const net = require('net');
   const tcp = net.createConnection({ host: targetHost, port: targetPort }, () => {
-    // TCP connected â€” bridge data
+    // TCP connected — bridge data
   });
 
   tcp.on('data', (data) => {
@@ -5912,7 +5912,7 @@ function handleWSMessage(ws, msg) {
       if (!title || !text) return;
       const notif = {
         id: crypto.randomUUID(),
-        icon: icon || 'ğŸ“Œ',
+        icon: icon || '📌',
         bg: bg || '#ecf5ff',
         title,
         text,
@@ -6257,11 +6257,11 @@ function stopStockPollingIfIdle() {
   if (hasStockSubscribers()) return;
   clearInterval(stockFetchInterval);
   stockFetchInterval = null;
-  console.log('[Stock Tracker] No subscribers â€” polling stopped');
+  console.log('[Stock Tracker] No subscribers — polling stopped');
 }
 
 // #endregion
-// #region VIX Index (FRED API â€” VIXCLS)
+// #region VIX Index (FRED API — VIXCLS)
 const FRED_API_KEY = process.env.FRED_API_KEY || '';
 let vixCache = { data: null, ts: 0 };
 const VIX_CACHE_TTL = 30 * 60 * 1000; // 30 min
@@ -7076,9 +7076,9 @@ async function fetchAllFeeds(username, notify) {
       const text = newTitles.join(', ') + (newCount > 3 ? ` ve ${newCount - 3} daha...` : '');
       const notif = {
         id: crypto.randomUUID(),
-        icon: 'ğŸ“°',
+        icon: '📰',
         bg: '#fff3e0',
-        title: `${newCount} yeni RSS iÃ§eriÄŸi`,
+        title: `${newCount} yeni RSS içeriği`,
         text,
         time: new Date().toISOString(),
         read: false,
@@ -7091,7 +7091,7 @@ async function fetchAllFeeds(username, notify) {
   }
 }
 
-// Periodic RSS check â€” every hour
+// Periodic RSS check — every hour
 const RSS_CHECK_INTERVAL = 60 * 60 * 1000;
 let rssCheckTimer = null;
 
@@ -7238,7 +7238,7 @@ function computeNextOccurrence(isoStr, repeat, customMinutes) {
   return d.toISOString();
 }
 
-// Periodic reminder check â€” every 60 seconds
+// Periodic reminder check — every 60 seconds
 const REMINDER_CHECK_INTERVAL = 60 * 1000;
 let reminderCheckTimer = null;
 
@@ -7264,7 +7264,7 @@ function startReminderChecker() {
           if (triggerTime > now) continue;
           // Already triggered within the last 2 minutes? Skip to avoid duplicates
           if (r.lastTriggered && (now.getTime() - r.lastTriggered) < 120000) continue;
-          // ğŸ”” Fire reminder
+          // 🔔 Fire reminder
           r.lastTriggered = now.getTime();
           r.snoozedUntil = null;
           changed = true;
@@ -7291,9 +7291,9 @@ function startReminderChecker() {
           // Also push to notification system
           const notif = {
             id: crypto.randomUUID(),
-            icon: 'â°',
+            icon: '⏰',
             bg: '#fff8e1',
-            title: 'â° ' + r.title,
+            title: '⏰ ' + r.title,
             text: r.note || r.title,
             time: now.toISOString(),
             read: false,
@@ -7429,7 +7429,7 @@ async function executeSchedulerTask(username, task, allTasks) {
       // Send notification
       const notif = {
         id: crypto.randomUUID(),
-        icon: 'ğŸ“…',
+        icon: '📅',
         bg: '#f0f0ff',
         title: (task.actionData && task.actionData.title) || task.name,
         text: (task.actionData && task.actionData.text) || task.name,
@@ -7460,9 +7460,9 @@ async function executeSchedulerTask(username, task, allTasks) {
         // Also send notification
         const notif = {
           id: crypto.randomUUID(),
-          icon: 'ğŸ“‚',
+          icon: '📂',
           bg: '#e8f5e9',
-          title: 'ğŸ“… ' + task.name,
+          title: '📅 ' + task.name,
           text: 'App launched: ' + appId,
           time: now.toISOString(),
           read: false,
@@ -7589,9 +7589,9 @@ async function executeSchedulerTask(username, task, allTasks) {
             // Send notification with AI response
             const notif = {
               id: crypto.randomUUID(),
-              icon: 'ğŸ¤–',
+              icon: '🤖',
               bg: '#e8f0fe',
-              title: 'ğŸ¤– ' + task.name,
+              title: '🤖 ' + task.name,
               text: aiContent.slice(0, 300) || 'AI prompt executed',
               time: now.toISOString(),
               read: false,
@@ -7630,7 +7630,7 @@ async function executeSchedulerTask(username, task, allTasks) {
   appendSchedulerLog(username, task.id, { time: now.toISOString(), success, result });
 }
 
-// Periodic scheduler check â€” every 60 seconds
+// Periodic scheduler check — every 60 seconds
 function startSchedulerChecker() {
   setInterval(() => {
     try {
@@ -7825,7 +7825,7 @@ function saveCopilotSessions(username, sessions) {
   fs.writeFileSync(getCopilotSessionsPath(username), JSON.stringify(trimmed, null, 2));
 }
 
-// GET /api/copilot/status â€” check CLI installation + auth + settings
+// GET /api/copilot/status — check CLI installation + auth + settings
 function publicCopilotSettings(s) {
   return {
     cwd: s.cwd || '',
@@ -7857,7 +7857,7 @@ app.get('/api/copilot/status', authMiddleware, (req, res) => {
   });
 });
 
-// POST /api/copilot/settings â€” update user copilot settings
+// POST /api/copilot/settings — update user copilot settings
 app.post('/api/copilot/settings', authMiddleware, (req, res) => {
   const { cwd, model, allowAllTools, githubToken } = req.body || {};
   const cur = loadCopilotSettings(req.user.username);
@@ -7872,7 +7872,7 @@ app.post('/api/copilot/settings', authMiddleware, (req, res) => {
   res.json({ ok: true, githubTokenSet: !!next.githubToken, settings: publicCopilotSettings(next) });
 });
 
-// POST /api/copilot/prompt â€” run copilot CLI with -p
+// POST /api/copilot/prompt — run copilot CLI with -p
 // body: { prompt, cwd?, model?, allowAllTools?, sessionId? }
 // Streams plain-text response chunks via SSE.
 app.post('/api/copilot/prompt', authMiddleware, (req, res) => {
@@ -7972,13 +7972,13 @@ app.post('/api/copilot/prompt', authMiddleware, (req, res) => {
   });
 });
 
-// GET /api/copilot/sessions â€” list past sessions
+// GET /api/copilot/sessions — list past sessions
 app.get('/api/copilot/sessions', authMiddleware, (req, res) => {
   const sessions = loadCopilotSessions(req.user.username);
   res.json(sessions.slice().reverse());
 });
 
-// DELETE /api/copilot/sessions â€” clear history
+// DELETE /api/copilot/sessions — clear history
 app.delete('/api/copilot/sessions', authMiddleware, (req, res) => {
   saveCopilotSessions(req.user.username, []);
   res.json({ ok: true });
@@ -8043,7 +8043,7 @@ function findGitRepos(baseDir, maxDepth = 3) {
   return repos;
 }
 
-// GitHub API proxy â€” forward requests to api.github.com with user's token
+// GitHub API proxy — forward requests to api.github.com with user's token
 function ghApiRequest(ghToken, method, apiPath, body) {
   const https = require('https');
   return new Promise((resolve, reject) => {
@@ -8108,7 +8108,7 @@ app.get('/api/github/repos', authMiddleware, async (req, res) => {
   } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
 });
 
-// POST /api/github/repos â€” create repo
+// POST /api/github/repos — create repo
 app.post('/api/github/repos', authMiddleware, async (req, res) => {
   const s = loadGithubSettings(req.user.username);
   if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
@@ -8138,7 +8138,7 @@ app.get('/api/github/repos/:owner/:repo/branches', authMiddleware, async (req, r
   } catch (e) { res.status(e.status || 500).json(e.body || { error: e.message }); }
 });
 
-// POST /api/github/repos/:owner/:repo/branches â€” create branch
+// POST /api/github/repos/:owner/:repo/branches — create branch
 app.post('/api/github/repos/:owner/:repo/branches', authMiddleware, async (req, res) => {
   const s = loadGithubSettings(req.user.username);
   if (!s.token) return res.status(400).json({ error: 'No GitHub token' });
@@ -8315,7 +8315,7 @@ function runGit(args, cwd, env) {
   });
 }
 
-// GET /api/git/repos â€” list local git repos in user's files directory
+// GET /api/git/repos — list local git repos in user's files directory
 app.get('/api/git/repos', authMiddleware, (req, res) => {
   const safe = req.user.username.replace(/[^a-zA-Z0-9_-]/g, '_');
   const userFiles = path.join(DATA_DIR, safe, 'files');
@@ -8324,7 +8324,7 @@ app.get('/api/git/repos', authMiddleware, (req, res) => {
   res.json(repos);
 });
 
-// POST /api/git/init â€” initialize a new git repo
+// POST /api/git/init — initialize a new git repo
 app.post('/api/git/init', authMiddleware, async (req, res) => {
   const repoPath = resolveGitRepoPath(req.user.username, req.body.path);
   if (!repoPath) return res.status(400).json({ error: 'Invalid path' });
@@ -8335,7 +8335,7 @@ app.post('/api/git/init', authMiddleware, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// POST /api/git/clone â€” clone a remote repo
+// POST /api/git/clone — clone a remote repo
 app.post('/api/git/clone', authMiddleware, async (req, res) => {
   const { url, path: relPath } = req.body;
   if (!url) return res.status(400).json({ error: 'URL required' });
@@ -8806,7 +8806,7 @@ function startMailChecker() {
               const locale = getUserLocale(username);
               const notif = {
                 id: crypto.randomUUID(),
-                icon: 'ğŸ“§',
+                icon: '📧',
                 bg: '#e3f2fd',
                 title: serverTFn('newMailTitle', locale, newMails.length),
                 text: serverTFn('newMailText', locale, acc.email, newMails.length),
@@ -8867,7 +8867,7 @@ app.post('/api/map/markers', authMiddleware, (req, res) => {
     description: String(description || '').slice(0, 500),
     lat: Number(lat), lon: Number(lon),
     color: String(color || '#e74c3c').slice(0, 20),
-    icon: String(icon || 'ğŸ“').slice(0, 10),
+    icon: String(icon || '📍').slice(0, 10),
     createdAt: Date.now()
   };
   data.markers.push(marker);
@@ -9086,7 +9086,7 @@ app.post('/api/backup/restore', authMiddleware, async (req, res) => {
       zip.extractAllTo(tempDir, true);
     }
 
-    // Determine the source â€” backup may have data/ prefix or direct content
+    // Determine the source — backup may have data/ prefix or direct content
     let sourceDir = tempDir;
     if (fs.existsSync(path.join(tempDir, 'data')) && fs.statSync(path.join(tempDir, 'data')).isDirectory()) {
       sourceDir = path.join(tempDir, 'data');
@@ -9197,7 +9197,7 @@ app.post('/api/archiver/compress', authMiddleware, async (req, res) => {
       const stat = fs.statSync(outPath);
       res.json({ ok: true, filename: path.basename(outPath), size: stat.size });
     } else {
-      // GZIP â€” single file only
+      // GZIP — single file only
       if (items.length !== 1) return res.status(400).json({ error: 'GZIP supports single file only' });
       const srcPath = safePath(root, items[0]);
       if (!srcPath || !fs.existsSync(srcPath)) return res.status(404).json({ error: 'File not found' });
@@ -9576,7 +9576,7 @@ async function initTorrentEngine() {
     torrentClient.on('error', (err) => console.error('WebTorrent error:', err.message));
     console.log('WebTorrent engine initialized');
   } catch (e) {
-    console.warn('WebTorrent not available â€” torrent features disabled.', e.message);
+    console.warn('WebTorrent not available — torrent features disabled.', e.message);
   } finally {
     torrentInitializing = false;
   }
@@ -10126,18 +10126,18 @@ app.post('/api/resume-builder/export-pdf', authMiddleware, async (req, res) => {
   if (!resume || !resume.personal) return res.status(400).json({ error: 'resume required' });
 
   const LEVEL_LABELS = {
-    tr: { beginner:'BaÅŸlangÄ±Ã§', intermediate:'Orta', advanced:'Ä°leri', expert:'Uzman', native:'Ana Dil', present:'Devam Ediyor' },
+    tr: { beginner:'Başlangıç', intermediate:'Orta', advanced:'İleri', expert:'Uzman', native:'Ana Dil', present:'Devam Ediyor' },
     en: { beginner:'Beginner', intermediate:'Intermediate', advanced:'Advanced', expert:'Expert', native:'Native', present:'Present' },
-    de: { beginner:'AnfÃ¤nger', intermediate:'Mittel', advanced:'Fortgeschritten', expert:'Experte', native:'Muttersprache', present:'Aktuell' },
-    fr: { beginner:'DÃ©butant', intermediate:'IntermÃ©diaire', advanced:'AvancÃ©', expert:'Expert', native:'Langue maternelle', present:'PrÃ©sent' },
+    de: { beginner:'Anfänger', intermediate:'Mittel', advanced:'Fortgeschritten', expert:'Experte', native:'Muttersprache', present:'Aktuell' },
+    fr: { beginner:'Débutant', intermediate:'Intermédiaire', advanced:'Avancé', expert:'Expert', native:'Langue maternelle', present:'Présent' },
     es: { beginner:'Principiante', intermediate:'Intermedio', advanced:'Avanzado', expert:'Experto', native:'Nativo', present:'Presente' }
   };
   const SECTION_LABELS = {
-    tr: { summary:'Ã–zet', experience:'Ä°ÅŸ Deneyimi', education:'EÄŸitim', skills:'Yetenekler', languages:'Diller', certifications:'Sertifikalar', projects:'Projeler', references:'Referanslar' },
+    tr: { summary:'Özet', experience:'İş Deneyimi', education:'Eğitim', skills:'Yetenekler', languages:'Diller', certifications:'Sertifikalar', projects:'Projeler', references:'Referanslar' },
     en: { summary:'Summary', experience:'Work Experience', education:'Education', skills:'Skills', languages:'Languages', certifications:'Certifications', projects:'Projects', references:'References' },
-    de: { summary:'Zusammenfassung', experience:'Berufserfahrung', education:'Ausbildung', skills:'FÃ¤higkeiten', languages:'Sprachen', certifications:'Zertifikate', projects:'Projekte', references:'Referenzen' },
-    fr: { summary:'RÃ©sumÃ©', experience:'ExpÃ©rience professionnelle', education:'Formation', skills:'CompÃ©tences', languages:'Langues', certifications:'Certifications', projects:'Projets', references:'RÃ©fÃ©rences' },
-    es: { summary:'Resumen', experience:'Experiencia laboral', education:'EducaciÃ³n', skills:'Habilidades', languages:'Idiomas', certifications:'Certificaciones', projects:'Proyectos', references:'Referencias' }
+    de: { summary:'Zusammenfassung', experience:'Berufserfahrung', education:'Ausbildung', skills:'Fähigkeiten', languages:'Sprachen', certifications:'Zertifikate', projects:'Projekte', references:'Referenzen' },
+    fr: { summary:'Résumé', experience:'Expérience professionnelle', education:'Formation', skills:'Compétences', languages:'Langues', certifications:'Certifications', projects:'Projets', references:'Références' },
+    es: { summary:'Resumen', experience:'Experiencia laboral', education:'Educación', skills:'Habilidades', languages:'Idiomas', certifications:'Certificaciones', projects:'Proyectos', references:'Referencias' }
   };
 
   const ll = LEVEL_LABELS[locale] || LEVEL_LABELS.en;
@@ -10153,17 +10153,17 @@ app.post('/api/resume-builder/export-pdf', authMiddleware, async (req, res) => {
   if (isTwoCol) {
     sidebar = '<div style="width:220px;flex-shrink:0;padding:28px 18px;background:' + sidebarBg + ';color:#fff;font-size:12px;">';
     if (resume.photo) sidebar += '<div style="text-align:center;margin-bottom:14px"><img src="' + esc(resume.photo) + '" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.3)"/></div>';
-    if (p.email) sidebar += '<div style="margin-bottom:5px">âœ‰ ' + esc(p.email) + '</div>';
-    if (p.phone) sidebar += '<div style="margin-bottom:5px">â˜ ' + esc(p.phone) + '</div>';
-    if (p.address) sidebar += '<div style="margin-bottom:5px">ğŸ“ ' + esc(p.address) + '</div>';
-    if (p.website) sidebar += '<div style="margin-bottom:10px">ğŸŒ ' + esc(p.website) + '</div>';
+    if (p.email) sidebar += '<div style="margin-bottom:5px">✉ ' + esc(p.email) + '</div>';
+    if (p.phone) sidebar += '<div style="margin-bottom:5px">☎ ' + esc(p.phone) + '</div>';
+    if (p.address) sidebar += '<div style="margin-bottom:5px">📍 ' + esc(p.address) + '</div>';
+    if (p.website) sidebar += '<div style="margin-bottom:10px">🌐 ' + esc(p.website) + '</div>';
     if (resume.skills && resume.skills.length) {
       sidebar += '<div style="font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid rgba(255,255,255,.3);padding-bottom:3px;margin:12px 0 8px">' + esc(sl.skills) + '</div>';
       resume.skills.forEach(s => { sidebar += '<div style="margin-bottom:4px">' + esc(s.name) + ' <span style="opacity:.7">(' + esc(ll[s.level] || s.level) + ')</span></div>'; });
     }
     if (resume.languages && resume.languages.length) {
       sidebar += '<div style="font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid rgba(255,255,255,.3);padding-bottom:3px;margin:12px 0 8px">' + esc(sl.languages) + '</div>';
-      resume.languages.forEach(l => { sidebar += '<div style="margin-bottom:4px">' + esc(l.name) + ' â€” <span style="opacity:.7">' + esc(ll[l.proficiency] || l.proficiency) + '</span></div>'; });
+      resume.languages.forEach(l => { sidebar += '<div style="margin-bottom:4px">' + esc(l.name) + ' — <span style="opacity:.7">' + esc(ll[l.proficiency] || l.proficiency) + '</span></div>'; });
     }
     sidebar += '</div>';
   }
@@ -10176,10 +10176,10 @@ app.post('/api/resume-builder/export-pdf', authMiddleware, async (req, res) => {
   if (p.jobTitle) main += '<div style="font-size:14px;color:#666;margin-top:2px">' + esc(p.jobTitle) + '</div>';
   if (!isTwoCol) {
     const contacts = [];
-    if (p.email) contacts.push('âœ‰ ' + esc(p.email));
-    if (p.phone) contacts.push('â˜ ' + esc(p.phone));
-    if (p.address) contacts.push('ğŸ“ ' + esc(p.address));
-    if (p.website) contacts.push('ğŸŒ ' + esc(p.website));
+    if (p.email) contacts.push('✉ ' + esc(p.email));
+    if (p.phone) contacts.push('☎ ' + esc(p.phone));
+    if (p.address) contacts.push('📍 ' + esc(p.address));
+    if (p.website) contacts.push('🌐 ' + esc(p.website));
     if (contacts.length) main += '<div style="font-size:11px;color:#888;margin-top:6px">' + contacts.join(' &nbsp;|&nbsp; ') + '</div>';
   }
   main += '</div></div>';
@@ -10195,7 +10195,7 @@ app.post('/api/resume-builder/export-pdf', authMiddleware, async (req, res) => {
   if (resume.experience && resume.experience.length) {
     main += sectionTitle(sl.experience);
     resume.experience.forEach(e => {
-      main += '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between"><div><strong>' + esc(e.position) + '</strong> Â· ' + esc(e.company) + '</div><div style="font-size:11px;color:#999">' + esc(e.startDate) + ' â€” ' + (e.present ? esc(ll.present) : esc(e.endDate)) + '</div></div>';
+      main += '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between"><div><strong>' + esc(e.position) + '</strong> · ' + esc(e.company) + '</div><div style="font-size:11px;color:#999">' + esc(e.startDate) + ' — ' + (e.present ? esc(ll.present) : esc(e.endDate)) + '</div></div>';
       if (e.description) main += '<div style="color:#555;line-height:1.5;margin-top:3px;white-space:pre-line">' + esc(e.description) + '</div>';
       main += '</div>';
     });
@@ -10203,7 +10203,7 @@ app.post('/api/resume-builder/export-pdf', authMiddleware, async (req, res) => {
   if (resume.education && resume.education.length) {
     main += sectionTitle(sl.education);
     resume.education.forEach(e => {
-      main += '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between"><div><strong>' + esc(e.degree) + '</strong> Â· ' + esc(e.school) + '</div><div style="font-size:11px;color:#999">' + esc(e.startDate) + ' â€” ' + esc(e.endDate) + '</div></div>';
+      main += '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between"><div><strong>' + esc(e.degree) + '</strong> · ' + esc(e.school) + '</div><div style="font-size:11px;color:#999">' + esc(e.startDate) + ' — ' + esc(e.endDate) + '</div></div>';
       if (e.description) main += '<div style="color:#555;line-height:1.5;margin-top:3px">' + esc(e.description) + '</div>';
       main += '</div>';
     });
@@ -10223,14 +10223,14 @@ app.post('/api/resume-builder/export-pdf', authMiddleware, async (req, res) => {
   if (resume.certifications && resume.certifications.length) {
     main += sectionTitle(sl.certifications);
     resume.certifications.forEach(c => {
-      main += '<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between"><div><strong>' + esc(c.name) + '</strong> Â· ' + esc(c.issuer) + '</div><div style="font-size:11px;color:#999">' + esc(c.date) + '</div></div></div>';
+      main += '<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between"><div><strong>' + esc(c.name) + '</strong> · ' + esc(c.issuer) + '</div><div style="font-size:11px;color:#999">' + esc(c.date) + '</div></div></div>';
     });
   }
   if (resume.projects && resume.projects.length) {
     main += sectionTitle(sl.projects);
     resume.projects.forEach(p2 => {
       main += '<div style="margin-bottom:8px"><strong>' + esc(p2.name) + '</strong>';
-      if (p2.url) main += ' Â· <span style="color:' + esc(accent) + ';font-size:11px">' + esc(p2.url) + '</span>';
+      if (p2.url) main += ' · <span style="color:' + esc(accent) + ';font-size:11px">' + esc(p2.url) + '</span>';
       if (p2.description) main += '<div style="color:#555;line-height:1.5;margin-top:2px">' + esc(p2.description) + '</div>';
       main += '</div>';
     });
@@ -10240,9 +10240,9 @@ app.post('/api/resume-builder/export-pdf', authMiddleware, async (req, res) => {
     main += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
     resume.references.forEach(rf => {
       main += '<div style="font-size:11px;background:#f8f9fa;border-radius:5px;padding:8px"><strong>' + esc(rf.name) + '</strong><br>' + esc(rf.position);
-      if (rf.company) main += ' Â· ' + esc(rf.company);
-      if (rf.phone) main += '<br>â˜ ' + esc(rf.phone);
-      if (rf.email) main += '<br>âœ‰ ' + esc(rf.email);
+      if (rf.company) main += ' · ' + esc(rf.company);
+      if (rf.phone) main += '<br>☎ ' + esc(rf.phone);
+      if (rf.email) main += '<br>✉ ' + esc(rf.email);
       main += '</div>';
     });
     main += '</div>';
@@ -11026,7 +11026,7 @@ app.post('/api/ssh/sftp-write', authMiddleware, async (req, res) => {
   }
 });
 
-/* â”€â”€ SSH Saved Connections (SQLite) â”€â”€ */
+/* ── SSH Saved Connections (SQLite) ── */
 app.get('/api/ssh/connections', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
   try { db.prepare('SELECT 1 FROM ssh_connections LIMIT 1').get(); } catch {
@@ -11449,7 +11449,7 @@ const asciiFileUpload = multer({
   }
 });
 
-// Text â†’ ASCII (figlet)
+// Text → ASCII (figlet)
 app.post('/api/ascii-art/text', authMiddleware, (req, res) => {
   const { text, font } = req.body;
   if (!text || typeof text !== 'string' || !text.trim()) return res.status(400).json({ error: 'text required' });
@@ -11464,7 +11464,7 @@ app.post('/api/ascii-art/text', authMiddleware, (req, res) => {
   }
 });
 
-// Image â†’ ASCII
+// Image → ASCII
 app.post('/api/ascii-art/image', authMiddleware, asciiUpload.single('image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'image required' });
   try {
@@ -11475,7 +11475,7 @@ app.post('/api/ascii-art/image', authMiddleware, asciiUpload.single('image'), as
     const CHARSETS = {
       standard: ' .:-=+*#%@',
       detailed: ' .\'`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$',
-      blocks: ' â–‘â–’â–“â–ˆ',
+      blocks: ' ░▒▓█',
       simple: ' .oO#@'
     };
     let chars = CHARSETS[charset] || CHARSETS.standard;
@@ -11617,7 +11617,7 @@ app.post('/api/featherwiki/data', authMiddleware, (req, res) => {
 
 // #region Requestly API
 // ============================================================
-// Requestly â€” Postman-like API testing tool
+// Requestly — Postman-like API testing tool
 // Data persistence + HTTP proxy for cross-origin requests
 // ============================================================
 
@@ -11653,7 +11653,7 @@ app.post('/api/requestly/data', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// HTTP proxy endpoint â€” sends request from server side to bypass CORS
+// HTTP proxy endpoint — sends request from server side to bypass CORS
 app.post('/api/requestly/send', authMiddleware, async (req, res) => {
   const { method, url, headers: hdrs, params, body: reqBody, bodyType } = req.body;
   if (!url || typeof url !== 'string') return res.status(400).json({ error: 'URL required' });
@@ -11725,8 +11725,8 @@ app.post('/api/requestly/send', authMiddleware, async (req, res) => {
 // #region Synchronizer Engine
 // ============================================================
 // Server-to-Server Sync Engine
-// Lokal instance sunucuya WebSocket ile baÄŸlanÄ±r (pull model)
-// TÃ¼m kullanÄ±cÄ± verileri (JSON + dosyalar) senkronize edilir
+// Lokal instance sunucuya WebSocket ile bağlanır (pull model)
+// Tüm kullanıcı verileri (JSON + dosyalar) senkronize edilir
 // ============================================================
 
 const syncWss = new WebSocketServer({ noServer: true });
@@ -11867,7 +11867,7 @@ function diffManifests(local, remote) {
     const r = remote[p];
     if (l && r) {
       if (l.hash !== r.hash) {
-        // Conflict â€” compare mtime
+        // Conflict — compare mtime
         const lTime = new Date(l.mtime).getTime();
         const rTime = new Date(r.mtime).getTime();
         if (rTime > lTime) toDownload.push(p);
@@ -11908,7 +11908,7 @@ function validatePairingToken(code) {
   return entry;
 }
 
-// Sync API â€” Config
+// Sync API — Config
 app.get('/api/sync/config', authMiddleware, (req, res) => {
   const cfg = loadSyncConfig(req.user.username);
   res.json(cfg);
@@ -11935,7 +11935,7 @@ app.post('/api/sync/config', authMiddleware, (req, res) => {
   res.json({ ok: true, config: current });
 });
 
-// Sync API â€” Pairing
+// Sync API — Pairing
 app.post('/api/sync/pair/generate', authMiddleware, (req, res) => {
   const result = generatePairingToken(req.user.username);
   res.json(result);
@@ -11962,7 +11962,7 @@ app.post('/api/sync/pair/connect', authMiddleware, (req, res) => {
   res.json({ ok: true, status: 'connecting' });
 });
 
-// Sync API â€” Pair validation (remote side receives this)
+// Sync API — Pair validation (remote side receives this)
 app.post('/api/sync/pair/validate', (req, res) => {
   const { pairingCode, deviceId, deviceName } = req.body;
   if (!pairingCode || !deviceId) return res.status(400).json({ error: 'pairingCode and deviceId required' });
@@ -11995,13 +11995,13 @@ app.post('/api/sync/pair/validate', (req, res) => {
   res.json({ ok: true, syncJwt, username: entry.username, serverDeviceId: cfg.deviceId });
 });
 
-// Sync API â€” Manifest
+// Sync API — Manifest
 app.get('/api/sync/manifest', authMiddleware, (req, res) => {
   const manifest = generateManifest(req.user.username);
   res.json({ manifest, deviceId: loadSyncConfig(req.user.username).deviceId });
 });
 
-// Sync API â€” Download file
+// Sync API — Download file
 app.get('/api/sync/file', authMiddleware, (req, res) => {
   const relPath = req.query.path;
   if (!relPath) return res.status(400).json({ error: 'path required' });
@@ -12017,7 +12017,7 @@ app.get('/api/sync/file', authMiddleware, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Sync API â€” Upload file
+// Sync API — Upload file
 app.post('/api/sync/file', authMiddleware, (req, res) => {
   const { filePath: relPath, content, mtime } = req.body;
   if (!relPath || content === undefined) return res.status(400).json({ error: 'filePath and content required' });
@@ -12035,7 +12035,7 @@ app.post('/api/sync/file', authMiddleware, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Sync API â€” Log
+// Sync API — Log
 app.get('/api/sync/log', authMiddleware, (req, res) => {
   res.json(loadSyncLog(req.user.username));
 });
@@ -12045,7 +12045,7 @@ app.delete('/api/sync/log', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// Sync API â€” Trigger manual sync
+// Sync API — Trigger manual sync
 app.post('/api/sync/trigger', authMiddleware, async (req, res) => {
   try {
     const result = await performSync(req.user.username);
@@ -12055,7 +12055,7 @@ app.post('/api/sync/trigger', authMiddleware, async (req, res) => {
   }
 });
 
-// Sync API â€” Unpair device
+// Sync API — Unpair device
 app.post('/api/sync/unpair', authMiddleware, (req, res) => {
   const { deviceId } = req.body;
   const cfg = loadSyncConfig(req.user.username);
@@ -12075,7 +12075,7 @@ app.post('/api/sync/unpair', authMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-// Sync API â€” Status
+// Sync API — Status
 app.get('/api/sync/status', authMiddleware, (req, res) => {
   const cfg = loadSyncConfig(req.user.username);
   const peer = activeSyncPeers.get(req.user.username);
@@ -12294,7 +12294,7 @@ function handleSyncMessage(username, ws, msg) {
   }
 }
 
-// Sync WebSocket handler (server side â€” receives incoming connections)
+// Sync WebSocket handler (server side — receives incoming connections)
 syncWss.on('connection', (ws, req) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const token = url.searchParams.get('token') || '';
@@ -12343,7 +12343,7 @@ syncWss.on('connection', (ws, req) => {
         ws.send(JSON.stringify({ type: 'pair-result', data: { syncJwt, serverDeviceId: cfg.deviceId } }));
         addSyncLog(entry.username, { type: 'device-paired', deviceName: newDevice.deviceName });
       } else if (msg.type === 'sync-request') {
-        // Remote wants to trigger sync â€” notify our clients
+        // Remote wants to trigger sync — notify our clients
         broadcastWS({ type: 'sync-request-received', data: {} });
       } else if (msg.type === 'ping') {
         ws.send(JSON.stringify({ type: 'pong' }));
@@ -12378,7 +12378,7 @@ function startSyncChecker() {
               connectToSyncPeer(u.name, cfg);
             }
           } else {
-            // Connected â€” perform periodic sync
+            // Connected — perform periodic sync
             performSync(u.name).catch(() => {});
           }
         }
@@ -12433,7 +12433,7 @@ app.get('/api/gdrive/config', authMiddleware, (req, res) => {
   const s = loadGdriveSettings(req.user.username);
   res.json({
     clientId: s.clientId || '',
-    clientSecret: s.clientSecret ? 'â€¢â€¢â€¢â€¢' : '',
+    clientSecret: s.clientSecret ? '••••' : '',
     redirectUri: s.redirectUri || '',
     authenticated: !!(s.tokens && s.tokens.access_token)
   });
@@ -12545,7 +12545,7 @@ app.post('/api/gdrive/folder', authMiddleware, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// PATCH /api/gdrive/files/:fileId â€” rename, star, move
+// PATCH /api/gdrive/files/:fileId — rename, star, move
 app.patch('/api/gdrive/files/:fileId', authMiddleware, async (req, res) => {
   const drive = getAuthenticatedDrive(req.user.username);
   if (!drive) return res.status(401).json({ error: 'Not authenticated' });
@@ -12624,7 +12624,7 @@ app.get('/api/gdrive/download/:fileId', async (req, res) => {
 });
 // #endregion
 
-// #region â”€â”€ Code Minifier (tdewolff/minify) â”€â”€
+// #region ── Code Minifier (tdewolff/minify) ──
 const MINIFY_SUPPORTED = ['.js', '.css', '.html', '.htm', '.json', '.svg', '.xml'];
 const MINIFY_MIME = {
   '.js': 'application/javascript',
@@ -12645,7 +12645,7 @@ function findMinifyBin() {
   } catch { return null; }
 }
 
-// â”€â”€ Built-in JS minifiers (fallback when tdewolff binary is unavailable) â”€â”€
+// ── Built-in JS minifiers (fallback when tdewolff binary is unavailable) ──
 function minifyJS(src) {
   return src
     .replace(/\/\*[\s\S]*?\*\//g, '')
@@ -12783,7 +12783,7 @@ app.get('/api/gmail/config', authMiddleware, (req, res) => {
   const s = loadGmailSettings(req.user.username);
   res.json({
     clientId: s.clientId || '',
-    clientSecret: s.clientSecret ? 'â€¢â€¢â€¢â€¢' : '',
+    clientSecret: s.clientSecret ? '••••' : '',
     redirectUri: s.redirectUri || '',
     authenticated: !!(s.tokens && s.tokens.access_token),
     email: s.email || '',
@@ -13083,9 +13083,9 @@ function startGmailChecker() {
 
             const notif = {
               id: crypto.randomUUID(),
-              icon: 'ğŸ“¬',
+              icon: '📬',
               bg: '#e8f5e9',
-              title: 'ğŸ“¬ ' + newCount + ' new Gmail',
+              title: '📬 ' + newCount + ' new Gmail',
               text: (s.email || 'Gmail') + ': ' + latestSubject,
               time: new Date().toISOString(),
               read: false,
@@ -13212,7 +13212,7 @@ app.get('/api/gcalendar/config', authMiddleware, (req, res) => {
   const s = loadGcalSettings(req.user.username);
   res.json({
     clientId: s.clientId || '',
-    clientSecret: s.clientSecret ? 'â€¢â€¢â€¢â€¢' : '',
+    clientSecret: s.clientSecret ? '••••' : '',
     redirectUri: s.redirectUri || '',
     authenticated: !!(s.tokens && s.tokens.access_token),
     email: s.email || ''
@@ -13223,7 +13223,7 @@ app.post('/api/gcalendar/config', authMiddleware, (req, res) => {
   const { clientId, clientSecret, redirectUri } = req.body;
   const s = loadGcalSettings(req.user.username);
   if (clientId !== undefined) s.clientId = String(clientId).substring(0, 200);
-  if (clientSecret !== undefined && clientSecret !== 'â€¢â€¢â€¢â€¢') s.clientSecret = String(clientSecret).substring(0, 200);
+  if (clientSecret !== undefined && clientSecret !== '••••') s.clientSecret = String(clientSecret).substring(0, 200);
   if (redirectUri !== undefined) s.redirectUri = String(redirectUri).substring(0, 500);
   saveGcalSettings(req.user.username, s);
   res.json({ ok: true });
@@ -13788,7 +13788,7 @@ app.delete('/api/icon-maker/icons/:id', authMiddleware, (req, res) => {
 });
 // #endregion
 
-// #region â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• VPN Client Config API â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// #region ═══════════════════ VPN Client Config API ═══════════════════
 app.get('/api/vpn-client/config', authMiddleware, (req, res) => {
   const fp = path.join('data', 'users', req.user.username, 'vpn-client-config.json');
   if (fs.existsSync(fp)) {
