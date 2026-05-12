@@ -1,16 +1,22 @@
-/**
- * CarPaper — Plugin server.js
- * Araç yönetimi: muayene, vergi, yakıt, kaza/ceza, sigorta takibi
+﻿/**
+ * CarPaper â€” Plugin server.js
+ * AraÃ§ yÃ¶netimi: muayene, vergi, yakÄ±t, kaza/ceza, sigorta takibi
+ * Uses its own dedicated SQLite database per user.
  */
 module.exports = function(ctx) {
-  const { authMiddleware, getUserDb } = ctx;
+  const { authMiddleware, getAppDb } = ctx;
 
-  // ── Helper: generic CRUD for carpaper sub-tables ──
+  // â”€â”€ Own DB helper â”€â”€
+  function getDb(username) {
+    return getAppDb('carpaper', username);
+  }
+
+  // â”€â”€ Helper: generic CRUD for carpaper sub-tables â”€â”€
   function cpCrudRoutes(tableName, requiredFields, allFields) {
     const table = 'carpaper_' + tableName;
 
     const getAll = (req, res) => {
-      const db = getUserDb(req.user.username);
+      const db = getDb(req.user.username);
       let sql = 'SELECT * FROM ' + table + ' WHERE 1=1';
       const params = [];
       if (req.query.vehicle_id) { sql += ' AND vehicle_id=?'; params.push(Number(req.query.vehicle_id)); }
@@ -22,7 +28,7 @@ module.exports = function(ctx) {
       const { vehicle_id } = req.body;
       if (!vehicle_id) return res.status(400).json({ error: 'vehicle_id required' });
       for (const f of requiredFields) { if (!req.body[f]) return res.status(400).json({ error: f + ' required' }); }
-      const db = getUserDb(req.user.username);
+      const db = getDb(req.user.username);
       const cols = ['vehicle_id', ...allFields];
       const placeholders = cols.map(() => '?').join(',');
       const values = cols.map(c => {
@@ -36,7 +42,7 @@ module.exports = function(ctx) {
     };
 
     const update = (req, res) => {
-      const db = getUserDb(req.user.username);
+      const db = getDb(req.user.username);
       const fields = []; const vals = [];
       for (const c of allFields) {
         if (req.body[c] !== undefined) {
@@ -52,7 +58,7 @@ module.exports = function(ctx) {
     };
 
     const remove = (req, res) => {
-      const db = getUserDb(req.user.username);
+      const db = getDb(req.user.username);
       db.prepare('DELETE FROM ' + table + ' WHERE id=?').run(req.params.id);
       res.json({ ok: true });
     };
@@ -65,14 +71,14 @@ module.exports = function(ctx) {
     ];
   }
 
-  // ── Routes ──
+  // â”€â”€ Routes â”€â”€
   const routes = [
     // Vehicles
     {
       method: 'get',
       path: '/api/carpaper/vehicles',
       handlers: [authMiddleware, (req, res) => {
-        const db = getUserDb(req.user.username);
+        const db = getDb(req.user.username);
         res.json(db.prepare('SELECT * FROM carpaper_vehicles ORDER BY created_at DESC').all());
       }]
     },
@@ -82,7 +88,7 @@ module.exports = function(ctx) {
       handlers: [authMiddleware, (req, res) => {
         const { plate, brand, model, year, color, km, fuel_type, engine_size } = req.body;
         if (!plate && !brand) return res.status(400).json({ error: 'plate or brand required' });
-        const db = getUserDb(req.user.username);
+        const db = getDb(req.user.username);
         const info = db.prepare('INSERT INTO carpaper_vehicles (plate,brand,model,year,color,km,fuel_type,engine_size) VALUES (?,?,?,?,?,?,?,?)').run(
           String(plate || '').slice(0, 20), String(brand || '').slice(0, 50), String(model || '').slice(0, 50),
           Number(year) || 0, String(color || '').slice(0, 30), Number(km) || 0,
@@ -95,7 +101,7 @@ module.exports = function(ctx) {
       method: 'put',
       path: '/api/carpaper/vehicles/:id',
       handlers: [authMiddleware, (req, res) => {
-        const db = getUserDb(req.user.username);
+        const db = getDb(req.user.username);
         const fields = []; const vals = [];
         const allowed = { plate: 20, brand: 50, model: 50, color: 30, fuel_type: 20, engine_size: 10 };
         for (const [k, maxLen] of Object.entries(allowed)) {
@@ -113,7 +119,7 @@ module.exports = function(ctx) {
       method: 'delete',
       path: '/api/carpaper/vehicles/:id',
       handlers: [authMiddleware, (req, res) => {
-        const db = getUserDb(req.user.username);
+        const db = getDb(req.user.username);
         const id = req.params.id;
         db.prepare('DELETE FROM carpaper_inspections WHERE vehicle_id=?').run(id);
         db.prepare('DELETE FROM carpaper_taxes WHERE vehicle_id=?').run(id);
@@ -135,7 +141,7 @@ module.exports = function(ctx) {
       method: 'get',
       path: '/api/carpaper/summary',
       handlers: [authMiddleware, (req, res) => {
-        const db = getUserDb(req.user.username);
+        const db = getDb(req.user.username);
         const vid = req.query.vehicle_id ? Number(req.query.vehicle_id) : null;
         const where = vid ? ' WHERE vehicle_id=?' : '';
         const params = vid ? [vid] : [];
@@ -176,9 +182,98 @@ module.exports = function(ctx) {
   return {
     routes,
 
-    dbMigrations: (getUserDbFn) => {
-      // Tables are already created in the main migration block.
-      // This is here for future schema additions if needed.
+    dbMigrations: () => {
+      // Schema is created on first access per user via initSchema().
+      // Nothing to do here globally since each user gets their own DB.
+    },
+
+    // Initialize schema for a specific user's carpaper DB
+    initUserDb: (username) => {
+      const db = getDb(username);
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS carpaper_vehicles (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          plate TEXT DEFAULT '',
+          brand TEXT DEFAULT '',
+          model TEXT DEFAULT '',
+          year INTEGER DEFAULT 0,
+          color TEXT DEFAULT '',
+          km INTEGER DEFAULT 0,
+          fuel_type TEXT DEFAULT 'gasoline',
+          engine_size TEXT DEFAULT '',
+          created_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS carpaper_inspections (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          vehicle_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          next_date TEXT DEFAULT '',
+          amount REAL DEFAULT 0,
+          result TEXT DEFAULT 'passed',
+          notes TEXT DEFAULT '',
+          created_at TEXT DEFAULT (datetime('now')),
+          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_cp_insp_vid ON carpaper_inspections(vehicle_id);
+
+        CREATE TABLE IF NOT EXISTS carpaper_taxes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          vehicle_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          next_date TEXT DEFAULT '',
+          amount REAL DEFAULT 0,
+          description TEXT DEFAULT '',
+          notes TEXT DEFAULT '',
+          created_at TEXT DEFAULT (datetime('now')),
+          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_cp_tax_vid ON carpaper_taxes(vehicle_id);
+
+        CREATE TABLE IF NOT EXISTS carpaper_fuellogs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          vehicle_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          station TEXT DEFAULT '',
+          liters REAL DEFAULT 0,
+          price_per_liter REAL DEFAULT 0,
+          amount REAL DEFAULT 0,
+          total_km INTEGER DEFAULT 0,
+          notes TEXT DEFAULT '',
+          created_at TEXT DEFAULT (datetime('now')),
+          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_cp_fuel_vid ON carpaper_fuellogs(vehicle_id);
+
+        CREATE TABLE IF NOT EXISTS carpaper_accidents (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          vehicle_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          type TEXT DEFAULT 'fine',
+          amount REAL DEFAULT 0,
+          description TEXT DEFAULT '',
+          notes TEXT DEFAULT '',
+          created_at TEXT DEFAULT (datetime('now')),
+          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_cp_acc_vid ON carpaper_accidents(vehicle_id);
+
+        CREATE TABLE IF NOT EXISTS carpaper_insurances (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          vehicle_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          amount REAL DEFAULT 0,
+          provider TEXT DEFAULT '',
+          policy_no TEXT DEFAULT '',
+          expiry_date TEXT DEFAULT '',
+          insurance_type TEXT DEFAULT 'kasko',
+          notes TEXT DEFAULT '',
+          created_at TEXT DEFAULT (datetime('now')),
+          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_cp_ins_vid ON carpaper_insurances(vehicle_id);
+      `);
+      return db;
     }
   };
 };

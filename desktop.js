@@ -4318,6 +4318,24 @@ app.delete('/api/qrcode/saved/:id', authMiddleware, (req, res) => {
 const APPDATA_DIR = path.join(__dirname, 'data', 'appdata');
 ensureDir(APPDATA_DIR);
 const userDbCache = {};
+const appDbCache = {};
+
+/**
+ * Get a dedicated SQLite database for a specific app + user.
+ * DB file is stored at: data/appdata/{username}_{appId}.db
+ * The caller is responsible for creating tables (typically via dbMigrations).
+ */
+function getAppDb(appId, username) {
+  const safeUser = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const safeApp = appId.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const cacheKey = safeUser + '__' + safeApp;
+  if (appDbCache[cacheKey]) return appDbCache[cacheKey];
+  const dbPath = path.join(APPDATA_DIR, safeUser + '_' + safeApp + '.db');
+  const db = new Database(dbPath);
+  db.pragma('journal_mode = WAL');
+  appDbCache[cacheKey] = db;
+  return db;
+}
 
 function getUserDb(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -4479,88 +4497,6 @@ function getUserDb(username) {
       updated_at TEXT DEFAULT (datetime('now'))
     );
     CREATE INDEX IF NOT EXISTS idx_pets_name ON pets(name);
-
-    CREATE TABLE IF NOT EXISTS carpaper_vehicles (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      plate TEXT DEFAULT '',
-      brand TEXT DEFAULT '',
-      model TEXT DEFAULT '',
-      year INTEGER DEFAULT 0,
-      color TEXT DEFAULT '',
-      km INTEGER DEFAULT 0,
-      fuel_type TEXT DEFAULT 'gasoline',
-      engine_size TEXT DEFAULT '',
-      created_at TEXT DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS carpaper_inspections (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      vehicle_id INTEGER NOT NULL,
-      date TEXT NOT NULL,
-      next_date TEXT DEFAULT '',
-      amount REAL DEFAULT 0,
-      result TEXT DEFAULT 'passed',
-      notes TEXT DEFAULT '',
-      created_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
-    );
-    CREATE INDEX IF NOT EXISTS idx_cp_insp_vid ON carpaper_inspections(vehicle_id);
-
-    CREATE TABLE IF NOT EXISTS carpaper_taxes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      vehicle_id INTEGER NOT NULL,
-      date TEXT NOT NULL,
-      next_date TEXT DEFAULT '',
-      amount REAL DEFAULT 0,
-      description TEXT DEFAULT '',
-      notes TEXT DEFAULT '',
-      created_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
-    );
-    CREATE INDEX IF NOT EXISTS idx_cp_tax_vid ON carpaper_taxes(vehicle_id);
-
-    CREATE TABLE IF NOT EXISTS carpaper_fuellogs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      vehicle_id INTEGER NOT NULL,
-      date TEXT NOT NULL,
-      station TEXT DEFAULT '',
-      liters REAL DEFAULT 0,
-      price_per_liter REAL DEFAULT 0,
-      amount REAL DEFAULT 0,
-      total_km INTEGER DEFAULT 0,
-      notes TEXT DEFAULT '',
-      created_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
-    );
-    CREATE INDEX IF NOT EXISTS idx_cp_fuel_vid ON carpaper_fuellogs(vehicle_id);
-
-    CREATE TABLE IF NOT EXISTS carpaper_accidents (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      vehicle_id INTEGER NOT NULL,
-      date TEXT NOT NULL,
-      type TEXT DEFAULT 'fine',
-      amount REAL DEFAULT 0,
-      description TEXT DEFAULT '',
-      notes TEXT DEFAULT '',
-      created_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
-    );
-    CREATE INDEX IF NOT EXISTS idx_cp_acc_vid ON carpaper_accidents(vehicle_id);
-
-    CREATE TABLE IF NOT EXISTS carpaper_insurances (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      vehicle_id INTEGER NOT NULL,
-      date TEXT NOT NULL,
-      amount REAL DEFAULT 0,
-      provider TEXT DEFAULT '',
-      policy_no TEXT DEFAULT '',
-      expiry_date TEXT DEFAULT '',
-      insurance_type TEXT DEFAULT 'kasko',
-      notes TEXT DEFAULT '',
-      created_at TEXT DEFAULT (datetime('now')),
-      FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
-    );
-    CREATE INDEX IF NOT EXISTS idx_cp_ins_vid ON carpaper_insurances(vehicle_id);
 
     CREATE TABLE IF NOT EXISTS wp_projects (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -5016,6 +4952,7 @@ function getPluginContext() {
       server,
       authMiddleware,
       getUserDb,
+      getAppDb,
       addNotificationToDb,
       broadcastWS: (...args) => broadcastWS(...args),
       wsClients,
