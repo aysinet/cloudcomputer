@@ -9545,13 +9545,6 @@ app.post('/api/ftp/rename', authMiddleware, async (req, res) => {
 });
 
 // #endregion
-
-// #region Feather Wiki — moved to apps/store/featherwiki/server.js (plugin)
-// #endregion
-
-// #region Requestly API — moved to apps/store/requestly/server.js (plugin)
-// #endregion
-
 // #region Synchronizer Engine
 // ============================================================
 // Server-to-Server Sync Engine
