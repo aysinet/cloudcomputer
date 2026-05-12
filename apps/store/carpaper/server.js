@@ -1,17 +1,105 @@
 ﻿/**
- * CarPaper â€” Plugin server.js
- * AraÃ§ yÃ¶netimi: muayene, vergi, yakÄ±t, kaza/ceza, sigorta takibi
- * Uses its own dedicated SQLite database per user.
+ * CarPaper — Plugin server.js
+ * Araç yönetimi: muayene, vergi, yakıt, kaza/ceza, sigorta takibi
+ * Uses its own dedicated SQLite database per user (ownDb).
  */
 module.exports = function(ctx) {
   const { authMiddleware, getAppDb } = ctx;
 
-  // â”€â”€ Own DB helper â”€â”€
+  // ── Own DB helper — initializes schema on first access ──
+  const initializedDbs = new Set();
   function getDb(username) {
-    return getAppDb('carpaper', username);
+    const db = getAppDb('carpaper', username);
+    if (!initializedDbs.has(username)) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS carpaper_vehicles (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          plate TEXT DEFAULT '',
+          brand TEXT DEFAULT '',
+          model TEXT DEFAULT '',
+          year INTEGER DEFAULT 0,
+          color TEXT DEFAULT '',
+          km INTEGER DEFAULT 0,
+          fuel_type TEXT DEFAULT 'gasoline',
+          engine_size TEXT DEFAULT '',
+          created_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS carpaper_inspections (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          vehicle_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          next_date TEXT DEFAULT '',
+          amount REAL DEFAULT 0,
+          result TEXT DEFAULT 'passed',
+          notes TEXT DEFAULT '',
+          created_at TEXT DEFAULT (datetime('now')),
+          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_cp_insp_vid ON carpaper_inspections(vehicle_id);
+
+        CREATE TABLE IF NOT EXISTS carpaper_taxes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          vehicle_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          next_date TEXT DEFAULT '',
+          amount REAL DEFAULT 0,
+          description TEXT DEFAULT '',
+          notes TEXT DEFAULT '',
+          created_at TEXT DEFAULT (datetime('now')),
+          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_cp_tax_vid ON carpaper_taxes(vehicle_id);
+
+        CREATE TABLE IF NOT EXISTS carpaper_fuellogs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          vehicle_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          station TEXT DEFAULT '',
+          liters REAL DEFAULT 0,
+          price_per_liter REAL DEFAULT 0,
+          amount REAL DEFAULT 0,
+          total_km INTEGER DEFAULT 0,
+          notes TEXT DEFAULT '',
+          created_at TEXT DEFAULT (datetime('now')),
+          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_cp_fuel_vid ON carpaper_fuellogs(vehicle_id);
+
+        CREATE TABLE IF NOT EXISTS carpaper_accidents (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          vehicle_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          type TEXT DEFAULT 'fine',
+          amount REAL DEFAULT 0,
+          description TEXT DEFAULT '',
+          notes TEXT DEFAULT '',
+          created_at TEXT DEFAULT (datetime('now')),
+          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_cp_acc_vid ON carpaper_accidents(vehicle_id);
+
+        CREATE TABLE IF NOT EXISTS carpaper_insurances (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          vehicle_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          amount REAL DEFAULT 0,
+          provider TEXT DEFAULT '',
+          policy_no TEXT DEFAULT '',
+          expiry_date TEXT DEFAULT '',
+          insurance_type TEXT DEFAULT 'kasko',
+          notes TEXT DEFAULT '',
+          created_at TEXT DEFAULT (datetime('now')),
+          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_cp_ins_vid ON carpaper_insurances(vehicle_id);
+      `);
+      initializedDbs.add(username);
+    }
+    return db;
   }
 
-  // â”€â”€ Helper: generic CRUD for carpaper sub-tables â”€â”€
+  // ── Helper: generic CRUD for carpaper sub-tables ──
   function cpCrudRoutes(tableName, requiredFields, allFields) {
     const table = 'carpaper_' + tableName;
 
@@ -71,7 +159,7 @@ module.exports = function(ctx) {
     ];
   }
 
-  // â”€â”€ Routes â”€â”€
+  // ── Routes ──
   const routes = [
     // Vehicles
     {
@@ -180,100 +268,6 @@ module.exports = function(ctx) {
   ];
 
   return {
-    routes,
-
-    dbMigrations: () => {
-      // Schema is created on first access per user via initSchema().
-      // Nothing to do here globally since each user gets their own DB.
-    },
-
-    // Initialize schema for a specific user's carpaper DB
-    initUserDb: (username) => {
-      const db = getDb(username);
-      db.exec(`
-        CREATE TABLE IF NOT EXISTS carpaper_vehicles (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          plate TEXT DEFAULT '',
-          brand TEXT DEFAULT '',
-          model TEXT DEFAULT '',
-          year INTEGER DEFAULT 0,
-          color TEXT DEFAULT '',
-          km INTEGER DEFAULT 0,
-          fuel_type TEXT DEFAULT 'gasoline',
-          engine_size TEXT DEFAULT '',
-          created_at TEXT DEFAULT (datetime('now'))
-        );
-
-        CREATE TABLE IF NOT EXISTS carpaper_inspections (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          vehicle_id INTEGER NOT NULL,
-          date TEXT NOT NULL,
-          next_date TEXT DEFAULT '',
-          amount REAL DEFAULT 0,
-          result TEXT DEFAULT 'passed',
-          notes TEXT DEFAULT '',
-          created_at TEXT DEFAULT (datetime('now')),
-          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
-        );
-        CREATE INDEX IF NOT EXISTS idx_cp_insp_vid ON carpaper_inspections(vehicle_id);
-
-        CREATE TABLE IF NOT EXISTS carpaper_taxes (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          vehicle_id INTEGER NOT NULL,
-          date TEXT NOT NULL,
-          next_date TEXT DEFAULT '',
-          amount REAL DEFAULT 0,
-          description TEXT DEFAULT '',
-          notes TEXT DEFAULT '',
-          created_at TEXT DEFAULT (datetime('now')),
-          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
-        );
-        CREATE INDEX IF NOT EXISTS idx_cp_tax_vid ON carpaper_taxes(vehicle_id);
-
-        CREATE TABLE IF NOT EXISTS carpaper_fuellogs (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          vehicle_id INTEGER NOT NULL,
-          date TEXT NOT NULL,
-          station TEXT DEFAULT '',
-          liters REAL DEFAULT 0,
-          price_per_liter REAL DEFAULT 0,
-          amount REAL DEFAULT 0,
-          total_km INTEGER DEFAULT 0,
-          notes TEXT DEFAULT '',
-          created_at TEXT DEFAULT (datetime('now')),
-          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
-        );
-        CREATE INDEX IF NOT EXISTS idx_cp_fuel_vid ON carpaper_fuellogs(vehicle_id);
-
-        CREATE TABLE IF NOT EXISTS carpaper_accidents (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          vehicle_id INTEGER NOT NULL,
-          date TEXT NOT NULL,
-          type TEXT DEFAULT 'fine',
-          amount REAL DEFAULT 0,
-          description TEXT DEFAULT '',
-          notes TEXT DEFAULT '',
-          created_at TEXT DEFAULT (datetime('now')),
-          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
-        );
-        CREATE INDEX IF NOT EXISTS idx_cp_acc_vid ON carpaper_accidents(vehicle_id);
-
-        CREATE TABLE IF NOT EXISTS carpaper_insurances (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          vehicle_id INTEGER NOT NULL,
-          date TEXT NOT NULL,
-          amount REAL DEFAULT 0,
-          provider TEXT DEFAULT '',
-          policy_no TEXT DEFAULT '',
-          expiry_date TEXT DEFAULT '',
-          insurance_type TEXT DEFAULT 'kasko',
-          notes TEXT DEFAULT '',
-          created_at TEXT DEFAULT (datetime('now')),
-          FOREIGN KEY (vehicle_id) REFERENCES carpaper_vehicles(id) ON DELETE CASCADE
-        );
-        CREATE INDEX IF NOT EXISTS idx_cp_ins_vid ON carpaper_insurances(vehicle_id);
-      `);
-      return db;
-    }
+    routes
   };
 };

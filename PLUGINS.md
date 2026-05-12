@@ -29,7 +29,8 @@ module.exports = function(ctx) {
     express,          // Express module (for creating Routers)
     server,           // HTTP server instance
     authMiddleware,   // JWT auth middleware
-    getUserDb,        // getUserDb(username) → SQLite DB
+    getUserDb,        // getUserDb(username) → shared user SQLite DB
+    getAppDb,         // getAppDb(appId, username) → app-specific SQLite DB
     addNotificationToDb, // Add notification to user DB
     broadcastWS,      // WebSocket broadcast to all clients
     wsClients,        // Connected WS client set
@@ -194,3 +195,67 @@ To convert a `#region` block from desktop.js into a plugin:
 - Each plugin runs in isolation — a plugin crash does not affect others
 - `require.cache` is cleared so file changes take effect on reload
 - Creating DB tables on first use (CREATE IF NOT EXISTS) is the safest approach
+
+## Own Database (ownDb)
+
+By default plugins share the user's main SQLite database via `getUserDb(username)`.
+Plugins that need data isolation can use their own dedicated database via `getAppDb(appId, username)`.
+
+### How it works
+
+1. Set `"ownDb": true` in the app's `app.json`
+2. In `server.js`, use `ctx.getAppDb('my-app', username)` instead of `ctx.getUserDb(username)`
+3. The DB file is stored at `data/appdata/{username}_{appId}.db`
+4. The plugin is responsible for creating its own tables (use `CREATE TABLE IF NOT EXISTS`)
+
+### app.json flag
+
+```json
+{
+  "id": "my-app",
+  "ownDb": true,
+  ...
+}
+```
+
+### server.js pattern
+
+```javascript
+module.exports = function(ctx) {
+  const { authMiddleware, getAppDb } = ctx;
+
+  const initializedDbs = new Set();
+  function getDb(username) {
+    const db = getAppDb('my-app', username);
+    if (!initializedDbs.has(username)) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS my_table (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL
+        );
+      `);
+      initializedDbs.add(username);
+    }
+    return db;
+  }
+
+  return {
+    routes: [
+      {
+        method: 'get',
+        path: '/api/my-app/data',
+        handlers: [authMiddleware, (req, res) => {
+          const db = getDb(req.user.username);
+          res.json(db.prepare('SELECT * FROM my_table').all());
+        }]
+      }
+    ]
+  };
+};
+```
+
+### Apps using own database
+
+| App ID | DB File | Description |
+|--------|---------|-------------|
+| carpaper | `{user}_carpaper.db` | Araç yönetimi — muayene, vergi, yakıt, kaza/ceza, sigorta |
