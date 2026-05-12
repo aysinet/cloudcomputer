@@ -8797,62 +8797,7 @@ setInterval(() => {
 }, 2000);
 
 // #endregion
-// #region Book Reader API
-function getUserBookDataPath(username) {
-  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
-  const dir = path.join(DATA_DIR, safe);
-  ensureDir(dir);
-  return { dir, progressFile: path.join(dir, 'book-progress.json'), libraryFile: path.join(dir, 'book-library.json') };
-}
 
-function readJsonFile(fp) {
-  if (!fs.existsSync(fp)) return null;
-  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return null; }
-}
-
-app.get('/api/book-reader/progress/:bookId', authMiddleware, (req, res) => {
-  const { progressFile } = getUserBookDataPath(req.user.username);
-  const all = readJsonFile(progressFile) || {};
-  res.json(all[req.params.bookId] || {});
-});
-
-app.post('/api/book-reader/progress', authMiddleware, (req, res) => {
-  const { bookId, bookmarks, page, progress, cfi } = req.body;
-  if (!bookId) return res.status(400).json({ error: 'bookId required' });
-  const { progressFile } = getUserBookDataPath(req.user.username);
-  const all = readJsonFile(progressFile) || {};
-  all[String(bookId).slice(0, 100)] = {
-    bookmarks: Array.isArray(bookmarks) ? bookmarks.slice(0, 200) : [],
-    page: Number(page) || 1,
-    progress: Number(progress) || 0,
-    cfi: cfi ? String(cfi).slice(0, 500) : null,
-    updatedAt: new Date().toISOString()
-  };
-  fs.writeFileSync(progressFile, JSON.stringify(all, null, 2));
-  res.json({ ok: true });
-});
-
-app.get('/api/book-reader/library', authMiddleware, (req, res) => {
-  const { libraryFile } = getUserBookDataPath(req.user.username);
-  res.json(readJsonFile(libraryFile) || []);
-});
-
-app.post('/api/book-reader/library', authMiddleware, (req, res) => {
-  const { libraryFile } = getUserBookDataPath(req.user.username);
-  const data = Array.isArray(req.body) ? req.body.slice(0, 500).map(b => ({
-    id: String(b.id || '').slice(0, 100),
-    title: String(b.title || '').slice(0, 300),
-    author: String(b.author || '').slice(0, 200),
-    format: String(b.format || '').slice(0, 10),
-    fileName: String(b.fileName || '').slice(0, 300),
-    progress: Number(b.progress) || 0,
-    lastRead: b.lastRead || new Date().toISOString()
-  })) : [];
-  fs.writeFileSync(libraryFile, JSON.stringify(data, null, 2));
-  res.json({ ok: true });
-});
-
-// #endregion
 // #region Math Formula API
 function getUserFormulaPath(username) {
   const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -9600,61 +9545,8 @@ app.post('/api/ftp/rename', authMiddleware, async (req, res) => {
 });
 
 // #endregion
-// #region System Monitor API — moved to apps/store/system-monitor/server.js (plugin)
-// #endregion
-// #region Disk Size API — moved to apps/store/disksize/server.js (plugin)
-// #endregion
-// #region Currency Converter API — moved to apps/store/currency-converter/server.js (plugin)
-// #endregion
-// #region ASCII Art API — moved to apps/store/ascii-art/server.js (plugin)
-// #endregion
 
-// #region Feather Wiki
-function getUserFeatherWikiPath(username) {
-  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
-  const dir = path.join(DATA_DIR, safe);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  return path.join(dir, 'featherwiki.json');
-}
-function getUserFeatherWikiData(username) {
-  const fp = getUserFeatherWikiPath(username);
-  if (!fs.existsSync(fp)) return { pages: [], settings: { title: 'Feather Wiki', description: '', customCss: '' } };
-  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return { pages: [], settings: { title: 'Feather Wiki', description: '', customCss: '' } }; }
-}
-function saveUserFeatherWikiData(username, data) {
-  fs.writeFileSync(getUserFeatherWikiPath(username), JSON.stringify(data, null, 2));
-}
-
-app.get('/api/featherwiki/data', authMiddleware, (req, res) => {
-  res.json(getUserFeatherWikiData(req.user.username));
-});
-
-app.post('/api/featherwiki/data', authMiddleware, (req, res) => {
-  const { pages, settings } = req.body;
-  if (!Array.isArray(pages) || typeof settings !== 'object') {
-    return res.status(400).json({ error: 'pages array and settings object required' });
-  }
-  const sanitized = {
-    pages: pages.slice(0, 2000).map(p => ({
-      id: String(p.id || '').slice(0, 50),
-      slug: String(p.slug || '').slice(0, 80),
-      title: String(p.title || '').slice(0, 200),
-      content: String(p.content || '').slice(0, 50000),
-      tags: Array.isArray(p.tags) ? p.tags.slice(0, 50).map(t => String(t).slice(0, 30)) : [],
-      parent: String(p.parent || '').slice(0, 50),
-      pinned: !!p.pinned,
-      createdAt: p.createdAt || new Date().toISOString(),
-      updatedAt: p.updatedAt || new Date().toISOString()
-    })),
-    settings: {
-      title: String(settings.title || 'Feather Wiki').slice(0, 100),
-      description: String(settings.description || '').slice(0, 500),
-      customCss: String(settings.customCss || '').slice(0, 5000)
-    }
-  };
-  saveUserFeatherWikiData(req.user.username, sanitized);
-  res.json({ ok: true });
-});
+// #region Feather Wiki — moved to apps/store/featherwiki/server.js (plugin)
 // #endregion
 
 // #region Requestly API — moved to apps/store/requestly/server.js (plugin)
