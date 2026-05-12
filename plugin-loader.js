@@ -113,6 +113,7 @@ function loadPlugin(appId, context) {
       routes: result.routes || [],
       intervals: result.intervals || [],
       wsHandlers: result.wsHandlers || {},
+      upgradeHandlers: result.upgradeHandlers || {},
       onUnload: result.onUnload || null,
       dbMigrations: result.dbMigrations || null,
       routeLayers: []
@@ -257,6 +258,19 @@ function getPluginWsHandlers() {
   return merged;
 }
 
+/**
+ * Get a WebSocket upgrade handler (WSS instance) for a given pathname.
+ * Plugins can register upgradeHandlers: { '/api/sync/ws': wssInstance }
+ */
+function getPluginUpgradeHandler(pathname) {
+  for (const plugin of Object.values(loadedPlugins)) {
+    if (plugin.upgradeHandlers && plugin.upgradeHandlers[pathname]) {
+      return plugin.upgradeHandlers[pathname];
+    }
+  }
+  return null;
+}
+
 module.exports = {
   loadPlugin,
   unloadPlugin,
@@ -264,5 +278,6 @@ module.exports = {
   loadAllPlugins,
   getLoadedPlugins,
   getPluginWsHandlers,
+  getPluginUpgradeHandler,
   loadedPlugins
 };
