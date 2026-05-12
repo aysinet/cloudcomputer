@@ -1,11 +1,8 @@
 /**
- * Budget App — Plugin server.js (EXAMPLE)
+ * Budget App — Plugin server.js
  * 
- * This is a reference implementation showing how to convert a SQLite-backed
- * store app into a standalone plugin with DB migrations.
- * 
- * To activate: rename this to server.js, then REMOVE the corresponding
- * #region Budget API and #region Budget Payment Checker from desktop.js.
+ * Backend plugin for budget management: categories, entries (income/expense),
+ * monthly summaries, payment reminders, calendar integration.
  */
 module.exports = function(ctx) {
   const {
@@ -15,12 +12,7 @@ module.exports = function(ctx) {
   } = ctx;
 
   // ─── DB Migration ───
-  // Ensures budget-specific tables exist when run against a user's DB.
-  // The base schema is in desktop.js getUserDb(); if you extract fully,
-  // you'd move the CREATE TABLE statements here.
   function runMigrations(getUserDbFn) {
-    // Example: add a column if it doesn't exist
-    // This is safe to call multiple times
     if (!fs.existsSync(APPDATA_DIR)) return;
     const dbFiles = fs.readdirSync(APPDATA_DIR).filter(f => f.endsWith('.db'));
     for (const f of dbFiles) {
@@ -76,8 +68,9 @@ module.exports = function(ctx) {
               }
             });
           }
+          // Mark all as notified for today
           db.prepare('UPDATE budget_entries SET notified_date = ? WHERE paid = 0 AND date <= ? AND notified_date != ?').run(today, today, today);
-        } catch { /* skip user */ }
+        } catch (e) { /* skip user */ }
       }
     } catch (e) { console.error('Budget payment check error:', e.message); }
   }
@@ -213,6 +206,28 @@ module.exports = function(ctx) {
           if (!fields.length) return res.status(400).json({ error: 'no fields' });
           vals.push(req.params.id);
           db.prepare('UPDATE budget_entries SET ' + fields.join(', ') + ' WHERE id=?').run(...vals);
+
+          /* Side-effects for notify/show_calendar on update */
+          const row = db.prepare('SELECT * FROM budget_entries e LEFT JOIN budget_categories c ON e.category_id = c.id WHERE e.id=?').get(req.params.id);
+          if (row) {
+            const locale = getUserLocale(req.user.username);
+            const label = row.description || (row.type === 'income' ? serverT('budgetIncome', locale) : serverT('budgetExpense', locale));
+            if (notify && !row.paid) {
+              const existing = db.prepare('SELECT id FROM notifications WHERE id=?').get('budget-' + req.params.id);
+              if (!existing) {
+                const notif = { id: 'budget-' + req.params.id, icon: '💰', bg: '#fff3e0', title: label, text: Number(row.amount).toFixed(2) + ' — ' + row.date, time: new Date().toISOString(), read: false, createdAt: Date.now() };
+                addNotificationToDb(req.user.username, notif);
+                broadcastWS({ type: 'notification', data: notif });
+              }
+            }
+            if (show_calendar && !row.paid) {
+              const calTitle = (row.type === 'income' ? '📈 ' : '📉 ') + label + ' (' + Number(row.amount).toFixed(2) + ')';
+              const existingCal = db.prepare('SELECT id FROM calendar_events WHERE title=? AND date=?').get(calTitle, row.date);
+              if (!existingCal) {
+                db.prepare('INSERT INTO calendar_events (date, title, color) VALUES (?, ?, ?)').run(row.date, calTitle, row.type === 'income' ? '#67c23a' : '#f56c6c');
+              }
+            }
+          }
           res.json({ ok: true });
         }]
       },
