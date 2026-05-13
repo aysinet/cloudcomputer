@@ -372,13 +372,44 @@ module.exports = function(ctx) {
       {
         method: 'delete',
         path: '/api/mail/messages/:folder/:uid',
-        handlers: [authMiddleware, (req, res) => {
+        handlers: [authMiddleware, async (req, res) => {
           const data = getUserMailData(req.user.username);
           const acc = data.accounts.find(a => a.id === data.activeAccountId);
           if (!acc) return res.status(404).json({ error: 'No active account' });
           const folder = req.params.folder;
-          if (folder === 'inbox') acc.inbox = (acc.inbox || []).filter(m => m.uid !== req.params.uid && m.messageId !== req.params.uid);
-          else if (folder === 'sent') acc.sent = (acc.sent || []).filter(m => m.messageId !== req.params.uid);
+          const targetUid = req.params.uid;
+
+          // Delete from POP3 server if it's an inbox message
+          if (folder === 'inbox' && acc.pop3Host && acc.email && acc.password) {
+            let pop3;
+            try {
+              pop3 = new Pop3Command({
+                host: acc.pop3Host,
+                port: acc.pop3Port,
+                tls: acc.pop3Tls,
+                user: acc.email,
+                password: acc.password,
+                tlsOptions: { rejectUnauthorized: false }
+              });
+              const list = await pop3.UIDL();
+              const items = Array.isArray(list) ? list : [];
+              for (const item of items) {
+                const msgNum = Array.isArray(item) ? item[0] : (item.number || item.id);
+                const uid = Array.isArray(item) ? item[1] : (item.uid || item);
+                if (uid === targetUid) {
+                  await pop3.DELE(msgNum);
+                  break;
+                }
+              }
+              await pop3.QUIT();
+            } catch (e) {
+              try { if (pop3) await pop3.QUIT(); } catch {}
+              console.error('[Mail] POP3 delete error:', e.message);
+            }
+          }
+
+          if (folder === 'inbox') acc.inbox = (acc.inbox || []).filter(m => m.uid !== targetUid && m.messageId !== targetUid);
+          else if (folder === 'sent') acc.sent = (acc.sent || []).filter(m => m.messageId !== targetUid);
           saveUserMailData(req.user.username, data);
           res.json({ ok: true });
         }]
