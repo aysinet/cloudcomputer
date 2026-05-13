@@ -4352,58 +4352,7 @@ app.delete('/api/wallpaper/:filename', authMiddleware, (req, res) => {
 
 // #endregion
 // Weather API → moved to apps/builtin/weather/server.js (plugin)
-// #region Notification API
-app.get('/api/notifications', authMiddleware, (req, res) => {
-  const db = getUserDb(req.user.username);
-  const rows = db.prepare('SELECT id, icon, bg, title, text, time, read, action, created_at FROM notifications ORDER BY created_at DESC LIMIT 200').all();
-  res.json(rows.map(r => ({
-    id: r.id, icon: r.icon, bg: r.bg, title: r.title, text: r.text,
-    time: r.time, read: !!r.read,
-    action: r.action ? (function(){ try { return JSON.parse(r.action); } catch { return undefined; } })() : undefined,
-    createdAt: r.created_at
-  })));
-});
-
-app.post('/api/notifications', authMiddleware, (req, res) => {
-  const { title, text, icon, bg, action } = req.body;
-  if (!title || !text) return res.status(400).json({ error: 'title and text required' });
-  const notif = {
-    id: crypto.randomUUID(),
-    icon: icon || '📌',
-    bg: bg || '#ecf5ff',
-    title,
-    text,
-    time: new Date().toISOString(),
-    read: false,
-    createdAt: Date.now(),
-    action: action || undefined
-  };
-  addNotificationToDb(req.user.username, notif);
-  broadcastWS({ type: 'notification', data: notif });
-  res.json(notif);
-});
-
-app.delete('/api/notifications/:id', authMiddleware, (req, res) => {
-  const db = getUserDb(req.user.username);
-  db.prepare('DELETE FROM notifications WHERE id = ?').run(req.params.id);
-  broadcastWS({ type: 'notification-deleted', data: { id: req.params.id } });
-  res.json({ ok: true });
-});
-
-app.patch('/api/notifications/:id/read', authMiddleware, (req, res) => {
-  const db = getUserDb(req.user.username);
-  db.prepare('UPDATE notifications SET read = 1 WHERE id = ?').run(req.params.id);
-  res.json({ ok: true });
-});
-
-app.patch('/api/notifications/read-all', authMiddleware, (req, res) => {
-  const db = getUserDb(req.user.username);
-  db.prepare('UPDATE notifications SET read = 1').run();
-  broadcastWS({ type: 'notifications-read-all' });
-  res.json({ ok: true });
-});
-
-// #endregion
+// Notification API → moved to apps/builtin/notifications/server.js (plugin)
 // #region Dynamic Plugin System
 // Plugin context is built lazily to ensure all server globals are initialized
 
