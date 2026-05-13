@@ -4356,8 +4356,6 @@ function addNotificationToDb(username, notif) {
 }
 
 // #endregion
-// #region Calendar API — moved to apps/builtin/calendar/server.js (plugin)
-// #endregion
 // #region Todo Groups API
 app.get('/api/todo-groups', authMiddleware, (req, res) => {
   const db = getUserDb(req.user.username);
@@ -5767,88 +5765,6 @@ function startReminderChecker() {
 
 // #endregion
 
-// #region Solana Wallet (AES-256-GCM encrypted)
-function getSolWalletPath(username) {
-  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
-  const dir = path.join(DATA_DIR, safe);
-  ensureDir(dir);
-  return path.join(dir, 'solwallet.enc');
-}
-function loadSolWallet(username) {
-  const fp = getSolWalletPath(username);
-  if (!fs.existsSync(fp)) return null;
-  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return null; }
-}
-function saveSolWallet(username, data) {
-  fs.writeFileSync(getSolWalletPath(username), JSON.stringify(data));
-}
-
-app.get('/api/solwallet/exists', authMiddleware, (req, res) => {
-  res.json({ exists: !!loadSolWallet(req.user.username) });
-});
-
-app.post('/api/solwallet/unlock', authMiddleware, (req, res) => {
-  const { walletPassword } = req.body;
-  if (!walletPassword || typeof walletPassword !== 'string') return res.status(400).json({ error: 'walletPassword required' });
-  const walletObj = loadSolWallet(req.user.username);
-  if (!walletObj) return res.json({ wallets: [], activeIndex: 0 });
-  try {
-    const data = decryptVault(walletObj, walletPassword);
-    res.json(data);
-  } catch {
-    res.status(403).json({ error: 'wrong_password' });
-  }
-});
-
-app.post('/api/solwallet/save', authMiddleware, (req, res) => {
-  const { walletPassword, wallets, activeIndex } = req.body;
-  if (!walletPassword || typeof walletPassword !== 'string') return res.status(400).json({ error: 'walletPassword required' });
-  if (!Array.isArray(wallets)) return res.status(400).json({ error: 'wallets must be an array' });
-  // Sanitize wallet data - only allow expected fields, limit counts
-  const sanitizedWallets = wallets.slice(0, 20).map(w => ({
-    publicKey: typeof w.publicKey === 'string' ? w.publicKey.slice(0, 100) : '',
-    secretKey: typeof w.secretKey === 'string' ? w.secretKey.slice(0, 200) : '',
-    name: typeof w.name === 'string' ? w.name.slice(0, 50) : '',
-    imported: !!w.imported
-  }));
-  const data = { wallets: sanitizedWallets, activeIndex: typeof activeIndex === 'number' ? activeIndex : 0 };
-  const encrypted = encryptVault(data, walletPassword);
-  saveSolWallet(req.user.username, encrypted);
-  res.json({ ok: true });
-});
-
-app.post('/api/solwallet/change-password', authMiddleware, (req, res) => {
-  const { currentPassword, newPassword } = req.body;
-  if (!currentPassword || !newPassword || typeof currentPassword !== 'string' || typeof newPassword !== 'string')
-    return res.status(400).json({ error: 'currentPassword and newPassword required' });
-  if (newPassword.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
-  const walletObj = loadSolWallet(req.user.username);
-  if (!walletObj) return res.status(404).json({ error: 'Wallet not found' });
-  try {
-    const data = decryptVault(walletObj, currentPassword);
-    const encrypted = encryptVault(data, newPassword);
-    saveSolWallet(req.user.username, encrypted);
-    res.json({ ok: true });
-  } catch {
-    res.status(403).json({ error: 'wrong_password' });
-  }
-});
-
-app.post('/api/solwallet/delete', authMiddleware, (req, res) => {
-  const { walletPassword } = req.body;
-  if (!walletPassword || typeof walletPassword !== 'string') return res.status(400).json({ error: 'walletPassword required' });
-  const walletObj = loadSolWallet(req.user.username);
-  if (!walletObj) return res.json({ ok: true });
-  try {
-    decryptVault(walletObj, walletPassword);
-    const fp = getSolWalletPath(req.user.username);
-    if (fs.existsSync(fp)) fs.unlinkSync(fp);
-    res.json({ ok: true });
-  } catch {
-    res.status(403).json({ error: 'wrong_password' });
-  }
-});
-// #endregion
 // #region Copilot CLI App
 const { spawn } = require('child_process');
 

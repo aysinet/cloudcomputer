@@ -40,7 +40,7 @@ module.exports = function(ctx) {
     const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
     const dir = path.join(DATA_DIR, safe);
     ensureDir(dir);
-    return path.join(dir, 'sol-wallet.enc');
+    return path.join(dir, 'solwallet.enc');
   }
 
   function loadWalletFile(username) {
@@ -75,7 +75,7 @@ module.exports = function(ctx) {
         path: '/api/solwallet/unlock',
         handlers: [authMiddleware, (req, res) => {
           const { walletPassword } = req.body;
-          if (!walletPassword) return res.status(400).json({ error: 'walletPassword required' });
+          if (!walletPassword || typeof walletPassword !== 'string') return res.status(400).json({ error: 'walletPassword required' });
           const walletObj = loadWalletFile(req.user.username);
           if (!walletObj) return res.json({ wallets: [], activeIndex: 0 });
           try {
@@ -93,8 +93,16 @@ module.exports = function(ctx) {
         path: '/api/solwallet/save',
         handlers: [authMiddleware, (req, res) => {
           const { walletPassword, wallets, activeIndex } = req.body;
-          if (!walletPassword) return res.status(400).json({ error: 'walletPassword required' });
-          const data = { wallets: wallets || [], activeIndex: activeIndex || 0 };
+          if (!walletPassword || typeof walletPassword !== 'string') return res.status(400).json({ error: 'walletPassword required' });
+          if (!Array.isArray(wallets)) return res.status(400).json({ error: 'wallets must be an array' });
+          // Sanitize wallet data - only allow expected fields, limit counts
+          const sanitizedWallets = wallets.slice(0, 20).map(w => ({
+            publicKey: typeof w.publicKey === 'string' ? w.publicKey.slice(0, 100) : '',
+            secretKey: typeof w.secretKey === 'string' ? w.secretKey.slice(0, 200) : '',
+            name: typeof w.name === 'string' ? w.name.slice(0, 50) : '',
+            imported: !!w.imported
+          }));
+          const data = { wallets: sanitizedWallets, activeIndex: typeof activeIndex === 'number' ? activeIndex : 0 };
           const encrypted = encryptVault(data, walletPassword);
           saveWalletFile(req.user.username, encrypted);
           res.json({ ok: true });
@@ -107,7 +115,7 @@ module.exports = function(ctx) {
         path: '/api/solwallet/change-password',
         handlers: [authMiddleware, (req, res) => {
           const { currentPassword, newPassword } = req.body;
-          if (!currentPassword || !newPassword) {
+          if (!currentPassword || !newPassword || typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
             return res.status(400).json({ error: 'currentPassword and newPassword required' });
           }
           if (newPassword.length < 6) {
@@ -135,7 +143,7 @@ module.exports = function(ctx) {
         path: '/api/solwallet/delete',
         handlers: [authMiddleware, (req, res) => {
           const { walletPassword } = req.body;
-          if (!walletPassword) return res.status(400).json({ error: 'walletPassword required' });
+          if (!walletPassword || typeof walletPassword !== 'string') return res.status(400).json({ error: 'walletPassword required' });
           const walletObj = loadWalletFile(req.user.username);
           if (walletObj) {
             try {
