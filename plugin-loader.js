@@ -18,6 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { createScopedBus, cleanupPlugin: cleanupPluginBus } = require('./plugin-bus');
 
 const STORE_DIR = path.join(__dirname, 'apps', 'store');
 const BUILTIN_DIR = path.join(__dirname, 'apps', 'builtin');
@@ -117,8 +118,13 @@ function loadPlugin(appId, context) {
       return false;
     }
 
-    const result = pluginInit(context);
+    // Create a scoped bus for this plugin (auto-cleaned on unload)
+    const pluginBus = createScopedBus(appId);
+    const pluginCtx = Object.assign({}, context, { pluginBus });
+
+    const result = pluginInit(pluginCtx);
     if (!result) {
+      cleanupPluginBus(appId);
       console.error(`[plugin-loader] "${appId}/server.js" returned nothing`);
       return false;
     }
@@ -190,6 +196,9 @@ function unloadPlugin(appId, context) {
     if (typeof plugin.onUnload === 'function') {
       plugin.onUnload();
     }
+
+    // Clean up plugin bus listeners and services
+    cleanupPluginBus(appId);
 
     // Clear intervals
     for (const iv of plugin.intervals) {

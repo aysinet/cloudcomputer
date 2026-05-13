@@ -45,7 +45,8 @@ module.exports = function(ctx) {
     config,           // Server configuration
     crypto,           // Node.js crypto module
     path,             // Node.js path module
-    fs                // Node.js fs module
+    fs,               // Node.js fs module
+    pluginBus         // Inter-plugin event bus (scoped per plugin)
   } = ctx;
 
   // ... application logic ...
@@ -195,6 +196,93 @@ To convert a `#region` block from desktop.js into a plugin:
 - Each plugin runs in isolation — a plugin crash does not affect others
 - `require.cache` is cleared so file changes take effect on reload
 - Creating DB tables on first use (CREATE IF NOT EXISTS) is the safest approach
+- Plugins can communicate via `pluginBus` (see Plugin Bus section below)
+
+## Plugin Bus (Inter-Plugin Communication)
+
+Plugins can communicate with each other and with desktop.js using the built-in event bus.
+Each plugin receives a **scoped** `pluginBus` via `ctx.pluginBus` — all listeners and
+services are automatically cleaned up when the plugin is unloaded.
+
+### Pub/Sub (fire-and-forget events)
+
+```javascript
+// In coin-tracker/server.js — publish price updates
+ctx.pluginBus.emit('coin:price-update', { symbol: 'BTC', price: 67000 });
+
+// In budget/server.js — listen for price changes
+ctx.pluginBus.on('coin:price-update', ({ symbol, price }) => {
+  // update portfolio value
+});
+
+// One-time listener
+ctx.pluginBus.once('system:ready', () => { ... });
+
+// Remove a specific listener
+ctx.pluginBus.off('coin:price-update', myHandler);
+```
+
+### Request/Reply (service calls)
+
+Plugins can register named services and call services from other plugins:
+
+```javascript
+// In mail-app/server.js — register a service
+ctx.pluginBus.registerService('mail:send', async ({ to, subject, body }) => {
+  // send email logic
+  return { success: true, messageId: '...' };
+});
+
+// In budget/server.js — call the mail service
+if (ctx.pluginBus.hasService('mail:send')) {
+  const result = await ctx.pluginBus.callService('mail:send', {
+    to: 'user@example.com',
+    subject: 'Budget alert',
+    body: 'You exceeded your limit'
+  });
+}
+```
+
+### Service discovery
+
+```javascript
+// Check if a service exists
+ctx.pluginBus.hasService('mail:send');  // true/false
+
+// List all registered services
+ctx.pluginBus.listServices();  // ['mail:send', 'calendar:create', ...]
+```
+
+### Listening from desktop.js
+
+The raw bus is also available in desktop.js (not scoped — no auto-cleanup):
+
+```javascript
+const { getRawBus } = require('./plugin-bus');
+const pluginBus = getRawBus();
+
+pluginBus.on('user:login', ({ username }) => {
+  console.log(`User ${username} logged in`);
+});
+
+pluginBus.emit('system:ready', { timestamp: Date.now() });
+```
+
+### Event naming convention
+
+Use `namespace:event-name` format to avoid collisions:
+
+| Pattern | Example |
+|---|---|
+| `appId:event` | `coin-tracker:price-update` |
+| `domain:action` | `mail:send`, `calendar:event-created` |
+| `system:event` | `system:ready`, `system:shutdown` |
+
+### Lifecycle
+
+- Listeners registered via `ctx.pluginBus.on()` are **automatically removed** on plugin unload
+- Services registered via `ctx.pluginBus.registerService()` are **automatically unregistered** on plugin unload
+- No manual cleanup needed in `onUnload` — the bus handles it
 
 ## Own Database (ownDb)
 
