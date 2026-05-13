@@ -20,9 +20,22 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const STORE_DIR = path.join(__dirname, 'apps', 'store');
+const BUILTIN_DIR = path.join(__dirname, 'apps', 'builtin');
 
 // Registry of loaded plugins:  { appId: { routes, intervals, wsHandlers, onUnload, routeLayers } }
 const loadedPlugins = {};
+
+/**
+ * Resolve the plugin directory for a given appId.
+ * Checks store first, then builtin.
+ */
+function resolvePluginDir(appId) {
+  const storeDir = path.join(STORE_DIR, appId);
+  if (fs.existsSync(path.join(storeDir, 'server.js'))) return storeDir;
+  const builtinDir = path.join(BUILTIN_DIR, appId);
+  if (fs.existsSync(path.join(builtinDir, 'server.js'))) return builtinDir;
+  return null;
+}
 
 /**
  * Installs npm packages required by a plugin.
@@ -30,7 +43,8 @@ const loadedPlugins = {};
  * Only installs if new packages are not already available.
  */
 function installPluginPackages(appId) {
-  const pkgFile = path.join(STORE_DIR, appId, 'packages.json');
+  const pluginDir = resolvePluginDir(appId);
+  const pkgFile = pluginDir ? path.join(pluginDir, 'packages.json') : path.join(STORE_DIR, appId, 'packages.json');
   if (!fs.existsSync(pkgFile)) return;
 
   let pkgDef;
@@ -77,13 +91,14 @@ function loadPlugin(appId, context) {
     return false;
   }
 
-  const serverFile = path.join(STORE_DIR, appId, 'server.js');
-  if (!fs.existsSync(serverFile)) {
+  const pluginDir = resolvePluginDir(appId);
+  if (!pluginDir) {
     return false; // No server-side plugin — that's fine, most apps are client-only
   }
+  const serverFile = path.join(pluginDir, 'server.js');
 
   // Skip apps that have their own standalone server (not a plugin)
-  const noPluginMarker = path.join(STORE_DIR, appId, '.noplugin');
+  const noPluginMarker = path.join(pluginDir, '.noplugin');
   if (fs.existsSync(noPluginMarker)) {
     return false;
   }
@@ -188,7 +203,8 @@ function unloadPlugin(appId, context) {
     }
 
     // Clear require cache
-    const serverFile = path.join(STORE_DIR, appId, 'server.js');
+    const pluginDir = resolvePluginDir(appId) || path.join(STORE_DIR, appId);
+    const serverFile = path.join(pluginDir, 'server.js');
     const resolvedPath = require.resolve(serverFile);
     delete require.cache[resolvedPath];
 
@@ -213,23 +229,29 @@ function reloadPlugin(appId, context) {
 }
 
 /**
- * Scan all store apps and load any that have a server.js.
+ * Scan all store and builtin apps and load any that have a server.js.
  */
 function loadAllPlugins(context) {
-  if (!fs.existsSync(STORE_DIR)) return;
-
-  const entries = fs.readdirSync(STORE_DIR, { withFileTypes: true });
   let count = 0;
 
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    const serverFile = path.join(STORE_DIR, entry.name, 'server.js');
-    if (fs.existsSync(serverFile)) {
-      if (loadPlugin(entry.name, context)) count++;
+  const dirs = [
+    { dir: BUILTIN_DIR, label: 'builtin' },
+    { dir: STORE_DIR,   label: 'store' }
+  ];
+
+  for (const { dir, label } of dirs) {
+    if (!fs.existsSync(dir)) continue;
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const serverFile = path.join(dir, entry.name, 'server.js');
+      if (fs.existsSync(serverFile)) {
+        if (loadPlugin(entry.name, context)) count++;
+      }
     }
   }
 
-  console.log(`[plugin-loader] ${count} plugin(s) loaded from store`);
+  console.log(`[plugin-loader] ${count} plugin(s) loaded`);
 }
 
 /**

@@ -4527,58 +4527,7 @@ function addNotificationToDb(username, notif) {
 }
 
 // #endregion
-// #region Calendar API
-app.get('/api/calendar/events', authMiddleware, (req, res) => {
-  const db = getUserDb(req.user.username);
-  const rows = db.prepare('SELECT id, date, title, color, holiday FROM calendar_events ORDER BY date, id').all();
-  const events = {};
-  for (const r of rows) {
-    if (!events[r.date]) events[r.date] = [];
-    events[r.date].push({ id: r.id, title: r.title, color: r.color || '', holiday: !!r.holiday });
-  }
-  res.json(events);
-});
-
-app.post('/api/calendar/events', authMiddleware, (req, res) => {
-  const { date, title, color, holiday } = req.body;
-  if (!date || !title) return res.status(400).json({ error: 'date and title required' });
-  const db = getUserDb(req.user.username);
-  const info = db.prepare('INSERT INTO calendar_events (date, title, color, holiday) VALUES (?, ?, ?, ?)').run(date, title.trim(), color || '', holiday ? 1 : 0);
-  res.json({ ok: true, id: info.lastInsertRowid });
-});
-
-app.delete('/api/calendar/events/:id', authMiddleware, (req, res) => {
-  const db = getUserDb(req.user.username);
-  db.prepare('DELETE FROM calendar_events WHERE id = ?').run(req.params.id);
-  res.json({ ok: true });
-});
-
-app.post('/api/calendar/holidays', authMiddleware, (req, res) => {
-  const { holidays, year } = req.body;
-  if (!Array.isArray(holidays) || !year) return res.status(400).json({ error: 'holidays array and year required' });
-  const db = getUserDb(req.user.username);
-  const insert = db.prepare('INSERT INTO calendar_events (date, title, color, holiday) VALUES (?, ?, ?, 1)');
-  const check = db.prepare('SELECT id FROM calendar_events WHERE date = ? AND title = ? AND holiday = 1');
-  let added = 0;
-  const tx = db.transaction(() => {
-    for (const h of holidays) {
-      const dateStr = year + '-' + h.mmdd;
-      if (!check.get(dateStr, h.title)) {
-        insert.run(dateStr, h.title, 'red');
-        added++;
-      }
-    }
-  });
-  tx();
-  res.json({ ok: true, added });
-});
-
-app.delete('/api/calendar/holidays', authMiddleware, (req, res) => {
-  const db = getUserDb(req.user.username);
-  db.prepare('DELETE FROM calendar_events WHERE holiday = 1').run();
-  res.json({ ok: true });
-});
-
+// #region Calendar API — moved to apps/builtin/calendar/server.js (plugin)
 // #endregion
 // #region Todo Groups API
 app.get('/api/todo-groups', authMiddleware, (req, res) => {
