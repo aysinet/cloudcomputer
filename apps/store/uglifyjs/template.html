@@ -1,0 +1,294 @@
+<div class="uglifyjs-app">
+  <!-- Header -->
+  <div class="uj-header">
+    <span class="uj-title">🔧 {{ t('title') }}</span>
+    <span class="uj-hint">{{ t('supportedTypes') }}</span>
+  </div>
+
+  <div class="uj-body">
+    <!-- File Select Area -->
+    <div class="uj-file-section">
+      <div class="uj-select-area" @click="openFile">
+        <template v-if="!selectedFile">
+          <div class="uj-dropzone">
+            <span class="uj-dropzone-icon">📂</span>
+            <span class="uj-dropzone-text">{{ t('selectFile') }}</span>
+            <span class="uj-dropzone-hint">{{ t('supportedTypes') }}</span>
+          </div>
+        </template>
+        <template v-else>
+          <div class="uj-file-info">
+            <span class="uj-file-icon">🟨</span>
+            <div class="uj-file-details">
+              <span class="uj-file-name">{{ selectedFile.name }}</span>
+              <span class="uj-file-path">{{ selectedFile.path }}</span>
+            </div>
+            <span class="uj-file-size">{{ formatSize(selectedFile.size) }}</span>
+          </div>
+        </template>
+      </div>
+
+      <!-- Output mode -->
+      <div class="uj-output-row">
+        <el-radio-group v-model="outputMode" size="small">
+          <el-radio-button value="auto">{{ t('autoOutput') }}</el-radio-button>
+          <el-radio-button value="custom">{{ t('customOutput') }}</el-radio-button>
+        </el-radio-group>
+        <el-button v-if="outputMode === 'custom'" size="small" @click="chooseOutput" style="margin-left:8px;">
+          📁 {{ customOutput || t('selectOutput') }}
+        </el-button>
+      </div>
+    </div>
+
+    <!-- Options Tabs -->
+    <div class="uj-options">
+      <el-tabs v-model="activeTab" type="border-card" class="uj-tabs">
+
+        <!-- Compress Tab -->
+        <el-tab-pane :label="t('compress')" name="compress">
+          <div class="uj-opt-grid">
+            <div class="uj-opt-row">
+              <span>{{ t('compress') }}</span>
+              <el-switch v-model="compressEnabled" size="small" />
+            </div>
+            <template v-if="compressEnabled">
+              <div class="uj-opt-row">
+                <span>{{ t('deadCode') }}</span>
+                <el-switch v-model="compressOpts.dead_code" size="small" />
+              </div>
+              <div class="uj-opt-row">
+                <span>{{ t('dropConsole') }}</span>
+                <el-switch v-model="compressOpts.drop_console" size="small" />
+              </div>
+              <div class="uj-opt-row">
+                <span>{{ t('dropDebugger') }}</span>
+                <el-switch v-model="compressOpts.drop_debugger" size="small" />
+              </div>
+              <div class="uj-opt-row">
+                <span>{{ t('unused') }}</span>
+                <el-switch v-model="compressOpts.unused" size="small" />
+              </div>
+              <div class="uj-opt-row">
+                <span>{{ t('conditionals') }}</span>
+                <el-switch v-model="compressOpts.conditionals" size="small" />
+              </div>
+              <div class="uj-opt-row">
+                <span>{{ t('sequences') }}</span>
+                <el-switch v-model="compressOpts.sequences" size="small" />
+              </div>
+              <div class="uj-opt-row">
+                <span>{{ t('booleans') }}</span>
+                <el-switch v-model="compressOpts.booleans" size="small" />
+              </div>
+              <div class="uj-opt-row">
+                <span>{{ t('loops') }}</span>
+                <el-switch v-model="compressOpts.loops" size="small" />
+              </div>
+              <div class="uj-opt-row">
+                <span>{{ t('toplevel') }}</span>
+                <el-switch v-model="compressOpts.toplevel" size="small" />
+              </div>
+              <div class="uj-opt-row">
+                <span>{{ t('unsafe') }}</span>
+                <el-switch v-model="compressOpts.unsafe" size="small" />
+              </div>
+              <div class="uj-opt-row">
+                <span>{{ t('passes') }}</span>
+                <el-input-number v-model="compressOpts.passes" :min="1" :max="10" size="small" style="width:100px;" />
+              </div>
+              <div class="uj-opt-row uj-opt-wide">
+                <span>{{ t('pureFuncs') }}</span>
+                <el-input v-model="compressOpts.pure_funcs" size="small" placeholder="Math.floor, console.log" />
+              </div>
+            </template>
+          </div>
+        </el-tab-pane>
+
+        <!-- Mangle Tab -->
+        <el-tab-pane :label="t('mangle')" name="mangle">
+          <div class="uj-opt-grid">
+            <div class="uj-opt-row">
+              <span>{{ t('mangleEnabled') }}</span>
+              <el-switch v-model="mangleEnabled" size="small" />
+            </div>
+            <template v-if="mangleEnabled">
+              <div class="uj-opt-row">
+                <span>{{ t('mangleEval') }}</span>
+                <el-switch v-model="mangleOpts.eval" size="small" />
+              </div>
+              <div class="uj-opt-row">
+                <span>{{ t('mangleToplevel') }}</span>
+                <el-switch v-model="mangleOpts.toplevel" size="small" />
+              </div>
+              <div class="uj-opt-row uj-opt-wide">
+                <span>{{ t('reserved') }}</span>
+                <el-input v-model="mangleOpts.reserved" size="small" placeholder="$, require, exports" />
+              </div>
+              <div class="uj-opt-row">
+                <span>{{ t('mangleProps') }}</span>
+                <el-switch v-model="mangleOpts.properties" size="small" />
+              </div>
+              <template v-if="mangleOpts.properties">
+                <div class="uj-opt-row">
+                  <span>{{ t('keepQuoted') }}</span>
+                  <el-switch v-model="mangleOpts.keep_quoted" size="small" />
+                </div>
+                <div class="uj-opt-row uj-opt-wide">
+                  <span>{{ t('propsRegex') }}</span>
+                  <el-input v-model="mangleOpts.props_regex" size="small" placeholder="^_" />
+                </div>
+                <div class="uj-opt-row uj-opt-wide">
+                  <span>{{ t('propsReserved') }}</span>
+                  <el-input v-model="mangleOpts.props_reserved" size="small" placeholder="foo, bar" />
+                </div>
+              </template>
+            </template>
+          </div>
+        </el-tab-pane>
+
+        <!-- Output Tab -->
+        <el-tab-pane :label="t('output')" name="output">
+          <div class="uj-opt-grid">
+            <div class="uj-opt-row">
+              <span>{{ t('beautify') }}</span>
+              <el-switch v-model="outputOpts.beautify" size="small" />
+            </div>
+            <div class="uj-opt-row">
+              <span>{{ t('semicolons') }}</span>
+              <el-switch v-model="outputOpts.semicolons" size="small" />
+            </div>
+            <div class="uj-opt-row">
+              <span>{{ t('wrapIife') }}</span>
+              <el-switch v-model="outputOpts.wrap_iife" size="small" />
+            </div>
+            <div class="uj-opt-row">
+              <span>{{ t('asciiOnly') }}</span>
+              <el-switch v-model="outputOpts.ascii_only" size="small" />
+            </div>
+            <div class="uj-opt-row">
+              <span>{{ t('comments') }}</span>
+              <el-select v-model="outputOpts.comments" size="small" style="width:120px;">
+                <el-option :label="t('commentsNone')" :value="false" />
+                <el-option :label="t('commentsAll')" value="all" />
+                <el-option :label="t('commentsSome')" value="some" />
+              </el-select>
+            </div>
+            <div class="uj-opt-row">
+              <span>{{ t('quoteStyle') }}</span>
+              <el-select v-model="outputOpts.quote_style" size="small" style="width:120px;">
+                <el-option :label="t('quoteAuto')" :value="0" />
+                <el-option :label="t('quoteSingle')" :value="1" />
+                <el-option :label="t('quoteDouble')" :value="2" />
+                <el-option :label="t('quoteOriginal')" :value="3" />
+              </el-select>
+            </div>
+            <div class="uj-opt-row" v-if="outputOpts.beautify">
+              <span>{{ t('indentLevel') }}</span>
+              <el-input-number v-model="outputOpts.indent_level" :min="0" :max="16" size="small" style="width:100px;" />
+            </div>
+            <div class="uj-opt-row">
+              <span>{{ t('maxLineLen') }}</span>
+              <el-input-number v-model="outputOpts.max_line_len" :min="0" :max="10000" size="small" style="width:120px;" />
+            </div>
+            <div class="uj-opt-row uj-opt-wide">
+              <span>{{ t('preamble') }}</span>
+              <el-input v-model="outputOpts.preamble" size="small" type="textarea" :rows="2" placeholder="/* Copyright 2024 */" />
+            </div>
+          </div>
+        </el-tab-pane>
+
+        <!-- Advanced Tab -->
+        <el-tab-pane :label="t('advanced')" name="advanced">
+          <div class="uj-opt-grid">
+            <div class="uj-opt-row">
+              <span>{{ t('keepFnames') }}</span>
+              <el-switch v-model="advancedOpts.keep_fnames" size="small" />
+            </div>
+            <div class="uj-opt-row">
+              <span>{{ t('keepFargs') }}</span>
+              <el-switch v-model="advancedOpts.keep_fargs" size="small" />
+            </div>
+            <div class="uj-opt-row">
+              <span>{{ t('moduleMode') }}</span>
+              <el-switch v-model="advancedOpts.module" size="small" />
+            </div>
+            <div class="uj-opt-row">
+              <span>{{ t('sourceMap') }}</span>
+              <el-switch v-model="advancedOpts.sourceMap" size="small" />
+            </div>
+            <div class="uj-opt-row">
+              <span>{{ t('ieCompat') }}</span>
+              <el-switch v-model="advancedOpts.ie" size="small" />
+            </div>
+            <div class="uj-opt-row">
+              <span>{{ t('webkitCompat') }}</span>
+              <el-switch v-model="advancedOpts.webkit" size="small" />
+            </div>
+            <div class="uj-opt-row">
+              <span>{{ t('v8Compat') }}</span>
+              <el-switch v-model="advancedOpts.v8" size="small" />
+            </div>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+
+    <!-- Action Button -->
+    <div class="uj-actions">
+      <el-button type="primary" size="default" @click="minifyFile"
+        :loading="loading" :disabled="!selectedFile || loading"
+        style="width:100%;">
+        {{ loading ? t('minifying') : ('🗜️ ' + t('minify')) }}
+      </el-button>
+    </div>
+
+    <!-- Error Info -->
+    <div class="uj-error" v-if="errorInfo">
+      <div class="uj-error-header">⚠️ {{ t('parseError') }}</div>
+      <div class="uj-error-msg">{{ errorInfo.message }}</div>
+      <div class="uj-error-pos" v-if="errorInfo.line">
+        {{ t('line') }}: {{ errorInfo.line }}, {{ t('col') }}: {{ errorInfo.col }}
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div class="uj-result" v-if="result">
+      <div class="uj-result-header">✅ {{ t('success') }}</div>
+      <div class="uj-stats">
+        <div class="uj-stat-row">
+          <span class="uj-stat-label">{{ t('original') }}</span>
+          <span class="uj-stat-value">{{ formatSize(result.originalSize) }}</span>
+        </div>
+        <div class="uj-stat-row">
+          <span class="uj-stat-label">{{ t('minified') }}</span>
+          <span class="uj-stat-value uj-stat-green">{{ formatSize(result.minifiedSize) }}</span>
+        </div>
+        <div class="uj-stat-divider"></div>
+        <div class="uj-stat-row">
+          <span class="uj-stat-label">{{ t('saved') }}</span>
+          <span class="uj-stat-value uj-stat-accent">
+            {{ formatSize(savedBytes) }} ({{ savedPercent }}% {{ t('reduction') }})
+          </span>
+        </div>
+        <div class="uj-stat-row">
+          <span class="uj-stat-label">{{ t('outputPath') }}</span>
+          <span class="uj-stat-value uj-stat-path">{{ result.outputPath }}</span>
+        </div>
+      </div>
+      <!-- Progress bar -->
+      <div class="uj-progress-bar">
+        <div class="uj-progress-original"></div>
+        <div class="uj-progress-minified" :style="{ width: (100 - parseFloat(savedPercent)) + '%' }"></div>
+      </div>
+      <div class="uj-progress-labels">
+        <span>{{ t('original') }} (100%)</span>
+        <span>{{ t('minified') }} ({{ (100 - parseFloat(savedPercent)).toFixed(1) }}%)</span>
+      </div>
+      <!-- Warnings -->
+      <div class="uj-warnings" v-if="result.warnings && result.warnings.length">
+        <div class="uj-warnings-header">⚠️ {{ t('warnings') }} ({{ result.warnings.length }})</div>
+        <div class="uj-warning-item" v-for="(w, i) in result.warnings" :key="i">{{ w }}</div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,29 @@
+{
+  "id": "uglifyjs",
+  "name": "UglifyJS",
+  "icon": "🔧",
+  "color": "linear-gradient(135deg,#1b5e20,#4caf50)",
+  "type": "internal",
+  "size": {
+    "w": 820,
+    "h": 640
+  },
+  "global": false,
+  "description": "JavaScript dosyalarını küçültür, sıkıştırır ve mangle eder — UglifyJS motoru",
+  "category": "development",
+  "lang": {
+    "tr": { "name": "UglifyJS", "description": "JavaScript dosyalarını küçültür, sıkıştırır ve mangle eder — UglifyJS motoru" },
+    "en": { "name": "UglifyJS", "description": "Minify, compress and mangle JavaScript files — UglifyJS engine" },
+    "de": { "name": "UglifyJS", "description": "JavaScript-Dateien minimieren, komprimieren und verschleiern — UglifyJS" },
+    "fr": { "name": "UglifyJS", "description": "Minifier, compresser et obscurcir les fichiers JavaScript — UglifyJS" },
+    "es": { "name": "UglifyJS", "description": "Minificar, comprimir y ofuscar archivos JavaScript — UglifyJS" },
+    "ru": { "name": "UglifyJS", "description": "Минификация, сжатие и обфускация JavaScript файлов — UglifyJS" },
+    "zh": { "name": "UglifyJS", "description": "压缩、混淆JavaScript文件 — UglifyJS引擎" },
+    "ja": { "name": "UglifyJS", "description": "JavaScriptファイルの圧縮・難読化 — UglifyJSエンジン" },
+    "it": { "name": "UglifyJS", "description": "Minimizza, comprimi e offusca file JavaScript — UglifyJS" },
+    "ar": { "name": "UglifyJS", "description": "تصغير وضغط وتشويش ملفات JavaScript — UglifyJS" },
+    "ko": { "name": "UglifyJS", "description": "JavaScript 파일 압축, 최소화 및 난독화 — UglifyJS" },
+    "hi": { "name": "UglifyJS", "description": "JavaScript फ़ाइलों को छोटा, संपीड़ित और अस्पष्ट करें — UglifyJS" },
+    "pt": { "name": "UglifyJS", "description": "Minificar, comprimir e ofuscar arquivos JavaScript — UglifyJS" }
+  }
+}
