@@ -4106,29 +4106,6 @@ function getUserDb(username) {
     );
     CREATE INDEX IF NOT EXISTS idx_notif_created ON notifications(created_at DESC);
 
-    CREATE TABLE IF NOT EXISTS contacts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      first_name TEXT NOT NULL,
-      last_name TEXT DEFAULT '',
-      email TEXT DEFAULT '',
-      phone TEXT DEFAULT '',
-      mobile TEXT DEFAULT '',
-      company TEXT DEFAULT '',
-      job_title TEXT DEFAULT '',
-      address TEXT DEFAULT '',
-      city TEXT DEFAULT '',
-      country TEXT DEFAULT '',
-      website TEXT DEFAULT '',
-      birthday TEXT DEFAULT '',
-      notes TEXT DEFAULT '',
-      favorite INTEGER DEFAULT 0,
-      avatar_color TEXT DEFAULT '',
-      created_at TEXT DEFAULT (datetime('now')),
-      updated_at TEXT DEFAULT (datetime('now'))
-    );
-    CREATE INDEX IF NOT EXISTS idx_contacts_name ON contacts(first_name, last_name);
-    CREATE INDEX IF NOT EXISTS idx_contacts_email ON contacts(email);
-
     CREATE TABLE IF NOT EXISTS budget_categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
@@ -4324,68 +4301,6 @@ function addNotificationToDb(username, notif) {
     );
   } catch (e) { console.error('addNotificationToDb error:', e.message); }
 }
-
-// #endregion
-// #region Contacts API
-app.get('/api/contacts', authMiddleware, (req, res) => {
-  const db = getUserDb(req.user.username);
-  const rows = db.prepare('SELECT * FROM contacts ORDER BY favorite DESC, first_name ASC, last_name ASC').all();
-  res.json(rows.map(r => ({ ...r, favorite: !!r.favorite })));
-});
-
-app.get('/api/contacts/search', authMiddleware, (req, res) => {
-  const q = (req.query.q || '').trim();
-  if (!q) return res.json([]);
-  const db = getUserDb(req.user.username);
-  const like = `%${q}%`;
-  const rows = db.prepare('SELECT * FROM contacts WHERE first_name LIKE ? OR last_name LIKE ? OR email LIKE ? OR phone LIKE ? OR mobile LIKE ? OR company LIKE ? ORDER BY favorite DESC, first_name ASC LIMIT 50').all(like, like, like, like, like, like);
-  res.json(rows.map(r => ({ ...r, favorite: !!r.favorite })));
-});
-
-app.post('/api/contacts', authMiddleware, (req, res) => {
-  const { first_name, last_name, email, phone, mobile, company, job_title, address, city, country, website, birthday, notes, favorite, avatar_color } = req.body;
-  if (!first_name || !first_name.trim()) return res.status(400).json({ error: 'first_name required' });
-  const db = getUserDb(req.user.username);
-  const colors = ['#409eff','#67c23a','#e6a23c','#f56c6c','#6f5ef7','#e91e63','#00bcd4','#ff5722','#795548','#607d8b'];
-  const color = avatar_color || colors[Math.floor(Math.random() * colors.length)];
-  const info = db.prepare(
-    'INSERT INTO contacts (first_name, last_name, email, phone, mobile, company, job_title, address, city, country, website, birthday, notes, favorite, avatar_color) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
-  ).run(first_name.trim(), last_name||'', email||'', phone||'', mobile||'', company||'', job_title||'', address||'', city||'', country||'', website||'', birthday||'', notes||'', favorite?1:0, color);
-  res.json({ ok: true, id: info.lastInsertRowid });
-});
-
-app.put('/api/contacts/:id', authMiddleware, (req, res) => {
-  const { first_name, last_name, email, phone, mobile, company, job_title, address, city, country, website, birthday, notes, favorite, avatar_color } = req.body;
-  const db = getUserDb(req.user.username);
-  const fields = [];
-  const vals = [];
-  if (first_name !== undefined) { fields.push('first_name=?'); vals.push(first_name); }
-  if (last_name !== undefined) { fields.push('last_name=?'); vals.push(last_name); }
-  if (email !== undefined) { fields.push('email=?'); vals.push(email); }
-  if (phone !== undefined) { fields.push('phone=?'); vals.push(phone); }
-  if (mobile !== undefined) { fields.push('mobile=?'); vals.push(mobile); }
-  if (company !== undefined) { fields.push('company=?'); vals.push(company); }
-  if (job_title !== undefined) { fields.push('job_title=?'); vals.push(job_title); }
-  if (address !== undefined) { fields.push('address=?'); vals.push(address); }
-  if (city !== undefined) { fields.push('city=?'); vals.push(city); }
-  if (country !== undefined) { fields.push('country=?'); vals.push(country); }
-  if (website !== undefined) { fields.push('website=?'); vals.push(website); }
-  if (birthday !== undefined) { fields.push('birthday=?'); vals.push(birthday); }
-  if (notes !== undefined) { fields.push('notes=?'); vals.push(notes); }
-  if (favorite !== undefined) { fields.push('favorite=?'); vals.push(favorite?1:0); }
-  if (avatar_color !== undefined) { fields.push('avatar_color=?'); vals.push(avatar_color); }
-  if (fields.length === 0) return res.status(400).json({ error: 'no fields to update' });
-  fields.push("updated_at=datetime('now')");
-  vals.push(req.params.id);
-  db.prepare('UPDATE contacts SET ' + fields.join(', ') + ' WHERE id=?').run(...vals);
-  res.json({ ok: true });
-});
-
-app.delete('/api/contacts/:id', authMiddleware, (req, res) => {
-  const db = getUserDb(req.user.username);
-  db.prepare('DELETE FROM contacts WHERE id = ?').run(req.params.id);
-  res.json({ ok: true });
-});
 
 // #endregion
 // #region Wallpaper API
@@ -4888,8 +4803,6 @@ function handleTerminalExec(ws, data) {
     if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'terminal-exit', data: { id, code: 1 } }));
   });
 }
-
-
 
 // #endregion
 // #region Password Vault (AES-256-GCM encrypted storage)
