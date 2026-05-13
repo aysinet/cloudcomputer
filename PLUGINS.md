@@ -46,7 +46,8 @@ module.exports = function(ctx) {
     crypto,           // Node.js crypto module
     path,             // Node.js path module
     fs,               // Node.js fs module
-    pluginBus         // Inter-plugin event bus (scoped per plugin)
+    pluginBus,        // Inter-plugin event bus (scoped per plugin)
+    isPluginLoaded    // isPluginLoaded(appId) → check if another plugin is loaded
   } = ctx;
 
   // ... application logic ...
@@ -197,6 +198,25 @@ To convert a `#region` block from desktop.js into a plugin:
 - `require.cache` is cleared so file changes take effect on reload
 - Creating DB tables on first use (CREATE IF NOT EXISTS) is the safest approach
 - Plugins can communicate via `pluginBus` (see Plugin Bus section below)
+- Plugins can check if another plugin is loaded via `ctx.isPluginLoaded(appId)`
+
+## Plugin Discovery (`isPluginLoaded`)
+
+Plugins can check whether another plugin is currently loaded:
+
+```javascript
+// Check if mail-app plugin is available
+if (ctx.isPluginLoaded('mail-app')) {
+  // safe to call mail-app services or depend on its routes
+  const result = await ctx.pluginBus.callService('mail:send', { ... });
+}
+
+// Conditional feature based on another plugin
+const hasCalendar = ctx.isPluginLoaded('calendar');
+```
+
+This is a live check against the loaded plugins registry — it reflects the current state
+(plugins can be loaded/unloaded at runtime via hot-reload).
 
 ## Plugin Bus (Inter-Plugin Communication)
 

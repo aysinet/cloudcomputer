@@ -873,7 +873,7 @@
       async function loadServerImages() {
         try {
           var token = getToken();
-          var resp = await fetch('/api/photos/list', {
+          var resp = await fetch('/api/photos/files', {
             headers: token ? { 'Authorization': 'Bearer ' + token } : {}
           });
           if (!resp.ok) throw new Error('Failed');

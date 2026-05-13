@@ -120,7 +120,10 @@ function loadPlugin(appId, context) {
 
     // Create a scoped bus for this plugin (auto-cleaned on unload)
     const pluginBus = createScopedBus(appId);
-    const pluginCtx = Object.assign({}, context, { pluginBus });
+    const pluginCtx = Object.assign({}, context, {
+      pluginBus,
+      isPluginLoaded: (id) => !!loadedPlugins[id]
+    });
 
     const result = pluginInit(pluginCtx);
     if (!result) {
