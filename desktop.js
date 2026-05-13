@@ -5734,7 +5734,6 @@ function startReminderChecker() {
 }
 
 // #endregion
-
 // #region Copilot CLI App
 const { spawn } = require('child_process');
 
@@ -5935,103 +5934,7 @@ app.delete('/api/copilot/sessions', authMiddleware, (req, res) => {
 });
 
 // #endregion
-// #region Map App
-function getUserMapPath(username) {
-  const safe = username.replace(/[^a-zA-Z0-9_-]/g, '_');
-  const dir = path.join(DATA_DIR, safe);
-  ensureDir(dir);
-  return path.join(dir, 'map-data.json');
-}
-function getUserMapData(username) {
-  const fp = getUserMapPath(username);
-  if (!fs.existsSync(fp)) return { markers: [], views: [] };
-  try { return JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch { return { markers: [], views: [] }; }
-}
-function saveUserMapData(username, data) {
-  fs.writeFileSync(getUserMapPath(username), JSON.stringify(data, null, 2));
-}
-
-app.get('/api/map/data', authMiddleware, (req, res) => {
-  res.json(getUserMapData(req.user.username));
-});
-
-// Markers CRUD
-app.post('/api/map/markers', authMiddleware, (req, res) => {
-  const { name, lat, lon, color, icon, description } = req.body;
-  if (lat == null || lon == null) return res.status(400).json({ error: 'lat and lon required' });
-  const data = getUserMapData(req.user.username);
-  const marker = {
-    id: crypto.randomUUID(),
-    name: String(name || '').slice(0, 200),
-    description: String(description || '').slice(0, 500),
-    lat: Number(lat), lon: Number(lon),
-    color: String(color || '#e74c3c').slice(0, 20),
-    icon: String(icon || '📍').slice(0, 10),
-    createdAt: Date.now()
-  };
-  data.markers.push(marker);
-  saveUserMapData(req.user.username, data);
-  res.json(marker);
-});
-
-app.put('/api/map/markers/:id', authMiddleware, (req, res) => {
-  const data = getUserMapData(req.user.username);
-  const idx = data.markers.findIndex(m => m.id === req.params.id);
-  if (idx < 0) return res.status(404).json({ error: 'Not found' });
-  const allowed = ['name', 'lat', 'lon', 'color', 'icon', 'description'];
-  for (const key of allowed) {
-    if (req.body[key] !== undefined) data.markers[idx][key] = req.body[key];
-  }
-  saveUserMapData(req.user.username, data);
-  res.json(data.markers[idx]);
-});
-
-app.delete('/api/map/markers/:id', authMiddleware, (req, res) => {
-  const data = getUserMapData(req.user.username);
-  data.markers = data.markers.filter(m => m.id !== req.params.id);
-  saveUserMapData(req.user.username, data);
-  res.json({ ok: true });
-});
-
-// Saved Views CRUD
-app.post('/api/map/views', authMiddleware, (req, res) => {
-  const { name, center, zoom, layer } = req.body;
-  if (!name || !center) return res.status(400).json({ error: 'name and center required' });
-  const data = getUserMapData(req.user.username);
-  const view = {
-    id: crypto.randomUUID(),
-    name: String(name).slice(0, 100),
-    center: { lat: Number(center.lat), lon: Number(center.lon) },
-    zoom: Number(zoom) || 6,
-    layer: String(layer || 'osm').slice(0, 30),
-    createdAt: Date.now()
-  };
-  data.views.push(view);
-  saveUserMapData(req.user.username, data);
-  res.json(view);
-});
-
-app.put('/api/map/views/:id', authMiddleware, (req, res) => {
-  const data = getUserMapData(req.user.username);
-  const idx = data.views.findIndex(v => v.id === req.params.id);
-  if (idx < 0) return res.status(404).json({ error: 'Not found' });
-  const allowed = ['name', 'center', 'zoom', 'layer'];
-  for (const key of allowed) {
-    if (req.body[key] !== undefined) data.views[idx][key] = req.body[key];
-  }
-  saveUserMapData(req.user.username, data);
-  res.json(data.views[idx]);
-});
-
-app.delete('/api/map/views/:id', authMiddleware, (req, res) => {
-  const data = getUserMapData(req.user.username);
-  data.views = data.views.filter(v => v.id !== req.params.id);
-  saveUserMapData(req.user.username, data);
-  res.json({ ok: true });
-});
-
-// #endregion
-// #region Backup & Restorae
+// #region Backup & Restore
 const BACKUPS_DIR = path.join(__dirname, 'backups');
 ensureDir(BACKUPS_DIR);
 const SEVENZ_PATH = 'C:\\Program Files\\7-Zip\\7z.exe';

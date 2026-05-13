@@ -129,6 +129,22 @@ module.exports = function(ctx) {
         }]
       },
 
+      // PUT update view
+      {
+        method: 'put',
+        path: '/api/map/views/:id',
+        handlers: [authMiddleware, (req, res) => {
+          const data = getUserMapData(req.user.username);
+          const idx = data.views.findIndex(v => v.id === req.params.id);
+          if (idx === -1) return res.status(404).json({ error: 'View not found' });
+          const existing = data.views[idx];
+          data.views[idx] = sanitizeView({ ...existing, ...req.body }, existing.id);
+          data.views[idx].createdAt = existing.createdAt;
+          saveUserMapData(req.user.username, data);
+          res.json({ ok: true, view: data.views[idx] });
+        }]
+      },
+
       // DELETE view
       {
         method: 'delete',
