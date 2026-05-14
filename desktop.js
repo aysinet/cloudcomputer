@@ -3655,32 +3655,6 @@ app.get('/api/playwright/sessions', authMiddleware, async (req, res) => {
 // #endregion
 
 
-// #region ═══════════════════ VPN Client Config API ═══════════════════
-app.get('/api/vpn-client/config', authMiddleware, (req, res) => {
-  const fp = path.join('data', 'users', req.user.username, 'vpn-client-config.json');
-  if (fs.existsSync(fp)) {
-    try { return res.json(JSON.parse(fs.readFileSync(fp, 'utf-8'))); } catch {}
-  }
-  res.json({ provider: 'custom', vpnType: 'openvpn', killSwitch: true, dnsOverTls: true });
-});
-
-app.post('/api/vpn-client/config', authMiddleware, (req, res) => {
-  const allowed = ['provider', 'vpnType', 'username', 'password', 'wgPrivateKey', 'wgAddresses', 'wgPublicKey', 'wgEndpoint', 'serverCountry', 'serverCity', 'serverHostname', 'killSwitch', 'dnsOverTls'];
-  const cfg = {};
-  for (const key of allowed) {
-    if (req.body[key] !== undefined) {
-      if (typeof req.body[key] === 'boolean') { cfg[key] = req.body[key]; }
-      else { cfg[key] = String(req.body[key]).slice(0, 500); }
-    }
-  }
-  const fp = path.join('data', 'users', req.user.username, 'vpn-client-config.json');
-  fs.mkdirSync(path.dirname(fp), { recursive: true });
-  fs.writeFileSync(fp, JSON.stringify(cfg, null, 2));
-  res.json({ ok: true });
-});
-// #endregion
-
-
 
 server.listen(config.server.port, config.server.host, () => {
   console.log(`Desktop Server running at http://${config.server.host}:${config.server.port}`);
