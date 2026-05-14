@@ -4,12 +4,24 @@
  * Uses its own dedicated SQLite database per user (ownDb).
  */
 module.exports = function(ctx) {
-  const { authMiddleware, getAppDb } = ctx;
+  const { authMiddleware } = ctx;
+  const path = require('path');
+  const fs = require('fs');
+  const Database = require('better-sqlite3');
+  const APPDATA_DIR = path.join(__dirname, '..', '..', '..', 'data', 'appdata');
 
-  // ── Own DB helper — initializes schema on first access ──
+  // ── Own DB helper — carpaper.db inside user's appdata folder ──
+  const dbCache = {};
   const initializedDbs = new Set();
   function getDb(username) {
-    const db = getAppDb('carpaper', username);
+    const safeUser = username.replace(/[^a-zA-Z0-9_-]/g, '_');
+    if (dbCache[safeUser]) return dbCache[safeUser];
+    const userDir = path.join(APPDATA_DIR, safeUser);
+    if (!fs.existsSync(userDir)) fs.mkdirSync(userDir, { recursive: true });
+    const dbPath = path.join(userDir, 'carpaper.db');
+    const db = new Database(dbPath);
+    db.pragma('journal_mode = WAL');
+    dbCache[safeUser] = db;
     if (!initializedDbs.has(username)) {
       db.exec(`
         CREATE TABLE IF NOT EXISTS carpaper_vehicles (

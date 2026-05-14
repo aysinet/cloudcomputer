@@ -2679,36 +2679,6 @@ function getUserDb(username) {
     );
     CREATE INDEX IF NOT EXISTS idx_kanban_card_col ON kanban_cards(column_id);
 
-    CREATE TABLE IF NOT EXISTS pets (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      species TEXT DEFAULT 'dog',
-      breed TEXT DEFAULT '',
-      gender TEXT DEFAULT 'unknown',
-      birth_date TEXT DEFAULT '',
-      color TEXT DEFAULT '',
-      weight REAL DEFAULT NULL,
-      microchip_id TEXT DEFAULT '',
-      size TEXT DEFAULT 'medium',
-      coat_type TEXT DEFAULT 'short',
-      eye_color TEXT DEFAULT '',
-      distinctive_marks TEXT DEFAULT '',
-      temperament TEXT DEFAULT 'friendly',
-      activity_level TEXT DEFAULT 'medium',
-      training_level TEXT DEFAULT 'basic',
-      good_with_kids INTEGER DEFAULT 0,
-      good_with_pets INTEGER DEFAULT 0,
-      good_with_strangers INTEGER DEFAULT 0,
-      neutered_spayed INTEGER DEFAULT 0,
-      allergies TEXT DEFAULT '[]',
-      chronic_conditions TEXT DEFAULT '[]',
-      profile_photo_url TEXT DEFAULT '',
-      additional_photos TEXT DEFAULT '[]',
-      created_at TEXT DEFAULT (datetime('now')),
-      updated_at TEXT DEFAULT (datetime('now'))
-    );
-    CREATE INDEX IF NOT EXISTS idx_pets_name ON pets(name);
-
     CREATE TABLE IF NOT EXISTS wp_projects (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
