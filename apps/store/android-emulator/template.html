@@ -1,0 +1,87 @@
+<div class="android-emu-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="ae-status-screen">
+    <div class="ae-spinner"></div>
+    <div class="ae-icon-large">📱</div>
+    <div class="ae-status-text">{{ pullProgress }}</div>
+    <div class="ae-sub-text">Bu işlem ilk kurulumda biraz zaman alabilir (~3 GB)...</div>
+  </div>
+
+  <!-- Starting / Restarting State -->
+  <div v-else-if="status === 'starting' || status === 'restarting'" class="ae-status-screen">
+    <div class="ae-spinner"></div>
+    <div class="ae-icon-large">📱</div>
+    <div class="ae-status-text">{{ status === 'restarting' ? 'Android yeniden başlatılıyor...' : 'Android Emülatör başlatılıyor...' }}</div>
+    <div class="ae-sub-text">Emülatör hazırlanıyor, lütfen bekleyin</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="ae-status-screen ae-error">
+    <div class="ae-icon-large">⚠️</div>
+    <div class="ae-status-text">Bir hata oluştu</div>
+    <div class="ae-error-msg">{{ errorMsg }}</div>
+    <div class="ae-actions">
+      <button class="ae-btn ae-btn-primary" @click="checkAndStart">🔄 Tekrar Dene</button>
+      <button class="ae-btn" @click="showSetup = true; status = 'idle'">⚙️ Ayarlar</button>
+    </div>
+    <div class="ae-sub-text">Docker'ın yüklü ve KVM desteğinin aktif olduğundan emin olun.</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="ae-running">
+    <div class="ae-toolbar">
+      <span class="ae-info">📱 Android — {{ deviceLabel }} — Port: {{ port }}</span>
+      <div class="ae-toolbar-actions">
+        <button class="ae-btn ae-btn-small" @click="openInNewTab" title="Yeni Sekmede Aç">🔗</button>
+        <button class="ae-btn ae-btn-small" @click="restart" title="Yeniden Başlat">🔄</button>
+        <button class="ae-btn ae-btn-small ae-btn-danger" @click="stopContainer" title="Durdur">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="ae-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle / Setup State -->
+  <div v-else class="ae-status-screen">
+    <div v-if="showSetup" class="ae-setup">
+      <div class="ae-setup-header">
+        <span class="ae-setup-icon">📱</span>
+        <h3>Android Emülatör Kurulumu</h3>
+      </div>
+      <div class="ae-setup-form">
+        <div class="ae-form-group">
+          <label>Android Sürümü</label>
+          <select v-model="config.androidVersion" class="ae-select">
+            <option v-for="v in ANDROID_VERSIONS" :key="v.value" :value="v.value">
+              {{ v.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="ae-form-group">
+          <label>Cihaz Profili</label>
+          <select v-model="config.device" class="ae-select">
+            <option v-for="d in DEVICES" :key="d.value" :value="d.value">
+              {{ d.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="ae-setup-footer">
+        <button class="ae-btn ae-btn-primary ae-btn-large" @click="startContainer">
+          ▶ Android Emülatörü Başlat
+        </button>
+        <div class="ae-setup-note">
+          ⚡ KVM desteği gereklidir (Linux). noVNC ile tarayıcıdan erişim sağlanır.
+        </div>
+      </div>
+    </div>
+
+    <div v-else class="ae-welcome">
+      <div class="ae-icon-large">📱</div>
+      <div class="ae-status-text">Android Emülatör</div>
+      <div class="ae-sub-text">Docker üzerinde Android deneyimi</div>
+      <button class="ae-btn ae-btn-primary ae-btn-large" @click="showSetup = true">⚙️ Kuruluma Başla</button>
+    </div>
+  </div>
+</div>

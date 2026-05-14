@@ -1,0 +1,81 @@
+{
+  "id": "android-emulator",
+  "name": "Android Emulator",
+  "icon": "📱",
+  "color": "linear-gradient(135deg,#3ddc84,#073042)",
+  "type": "internal",
+  "proxyMode": "pathprefix",
+  "size": {
+    "w": 420,
+    "h": 820
+  },
+  "global": false,
+  "description": "Docker tabanlı Android emülatör — noVNC web arayüzü ile",
+  "lang": {
+    "tr": {
+      "name": "Android Emülatör",
+      "description": "Docker tabanlı Android emülatör — noVNC web arayüzü ile"
+    },
+    "en": {
+      "name": "Android Emulator",
+      "description": "Docker-based Android emulator with noVNC web interface"
+    },
+    "de": {
+      "name": "Android Emulator",
+      "description": "Docker-basierter Android-Emulator mit noVNC-Weboberfläche"
+    },
+    "fr": {
+      "name": "Émulateur Android",
+      "description": "Émulateur Android basé sur Docker avec interface web noVNC"
+    },
+    "es": {
+      "name": "Emulador Android",
+      "description": "Emulador Android basado en Docker con interfaz web noVNC"
+    },
+    "ru": {
+      "name": "Android Эмулятор",
+      "description": "Android-эмулятор на Docker с веб-интерфейсом noVNC"
+    },
+    "zh": {
+      "name": "Android 模拟器",
+      "description": "基于Docker的Android模拟器，带有noVNC网页界面"
+    },
+    "ja": {
+      "name": "Android エミュレータ",
+      "description": "DockerベースのAndroidエミュレータ（noVNC対応）"
+    },
+    "it": {
+      "name": "Emulatore Android",
+      "description": "Emulatore Android basato su Docker con interfaccia web noVNC"
+    },
+    "ar": {
+      "name": "محاكي أندرويد",
+      "description": "محاكي أندرويد قائم على Docker مع واجهة ويب noVNC"
+    },
+    "ko": {
+      "name": "Android 에뮬레이터",
+      "description": "noVNC 웹 인터페이스를 갖춘 Docker 기반 Android 에뮬레이터"
+    },
+    "hi": {
+      "name": "Android एमुलेटर",
+      "description": "noVNC वेब इंटरफ़ेस के साथ Docker-आधारित Android एमुलेटर"
+    },
+    "pt": {
+      "name": "Emulador Android",
+      "description": "Emulador Android baseado em Docker com interface web noVNC"
+    }
+  },
+  "category": "utilities",
+  "docker": {
+    "image": "budtmo/docker-android:emulator_11.0",
+    "containerPort": 6080,
+    "devices": ["/dev/kvm"],
+    "volumes": [
+      "${APP_VOLUME}:/home/androidusr"
+    ],
+    "env": [
+      "EMULATOR_DEVICE=Samsung Galaxy S10",
+      "WEB_VNC=true"
+    ]
+  }
+}

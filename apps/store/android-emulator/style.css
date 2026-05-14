@@ -1,0 +1,242 @@
+.android-emu-root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #0a1a10;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+/* Status Screens */
+.ae-status-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+}
+
+.ae-icon-large {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.ae-status-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.ae-sub-text {
+  font-size: 13px;
+  color: #5a9a6e;
+  max-width: 400px;
+}
+
+.ae-error-msg {
+  font-size: 13px;
+  color: #ff6b6b;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  max-width: 400px;
+  word-break: break-word;
+}
+
+.ae-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #3ddc84;
+  border-radius: 50%;
+  animation: ae-spin 0.8s linear infinite;
+}
+
+@keyframes ae-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Buttons */
+.ae-btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 16px;
+  transition: all 0.2s;
+  background: #1a2d20;
+  color: #e0e0e0;
+}
+
+.ae-btn:hover {
+  background: #243a2e;
+}
+
+.ae-btn-primary {
+  background: #3ddc84;
+  color: #073042;
+  font-weight: 600;
+}
+
+.ae-btn-primary:hover {
+  background: #5ae69c;
+}
+
+.ae-btn-large {
+  padding: 12px 32px;
+  font-size: 16px;
+  border-radius: 12px;
+}
+
+.ae-btn-small {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.ae-btn-danger {
+  background: #c62828;
+  color: #fff;
+}
+
+.ae-btn-danger:hover {
+  background: #e53935;
+}
+
+.ae-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Running State */
+.ae-running {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ae-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: #0d1f14;
+  border-bottom: 1px solid #3ddc84;
+  min-height: 32px;
+}
+
+.ae-info {
+  font-size: 12px;
+  color: #5a9a6e;
+}
+
+.ae-toolbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.ae-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #000;
+}
+
+/* Setup Form */
+.ae-setup {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ae-setup-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.ae-setup-header h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #fff;
+}
+
+.ae-setup-icon {
+  font-size: 36px;
+}
+
+.ae-setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.ae-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ae-form-group label {
+  font-size: 12px;
+  color: #5a9a6e;
+  font-weight: 500;
+}
+
+.ae-select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: #0d1f14;
+  color: #e0e0e0;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.ae-select:focus {
+  border-color: #3ddc84;
+}
+
+.ae-select option {
+  background: #0d1f14;
+  color: #e0e0e0;
+}
+
+.ae-setup-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.ae-setup-note {
+  font-size: 11px;
+  color: #3a6a4a;
+  text-align: center;
+  max-width: 400px;
+}
+
+.ae-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
