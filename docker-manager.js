@@ -182,7 +182,7 @@ app.post('/pull', authCheck, async (req, res) => {
 
 // ── Run container ──
 app.post('/run', authCheck, async (req, res) => {
-  const { image, appId, containerPort, network, volumes, env, restart, cmd, extraPorts, devices, capAdd, privileged, stopTimeout } = req.body;
+  const { image, appId, containerPort, network, volumes, env, restart, cmd, extraPorts, devices, capAdd, privileged, stopTimeout, shmSize } = req.body;
   console.log(`[RUN] Request: appId=${appId} image=${image} containerPort=${containerPort} extraPorts=${JSON.stringify(extraPorts || [])}`);
   console.log(`[RUN] Volumes:`, volumes || '(none)');
   console.log(`[RUN] Env:`, env || '(none)');
@@ -319,6 +319,12 @@ app.post('/run', authCheck, async (req, res) => {
       console.log(`[RUN] Stop timeout: ${stopTimeout}s`);
     }
 
+    // Add shared memory size (e.g. '1g', '512m')
+    if (shmSize && typeof shmSize === 'string' && /^\d+[kmg]$/i.test(shmSize)) {
+      args.push('--shm-size', shmSize);
+      console.log(`[RUN] SHM size: ${shmSize}`);
+    }
+
     args.push(image);
 
     // Add command arguments after image (e.g. redis-server --requirepass)
@@ -349,6 +355,7 @@ app.post('/run', authCheck, async (req, res) => {
     res.json({ ok: true, ...info });
   } catch (e) {
     const isPortConflict = e.message && e.message.includes('port is already allocated');
+    const allocatedPort = portAllocations[appId];
     // Release appId mapping
     delete portAllocations[appId];
     // Clean up extra port allocations
@@ -360,14 +367,16 @@ app.post('/run', authCheck, async (req, res) => {
       }
     }
     savePortAllocations();
-    if (isPortConflict) {
-      // Port is occupied on the host — keep it in pendingPorts so it's never reused
-      console.error(`[RUN] FAILED (port conflict): ${containerName} — port ${hostPort} occupied on host, blocking it`);
-    } else {
-      // Other failure — release the pending port lock
-      pendingPorts.delete(hostPort);
-      console.error(`[RUN] FAILED: ${containerName} — ${e.message}`);
+    if (allocatedPort) {
+      if (isPortConflict) {
+        // Port is occupied on the host — keep it in pendingPorts so it's never reused
+        console.error(`[RUN] FAILED (port conflict): ${containerName} — port ${allocatedPort} occupied on host, blocking it`);
+      } else {
+        // Other failure — release the pending port lock
+        pendingPorts.delete(allocatedPort);
+      }
     }
+    console.error(`[RUN] FAILED: ${containerName} — ${e.message}`);
     res.status(500).json({ error: e.message });
   }
 });

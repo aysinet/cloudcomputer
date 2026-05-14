@@ -1,0 +1,83 @@
+{
+  "id": "brave-browser",
+  "name": "Brave Browser",
+  "icon": "🦁",
+  "color": "linear-gradient(135deg,#FB542B,#343546)",
+  "type": "internal",
+  "proxyMode": "hpm",
+  "size": {
+    "w": 1100,
+    "h": 750
+  },
+  "global": false,
+  "description": "Docker tabanlı Brave tarayıcı — hızlı, güvenli ve gizlilik odaklı web tarayıcı",
+  "lang": {
+    "tr": {
+      "name": "Brave Tarayıcı",
+      "description": "Docker tabanlı Brave tarayıcı — hızlı, güvenli ve gizlilik odaklı"
+    },
+    "en": {
+      "name": "Brave Browser",
+      "description": "Docker-based Brave browser — fast, secure and privacy-focused"
+    },
+    "de": {
+      "name": "Brave Browser",
+      "description": "Docker-basierter Brave-Browser — schnell, sicher und datenschutzorientiert"
+    },
+    "fr": {
+      "name": "Brave Navigateur",
+      "description": "Navigateur Brave basé sur Docker — rapide, sécurisé et axé sur la confidentialité"
+    },
+    "es": {
+      "name": "Brave Navegador",
+      "description": "Navegador Brave basado en Docker — rápido, seguro y centrado en la privacidad"
+    },
+    "ru": {
+      "name": "Brave Браузер",
+      "description": "Brave на базе Docker — быстрый, безопасный и конфиденциальный браузер"
+    },
+    "zh": {
+      "name": "Brave 浏览器",
+      "description": "基于Docker的Brave浏览器 — 快速、安全、注重隐私"
+    },
+    "ja": {
+      "name": "Brave ブラウザ",
+      "description": "Docker版Braveブラウザ — 高速・安全・プライバシー重視"
+    },
+    "it": {
+      "name": "Brave Browser",
+      "description": "Browser Brave basato su Docker — veloce, sicuro e incentrato sulla privacy"
+    },
+    "ar": {
+      "name": "متصفح Brave",
+      "description": "متصفح Brave عبر Docker — سريع وآمن ويركز على الخصوصية"
+    },
+    "ko": {
+      "name": "Brave 브라우저",
+      "description": "Docker 기반 Brave 브라우저 — 빠르고 안전한 프라이버시 중심 브라우저"
+    },
+    "hi": {
+      "name": "Brave ब्राउज़र",
+      "description": "Docker-आधारित Brave ब्राउज़र — तेज़, सुरक्षित और गोपनीयता-केंद्रित"
+    },
+    "pt": {
+      "name": "Brave Navegador",
+      "description": "Navegador Brave baseado em Docker — rápido, seguro e focado em privacidade"
+    }
+  },
+  "category": "internet",
+  "docker": {
+    "image": "lscr.io/linuxserver/brave:latest",
+    "containerPort": 3000,
+    "extraPorts": [3001],
+    "shmSize": "1g",
+    "volumes": [
+      "${APP_VOLUME}:/config"
+    ],
+    "env": [
+      "PUID=1000",
+      "PGID=1000",
+      "TZ=Etc/UTC"
+    ]
+  }
+}

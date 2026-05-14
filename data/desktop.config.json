@@ -4,9 +4,10 @@
     "host": "0.0.0.0"
   },
   "auth": {
-    "jwtSecret": "vue-desktop-jwt-secret-change-me",
+    "jwtSecret": "bb591b378fd247aa17d5caabc151f30c977b3a722efd2ed243cd01b8cc519880",
     "jwtExpiresIn": "240h",
     "users": [
+      "admin"
     ]
   },
   "docker": {
@@ -21,6 +22,5 @@
   "websocket": {
     "pingInterval": 30000
   },
-  "weather": {
-  }
+  "weather": {}
 }

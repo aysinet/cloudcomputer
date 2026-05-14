@@ -1,0 +1,48 @@
+<div class="brave-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="brv-status-screen">
+    <div class="brv-spinner"></div>
+    <div class="brv-icon-large">🦁</div>
+    <div class="brv-status-text">{{ pullProgress }}</div>
+    <div class="brv-sub-text">{{ t('pullSlow') }}</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="brv-status-screen">
+    <div class="brv-spinner"></div>
+    <div class="brv-icon-large">🦁</div>
+    <div class="brv-status-text">{{ t('starting') }}</div>
+    <div class="brv-sub-text">{{ t('startSub') }}</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="brv-status-screen brv-error">
+    <div class="brv-icon-large">⚠️</div>
+    <div class="brv-status-text">{{ t('error') }}</div>
+    <div class="brv-error-msg">{{ errorMsg }}</div>
+    <div class="brv-actions">
+      <button class="brv-btn brv-btn-primary" @click="checkAndStart">🔄 {{ t('retry') }}</button>
+    </div>
+    <div class="brv-sub-text">{{ t('dockerCheck') }}</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="brv-running">
+    <div class="brv-toolbar">
+      <span class="brv-info">🦁 Brave Browser — Port: {{ port }}</span>
+      <div class="brv-toolbar-actions">
+        <button class="brv-btn brv-btn-small" @click="restart" :title="t('restart')">🔄</button>
+        <button class="brv-btn brv-btn-small brv-btn-danger" @click="stopContainer" :title="t('stop')">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="brv-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="brv-status-screen">
+    <div class="brv-icon-large">🦁</div>
+    <div class="brv-status-text">Brave Browser</div>
+    <div class="brv-sub-text">{{ t('startSub') }}</div>
+    <button class="brv-btn brv-btn-primary brv-btn-large" @click="checkAndStart">▶ {{ t('start') }}</button>
+  </div>
+</div>

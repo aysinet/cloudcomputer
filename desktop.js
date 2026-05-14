@@ -1148,6 +1148,7 @@ app.post('/api/services/install', authMiddleware, async (req, res) => {
     if (Array.isArray(dockerConfig.capAdd)) runBody.capAdd = dockerConfig.capAdd;
     if (dockerConfig.privileged === true) runBody.privileged = true;
     if (dockerConfig.stopTimeout) runBody.stopTimeout = dockerConfig.stopTimeout;
+    if (dockerConfig.shmSize) runBody.shmSize = dockerConfig.shmSize;
     const runData = await dmFetch('/run', {
       method: 'POST',
       body: JSON.stringify(runBody)
@@ -1894,7 +1895,7 @@ app.post('/api/docker/pull', authMiddleware, async (req, res) => {
 });
 
 app.post('/api/docker/run', authMiddleware, async (req, res) => {
-  const { image, appId, containerPort, volumes, env, restart, cmd, extraPorts, devices, capAdd, privileged, stopTimeout } = req.body;
+  const { image, appId, containerPort, volumes, env, restart, cmd, extraPorts, devices, capAdd, privileged, stopTimeout, shmSize } = req.body;
   if (!image || !appId) return res.status(400).json({ error: 'image and appId required' });
   if (!/^[a-zA-Z0-9_\-./]+:[a-zA-Z0-9_.\-]*$|^[a-zA-Z0-9_\-./]+$/.test(image)) return res.status(400).json({ error: 'Invalid image name' });
   if (!/^[a-zA-Z0-9_-]+$/.test(appId)) return res.status(400).json({ error: 'Invalid appId' });
@@ -1914,6 +1915,7 @@ app.post('/api/docker/run', authMiddleware, async (req, res) => {
     if (Array.isArray(capAdd)) body.capAdd = capAdd;
     if (privileged === true) body.privileged = true;
     if (stopTimeout) body.stopTimeout = stopTimeout;
+    if (shmSize) body.shmSize = shmSize;
     const data = await dmFetch('/run', {
       method: 'POST',
       body: JSON.stringify(body)
