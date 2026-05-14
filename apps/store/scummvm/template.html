@@ -1,0 +1,48 @@
+<div class="scummvm-root">
+  <!-- Pulling State -->
+  <div v-if="status === 'pulling'" class="svm-status-screen">
+    <div class="svm-spinner"></div>
+    <div class="svm-icon-large">🕹️</div>
+    <div class="svm-status-text">{{ pullProgress }}</div>
+    <div class="svm-sub-text">{{ t('pullSlow') }}</div>
+  </div>
+
+  <!-- Starting State -->
+  <div v-else-if="status === 'starting'" class="svm-status-screen">
+    <div class="svm-spinner"></div>
+    <div class="svm-icon-large">🕹️</div>
+    <div class="svm-status-text">{{ t('starting') }}</div>
+    <div class="svm-sub-text">{{ t('startSub') }}</div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="status === 'error'" class="svm-status-screen svm-error">
+    <div class="svm-icon-large">⚠️</div>
+    <div class="svm-status-text">{{ t('error') }}</div>
+    <div class="svm-error-msg">{{ errorMsg }}</div>
+    <div class="svm-actions">
+      <button class="svm-btn svm-btn-primary" @click="checkAndStart">🔄 {{ t('retry') }}</button>
+    </div>
+    <div class="svm-sub-text">{{ t('dockerCheck') }}</div>
+  </div>
+
+  <!-- Running State -->
+  <div v-else-if="status === 'running'" class="svm-running">
+    <div class="svm-toolbar">
+      <span class="svm-info">🕹️ ScummVM — Port: {{ port }}</span>
+      <div class="svm-toolbar-actions">
+        <button class="svm-btn svm-btn-small" @click="restart" :title="t('restart')">🔄</button>
+        <button class="svm-btn svm-btn-small svm-btn-danger" @click="stopContainer" :title="t('stop')">⏹️</button>
+      </div>
+    </div>
+    <iframe :src="iframeSrc" class="svm-iframe" allowfullscreen></iframe>
+  </div>
+
+  <!-- Idle State -->
+  <div v-else class="svm-status-screen">
+    <div class="svm-icon-large">🕹️</div>
+    <div class="svm-status-text">ScummVM</div>
+    <div class="svm-sub-text">{{ t('startSub') }}</div>
+    <button class="svm-btn svm-btn-primary svm-btn-large" @click="checkAndStart">▶ {{ t('start') }}</button>
+  </div>
+</div>

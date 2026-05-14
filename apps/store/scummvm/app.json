@@ -1,0 +1,81 @@
+{
+  "id": "scummvm",
+  "name": "ScummVM",
+  "icon": "🕹️",
+  "color": "linear-gradient(135deg,#4a0e8f,#1a1a2e)",
+  "type": "internal",
+  "proxyMode": "hpm",
+  "size": {
+    "w": 1024,
+    "h": 768
+  },
+  "global": false,
+  "description": "Klasik macera ve RPG oyunlarını çalıştırın — Docker tabanlı ScummVM",
+  "lang": {
+    "tr": {
+      "name": "ScummVM",
+      "description": "Klasik macera ve RPG oyunlarını tarayıcıda oynayın"
+    },
+    "en": {
+      "name": "ScummVM",
+      "description": "Play classic adventure and RPG games in the browser"
+    },
+    "de": {
+      "name": "ScummVM",
+      "description": "Klassische Abenteuer- und RPG-Spiele im Browser spielen"
+    },
+    "fr": {
+      "name": "ScummVM",
+      "description": "Jouez à des jeux d'aventure et RPG classiques dans le navigateur"
+    },
+    "es": {
+      "name": "ScummVM",
+      "description": "Juega juegos clásicos de aventura y RPG en el navegador"
+    },
+    "ru": {
+      "name": "ScummVM",
+      "description": "Играйте в классические приключенческие и RPG игры в браузере"
+    },
+    "zh": {
+      "name": "ScummVM",
+      "description": "在浏览器中运行经典冒险和RPG游戏"
+    },
+    "ja": {
+      "name": "ScummVM",
+      "description": "ブラウザでクラシックアドベンチャー＆RPGゲームをプレイ"
+    },
+    "it": {
+      "name": "ScummVM",
+      "description": "Gioca a giochi classici di avventura e RPG nel browser"
+    },
+    "ar": {
+      "name": "ScummVM",
+      "description": "العب ألعاب المغامرات وRPG الكلاسيكية في المتصفح"
+    },
+    "ko": {
+      "name": "ScummVM",
+      "description": "브라우저에서 클래식 어드벤처 및 RPG 게임 플레이"
+    },
+    "hi": {
+      "name": "ScummVM",
+      "description": "ब्राउज़र में क्लासिक एडवेंचर और RPG गेम खेलें"
+    },
+    "pt": {
+      "name": "ScummVM",
+      "description": "Jogue jogos clássicos de aventura e RPG no navegador"
+    }
+  },
+  "category": "games",
+  "docker": {
+    "image": "lscr.io/linuxserver/scummvm:latest",
+    "containerPort": 3000,
+    "volumes": [
+      "${APP_VOLUME}:/config"
+    ],
+    "env": [
+      "PUID=1000",
+      "PGID=1000",
+      "TZ=Etc/UTC"
+    ]
+  }
+}
