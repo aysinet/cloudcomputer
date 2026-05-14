@@ -1,7 +1,38 @@
 module.exports = function(ctx) {
-  const { authMiddleware, getUserAISettings, AI_PROVIDER_ENDPOINTS, getAISystemPrompt, aiProxyRequest, config, path, fs, DATA_DIR, ensureDir, getUserLocale, wsClients, STORE_DIR } = ctx;
+  const { authMiddleware, config, path, fs, DATA_DIR, ensureDir, getUserLocale, wsClients, STORE_DIR, pluginBus } = ctx;
   const OLLAMA_URL = process.env.OLLAMA_URL || null;
   const BUILTIN_DIR = path.join(path.dirname(STORE_DIR), 'builtin');
+
+  // ── AI Provider Endpoints ──
+
+  const AI_PROVIDER_ENDPOINTS = {
+    openai:      { url: 'https://api.openai.com/v1/chat/completions', authHeader: 'Bearer' },
+    anthropic:   { url: 'https://api.anthropic.com/v1/messages', authHeader: 'x-api-key', extraHeaders: { 'anthropic-version': '2023-06-01' } },
+    google:      { url: 'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent', authParam: 'key' },
+    mistral:     { url: 'https://api.mistral.ai/v1/chat/completions', authHeader: 'Bearer' },
+    deepseek:    { url: 'https://api.deepseek.com/v1/chat/completions', authHeader: 'Bearer' },
+    cohere:      { url: 'https://api.cohere.ai/v2/chat', authHeader: 'Bearer' },
+    groq:        { url: 'https://api.groq.com/openai/v1/chat/completions', authHeader: 'Bearer' },
+    xai:         { url: 'https://api.x.ai/v1/chat/completions', authHeader: 'Bearer' },
+    github:      { url: 'https://models.inference.ai.azure.com/chat/completions', authHeader: 'Bearer' },
+    openrouter:  { url: 'https://openrouter.ai/api/v1/chat/completions', authHeader: 'Bearer' },
+    perplexity:  { url: 'https://api.perplexity.ai/chat/completions', authHeader: 'Bearer' },
+    huggingface: { url: 'https://router.huggingface.co/v1/chat/completions', authHeader: 'Bearer' }
+  };
+
+  // Register Ollama as built-in provider when OLLAMA_URL is set
+  if (OLLAMA_URL) {
+    AI_PROVIDER_ENDPOINTS.ollama = {
+      url: OLLAMA_URL + '/v1/chat/completions',
+      authHeader: 'Bearer',
+      noKeyRequired: true
+    };
+  }
+
+  // Metadata for free (noKeyRequired) providers
+  const FREE_PROVIDER_META = {
+    ollama: { name: 'Ollama (Local)', icon: '🦙', defaultModel: 'llama3.2' }
+  };
 
   // ── AI Settings helpers ──
 
@@ -12,9 +43,113 @@ module.exports = function(ctx) {
     return path.join(dir, 'ai-settings.json');
   }
 
+  function getUserAISettings(username) {
+    const fp = getUserAISettingsPath(username);
+    let data = { providers: [], agents: [] };
+    if (fs.existsSync(fp)) {
+      try { data = JSON.parse(fs.readFileSync(fp, 'utf-8')); } catch {}
+    }
+    if (!data.providers) data.providers = [];
+    if (!data.agents) data.agents = [];
+
+    // Auto-inject free (noKeyRequired) providers if not already present
+    let modified = false;
+    for (const [id, ep] of Object.entries(AI_PROVIDER_ENDPOINTS)) {
+      if (!ep.noKeyRequired) continue;
+      if (data.providers.some(p => p.id === id)) continue;
+      const meta = FREE_PROVIDER_META[id] || { name: id, icon: '🤖', defaultModel: '' };
+      data.providers.unshift({
+        id,
+        name: meta.name,
+        icon: meta.icon,
+        defaultModel: meta.defaultModel,
+        enabled: true,
+        apiKey: '',
+        model: '',
+        custom: false
+      });
+      modified = true;
+    }
+    if (modified) {
+      try { fs.writeFileSync(fp, JSON.stringify(data, null, 2)); } catch {}
+    }
+    return data;
+  }
+
   function saveUserAISettings(username, data) {
     fs.writeFileSync(getUserAISettingsPath(username), JSON.stringify(data, null, 2));
   }
+
+  // ── AI System Prompt ──
+
+  function getAISystemPrompt(locale) {
+    const now = new Date();
+    const localeTag = locale || 'en';
+    const dateStr = now.toLocaleDateString(localeTag, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString(localeTag, { hour: '2-digit', minute: '2-digit' });
+    const isoDate = now.toISOString().split('T')[0];
+    return `You are Cloud Computer AI Assistant. You have access to tools that interact with the user's installed applications and system.
+
+Current date and time: ${dateStr}, ${timeStr} (${isoDate})
+
+Rules:
+- ALWAYS use the current date above for any date calculations (e.g., "3 days later", "next week", "tomorrow"). NEVER guess or use your training data for the current date.
+- When the user asks about system info, files, disk usage, calendar events, tasks, budgets, or any app data, USE the appropriate tools to get REAL data
+- Never guess or fabricate data — always use tools for factual queries
+- Format responses clearly with the data you retrieve
+- You can call multiple tools if needed to answer a question
+- If a tool returns an error, explain the issue to the user
+- For conversational messages (greetings, opinions, creative writing), respond directly without tools
+- EMAIL: When the user asks to send an email, use the post_mail_send tool directly with to, subject, and text. The system uses the default/active mail account automatically — do NOT ask the user which account to use. If no account is configured the API will return an error, then tell the user to add an account in the Mail app settings.
+- WEATHER: When the user asks about weather/temperature, call the get_weather tool directly with NO parameters. The API reads the user's location (city, latitude, longitude) from their saved settings automatically — do NOT ask the user for location or coordinates.
+- SETTINGS: User preferences (city, country, latitude, longitude, timezone, locale, theme, etc.) are stored in settings.json and accessible via get_settings. Use this when you need user context like location.
+- BROWSER: When the user mentions "browser", "tarayıcı", "web browser" or similar, they mean the Cloud Computer's built-in Browser app — NOT external browsers like Chrome, Firefox, Safari. Use browser tools (get_browser_bookmarks, post_browser_bookmarks, delete_browser_bookmarks) to manage bookmarks/favorites. To add a bookmark, use post_browser_bookmarks with url and title.
+- APPS: All app names (browser, calendar, notepad, file manager, etc.) refer to Cloud Computer's own built-in/installed apps. Never give instructions for external software — always use the appropriate tools to interact with Cloud Computer apps directly.
+- OPEN APP: You can open any application on the user's desktop using the open_app tool. Use this when the user asks to open/launch an app, or when your action requires opening an app visually (e.g. opening the music player to play music, opening the browser to show a webpage). Common app IDs: browser, calendar, todo, codeeditor, fileman, notepad, paint, settings, weather, calc, contacts, terminal, music-player, photos, mail-app, pdf-viewer, aichat, clock, screenshot.
+- MUSIC: When the user asks to play music/a song, use the play_music tool with the track name. This will open the music player and start playing. You can also first query available tracks via get_music_files and then use play_music with a matching trackName.`;
+  }
+
+  // ── AI Proxy Request ──
+
+  function aiProxyRequest(endpoint, headers, body, timeoutMs) {
+    return new Promise((resolve, reject) => {
+      try {
+      const parsedUrl = new URL(endpoint);
+      const lib = parsedUrl.protocol === 'https:' ? require('https') : require('http');
+      const postData = JSON.stringify(body);
+      console.log('[AI Proxy] Request:', parsedUrl.hostname, parsedUrl.pathname, 'payload:', (postData.length / 1024).toFixed(1) + 'KB');
+      const reqHeaders = { ...headers, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) };
+      const req = lib.request({
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port,
+        path: parsedUrl.pathname + parsedUrl.search,
+        method: 'POST',
+        headers: reqHeaders
+      }, (resp) => {
+        let data = '';
+        resp.on('data', chunk => { data += chunk; });
+        resp.on('end', () => {
+          try { resolve({ status: resp.statusCode, data: JSON.parse(data) }); }
+          catch { resolve({ status: resp.statusCode, data: { raw: data.slice(0, 500) } }); }
+        });
+      });
+      req.on('error', (err) => { console.error('[AI Proxy] Request error:', endpoint, err.message); reject(err); });
+      req.setTimeout(timeoutMs || 120000, () => { req.destroy(); const err = new Error('Request timeout'); console.error('[AI Proxy] Timeout:', endpoint); reject(err); });
+      req.write(postData);
+      req.end();
+      } catch (e) {
+        console.error('[AI Proxy] Setup error:', e.message);
+        reject(e);
+      }
+    });
+  }
+
+  // ── Register AI services on pluginBus for other plugins ──
+
+  pluginBus.registerService('ai:getUserAISettings', (username) => getUserAISettings(username));
+  pluginBus.registerService('ai:getAIProviderEndpoints', () => AI_PROVIDER_ENDPOINTS);
+  pluginBus.registerService('ai:getAISystemPrompt', (locale) => getAISystemPrompt(locale));
+  pluginBus.registerService('ai:aiProxyRequest', (endpoint, headers, body, timeoutMs) => aiProxyRequest(endpoint, headers, body, timeoutMs));
 
   // ── AI Models catalog ──
 

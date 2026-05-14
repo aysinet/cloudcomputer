@@ -9,9 +9,22 @@ module.exports = function(ctx) {
     app, authMiddleware, addNotificationToDb, wsClients,
     DATA_DIR, ensureDir, fs, path, crypto,
     getUserLocale,
-    // AI helpers (for prompt action)
-    getUserAISettings, AI_PROVIDER_ENDPOINTS, getAISystemPrompt, aiProxyRequest
+    pluginBus
   } = ctx;
+
+  // AI helpers — accessed via pluginBus services registered by aichat plugin
+  async function getUserAISettings(username) {
+    return pluginBus.callService('ai:getUserAISettings', username);
+  }
+  async function getAIProviderEndpoints() {
+    return pluginBus.callService('ai:getAIProviderEndpoints');
+  }
+  async function getAISystemPrompt(locale) {
+    return pluginBus.callService('ai:getAISystemPrompt', locale);
+  }
+  async function aiProxyRequest(endpoint, headers, body, timeoutMs) {
+    return pluginBus.callService('ai:aiProxyRequest', endpoint, headers, body, timeoutMs);
+  }
 
   // ─── Helpers ───
   function getSchedulerPath(username) {
@@ -187,7 +200,8 @@ module.exports = function(ctx) {
         else if (!providerId) { success = false; result = 'No AI provider selected'; }
         else {
           try {
-            const settings = getUserAISettings(username);
+            const settings = await getUserAISettings(username);
+            const AI_PROVIDER_ENDPOINTS = await getAIProviderEndpoints();
             const endpointConfig = AI_PROVIDER_ENDPOINTS[providerId];
             const isNoKeyProvider = endpointConfig && endpointConfig.noKeyRequired;
             let provider;
@@ -201,7 +215,7 @@ module.exports = function(ctx) {
               result = 'AI provider not configured or no API key: ' + providerId;
             } else {
               const model = promptModel || provider.model || provider.defaultModel;
-              const systemPrompt = getAISystemPrompt(getUserLocale(username));
+              const systemPrompt = await getAISystemPrompt(getUserLocale(username));
               const conversationMsgs = [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: String(promptText).slice(0, 8000) }
