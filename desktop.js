@@ -2066,6 +2066,10 @@ app.get('/api/docker/network', authMiddleware, async (req, res) => {
 //   "pathprefix" — keeps /proxy/{appId} prefix in forwarded path (for apps using path-prefix, e.g. TiddlyWiki)
 //   "rewrite"    — like default but rewrites absolute paths in HTML responses (for Vite SPA apps)
 //   "default"    — http.request with IPv4 forcing, strips /proxy/{appId} prefix (default)
+//
+// Plugin proxy hooks (exported from server.js):
+//   proxyBeforeRequest({ options, req, appId, targetBase })  — modify outgoing request headers/options
+//   proxyOnResponse({ headers, statusCode, body?, contentType, appId, req }) — transform response; return { body, headers } in rewrite mode
 
 app.use('/proxy/:appId', async (req, res, next) => {
   const appId = req.params.appId.replace(/[^a-zA-Z0-9_-]/g, '');
@@ -2106,6 +2110,9 @@ app.use('/proxy/:appId', async (req, res, next) => {
 
   if (!targetBase) return res.status(404).json({ error: 'App proxy not found' });
 
+  // ── Plugin proxy hooks: beforeRequest / onResponse ──
+  const proxyHooks = pluginLoader.getProxyHooks(appId);
+
   // ── HPM mode: use http-proxy-middleware (original simple approach) ──
   if (proxyMode === 'hpm') {
     const dynP = proxyCache[appId];
@@ -2116,12 +2123,28 @@ app.use('/proxy/:appId', async (req, res, next) => {
         pathRewrite: (p) => p.replace(new RegExp(`^/proxy/${appId}`), ''),
         ws: true,
         on: {
-          proxyRes: (proxyRes) => {
+          proxyReq: (proxyReq, req) => {
+            // Plugin beforeRequest hook — allows adding headers, modifying the outgoing request
+            const hooks = pluginLoader.getProxyHooks(appId);
+            if (hooks && hooks.beforeRequest) {
+              try {
+                hooks.beforeRequest({ headers: proxyReq, req, appId, method: req.method, targetBase });
+              } catch (e) { console.error(`[PROXY-HPM] ${appId} beforeRequest hook error:`, e.message); }
+            }
+          },
+          proxyRes: (proxyRes, req, res) => {
             delete proxyRes.headers['x-frame-options'];
             delete proxyRes.headers['content-security-policy'];
             delete proxyRes.headers['content-security-policy-report-only'];
             proxyRes.headers['cross-origin-resource-policy'] = 'same-origin';
             proxyRes.headers['cross-origin-embedder-policy'] = 'credentialless';
+            // Plugin onResponse hook for header manipulation (body not available in HPM streaming mode)
+            const hooks = pluginLoader.getProxyHooks(appId);
+            if (hooks && hooks.onResponse) {
+              try {
+                hooks.onResponse({ headers: proxyRes.headers, statusCode: proxyRes.statusCode, appId, contentType: proxyRes.headers['content-type'] || '', req });
+              } catch (e) { console.error(`[PROXY-HPM] ${appId} onResponse hook error:`, e.message); }
+            }
           },
           error: (err, req, res) => {
             console.error(`[PROXY-HPM] ${appId} error:`, err.message);
@@ -2151,9 +2174,20 @@ app.use('/proxy/:appId', async (req, res, next) => {
     };
     delete options.headers['authorization'];
 
+    // Plugin beforeRequest hook
+    if (proxyHooks && proxyHooks.beforeRequest) {
+      try { proxyHooks.beforeRequest({ options, req, appId, targetBase }); } catch (e) { console.error(`[PROXY] ${appId} beforeRequest hook error:`, e.message); }
+    }
+
     const proxyReq = http.request(options, (proxyRes) => {
       const resHeaders = { ...proxyRes.headers };
       delete resHeaders['transfer-encoding'];
+
+      // Plugin onResponse hook (body not buffered in pathprefix — headers/status only)
+      if (proxyHooks && proxyHooks.onResponse) {
+        try { proxyHooks.onResponse({ headers: resHeaders, statusCode: proxyRes.statusCode, appId, contentType: resHeaders['content-type'] || '', req }); } catch (e) { console.error(`[PROXY] ${appId} onResponse hook error:`, e.message); }
+      }
+
       res.writeHead(proxyRes.statusCode, resHeaders);
       proxyRes.pipe(res, { end: true });
     });
@@ -2195,6 +2229,11 @@ app.use('/proxy/:appId', async (req, res, next) => {
       insecureHTTPParser: true
     };
     delete options.headers['authorization'];
+
+    // Plugin beforeRequest hook
+    if (proxyHooks && proxyHooks.beforeRequest) {
+      try { proxyHooks.beforeRequest({ options, req, appId, targetBase }); } catch (e) { console.error(`[PROXY] ${appId} beforeRequest hook error:`, e.message); }
+    }
 
     const proxyReq = http.request(options, (proxyRes) => {
       // Rewrite Location header on redirects to include proxy prefix
@@ -2259,6 +2298,18 @@ app.use('/proxy/:appId', async (req, res, next) => {
           const resHeaders = { ...proxyRes.headers };
           delete resHeaders['transfer-encoding'];
           delete resHeaders['content-encoding'];
+
+          // Plugin onResponse hook — can transform body and headers after standard rewriting
+          if (proxyHooks && proxyHooks.onResponse) {
+            try {
+              const hookResult = proxyHooks.onResponse({ headers: resHeaders, statusCode: proxyRes.statusCode, body, contentType: ct, appId, req });
+              if (hookResult) {
+                if (typeof hookResult.body === 'string') body = hookResult.body;
+                if (hookResult.headers) Object.assign(resHeaders, hookResult.headers);
+              }
+            } catch (e) { console.error(`[PROXY] ${appId} onResponse hook error:`, e.message); }
+          }
+
           resHeaders['content-length'] = Buffer.byteLength(body);
           resHeaders['cache-control'] = 'no-store';
           res.writeHead(proxyRes.statusCode, resHeaders);
@@ -2267,6 +2318,10 @@ app.use('/proxy/:appId', async (req, res, next) => {
       } else {
         const resHeaders = { ...proxyRes.headers };
         delete resHeaders['transfer-encoding'];
+        // Plugin onResponse hook (headers only for non-text content)
+        if (proxyHooks && proxyHooks.onResponse) {
+          try { proxyHooks.onResponse({ headers: resHeaders, statusCode: proxyRes.statusCode, appId, contentType: ct, req }); } catch (e) { console.error(`[PROXY] ${appId} onResponse hook error:`, e.message); }
+        }
         res.writeHead(proxyRes.statusCode, resHeaders);
         proxyRes.pipe(res, { end: true });
       }
@@ -2310,9 +2365,20 @@ app.use('/proxy/:appId', async (req, res, next) => {
   };
   delete options.headers['authorization'];
 
+  // Plugin beforeRequest hook
+  if (proxyHooks && proxyHooks.beforeRequest) {
+    try { proxyHooks.beforeRequest({ options, req, appId, targetBase }); } catch (e) { console.error(`[PROXY] ${appId} beforeRequest hook error:`, e.message); }
+  }
+
   const proxyReq = http.request(options, (proxyRes) => {
     const resHeaders = { ...proxyRes.headers };
     delete resHeaders['transfer-encoding'];
+
+    // Plugin onResponse hook (headers/status only — streaming mode)
+    if (proxyHooks && proxyHooks.onResponse) {
+      try { proxyHooks.onResponse({ headers: resHeaders, statusCode: proxyRes.statusCode, appId, contentType: resHeaders['content-type'] || '', req }); } catch (e) { console.error(`[PROXY] ${appId} onResponse hook error:`, e.message); }
+    }
+
     res.writeHead(proxyRes.statusCode, resHeaders);
     proxyRes.pipe(res, { end: true });
   });
@@ -2991,12 +3057,22 @@ server.on('upgrade', async (req, socket, head) => {
           pathRewrite: (p) => p.replace(new RegExp(`^/proxy/${appId}`), ''),
           ws: true,
           on: {
-            proxyRes: (proxyRes) => {
+            proxyReq: (proxyReq, req) => {
+              const hooks = pluginLoader.getProxyHooks(appId);
+              if (hooks && hooks.beforeRequest) {
+                try { hooks.beforeRequest({ headers: proxyReq, req, appId, method: req.method, targetBase: dynP.target }); } catch (e) { console.error(`[PROXY-HPM] ${appId} beforeRequest hook error:`, e.message); }
+              }
+            },
+            proxyRes: (proxyRes, req, res) => {
               delete proxyRes.headers['x-frame-options'];
               delete proxyRes.headers['content-security-policy'];
               delete proxyRes.headers['content-security-policy-report-only'];
               proxyRes.headers['cross-origin-resource-policy'] = 'same-origin';
               proxyRes.headers['cross-origin-embedder-policy'] = 'credentialless';
+              const hooks = pluginLoader.getProxyHooks(appId);
+              if (hooks && hooks.onResponse) {
+                try { hooks.onResponse({ headers: proxyRes.headers, statusCode: proxyRes.statusCode, appId, contentType: proxyRes.headers['content-type'] || '', req }); } catch (e) { console.error(`[PROXY-HPM] ${appId} onResponse hook error:`, e.message); }
+              }
             },
             error: (err, req, res) => {
               console.error(`[PROXY-HPM] ${appId} error:`, err.message);

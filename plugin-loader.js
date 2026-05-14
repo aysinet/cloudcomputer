@@ -140,6 +140,8 @@ function loadPlugin(appId, context) {
       upgradeHandlers: result.upgradeHandlers || {},
       onUnload: result.onUnload || null,
       dbMigrations: result.dbMigrations || null,
+      proxyBeforeRequest: typeof result.proxyBeforeRequest === 'function' ? result.proxyBeforeRequest : null,
+      proxyOnResponse: typeof result.proxyOnResponse === 'function' ? result.proxyOnResponse : null,
       routeLayers: []
     };
 
@@ -305,6 +307,20 @@ function getPluginUpgradeHandler(pathname) {
   return null;
 }
 
+/**
+ * Get proxy hooks (proxyBeforeRequest, proxyOnResponse) for a specific app.
+ * Returns null if no plugin loaded or no hooks defined.
+ */
+function getProxyHooks(appId) {
+  const plugin = loadedPlugins[appId];
+  if (!plugin) return null;
+  if (!plugin.proxyBeforeRequest && !plugin.proxyOnResponse) return null;
+  return {
+    beforeRequest: plugin.proxyBeforeRequest,
+    onResponse: plugin.proxyOnResponse
+  };
+}
+
 module.exports = {
   loadPlugin,
   unloadPlugin,
@@ -313,5 +329,6 @@ module.exports = {
   getLoadedPlugins,
   getPluginWsHandlers,
   getPluginUpgradeHandler,
+  getProxyHooks,
   loadedPlugins
 };
