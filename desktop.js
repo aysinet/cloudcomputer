@@ -2826,7 +2826,9 @@ function getPluginContext() {
       crypto,
       path,
       fs,
-      pluginBus
+      pluginBus,
+      encryptVault,
+      decryptVault
     };
   }
   return pluginContext;
