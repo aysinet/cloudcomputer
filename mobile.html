@@ -426,6 +426,16 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
 
 <script type="text/template" id="NotepadApp">
   <div class="notepad-root">
+    <div class="notepad-tabs-bar">
+      <div class="notepad-tabs-scroll">
+        <div v-for="(tab, i) in tabs" :key="tab.id" class="notepad-tab" :class="{active: activeTab === i}" @click="activeTab = i">
+          <span class="notepad-tab-name">{{tab.name}}</span>
+          <span v-if="tab.modified" class="notepad-tab-dot">●</span>
+          <button v-if="tabs.length > 1" class="notepad-tab-close" @click.stop="closeTab(i)">✕</button>
+        </div>
+      </div>
+      <button class="notepad-tab-add" @click="addTab" title="+">＋</button>
+    </div>
     <div class="notepad-toolbar">
       <select v-model="font">
         <option value="'Segoe UI',sans-serif">Segoe UI</option>
@@ -437,30 +447,83 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
       <button class="notepad-tb-btn" @click="bold=!bold" :style="{fontWeight:'bold',background:bold?'#ddd':'#fff'}">B</button>
       <button class="notepad-tb-btn" @click="italic=!italic" :style="{fontStyle:'italic',background:italic?'#ddd':'#fff'}">I</button>
       <div class="notepad-sep"></div>
-      <button class="notepad-tb-btn" @click="text=''">{{t('notepadClear')}}</button>
+      <button class="notepad-tb-btn" @click="clearCurrent">{{t('notepadClear')}}</button>
       <button class="notepad-tb-btn" @click="copy">{{t('notepadCopy')}}</button>
+      <div class="notepad-sep"></div>
+      <button class="notepad-tb-btn" @click="saveToClient" title="💻">{{t('notepadSaveClient')}}</button>
+      <button class="notepad-tb-btn" @click="$refs.fileInput.click()" title="💻">{{t('notepadOpenClient')}}</button>
+      <div class="notepad-sep"></div>
+      <button class="notepad-tb-btn" @click="saveToServer">{{t('notepadSaveServer')}}</button>
+      <button class="notepad-tb-btn" @click="openFromServer">{{t('notepadOpenServer')}}</button>
     </div>
-    <textarea v-model="text" :placeholder="t('notepadPlaceholder')" :style="{fontFamily:font,fontSize:size+'px',fontWeight:bold?'bold':'normal',fontStyle:italic?'italic':'normal'}"></textarea>
-    <div class="notepad-status">{{text.length}} {{t('notepadChars')}} · {{wordCount}} {{t('notepadWords')}}</div>
+    <input type="file" ref="fileInput" style="display:none" @change="openFromClient">
+    <div v-if="statusMsg" class="notepad-status-msg" :class="statusType">{{statusMsg}}</div>
+    <textarea v-model="currentText" :placeholder="t('notepadPlaceholder')" :style="{fontFamily:font,fontSize:size+'px',fontWeight:bold?'bold':'normal',fontStyle:italic?'italic':'normal'}"></textarea>
+    <div class="notepad-status">{{currentText.length}} {{t('notepadChars')}} · {{wordCount}} {{t('notepadWords')}} · {{currentTab.name}}</div>
   </div>
 </script>
 
 <script type="text/template" id="TodoApp">
   <div class="todo-root">
-    <div class="todo-header">
-      <h2>{{t('todoTitle')}}</h2>
-      <div class="sub">{{done}}/{{todos.length}} {{t('todoCompleted')}}</div>
+    <!-- Drawer overlay -->
+    <div class="todo-drawer-overlay" v-if="drawerOpen" @click="drawerOpen=false"></div>
+    <!-- Drawer: Groups -->
+    <div class="todo-sidebar" :class="{open: drawerOpen}">
+      <div class="todo-sidebar-header">
+        <span class="todo-sidebar-title">{{t('todoGroups')}}</span>
+        <button class="todo-sidebar-add" @click="showAddGroup=!showAddGroup" :title="t('todoAddGroup')">＋</button>
+      </div>
+      <div v-if="showAddGroup" class="todo-group-form">
+        <input v-model="newGroupName" @keyup.enter="addGroup" :placeholder="t('todoGroupName')" class="todo-group-input">
+        <div class="todo-group-colors">
+          <span v-for="c in groupColors" :key="c" class="todo-color-dot" :style="{background:c}" :class="{active:newGroupColor===c}" @click="newGroupColor=c"></span>
+        </div>
+        <button class="todo-group-save" @click="addGroup">{{t('todoAdd')}}</button>
+      </div>
+      <div class="todo-group-list">
+        <div class="todo-group-item" :class="{active:activeGroup===null}" @click="selectGroup(null); drawerOpen=false">
+          <span class="todo-group-dot" style="background:#667eea"></span>
+          <span class="todo-group-name">{{t('todoAll')}}</span>
+          <span class="todo-group-count">{{todos.length}}</span>
+        </div>
+        <div v-for="g in groups" :key="g.id" class="todo-group-item" :class="{active:activeGroup===g.id}" @click="selectGroup(g.id); drawerOpen=false" @contextmenu.prevent="groupCtx=$event, ctxGroup=g">
+          <span class="todo-group-dot" :style="{background:g.color}"></span>
+          <span class="todo-group-name">{{g.name}}</span>
+          <span class="todo-group-count">{{groupCount(g.id)}}</span>
+          <button class="todo-group-del" @click.stop="removeGroup(g)" :title="t('todoDeleteGroup')">✕</button>
+        </div>
+      </div>
     </div>
-    <div class="todo-add-row">
-      <input v-model="input" @keyup.enter="add" :placeholder="t('todoPlaceholder')">
-      <button @click="add">{{t('todoAdd')}}</button>
-    </div>
-    <div class="todo-list">
-      <div v-if="!todos.length" class="todo-empty">{{t('todoEmpty')}}</div>
-      <div v-for="(td,i) in todos" :key="i" class="todo-item" :class="{done:td.done}">
-        <input type="checkbox" v-model="td.done">
-        <span>{{td.text}}</span>
-        <button class="del" @click="todos.splice(i,1)">✕</button>
+    <!-- Main content -->
+    <div class="todo-main">
+      <div class="todo-header" :style="{background: activeGroupObj ? `linear-gradient(135deg, ${activeGroupObj.color}, ${activeGroupObj.color}dd)` : ''}">
+        <button class="todo-drawer-toggle" @click="drawerOpen=!drawerOpen" :title="t('todoGroups')">☰</button>
+        <h2>{{activeGroupObj ? activeGroupObj.name : t('todoTitle')}}</h2>
+        <div class="sub">{{done}}/{{filtered.length}} {{t('todoCompleted')}}</div>
+      </div>
+      <div class="todo-add-row">
+        <input v-model="input" @keyup.enter="add" :placeholder="t('todoPlaceholder')">
+        <div class="todo-add-options">
+          <div class="todo-color-picker">
+            <span v-for="c in taskColors" :key="c" class="todo-color-dot sm" :style="{background:c}" :class="{active:newColor===c}" @click="newColor=newColor===c?'':c"></span>
+          </div>
+          <select v-model="newPriority" class="todo-priority-sel">
+            <option value="0">―</option>
+            <option value="1">{{t('todoPriorityLow')}}</option>
+            <option value="2">{{t('todoPriorityMed')}}</option>
+            <option value="3">{{t('todoPriorityHigh')}}</option>
+          </select>
+        </div>
+        <button @click="add">{{t('todoAdd')}}</button>
+      </div>
+      <div class="todo-list">
+        <div v-if="!filtered.length" class="todo-empty">{{t('todoEmpty')}}</div>
+        <div v-for="(td,i) in filtered" :key="td.id" class="todo-item" :class="{done:td.done, ['p'+td.priority]:td.priority}" :style="td.color?{borderLeft:'4px solid '+td.color}:{}">
+          <input type="checkbox" :checked="td.done" @change="toggleDone(td)">
+          <span class="todo-text">{{td.text}}</span>
+          <span v-if="td.priority" class="todo-badge" :class="'bp'+td.priority">{{priorityLabel(td.priority)}}</span>
+          <button class="del" @click="remove(td)">✕</button>
+        </div>
       </div>
     </div>
   </div>
@@ -543,34 +606,36 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
         </div>
       </template>
       <template v-else-if="active==='location'">
-        <div class="settings-row">
-          <div><div class="lbl">{{t('country')}}</div><div class="sub">{{t('countryDesc')}}</div></div>
-          <div class="ctrl">
-            <el-select v-model="locCountry" filterable clearable :placeholder="t('selectPlaceholder')" style="width:220px" @change="onCountryChange">
-              <el-option v-for="c in countries" :key="c.iso2" :label="c.name" :value="c.iso2" />
-            </el-select>
+        <div class="loc-form">
+          <div class="loc-form-row">
+            <label class="loc-form-label">{{t('country')}}<span class="loc-form-sub">{{t('countryDesc')}}</span></label>
+            <div class="loc-form-ctrl">
+              <el-select v-model="locCountry" filterable clearable :placeholder="t('selectPlaceholder')" style="width:100%" @change="onCountryChange">
+                <el-option v-for="c in countries" :key="c.iso2" :label="c.name" :value="c.iso2" />
+              </el-select>
+            </div>
           </div>
-        </div>
-        <div class="settings-row">
-          <div><div class="lbl">{{t('city')}}</div><div class="sub">{{cities.length}} {{t('cityListing')}}</div></div>
-          <div class="ctrl">
-            <el-select v-model="locCity" filterable clearable :placeholder="t('selectPlaceholder')" style="width:220px" @change="onCityChange">
-              <el-option v-for="c in cities" :key="c.city_ascii" :label="c.city + ' (' + (c.admin_name||'') + ')'" :value="c.city_ascii" />
-            </el-select>
+          <div class="loc-form-row">
+            <label class="loc-form-label">{{t('city')}}<span class="loc-form-sub">{{cities.length}} {{t('cityListing')}}</span></label>
+            <div class="loc-form-ctrl">
+              <el-select v-model="locCity" filterable clearable :placeholder="t('selectPlaceholder')" style="width:100%" @change="onCityChange">
+                <el-option v-for="c in cities" :key="c.city_ascii" :label="c.city + ' (' + (c.admin_name||'') + ')'" :value="c.city_ascii" />
+              </el-select>
+            </div>
           </div>
-        </div>
-        <div class="settings-row">
-          <div><div class="lbl">{{t('timezone')}}</div></div>
-          <div class="ctrl">
-            <el-select v-model="locTimezone" filterable clearable :placeholder="t('timezoneAuto')" style="width:220px" @change="saveLocation">
-              <el-option :label="t('timezoneAuto')" value="" />
-              <el-option v-for="tz in timezones" :key="tz" :label="tz" :value="tz" />
-            </el-select>
+          <div class="loc-form-row">
+            <label class="loc-form-label">{{t('timezone')}}</label>
+            <div class="loc-form-ctrl">
+              <el-select v-model="locTimezone" filterable clearable :placeholder="t('timezoneAuto')" style="width:100%" @change="saveLocation">
+                <el-option :label="t('timezoneAuto')" value="" />
+                <el-option v-for="tz in timezones" :key="tz" :label="tz" :value="tz" />
+              </el-select>
+            </div>
           </div>
-        </div>
-        <div class="settings-row" v-if="locCity">
-          <div><div class="lbl">{{t('location')}}</div><div class="sub">Lat: {{locLat}}, Lng: {{locLng}}</div></div>
-          <div class="ctrl"><span style="font-size:12px;color:#67c23a">✓ {{t('locationSaved')}}</span></div>
+          <div class="loc-form-row" v-if="locCity">
+            <label class="loc-form-label">{{t('location')}}<span class="loc-form-sub">Lat: {{locLat}}, Lng: {{locLng}}</span></label>
+            <div class="loc-form-ctrl"><span style="font-size:12px;color:#67c23a">✓ {{t('locationSaved')}}</span></div>
+          </div>
         </div>
       </template>
       <template v-else-if="active==='wallpaper'">
@@ -609,7 +674,7 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
               {{t('wpDefault')}}
             </div>
             <div v-for="wp in wpList" :key="wp.name" style="position:relative;width:120px;height:75px" @click="setWallpaper(wp.url)">
-              <img :src="wp.url + '&t=' + wp.name" style="width:120px;height:75px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid;transition:.15s"
+              <img :src="wpAuthUrl(wp.url)" style="width:120px;height:75px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid;transition:.15s"
                 :style="{borderColor:currentWpUrl===wp.url?'#6c5ce7':'#444'}" />
               <button @click.stop="deleteWallpaper(wp.name)" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#e74c3c;color:#fff;border:none;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1" :title="t('usersDelete')">×</button>
             </div>
@@ -617,7 +682,272 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
         </div>
         <div v-if="currentWpUrl" style="margin-top:16px">
           <div class="lbl" style="margin-bottom:8px">{{t('wpPreview')}}</div>
-          <img :src="currentWpUrl" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #555" />
+          <img :src="wpAuthUrl(currentWpUrl)" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #555" />
+        </div>
+      </template>
+      <template v-else-if="active==='fonts'">
+        <div style="margin-bottom:12px">
+          <div class="lbl" style="margin-bottom:4px">{{t('fontsMyFonts')}}</div>
+          <div class="sub" style="margin-bottom:8px">{{t('fontsMyFontsDesc')}}</div>
+          <div v-if="userFonts.length === 0" style="color:#666;font-size:12px;padding:12px 0">{{t('fontsEmpty')}}</div>
+          <div v-else style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+            <div v-for="f in userFonts" :key="f.family" style="display:flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;font-size:12px">
+              <span :style="{fontFamily: f.family + ', sans-serif'}">{{f.family}}</span>
+              <span style="font-size:10px;color:#666">{{f.category}}</span>
+              <button @click="removeFont(f.family)" style="background:none;border:none;color:#f56c6c;cursor:pointer;font-size:14px;padding:0 2px;line-height:1" title="Remove">×</button>
+            </div>
+          </div>
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:12px">
+          <div class="lbl" style="margin-bottom:4px">{{t('fontsBrowse') || 'Google Fonts'}}</div>
+          <div class="sub" style="margin-bottom:8px">{{t('fontsBrowseDesc')}}</div>
+          <button @click="showGoogleFontsDialog" style="padding:8px 20px;border-radius:6px;border:1px solid rgba(74,144,217,.4);background:rgba(74,144,217,.15);color:#6aabf7;cursor:pointer;font-size:13px;font-weight:500">🔤 Google Fonts</button>
+        </div>
+      </template>
+      <template v-else-if="active==='ai'">
+        <div class="settings-row">
+          <div><div class="lbl">{{t('aiTokens')}}</div><div class="sub">{{t('aiTokensDesc')}}</div></div>
+        </div>
+        <div class="ai-providers-list">
+          <div v-for="(p,i) in aiProviders" :key="i" class="ai-provider-card">
+            <div class="ai-provider-header">
+              <span class="ai-provider-icon">{{p.icon}}</span>
+              <span class="ai-provider-name">{{p.name}}</span>
+              <label class="settings-toggle" style="margin-left:auto"><input type="checkbox" v-model="p.enabled"><span class="settings-slider"></span></label>
+              <button v-if="p.custom" class="ai-remove-btn" @click="removeProvider(i)" :title="t('aiRemove')">✕</button>
+            </div>
+            <div class="ai-provider-body" v-show="p.enabled">
+              <div v-if="!p.system" class="ai-field">
+                <label class="ai-field-label">{{t('aiApiKey')}}</label>
+                <div class="ai-key-row">
+                  <input :type="p.showKey?'text':'password'" class="ai-key-input" v-model="p.apiKey" :placeholder="t('aiKeyPlaceholder')" />
+                  <button class="ai-eye-btn" @click="p.showKey=!p.showKey">{{p.showKey?'🙈':'👁️'}}</button>
+                </div>
+              </div>
+              <div class="ai-field">
+                <label class="ai-field-label">{{t('aiModel')}} <span class="ai-field-hint">({{t('aiDefault')}}: {{p.defaultModel}})</span></label>
+                <el-select v-model="p.model" filterable clearable :placeholder="p.defaultModel + ' (' + t('aiDefault') + ')'" style="width:100%" @focus="aiLoadModels(p.id)">
+                  <el-option v-for="m in aiGetModels(p.id)" :key="m.id" :label="m.name" :value="m.id" />
+                </el-select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="ai-add-btn" @click="addProvider">➕ {{t('aiAddProvider')}}</button>
+        <div class="settings-row" style="margin-top:20px">
+          <div><div class="lbl">{{t('aiAgents')}}</div><div class="sub">{{t('aiAgentsDesc')}}</div></div>
+        </div>
+        <div class="ai-agents-list">
+          <div v-for="(a,i) in aiAgents" :key="i" class="ai-agent-card">
+            <div class="ai-agent-header">
+              <input type="text" class="ai-agent-name-input" v-model="a.name" :placeholder="t('aiAgentName')" />
+              <label class="settings-toggle"><input type="checkbox" v-model="a.enabled"><span class="settings-slider"></span></label>
+              <button class="ai-remove-btn" @click="removeAgent(i)" :title="t('aiRemove')">✕</button>
+            </div>
+            <div class="ai-agent-body">
+              <div class="ai-field">
+                <label class="ai-field-label">{{t('aiAgentProvider')}}</label>
+                <el-select v-model="a.provider" filterable style="width:100%">
+                  <el-option v-for="p in aiProviders" :key="p.id" :label="p.icon + ' ' + p.name" :value="p.id" />
+                </el-select>
+              </div>
+              <div class="ai-field">
+                <label class="ai-field-label">{{t('aiAgentModel')}}</label>
+                <el-select v-model="a.model" filterable clearable :placeholder="t('aiDefault')" style="width:100%" @focus="aiLoadModels(a.provider)">
+                  <el-option v-for="m in aiGetModels(a.provider)" :key="m.id" :label="m.name" :value="m.id" />
+                </el-select>
+              </div>
+              <div class="ai-field">
+                <label class="ai-field-label">{{t('aiAgentPrompt')}}</label>
+                <textarea class="ai-prompt-input" v-model="a.systemPrompt" rows="3" placeholder="You are a helpful assistant..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="ai-add-btn" @click="addAgent">➕ {{t('aiAddAgent')}}</button>
+        <div style="margin-top:16px;display:flex;gap:8px">
+          <button class="ai-save-btn" @click="saveAISettings">💾 {{t('aiSave')}}</button>
+        </div>
+      </template>
+      <template v-else-if="active==='display'">
+        <div class="settings-row">
+          <div><div class="lbl">{{t('zoom')}}</div><div class="sub">{{t('zoomDesc')}}</div></div>
+          <div class="ctrl">
+            <select :value="zoomLevel" @change="onZoomChange($event.target.value)">
+              <option v-for="z in zoomOptions" :key="z" :value="z">{{z}}%</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:12px">
+          <div><div class="lbl">{{t('theme')}}</div><div class="sub">{{t('themeDesc')}}</div></div>
+          <div class="theme-grid">
+            <div v-for="th in themeList" :key="th.id" class="theme-card" :class="{active: currentTheme === th.id}" @click="applyTheme(th.id)">
+              <div class="theme-preview" :style="{background: th.gradient}">
+                <div class="theme-preview-bar" :style="{background: th.accent}"></div>
+              </div>
+              <div class="theme-name">{{th.name}}</div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+          <div><div class="lbl">{{t('screenInfo')}}</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;font-size:13px;width:100%">
+            <div><span style="color:#999">{{t('screenPhysical')}}:</span> <b>{{screenInfo.physW}} × {{screenInfo.physH}}</b></div>
+            <div><span style="color:#999">{{t('screenEffective')}}:</span> <b>{{screenInfo.effW}} × {{screenInfo.effH}}</b></div>
+            <div><span style="color:#999">{{t('screenPixelRatio')}}:</span> <b>{{screenInfo.dpr}}</b></div>
+            <div><span style="color:#999">{{t('screenColorDepth')}}:</span> <b>{{screenInfo.colorDepth}} bit</b></div>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="active==='session'">
+        <div class="settings-row">
+          <div><div class="lbl">{{t('restoreApps')}}</div><div class="sub">{{t('restoreAppsDesc')}}</div></div>
+          <div class="ctrl"><label class="settings-toggle"><input type="checkbox" :checked="restoreSession" @change="toggleRestoreSession"><span class="settings-slider"></span></label></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="lbl">{{t('skbTrayToggle')}}</div><div class="sub">{{t('skbTrayToggleDesc')}}</div></div>
+          <div class="ctrl"><label class="settings-toggle"><input type="checkbox" :checked="showKeyboardTray" @change="toggleKeyboardTray"><span class="settings-slider"></span></label></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="lbl">{{t('magTrayToggle')}}</div><div class="sub">{{t('magTrayToggleDesc')}}</div></div>
+          <div class="ctrl"><label class="settings-toggle"><input type="checkbox" :checked="showMagnifierTray" @change="toggleMagnifierTray"><span class="settings-slider"></span></label></div>
+        </div>
+        <div class="settings-row">
+          <div><div class="lbl">{{t('ssTrayToggle')}}</div><div class="sub">{{t('ssTrayToggleDesc')}}</div></div>
+          <div class="ctrl"><label class="settings-toggle"><input type="checkbox" :checked="showScreenshotTray" @change="toggleScreenshotTray"><span class="settings-slider"></span></label></div>
+        </div>
+      </template>
+      <template v-else-if="active==='security'">
+        <div class="settings-row">
+          <div>
+            <div class="lbl">{{t('twoFactorAuth')}}</div>
+            <div class="sub">{{t('twoFactorAuthDesc')}}</div>
+          </div>
+          <div class="ctrl">
+            <label class="settings-toggle">
+              <input type="checkbox" :checked="twoFAEnabled" @change="toggle2FA">
+              <span class="settings-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div v-if="twoFASetup" style="margin-top:12px;padding:16px;border-radius:12px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.18)">
+          <div style="text-align:center;margin-bottom:12px">
+            <div style="font-size:14px;font-weight:600;margin-bottom:8px">{{t('twoFAScanQR')}}</div>
+            <div style="background:#fff;display:inline-block;padding:12px;border-radius:8px">
+              <img :src="twoFAQRUrl" style="width:200px;height:200px" alt="QR Code">
+            </div>
+          </div>
+          <div style="text-align:center;margin-bottom:12px">
+            <div style="font-size:12px;color:#999;margin-bottom:4px">{{t('twoFAManualKey')}}</div>
+            <code style="font-size:13px;letter-spacing:2px;user-select:all;background:rgba(0,0,0,.15);padding:4px 10px;border-radius:6px">{{twoFASecret}}</code>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;justify-content:center">
+            <input v-model="twoFACode" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+              :placeholder="t('twoFAEnterCode')" @keyup.enter="verify2FASetup"
+              style="width:140px;height:36px;text-align:center;font-size:18px;letter-spacing:4px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;outline:none">
+            <button @click="verify2FASetup" style="height:36px;padding:0 16px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;cursor:pointer;font-size:13px">{{t('twoFAVerify')}}</button>
+          </div>
+          <div v-if="twoFAError" style="text-align:center;color:#f87171;font-size:12px;margin-top:8px">{{twoFAError}}</div>
+        </div>
+        <div v-if="twoFADisabling" style="margin-top:12px;padding:16px;border-radius:12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.18)">
+          <div style="text-align:center;font-size:13px;margin-bottom:10px">{{t('twoFADisablePrompt')}}</div>
+          <div style="display:flex;gap:8px;align-items:center;justify-content:center">
+            <input v-model="twoFADisableCode" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+              :placeholder="t('twoFAEnterCode')" @keyup.enter="confirm2FADisable"
+              style="width:140px;height:36px;text-align:center;font-size:18px;letter-spacing:4px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;outline:none">
+            <button @click="confirm2FADisable" style="height:36px;padding:0 16px;border-radius:8px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;cursor:pointer;font-size:13px">{{t('twoFADisableBtn')}}</button>
+          </div>
+          <div v-if="twoFAError" style="text-align:center;color:#f87171;font-size:12px;margin-top:8px">{{twoFAError}}</div>
+        </div>
+      </template>
+      <template v-else-if="active==='users'">
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <button @click="showCreateUser=true" style="padding:8px 20px;border-radius:8px;border:1px solid rgba(102,126,234,.4);background:rgba(102,126,234,.12);color:#667eea;cursor:pointer;font-size:13px;font-weight:500">➕ {{t('usersAdd') || 'New User'}}</button>
+        </div>
+        <div v-if="showCreateUser" class="um-card" style="margin-bottom:16px;border-color:rgba(102,126,234,.3);background:#f8f9ff">
+          <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:12px">{{t('usersNewUser') || 'Create New User'}}</div>
+          <div class="um-form">
+            <div class="um-form-row"><label class="um-form-label">{{t('usersUsername') || 'Username'}}</label><input type="text" v-model="newUser.username" class="um-input" placeholder="username" maxlength="32" /></div>
+            <div class="um-form-row"><label class="um-form-label">{{t('usersDisplayName') || 'Display Name'}}</label><input type="text" v-model="newUser.displayName" class="um-input" :placeholder="t('usersDisplayNamePlaceholder') || 'John Doe'" maxlength="50" /></div>
+            <div class="um-form-row"><label class="um-form-label">{{t('usersPassword') || 'Password'}}</label><input type="password" v-model="newUser.password" class="um-input" placeholder="••••••••" /></div>
+            <div class="um-form-row"><label class="um-form-label">{{t('usersPasswordConfirm') || 'Confirm'}}</label><input type="password" v-model="newUser.passwordConfirm" class="um-input" placeholder="••••••••" /></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button @click="createUser" class="um-btn-primary">{{t('usersSave') || 'Create'}}</button>
+            <button @click="showCreateUser=false;newUser={username:'',password:'',passwordConfirm:'',displayName:''}" class="um-btn-secondary">{{t('usersCancel') || 'Cancel'}}</button>
+          </div>
+        </div>
+        <div v-for="u in userList" :key="u.username" class="um-card">
+          <div class="um-card-header">
+            <div class="um-avatar" :style="{background: u.avatar ? 'none' : 'linear-gradient(135deg,#667eea,#764ba2)'}">
+              <span v-if="!u.avatar">{{(u.displayName || u.username).charAt(0).toUpperCase()}}</span>
+              <span v-else style="font-size:28px">{{u.avatar}}</span>
+            </div>
+            <div class="um-user-info">
+              <div class="um-username">{{u.username}} <span v-if="u.username===currentUsername" class="um-badge-active">{{t('usersActive') || 'Active'}}</span></div>
+              <div class="um-display-name" v-if="u.displayName && editingUser!==u.username">{{u.displayName}}</div>
+              <div class="um-created" v-if="u.createdAt">{{t('usersCreated') || 'Created'}}: {{new Date(u.createdAt).toLocaleDateString()}}</div>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:6px">
+              <button v-if="editingUser!==u.username" @click="startEditUser(u)" class="um-btn-sm">✏️ {{t('usersEdit')}}</button>
+              <button v-if="u.username!==currentUsername" @click="deleteUser(u.username)" class="um-btn-sm um-btn-danger">🗑️ {{t('usersDelete')}}</button>
+            </div>
+          </div>
+          <div v-if="editingUser===u.username" class="um-edit-body">
+            <div class="um-form">
+              <div class="um-form-row"><label class="um-form-label">{{t('usersDisplayName') || 'Display Name'}}</label><input type="text" v-model="editForm.displayName" class="um-input" maxlength="50" /></div>
+              <div class="um-form-row"><label class="um-form-label">{{t('usersNewPassword') || 'New Password'}}</label><input type="password" v-model="editForm.password" class="um-input" :placeholder="t('usersPasswordLeaveEmpty') || 'Leave empty to keep current'" /></div>
+              <div class="um-form-row" v-if="editForm.password"><label class="um-form-label">{{t('usersPasswordConfirm') || 'Confirm'}}</label><input type="password" v-model="editForm.passwordConfirm" class="um-input" placeholder="••••••••" /></div>
+              <div class="um-form-row">
+                <label class="um-form-label">{{t('usersAvatar') || 'Avatar'}}</label>
+                <div class="um-avatar-grid">
+                  <div v-for="av in avatarOptions" :key="av" @click="editForm.avatar=av" class="um-avatar-option" :class="{selected: editForm.avatar===av}">{{av}}</div>
+                  <div @click="editForm.avatar=''" class="um-avatar-option" :class="{selected: !editForm.avatar}" style="font-size:11px;color:#999">{{t('usersNoAvatar') || 'None'}}</div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button @click="saveUserEdit(u.username)" class="um-btn-primary">💾 {{t('usersSave') || 'Save'}}</button>
+              <button @click="editingUser=''" class="um-btn-secondary">{{t('usersCancel') || 'Cancel'}}</button>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="active==='network'">
+        <div v-if="netLoading" style="text-align:center;padding:24px;color:#999">⏳ Loading...</div>
+        <div v-else class="loc-form">
+          <div class="loc-form-row">
+            <label class="loc-form-label">Server Port</label>
+            <div class="loc-form-ctrl"><span style="font-size:13px;font-weight:500">{{netInfo.serverPort}}</span></div>
+          </div>
+          <div class="loc-form-row">
+            <label class="loc-form-label">Docker Manager</label>
+            <div class="loc-form-ctrl">
+              <span :style="{color: netInfo.dockerManager?.online ? '#67c23a' : '#f56c6c', fontWeight:500, fontSize:'13px'}">
+                {{netInfo.dockerManager?.online ? '● Online' : '● Offline'}}
+              </span>
+              <span style="font-size:11px;color:#999;margin-left:8px">{{netInfo.dockerManager?.url}}</span>
+            </div>
+          </div>
+          <div class="loc-form-row">
+            <label class="loc-form-label">Network</label>
+            <div class="loc-form-ctrl"><span style="font-size:13px">{{netInfo.network}}</span></div>
+          </div>
+          <div style="margin-top:12px" v-if="netInfo.containers && netInfo.containers.length">
+            <div style="font-size:14px;font-weight:600;color:#333;margin-bottom:10px">Containers & Ports</div>
+            <table class="net-table">
+              <thead><tr><th>App</th><th>Container</th><th>Host Port</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr v-for="c in netInfo.containers" :key="c.appId">
+                  <td>{{c.appId}}</td>
+                  <td style="font-family:monospace;font-size:12px">{{c.containerName}}</td>
+                  <td style="font-weight:500">{{c.hostPort}}</td>
+                  <td><span :style="{color: c.running ? '#67c23a' : '#f56c6c'}">{{c.running ? '● Running' : '● Stopped'}}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-else style="margin-top:12px;font-size:13px;color:#999">No containers running</div>
         </div>
       </template>
       <template v-else>
@@ -643,27 +973,27 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
       <div class="term-dot" style="background:#ffbd2e"></div>
       <div class="term-dot" style="background:#27c93f"></div>
       <span style="margin-left:8px">{{t('termBarTitle')}}</span>
+      <span v-if="running" style="margin-left:auto;font-size:11px;color:#ffbd2e">⏳</span>
     </div>
     <div class="term-output" ref="outRef">
-      <div class="term-line"><span class="term-res">{{t('termWelcome')}}</span></div>
       <div v-for="(l,i) in lines" :key="i" class="term-line">
-        <span v-if="l.type==='cmd'" class="term-prompt">user@vuedesktop:~$ </span>
-        <span :class="'term-'+l.type">{{l.text}}</span>
+        <span v-if="l.type==='cmd'" class="term-prompt">$ </span>
+        <span :class="'term-'+l.type" v-html="l.html || escText(l.text)"></span>
       </div>
     </div>
     <div class="term-input-row">
-      <span class="term-ps">user@vuedesktop:~$</span>
-      <input v-model="inp" @keyup.enter="run" :placeholder="t('termPlaceholder')" autofocus>
+      <span class="term-ps">$</span>
+      <input v-model="inp" @keydown="onKey" :placeholder="t('termPlaceholder')" autofocus ref="inputRef">
     </div>
   </div>
 </script>
 
 <script type="text/template" id="ClockApp">
-  <div class="clock-root">
-    <canvas ref="canvasRef" width="200" height="200"></canvas>
-    <div class="clock-digital">{{digitalTime}}</div>
-    <div class="clock-date-str">{{dateStr}}</div>
-    <div v-if="tzLabel" class="clock-tz-label">{{tzLabel}}</div>
+  <div class="clock-root" ref="rootRef">
+    <canvas ref="canvasRef"></canvas>
+    <div class="clock-digital" :style="{fontSize: digitalFontSize + 'px'}">{{digitalTime}}</div>
+    <div class="clock-date-str" :style="{fontSize: dateFontSize + 'px'}">{{dateStr}}</div>
+    <div v-if="tzLabel" class="clock-tz-label" :style="{fontSize: tzFontSize + 'px'}">{{tzLabel}}</div>
   </div>
 </script>
 
@@ -675,10 +1005,12 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
       <el-button size="small" @click="nextMonth">&gt;</el-button>
       <el-button size="small" @click="goToday" type="primary" plain>{{t('calToday')}}</el-button>
       <span style="flex:1"></span>
+      <el-button size="small" :type="showBirthdays?'warning':''" @click="showBirthdays=!showBirthdays" plain title="🎂">🎂</el-button>
+      <el-button size="small" @click="showHolidayDialog=true" plain>🏖️</el-button>
       <el-button size="small" type="primary" @click="openAdd">{{t('calAddEvent')}}</el-button>
     </div>
     <div class="cal-body">
-      <table style="width:100%;border-collapse:collapse">
+      <table style="width:100%;border-collapse:collapse;table-layout:fixed">
         <thead>
           <tr>
             <th v-for="d in dayNames" style="padding:6px 0;font-size:12px;font-weight:600;color:#909399;text-align:center;border-bottom:1px solid #e4e7ed">{{d}}</th>
@@ -686,12 +1018,12 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
         </thead>
         <tbody>
           <tr v-for="week in calendarGrid">
-            <td v-for="cell in week" @click="selectDate(cell.date)" style="border:1px solid #e4e7ed;vertical-align:top;width:14.28%;height:68px;padding:4px;cursor:pointer;transition:background .15s" :style="{background:cell.isToday?'#ecf5ff':cell.isCurrentMonth?'#fff':'#fafafa'}" @mouseenter="$event.target.style.background='#e8f0fe'" @mouseleave="$event.target.style.background=cell.isToday?'#ecf5ff':cell.isCurrentMonth?'#fff':'#fafafa'">
+            <td v-for="cell in week" @click="selectDate(cell.date)" style="border:1px solid #e4e7ed;vertical-align:top;width:14.28%;height:68px;padding:4px;cursor:pointer;transition:background .15s" :style="{background: isInRange(cell.date) ? '#d9ecff' : cell.isToday?'#ecf5ff':cell.isCurrentMonth?'#fff':'#fafafa'}" @mouseenter="$event.target.style.background= isInRange(cell.date) ? '#c6e2ff' : '#e8f0fe'" @mouseleave="$event.target.style.background= isInRange(cell.date) ? '#d9ecff' : cell.isToday?'#ecf5ff':cell.isCurrentMonth?'#fff':'#fafafa'">
               <div style="margin-bottom:2px">
                 <span :class="{'cal-day-num':true, today:cell.isToday}" :style="{color:cell.isCurrentMonth?'#303133':'#c0c4cc'}">{{cell.day}}</span>
               </div>
               <div class="cal-events">
-                <div v-for="ev in getEvents(cell.date).slice(0,2)" class="cal-event-dot" :class="ev.color">{{ev.title}}</div>
+                <div v-for="ev in getEvents(cell.date).slice(0,2)" class="cal-event-dot" :class="ev.color" :title="ev.title">{{ev.title}}</div>
                 <div v-if="getEvents(cell.date).length>2" style="font-size:9px;color:#909399">+{{getEvents(cell.date).length-2}} {{t('calMore')}}</div>
               </div>
             </td>
@@ -699,8 +1031,15 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
         </tbody>
       </table>
     </div>
-    <el-dialog v-model="showDialog" :title="dialogDate" width="360px" :close-on-click-modal="true">
+    <el-dialog v-model="showDialog" :title="dialogDate" width="380px" :close-on-click-modal="true">
       <div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+          <span style="font-size:12px;color:#909399;white-space:nowrap">📅</span>
+          <input type="date" v-model="selectedDate" style="height:28px;border:1px solid #dcdfe6;border-radius:4px;padding:0 6px;font-size:12px;color:#606266;outline:none;flex:1">
+          <span style="font-size:12px;color:#c0c4cc">–</span>
+          <input type="date" v-model="selectedDateEnd" style="height:28px;border:1px solid #dcdfe6;border-radius:4px;padding:0 6px;font-size:12px;color:#606266;outline:none;flex:1">
+          <span v-if="rangeDayCount > 1" style="font-size:11px;color:#409eff;white-space:nowrap;font-weight:600">{{rangeDayCount}} {{t('calDays')}}</span>
+        </div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
           <el-input v-model="newTitle" :placeholder="t('calEventPlaceholder')" size="small" @keyup.enter="addEvent" style="flex:1"></el-input>
           <el-select v-model="newColor" size="small" style="width:90px">
@@ -712,15 +1051,35 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
           </el-select>
           <el-button size="small" type="primary" @click="addEvent">{{t('calAdd')}}</el-button>
         </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+          <span style="font-size:12px;color:#909399;white-space:nowrap">🕐</span>
+          <input type="time" v-model="newStartTime" style="height:28px;border:1px solid #dcdfe6;border-radius:4px;padding:0 6px;font-size:12px;color:#606266;outline:none;width:100px" :placeholder="t('calStartTime')">
+          <span style="font-size:12px;color:#c0c4cc">–</span>
+          <input type="time" v-model="newEndTime" style="height:28px;border:1px solid #dcdfe6;border-radius:4px;padding:0 6px;font-size:12px;color:#606266;outline:none;width:100px" :placeholder="t('calEndTime')">
+          <span style="font-size:11px;color:#c0c4cc;white-space:nowrap">({{t('calOptional')}})</span>
+        </div>
         <div class="cal-dialog-events">
           <div v-if="!selectedEvents.length" style="text-align:center;color:#aaa;padding:16px;font-size:13px">{{t('calNoEvents')}}</div>
           <div v-for="(ev,i) in selectedEvents" class="cal-ev-item">
             <div class="ev-color" :style="{background:colorMap[ev.color||'']}"></div>
             <span class="ev-text">{{ev.title}}</span>
-            <button class="ev-del" @click="removeEvent(i)">✕</button>
+            <button v-if="!ev.isBirthday" class="ev-del" @click="removeEvent(i)">✕</button>
           </div>
         </div>
       </div>
+    </el-dialog>
+    <el-dialog v-model="showHolidayDialog" :title="'🏖️ ' + t('calHolidays')" width="420px" :close-on-click-modal="true">
+      <div style="max-height:380px;overflow-y:auto">
+        <div v-for="c in holidayCountries" :key="c.code" style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .15s" @mouseenter="$event.target.style.background='#ecf5ff'" @mouseleave="$event.target.style.background=''" @click="addHolidays(c.code)">
+          <span style="font-size:22px">{{c.flag}}</span>
+          <span style="flex:1;font-size:14px">{{c.name}}</span>
+          <span style="font-size:11px;color:#909399">{{Object.keys(c.holidays).length}} {{t('calDays')}}</span>
+          <el-button size="small" type="primary" plain>+ {{t('calAddHoliday')}}</el-button>
+        </div>
+      </div>
+      <template #footer>
+        <el-button size="small" type="danger" plain @click="clearHolidays">🗑 {{t('calClearHolidays')}}</el-button>
+      </template>
     </el-dialog>
   </div>
 </script>
@@ -728,6 +1087,148 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
 <!-- ════════════════════════════════════════════ -->
 <!-- APPLICATION LOGIC                            -->
 <!-- ════════════════════════════════════════════ -->
+
+<script type="text/template" id="ContactsApp">
+  <div class="contacts-root">
+    <template v-if="view==='list'">
+      <div class="contacts-header">
+        <h2>📇 {{t('contactsTitle')}}</h2>
+        <div class="contacts-actions">
+          <el-input v-model="searchQuery" :placeholder="t('contactsSearch')" clearable prefix-icon="Search" size="small" style="width:200px" @input="doSearch" />
+          <el-button size="small" type="primary" @click="openAdd">+ {{t('contactsAdd')}}</el-button>
+        </div>
+      </div>
+      <div class="contacts-list">
+        <div v-if="!filteredContacts.length" class="contacts-empty">{{t('contactsEmpty')}}</div>
+        <div v-for="c in filteredContacts" :key="c.id" class="contact-item" @click="openDetail(c)">
+          <div class="contact-avatar" :style="{background:c.avatar_color||'#409eff'}">{{contactInitials(c)}}</div>
+          <div class="contact-item-body">
+            <div class="contact-item-name">{{c.first_name}} {{c.last_name}}</div>
+            <div class="contact-item-info" v-if="c.email||c.phone||c.company">{{c.email || c.phone || c.company}}</div>
+          </div>
+          <span v-if="c.favorite" class="contact-fav-star">★</span>
+        </div>
+      </div>
+      <div class="contacts-count">{{filteredContacts.length}} {{t('contactsCount')}}</div>
+    </template>
+    <template v-if="view==='detail' && selected">
+      <div class="contacts-detail">
+        <div class="contacts-detail-top">
+          <el-button text @click="view='list'" size="small">← {{t('contactsBack')}}</el-button>
+          <span style="flex:1"></span>
+          <el-button text @click="openEdit(selected)" size="small">✏️ {{t('contactsEdit')}}</el-button>
+          <el-button text @click="confirmDelete(selected)" size="small" style="color:#f56c6c">🗑 {{t('contactsDelete')}}</el-button>
+        </div>
+        <div class="contacts-detail-card">
+          <div class="contact-avatar-lg" :style="{background:selected.avatar_color||'#409eff'}">{{contactInitials(selected)}}</div>
+          <h3>{{selected.first_name}} {{selected.last_name}}</h3>
+          <div v-if="selected.job_title||selected.company" class="contact-detail-sub">{{selected.job_title}}<span v-if="selected.job_title&&selected.company"> — </span>{{selected.company}}</div>
+          <el-button :type="selected.favorite?'warning':''" size="small" @click="toggleFav(selected)" plain>{{selected.favorite?'★':'☆'}} {{selected.favorite?t('contactsFaved'):t('contactsFav')}}</el-button>
+        </div>
+        <div class="contacts-detail-fields">
+          <div class="cdf-row" v-if="selected.email"><span class="cdf-icon">📧</span><div><div class="cdf-label">{{t('contactsEmail')}}</div><div class="cdf-val">{{selected.email}}</div></div></div>
+          <div class="cdf-row" v-if="selected.phone"><span class="cdf-icon">📞</span><div><div class="cdf-label">{{t('contactsPhone')}}</div><div class="cdf-val">{{selected.phone}}</div></div></div>
+          <div class="cdf-row" v-if="selected.mobile"><span class="cdf-icon">📱</span><div><div class="cdf-label">{{t('contactsMobile')}}</div><div class="cdf-val">{{selected.mobile}}</div></div></div>
+          <div class="cdf-row" v-if="selected.company"><span class="cdf-icon">🏢</span><div><div class="cdf-label">{{t('contactsCompany')}}</div><div class="cdf-val">{{selected.company}}</div></div></div>
+          <div class="cdf-row" v-if="selected.job_title"><span class="cdf-icon">💼</span><div><div class="cdf-label">{{t('contactsJobTitle')}}</div><div class="cdf-val">{{selected.job_title}}</div></div></div>
+          <div class="cdf-row" v-if="selected.address||selected.city||selected.country"><span class="cdf-icon">📍</span><div><div class="cdf-label">{{t('contactsAddress')}}</div><div class="cdf-val">{{[selected.address,selected.city,selected.country].filter(Boolean).join(', ')}}</div></div></div>
+          <div class="cdf-row" v-if="selected.website"><span class="cdf-icon">🌐</span><div><div class="cdf-label">{{t('contactsWebsite')}}</div><div class="cdf-val">{{selected.website}}</div></div></div>
+          <div class="cdf-row" v-if="selected.birthday"><span class="cdf-icon">🎂</span><div><div class="cdf-label">{{t('contactsBirthday')}}</div><div class="cdf-val">{{selected.birthday}}</div></div></div>
+          <div class="cdf-row" v-if="selected.notes"><span class="cdf-icon">📝</span><div><div class="cdf-label">{{t('contactsNotes')}}</div><div class="cdf-val cdf-notes">{{selected.notes}}</div></div></div>
+        </div>
+      </div>
+    </template>
+    <template v-if="view==='form'">
+      <div class="contacts-form">
+        <div class="contacts-detail-top">
+          <el-button text @click="cancelForm" size="small">← {{t('contactsBack')}}</el-button>
+          <h3 style="flex:1;text-align:center;margin:0">{{form.id ? t('contactsEdit') : t('contactsAdd')}}</h3>
+          <el-button type="primary" size="small" @click="saveContact">{{t('contactsSave')}}</el-button>
+        </div>
+        <div class="contacts-form-body">
+          <el-row :gutter="10">
+            <el-col :span="12"><el-input v-model="form.first_name" :placeholder="t('contactsFirstName')" size="small" /></el-col>
+            <el-col :span="12"><el-input v-model="form.last_name" :placeholder="t('contactsLastName')" size="small" /></el-col>
+          </el-row>
+          <el-divider style="margin:10px 0">📧</el-divider>
+          <el-input v-model="form.email" :placeholder="t('contactsEmail')" size="small" />
+          <el-divider style="margin:10px 0">📞</el-divider>
+          <el-row :gutter="10">
+            <el-col :span="12"><el-input v-model="form.phone" :placeholder="t('contactsPhone')" size="small" /></el-col>
+            <el-col :span="12"><el-input v-model="form.mobile" :placeholder="t('contactsMobile')" size="small" /></el-col>
+          </el-row>
+          <el-divider style="margin:10px 0">🏢</el-divider>
+          <el-row :gutter="10">
+            <el-col :span="12"><el-input v-model="form.company" :placeholder="t('contactsCompany')" size="small" /></el-col>
+            <el-col :span="12"><el-input v-model="form.job_title" :placeholder="t('contactsJobTitle')" size="small" /></el-col>
+          </el-row>
+          <el-divider style="margin:10px 0">📍</el-divider>
+          <el-input v-model="form.address" :placeholder="t('contactsAddress')" size="small" />
+          <el-row :gutter="10" style="margin-top:6px">
+            <el-col :span="12"><el-input v-model="form.city" :placeholder="t('contactsCity')" size="small" /></el-col>
+            <el-col :span="12"><el-input v-model="form.country" :placeholder="t('contactsCountry')" size="small" /></el-col>
+          </el-row>
+          <el-divider style="margin:10px 0">🔗</el-divider>
+          <el-row :gutter="10">
+            <el-col :span="12"><el-input v-model="form.website" :placeholder="t('contactsWebsite')" size="small" /></el-col>
+            <el-col :span="12"><el-input v-model="form.birthday" :placeholder="t('contactsBirthday') + ' (YYYY-MM-DD)'" size="small" /></el-col>
+          </el-row>
+          <el-divider style="margin:10px 0">📝</el-divider>
+          <el-input v-model="form.notes" type="textarea" :rows="3" :placeholder="t('contactsNotes')" size="small" />
+        </div>
+      </div>
+    </template>
+  </div>
+</script>
+
+<script type="text/template" id="ScreenKeyboardApp">
+  <div class="skb-root">
+    <div class="skb-toolbar">
+      <select v-model="layout" @change="onLayoutChange">
+        <option v-for="l in layouts" :key="l.id" :value="l.id">{{l.flag}} {{l.name}}</option>
+      </select>
+      <div class="skb-layout-btns">
+        <button class="skb-layout-btn" :class="{active:!numpad}" @click="numpad=false">ABC</button>
+        <button class="skb-layout-btn" :class="{active:numpad}" @click="numpad=true">123</button>
+      </div>
+    </div>
+    <div class="skb-preview">
+      <div class="skb-preview-text">{{typedText || '&#8203;'}}</div>
+      <div class="skb-preview-actions">
+        <button class="skb-preview-btn" @click="copyText" :title="t('skbCopy')">📋</button>
+        <button class="skb-preview-btn" @click="clearText" :title="t('skbClear')">✕</button>
+      </div>
+    </div>
+    <div class="skb-keys" v-if="!numpad">
+      <div class="skb-row" v-for="(row,ri) in currentKeys" :key="ri">
+        <button v-if="ri===2" class="skb-key special shift" :class="{active:shifted}" @click="toggleShift">⇧</button>
+        <button v-if="ri===1" class="skb-key special caps" :class="{active:capsOn}" @click="toggleCaps">⇪</button>
+        <button v-for="(k,ki) in row" :key="ki" class="skb-key" @click="typeKey(k)">
+          {{displayKey(k)}}
+          <span v-if="k.sub" class="skb-sub">{{k.sub}}</span>
+        </button>
+        <button v-if="ri===1" class="skb-key special backspace" @click="backspace">⌫</button>
+        <button v-if="ri===2" class="skb-key special enter" @click="typeEnter">↵</button>
+      </div>
+      <div class="skb-row">
+        <button class="skb-key special tab" @click="typeTab">⇥</button>
+        <button class="skb-key space" @click="typeSpace"> </button>
+        <button class="skb-key special" style="min-width:48px" @click="typeKey({char:'.'})">.</button>
+        <button class="skb-key special" style="min-width:48px" @click="typeKey({char:','})">,</button>
+      </div>
+    </div>
+    <div class="skb-keys" v-else>
+      <div class="skb-row" v-for="(row,ri) in numpadKeys" :key="ri">
+        <button v-for="(k,ki) in row" :key="ki" class="skb-key" @click="typeKey(k)">{{k.char}}</button>
+      </div>
+      <div class="skb-row">
+        <button class="skb-key special backspace" @click="backspace">⌫</button>
+        <button class="skb-key space" @click="typeSpace"> </button>
+        <button class="skb-key special enter" @click="typeEnter">↵</button>
+      </div>
+    </div>
+  </div>
+</script>
 
 <script type="text/template" id="NotificationsApp">
   <div class="notif-root">
@@ -737,7 +1238,7 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
     </div>
     <div class="notif-list">
       <div v-if="!notifications.length" class="notif-empty">{{t('noNotifications')}}</div>
-      <div v-for="(n,i) in notifications" :key="i" class="notif-item" :class="{unread:!n.read}" @click="n.read=true;save()">
+      <div v-for="(n,i) in notifications" :key="n.id||i" class="notif-item" :class="{unread:!n.read}" @click="markRead(n)">
         <div class="ni-icon" :style="{background:n.bg}">{{n.icon}}</div>
         <div class="ni-body">
           <div class="ni-title">{{n.title}}</div>
@@ -1331,7 +1832,39 @@ const I18N = {
     aiGoSettings: 'Ayarlara Git', aiWelcome: 'Merhaba! Ben AI Asistanınızım',
     aiWelcomeDesc: 'Size yardımcı olmak için buradayım. Bir soru sorun veya yardım isteyin.',
     aiPlaceholder: 'Mesajınızı yazın...',
-    aiChip1: 'Ne yapabilirsin?', aiChip2: 'Bana bir metin yaz', aiChip3: 'Bir sorunu çöz'
+    aiChip1: 'Ne yapabilirsin?', aiChip2: 'Bana bir metin yaz', aiChip3: 'Bir sorunu çöz',
+    // Contacts
+    contacts:'Kişiler', contactsTitle:'Kişiler', contactsSearch:'Kişi ara...', contactsAdd:'Kişi Ekle', contactsEdit:'Düzenle', contactsDelete:'Sil', contactsDeleteConfirm:'Bu kişiyi silmek istediğinize emin misiniz?', contactsSave:'Kaydet', contactsBack:'Geri', contactsEmpty:'Henüz kişi eklenmemiş',
+    contactsFirstName:'Ad', contactsLastName:'Soyad', contactsEmail:'E-posta', contactsPhone:'Telefon', contactsMobile:'Cep Telefonu', contactsCompany:'Şirket', contactsJobTitle:'Ünvan', contactsAddress:'Adres', contactsCity:'Şehir', contactsCountry:'Ülke', contactsWebsite:'Web Sitesi', contactsBirthday:'Doğum Günü', contactsNotes:'Notlar',
+    contactsFav:'Favorilere Ekle', contactsFaved:'Favorilerde', contactsCount:'kişi', contactsPickContact:'Kişilerden Seç',
+    // Settings extras
+    settingsFonts:'Yazı Tipleri', settingsSession:'Oturum', settingsSecurity:'Güvenlik', settingsUsers:'Kullanıcılar', settingsAI:'AI',
+    theme:'Tema', themeDesc:'Arayüz temasını seçin', themeDefault:'Varsayılan', themeForest:'Orman', themeOcean:'Okyanus', themeSunset:'Gün Batımı', themeLavender:'Lavanta', themeNord:'Nord', themeCherry:'Kiraz', themeCyberpunk:'Siber',
+    screenInfo:'Ekran Bilgisi', screenPhysical:'Fiziksel', screenEffective:'Etkin', screenPixelRatio:'Piksel Oranı', screenColorDepth:'Renk Derinliği',
+    restoreApps:'Uygulamaları Geri Yükle', restoreAppsDesc:'Son oturumda açık olan uygulamaları otomatik aç',
+    skbTrayToggle:'Ekran Klavyesi', skbTrayToggleDesc:'Görev çubuğunda ekran klavyesi simgesi',
+    magTrayToggle:'Büyüteç', magTrayToggleDesc:'Görev çubuğunda büyüteç simgesi',
+    ssTrayToggle:'Ekran Görüntüsü', ssTrayToggleDesc:'Görev çubuğunda ekran görüntüsü simgesi',
+    twoFactorAuth:'İki Faktörlü Doğrulama', twoFactorAuthDesc:'Hesabınızı ek güvenlik katmanı ile koruyun',
+    twoFAScanQR:'QR kodunu taratın', twoFAManualKey:'Manuel anahtar', twoFAEnterCode:'6 haneli kod', twoFAVerify:'Doğrula',
+    twoFAActivated:'2FA aktifleştirildi', twoFADeactivated:'2FA devre dışı bırakıldı',
+    twoFADisablePrompt:'2FA\'yı devre dışı bırakmak için 6 haneli kod girin', twoFADisableBtn:'Devre Dışı Bırak',
+    aiTokens:'AI Sağlayıcıları', aiTokensDesc:'API anahtarlarınızı ekleyin', aiApiKey:'API Anahtarı', aiKeyPlaceholder:'API anahtarını girin...',
+    aiModel:'Model', aiDefault:'Varsayılan', aiRemove:'Kaldır', aiAddProvider:'Sağlayıcı Ekle',
+    aiAgents:'Ajanlar', aiAgentsDesc:'Özel AI ajanları oluşturun', aiAgentName:'Ajan adı', aiAgentProvider:'Sağlayıcı', aiAgentModel:'Model', aiAgentPrompt:'Sistem Promptu',
+    aiAddAgent:'Ajan Ekle', aiSave:'Kaydet', aiSaved:'AI ayarları kaydedildi',
+    fontsMyFonts:'Yazı Tiplerim', fontsMyFontsDesc:'Eklediğiniz yazı tipleri', fontsEmpty:'Henüz yazı tipi eklenmemiş',
+    fontsBrowse:'Google Fonts', fontsBrowseDesc:'Google Fonts kütüphanesinden yazı tipi ekleyin',
+    fontsSearchPlaceholder:'Yazı tipi ara...', fontsLoading:'Yükleniyor...', fontsNoResults:'Sonuç bulunamadı',
+    fontsSelected:'seçildi', fontsAdded:'Eklendi', fontsAdd:'Ekle', cancel:'İptal',
+    usersAdd:'Kullanıcı Ekle', usersNewUser:'Yeni Kullanıcı', usersUsername:'Kullanıcı Adı', usersDisplayName:'Görünen Ad',
+    usersDisplayNamePlaceholder:'Adı Soyadı', usersPassword:'Şifre', usersPasswordConfirm:'Şifre Tekrar',
+    usersFieldsRequired:'Kullanıcı adı ve şifre zorunlu', usersPasswordMismatch:'Şifreler eşleşmiyor',
+    usersCreated:'Oluşturuldu', usersSave:'Kaydet', usersCancel:'İptal', usersEdit:'Düzenle', usersDelete:'Sil',
+    usersActive:'Aktif', usersNewPassword:'Yeni Şifre', usersPasswordLeaveEmpty:'Mevcut şifreyi korumak için boş bırakın',
+    usersAvatar:'Avatar', usersNoAvatar:'Yok', usersDeleteConfirm:'Kullanıcıyı sil',
+    usersSaved:'Kaydedildi', usersDeleted:'Kullanıcı silindi', usersChangeAvatar:'Avatarı değiştir', usersUsernameNoChange:'Kullanıcı adı dizin yollarında kullanıldığından değiştirilemez',
+    error:'Hata', wpPreview:'Önizleme'
   },
   en: {
     apps: 'Applications', user: 'User', loading: 'Loading...', search: 'Search...',
@@ -1368,7 +1901,39 @@ const I18N = {
     aiGoSettings: 'Go to Settings', aiWelcome: 'Hello! I\'m your AI Assistant',
     aiWelcomeDesc: 'I\'m here to help you. Ask a question.',
     aiPlaceholder: 'Type your message...',
-    aiChip1: 'What can you do?', aiChip2: 'Write me a text', aiChip3: 'Help me solve a problem'
+    aiChip1: 'What can you do?', aiChip2: 'Write me a text', aiChip3: 'Help me solve a problem',
+    // Contacts
+    contacts:'Contacts', contactsTitle:'Contacts', contactsSearch:'Search contacts...', contactsAdd:'Add Contact', contactsEdit:'Edit', contactsDelete:'Delete', contactsDeleteConfirm:'Are you sure you want to delete this contact?', contactsSave:'Save', contactsBack:'Back', contactsEmpty:'No contacts yet',
+    contactsFirstName:'First Name', contactsLastName:'Last Name', contactsEmail:'Email', contactsPhone:'Phone', contactsMobile:'Mobile', contactsCompany:'Company', contactsJobTitle:'Job Title', contactsAddress:'Address', contactsCity:'City', contactsCountry:'Country', contactsWebsite:'Website', contactsBirthday:'Birthday', contactsNotes:'Notes',
+    contactsFav:'Add to Favorites', contactsFaved:'Favorited', contactsCount:'contacts', contactsPickContact:'Pick from Contacts',
+    // Settings extras
+    settingsFonts:'Fonts', settingsSession:'Session', settingsSecurity:'Security', settingsUsers:'Users', settingsAI:'AI',
+    theme:'Theme', themeDesc:'Choose interface theme', themeDefault:'Default', themeForest:'Forest', themeOcean:'Ocean', themeSunset:'Sunset', themeLavender:'Lavender', themeNord:'Nord', themeCherry:'Cherry', themeCyberpunk:'Cyberpunk',
+    screenInfo:'Screen Info', screenPhysical:'Physical', screenEffective:'Effective', screenPixelRatio:'Pixel Ratio', screenColorDepth:'Color Depth',
+    restoreApps:'Restore Apps', restoreAppsDesc:'Automatically reopen apps from last session',
+    skbTrayToggle:'Screen Keyboard', skbTrayToggleDesc:'Show screen keyboard icon in taskbar',
+    magTrayToggle:'Magnifier', magTrayToggleDesc:'Show magnifier icon in taskbar',
+    ssTrayToggle:'Screenshot', ssTrayToggleDesc:'Show screenshot icon in taskbar',
+    twoFactorAuth:'Two-Factor Authentication', twoFactorAuthDesc:'Protect your account with an extra layer of security',
+    twoFAScanQR:'Scan the QR code', twoFAManualKey:'Manual key', twoFAEnterCode:'6-digit code', twoFAVerify:'Verify',
+    twoFAActivated:'2FA activated', twoFADeactivated:'2FA deactivated',
+    twoFADisablePrompt:'Enter 6-digit code to disable 2FA', twoFADisableBtn:'Disable',
+    aiTokens:'AI Providers', aiTokensDesc:'Add your API keys', aiApiKey:'API Key', aiKeyPlaceholder:'Enter API key...',
+    aiModel:'Model', aiDefault:'Default', aiRemove:'Remove', aiAddProvider:'Add Provider',
+    aiAgents:'Agents', aiAgentsDesc:'Create custom AI agents', aiAgentName:'Agent name', aiAgentProvider:'Provider', aiAgentModel:'Model', aiAgentPrompt:'System Prompt',
+    aiAddAgent:'Add Agent', aiSave:'Save', aiSaved:'AI settings saved',
+    fontsMyFonts:'My Fonts', fontsMyFontsDesc:'Your added fonts', fontsEmpty:'No fonts added yet',
+    fontsBrowse:'Google Fonts', fontsBrowseDesc:'Add fonts from the Google Fonts library',
+    fontsSearchPlaceholder:'Search fonts...', fontsLoading:'Loading...', fontsNoResults:'No results found',
+    fontsSelected:'selected', fontsAdded:'Added', fontsAdd:'Add', cancel:'Cancel',
+    usersAdd:'Add User', usersNewUser:'Create New User', usersUsername:'Username', usersDisplayName:'Display Name',
+    usersDisplayNamePlaceholder:'John Doe', usersPassword:'Password', usersPasswordConfirm:'Confirm',
+    usersFieldsRequired:'Username and password required', usersPasswordMismatch:'Passwords do not match',
+    usersCreated:'Created', usersSave:'Save', usersCancel:'Cancel', usersEdit:'Edit', usersDelete:'Delete',
+    usersActive:'Active', usersNewPassword:'New Password', usersPasswordLeaveEmpty:'Leave empty to keep current',
+    usersAvatar:'Avatar', usersNoAvatar:'None', usersDeleteConfirm:'Delete user',
+    usersSaved:'Saved', usersDeleted:'User deleted', usersChangeAvatar:'Change avatar', usersUsernameNoChange:'Username cannot be changed (used in directory paths)',
+    error:'Error', wpPreview:'Preview'
   },
   de: {
     apps: 'Anwendungen', user: 'Benutzer', loading: 'Laden...', search: 'Suchen...',
@@ -2183,6 +2748,8 @@ const APPS = [
   {id:'notifications',name:'Bildirimler',icon:'🔔',color:'linear-gradient(135deg,#ff6b6b,#ee5a24)',category:'system'},
   {id:'appstore',name:'Uygulama Mağazası',icon:'🛒',color:'linear-gradient(135deg,#6c5ce7,#a29bfe)',category:'internet'},
   {id:'browser',name:'Tarayıcı',icon:'🌐',color:'linear-gradient(135deg,#4a90d9,#00b894)',category:'internet'},
+  {id:'contacts',name:'Kişiler',icon:'📇',color:'linear-gradient(135deg,#409eff,#36d1dc)',category:'productivity'},
+  {id:'screenkeyboard',name:'Ekran Klavyesi',icon:'⌨️',color:'linear-gradient(135deg,#636e72,#b2bec3)',category:'utilities'},
 ];
 
 const SIZES = {}; /* Not needed for mobile full screen apps */
@@ -2219,10 +2786,79 @@ const NotepadApp = {
   props: [],
   emits: [],
   setup(props, { emit }) {
-    const text = ref(''), font = ref("'Segoe UI',sans-serif"), size = ref(14), bold = ref(false), italic = ref(false);
-    const wordCount = computed(() => text.value.trim() ? text.value.trim().split(/\s+/).length : 0);
-    function copy() { navigator.clipboard.writeText(text.value) }
-    return { text, font, size, bold, italic, wordCount, copy, t };
+    let nextId = 2;
+    const tabs = ref([{ id: 1, name: t('notepad') + ' 1', text: '', modified: false }]);
+    const activeTab = ref(0);
+    const font = ref("'Segoe UI',sans-serif"), size = ref(14), bold = ref(false), italic = ref(false);
+
+    const currentTab = computed(() => tabs.value[activeTab.value] || tabs.value[0]);
+    const currentText = computed({
+      get: () => currentTab.value.text,
+      set: (v) => { currentTab.value.text = v; currentTab.value.modified = v.length > 0; }
+    });
+    const wordCount = computed(() => currentText.value.trim() ? currentText.value.trim().split(/\s+/).length : 0);
+
+    function addTab() {
+      tabs.value.push({ id: nextId, name: t('notepad') + ' ' + nextId, text: '', modified: false });
+      activeTab.value = tabs.value.length - 1;
+      nextId++;
+    }
+    function closeTab(i) {
+      if (tabs.value.length <= 1) return;
+      tabs.value.splice(i, 1);
+      if (activeTab.value >= tabs.value.length) activeTab.value = tabs.value.length - 1;
+    }
+    function clearCurrent() { currentTab.value.text = ''; currentTab.value.modified = false; }
+    function copy() { navigator.clipboard.writeText(currentText.value); }
+
+    const statusMsg = ref('');
+    const statusType = ref('success');
+    let statusTimer = null;
+    function showStatus(msg, type = 'success') {
+      statusMsg.value = msg; statusType.value = type;
+      clearTimeout(statusTimer);
+      statusTimer = setTimeout(() => { statusMsg.value = ''; }, 3000);
+    }
+
+    async function saveToServer() {
+      const defaultName = currentTab.value.name.includes('.') ? currentTab.value.name : currentTab.value.name + '.txt';
+      const result = await FileDialog.show({ mode: 'save', title: '💾 ' + t('notepadSaveServer'), defaultName, filters: [{ label: 'Text Files', extensions: ['.txt', '.md', '.json', '.js', '.html', '.css'] }, { label: 'All Files', extensions: ['*'] }] });
+      if (!result) return;
+      try {
+        const r = await fetch('/api/fs/write', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ filePath: result.path, content: currentText.value }) });
+        if (r.ok) { showStatus(t('notepadSaved')); currentTab.value.name = result.name; currentTab.value.modified = false; }
+        else { const e = await r.json().catch(() => ({})); showStatus(e.error || t('notepadSaveError'), 'error'); }
+      } catch { showStatus(t('notepadSaveError'), 'error'); }
+    }
+
+    async function openFromServer() {
+      const result = await FileDialog.show({ mode: 'open', title: '📂 ' + t('notepadOpenServer'), filters: [{ label: 'Text Files', extensions: ['.txt', '.md', '.json', '.js', '.html', '.css'] }, { label: 'All Files', extensions: ['*'] }] });
+      if (!result) return;
+      currentTab.value.text = result.content;
+      currentTab.value.name = result.name;
+      currentTab.value.modified = false;
+      showStatus(t('notepadLoaded'));
+    }
+
+    function saveToClient() {
+      const name = currentTab.value.name.includes('.') ? currentTab.value.name : currentTab.value.name + '.txt';
+      const blob = new Blob([currentText.value], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = name; a.click();
+      URL.revokeObjectURL(a.href);
+      showStatus(t('notepadSaved'));
+    }
+
+    function openFromClient(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => { currentTab.value.text = reader.result; currentTab.value.name = file.name; currentTab.value.modified = false; showStatus(t('notepadLoaded')); };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+    return { tabs, activeTab, currentTab, currentText, font, size, bold, italic, wordCount, addTab, closeTab, clearCurrent, copy, statusMsg, statusType, saveToServer, openFromServer, saveToClient, openFromClient, t };
   }
 };
 
@@ -2232,11 +2868,81 @@ const TodoApp = {
   props: [],
   emits: [],
   setup(props, { emit }) {
-    const todos = ref([{ text: t('todoDefault1'), done: true }, { text: t('todoDefault2'), done: false }]);
+    const todos = ref([]);
+    const groups = ref([]);
     const input = ref('');
-    const done = computed(() => todos.value.filter(td => td.done).length);
-    function add() { if (input.value.trim()) { todos.value.unshift({ text: input.value.trim(), done: false }); input.value = '' } }
-    return { todos, input, done, add, t };
+    const activeGroup = ref(null);
+    const showAddGroup = ref(false);
+    const newGroupName = ref('');
+    const newGroupColor = ref('#667eea');
+    const newColor = ref('');
+    const newPriority = ref(0);
+    const groupColors = ['#667eea','#764ba2','#22c55e','#f59e0b','#ef4444','#06b6d4','#ec4899','#8b5cf6'];
+    const taskColors = ['#ef4444','#f59e0b','#22c55e','#3b82f6','#8b5cf6','#ec4899','#06b6d4','#6b7280'];
+
+    const filtered = computed(() => {
+      if (activeGroup.value === null) return todos.value;
+      return todos.value.filter(td => td.group_id === activeGroup.value);
+    });
+    const done = computed(() => filtered.value.filter(td => td.done).length);
+    const activeGroupObj = computed(() => activeGroup.value === null ? null : groups.value.find(g => g.id === activeGroup.value));
+
+    function groupCount(gid) { return todos.value.filter(td => td.group_id === gid).length; }
+    function priorityLabel(p) { return [,'!','!!','!!!'][p] || ''; }
+
+    async function loadGroups() {
+      try { const r = await fetch('/api/todo-groups', { headers: authHeaders() }); if (r.ok) groups.value = await r.json(); } catch {}
+    }
+    async function loadTodos() {
+      try { const r = await fetch('/api/todos', { headers: authHeaders() }); if (r.ok) todos.value = await r.json(); } catch {}
+    }
+
+    async function addGroup() {
+      if (!newGroupName.value.trim()) return;
+      try {
+        const r = await fetch('/api/todo-groups', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name: newGroupName.value.trim(), color: newGroupColor.value }) });
+        if (r.ok) { const g = await r.json(); groups.value.push(g); newGroupName.value = ''; showAddGroup.value = false; }
+      } catch {}
+    }
+    async function removeGroup(g) {
+      try { await fetch('/api/todo-groups/' + g.id, { method: 'DELETE', headers: authHeaders() }); } catch {}
+      groups.value = groups.value.filter(x => x.id !== g.id);
+      todos.value = todos.value.filter(td => td.group_id !== g.id);
+      if (activeGroup.value === g.id) activeGroup.value = null;
+    }
+    function selectGroup(gid) { activeGroup.value = gid; }
+
+    async function add() {
+      if (!input.value.trim()) return;
+      const body = { text: input.value.trim(), color: newColor.value, priority: Number(newPriority.value) || 0 };
+      if (activeGroup.value !== null) body.group_id = activeGroup.value;
+      try {
+        const r = await fetch('/api/todos', { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+        if (r.ok) {
+          const data = await r.json();
+          todos.value.unshift({ id: data.id, text: body.text, done: false, sort_order: data.sort_order, color: body.color, priority: body.priority, group_id: body.group_id || null });
+          input.value = '';
+        }
+      } catch {}
+    }
+    async function toggleDone(td) {
+      td.done = !td.done;
+      try { await fetch('/api/todos/' + td.id, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ done: td.done }) }); } catch {}
+    }
+    async function remove(td) {
+      try { await fetch('/api/todos/' + td.id, { method: 'DELETE', headers: authHeaders() }); } catch {}
+      todos.value = todos.value.filter(x => x.id !== td.id);
+    }
+
+    const drawerOpen = ref(false);
+
+    onMounted(() => {
+      loadGroups(); loadTodos();
+      setTimeout(() => { drawerOpen.value = true; }, 400);
+      setTimeout(() => { drawerOpen.value = false; }, 1800);
+    });
+
+    return { todos, groups, input, activeGroup, activeGroupObj, showAddGroup, newGroupName, newGroupColor, newColor, newPriority, groupColors, taskColors, filtered, done, groupCount, priorityLabel, addGroup, removeGroup, selectGroup, add, toggleDone, remove, drawerOpen, t };
   }
 };
 
@@ -2254,11 +2960,11 @@ const FilemanApp = {
     const currentLoc = ref('desktop'), selected = ref(null);
     const locations = computed(() => LOC_KEYS.map(l => ({ id: l.id, name: t(l.key), icon: l.icon })));
     const allFiles = {
-      desktop: [{ name: 'Projects', icon: '📁' }, { name: 'Notes.txt', icon: '📄' }, { name: 'Budget.xlsx', icon: '📊' }, { name: 'Photo.jpg', icon: '🖼️' }],
-      documents: [{ name: 'CV.docx', icon: '📄' }, { name: 'Contract.pdf', icon: '📋' }, { name: 'Report', icon: '📁' }, { name: 'Slides.pptx', icon: '📊' }],
-      downloads: [{ name: 'setup.exe', icon: '⚙️' }, { name: 'archive.zip', icon: '🗜️' }, { name: 'video.mp4', icon: '🎬' }],
-      pictures: [{ name: 'Vacation', icon: '📁' }, { name: 'img001.jpg', icon: '🖼️' }, { name: 'avatar.png', icon: '🖼️' }],
-      music: [{ name: 'playlist', icon: '📁' }, { name: 'song1.mp3', icon: '🎵' }, { name: 'song2.mp3', icon: '🎵' }],
+      desktop: [],
+      documents: [],
+      downloads: [],
+      pictures: [],
+      music: [],
       trash: []
     };
     const files = computed(() => allFiles[currentLoc.value] || []);
@@ -2371,21 +3077,44 @@ const SettingsApp = {
   setup() {
     const settingsStore = useSettingsStore();
     const active = ref('display');
+    const ElMessage = window.ElementPlus?.ElMessage || { success(){}, error(){}, warning(){}, info(){} };
     const tabs = computed(() => [
       { id: 'display', icon: '🖥️', name: t('settingsDisplay') },
       { id: 'wallpaper', icon: '🖼️', name: t('settingsWallpaper') },
+      { id: 'fonts', icon: '🔤', name: t('settingsFonts') },
       { id: 'location', icon: '📍', name: t('settingsLocation') },
       { id: 'language', icon: '🌐', name: t('settingsLanguage') },
       { id: 'sound', icon: '🔊', name: t('settingsSound') },
+      { id: 'session', icon: '🔄', name: t('settingsSession') },
+      { id: 'security', icon: '🔐', name: t('settingsSecurity') },
+      { id: 'users', icon: '👥', name: t('settingsUsers') },
+      { id: 'ai', icon: '🤖', name: t('settingsAI') },
       { id: 'network', icon: '📶', name: t('settingsNetwork') },
       { id: 'about', icon: 'ℹ️', name: t('settingsAbout') }
     ]);
+    const zoomLevel = ref(settingsStore.zoom || 100);
+    const zoomOptions = [50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200];
+    const darkModeVal = ref(false);
+    const currentTheme = ref(settingsStore.theme || '');
+    const themeList = [
+      { id: '', name: t('themeDefault'), gradient: 'linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)', accent: '#4a6fa5' },
+      { id: 'forest', name: t('themeForest'), gradient: 'linear-gradient(135deg,#0d1f12,#142a18,#1a3820)', accent: '#2d8a4e' },
+      { id: 'ocean', name: t('themeOcean'), gradient: 'linear-gradient(135deg,#040d18,#0a1929,#0d2137)', accent: '#1976d2' },
+      { id: 'sunset', name: t('themeSunset'), gradient: 'linear-gradient(135deg,#1a0a10,#2d1520,#3d1a28)', accent: '#e65100' },
+      { id: 'lavender', name: t('themeLavender'), gradient: 'linear-gradient(135deg,#0e0a18,#181024,#201530)', accent: '#7c4dff' },
+      { id: 'nord', name: t('themeNord'), gradient: 'linear-gradient(135deg,#242933,#2e3440,#353b48)', accent: '#5e81ac' },
+      { id: 'cherry', name: t('themeCherry'), gradient: 'linear-gradient(135deg,#120a0c,#1f1015,#2d141c)', accent: '#c62828' },
+      { id: 'cyberpunk', name: t('themeCyberpunk'), gradient: 'linear-gradient(135deg,#030308,#0a0515,#120820)', accent: '#ff006e' }
+    ];
+    function applyTheme(id) { currentTheme.value = id; window.__applyTheme && window.__applyTheme(id); settingsStore.save({ theme: id }); }
+    function onZoomChange(v) { const n = Number(v); zoomLevel.value = n; window.__applyZoom && window.__applyZoom(n); settingsStore.save({ zoom: n }); }
+    const screenInfo = computed(() => {
+      const z = zoomLevel.value / 100;
+      const w = window.screen.width; const h = window.screen.height;
+      return { physW: w, physH: h, effW: Math.round(w / z), effH: Math.round(h / z), dpr: window.devicePixelRatio || 1, colorDepth: window.screen.colorDepth || 24 };
+    });
     const allRows = computed(() => ({
-      display: [
-        { label: t('zoom'), sub: t('zoomDesc'), type: 'range', min: 50, max: 200, step: 10, val: ref(settingsStore.zoom || 100), suffix: '%', onChange(v) { const n = Number(v); window.__applyZoom && window.__applyZoom(n); settingsStore.save({ zoom: n }); } },
-        { label: t('darkMode'), sub: t('darkModeDesc'), type: 'toggle', val: ref(false) },
-        { label: t('resolution'), type: 'select', options: ['1920×1080', '1366×768', '2560×1440'], val: ref('1920×1080') }
-      ],
+      display: [],
       sound: [
         { label: t('mainVolume'), type: 'range', min: 0, max: 100, val: ref(60) },
         { label: t('systemSound'), type: 'toggle', val: ref(true) },
@@ -2568,7 +3297,424 @@ const SettingsApp = {
       if (window._applyWallpaper) window._applyWallpaper();
     }
 
-    return { active, tabs, currentRows, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper };
+    function wpAuthUrl(url) {
+      if (!url) return '';
+      const token = localStorage.getItem('token') || localStorage.getItem('auth_token') || '';
+      return url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
+    }
+
+    // ── Fonts ──
+    const userFonts = ref([...(settingsStore.fonts || [])]);
+    const gfAllFonts = ref([]);
+    const gfLoaded = ref(false);
+
+    function isFontAdded(family) {
+      return userFonts.value.some(f => f.family === family);
+    }
+
+    function addFont(font) {
+      if (isFontAdded(font.family)) return;
+      userFonts.value.push({ family: font.family, category: font.category, variants: font.variants || [] });
+      saveFonts();
+    }
+
+    function addFonts(fonts) {
+      let added = 0;
+      for (const font of fonts) {
+        if (!isFontAdded(font.family)) {
+          userFonts.value.push({ family: font.family, category: font.category, variants: font.variants || [] });
+          added++;
+        }
+      }
+      if (added > 0) saveFonts();
+    }
+
+    function removeFont(family) {
+      userFonts.value = userFonts.value.filter(f => f.family !== family);
+      saveFonts();
+    }
+
+    function saveFonts() {
+      settingsStore.fonts = [...userFonts.value];
+      settingsStore.save({ fonts: [...userFonts.value] });
+      if (window.FontSelectDialog) window.FontSelectDialog.clearCache();
+    }
+
+    const _gfLoadedFamilies = new Set();
+    function _loadFontCSS(family) {
+      if (_gfLoadedFamilies.has(family)) return;
+      _gfLoadedFamilies.add(family);
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(family) + '&display=swap';
+      document.head.appendChild(link);
+    }
+
+    async function showGoogleFontsDialog() {
+      const SAMPLE = 'The quick brown fox jumps over the lazy dog. 0123456789';
+      const CATS = ['all','serif','sans-serif','display','handwriting','monospace'];
+      const CAT_LABELS = {all:'All',serif:'Serif','sans-serif':'Sans Serif',display:'Display',handwriting:'Handwriting',monospace:'Monospace'};
+
+      let allFonts = [];
+      let filtered = [];
+      let selected = new Set();
+      let search = '';
+      let cat = 'all';
+      let loading = true;
+      let visibleCount = 40;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'fsd-overlay';
+
+      function filterFonts() {
+        const q = search.toLowerCase().trim();
+        filtered = allFonts.filter(f => {
+          if (cat !== 'all' && f.category !== cat) return false;
+          if (q && !f.family.toLowerCase().includes(q)) return false;
+          return true;
+        });
+        visibleCount = 40;
+      }
+
+      function render() {
+        const visible = filtered.slice(0, visibleCount);
+        visible.forEach(f => _loadFontCSS(f.family));
+
+        overlay.innerHTML = `
+          <div class="fsd-dialog" style="width:640px;max-height:85vh">
+            <div class="fsd-header">
+              <h3>🔤 Google Fonts</h3>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:12px;color:#6aabf7">${selected.size > 0 ? selected.size + ' ' + t('fontsSelected') : ''}</span>
+                <button class="fsd-close" data-action="cancel">✕</button>
+              </div>
+            </div>
+            <div class="fsd-toolbar">
+              <input class="fsd-search" type="text" placeholder="${t('fontsSearchPlaceholder')}" value="${search.replace(/"/g,'&quot;')}" />
+              <select class="fsd-category">
+                ${CATS.map(c => '<option value="'+c+'"'+(c===cat?' selected':'')+'>'+CAT_LABELS[c]+'</option>').join('')}
+              </select>
+            </div>
+            <div class="fsd-body" style="min-height:350px">
+              ${loading ? '<div class="fsd-loading"><div class="fsd-spinner"></div>'+t('fontsLoading')+'</div>' :
+                filtered.length === 0 ? '<div class="fsd-empty">'+t('fontsNoResults')+'</div>' :
+                visible.map((f, i) => {
+                  const isAdded = isFontAdded(f.family);
+                  const isSel = selected.has(f.family);
+                  return '<div class="fsd-item'+(isSel?' selected':'')+'" data-idx="'+i+'" data-family="'+f.family.replace(/"/g,'&quot;')+'" style="padding:10px 12px;cursor:pointer">'+
+                    '<div style="display:flex;align-items:center;gap:10px;width:100%">'+
+                      '<div style="width:22px;height:22px;border-radius:4px;border:2px solid '+(isSel?'#4a90c4':'rgba(255,255,255,.15)')+';background:'+(isSel?'#4a90c4':'transparent')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s">'+(isSel?'<span style="color:#fff;font-size:14px">✓</span>':'')+'</div>'+
+                      '<div style="flex:1;min-width:0">'+
+                        '<div style="display:flex;align-items:baseline;gap:8px">'+
+                          '<span style="font-size:13px;font-weight:500;color:#e1e4ea">'+f.family+'</span>'+
+                          '<span class="fsd-item-category">'+f.category+'</span>'+
+                          (isAdded?'<span style="font-size:10px;color:#67c23a">✓ '+t('fontsAdded')+'</span>':'')+
+                        '</div>'+
+                        '<div class="fsd-item-sample" style="font-family:\''+f.family.replace(/'/g,"\\'")+'\','+( f.category||'sans-serif')+';font-size:18px;margin-top:4px">'+SAMPLE.substring(0,44)+'</div>'+
+                      '</div>'+
+                    '</div>'+
+                  '</div>';
+                }).join('')+
+                (filtered.length > visibleCount ? '<div class="fsd-empty" style="padding:12px;font-size:12px">↓ '+(filtered.length - visibleCount)+' more</div>' : '')
+              }
+            </div>
+            <div class="fsd-footer">
+              <span class="fsd-font-count">${loading ? t('fontsLoading') : filtered.length + ' fonts'}</span>
+              <div class="fsd-footer-actions">
+                <button class="fsd-btn fsd-btn-cancel" data-action="cancel">${t('cancel')}</button>
+                <button class="fsd-btn fsd-btn-ok" data-action="add" ${selected.size===0?'disabled':''}>${t('fontsAdd')} ${selected.size > 0 ? '('+selected.size+')' : ''}</button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const searchInput = overlay.querySelector('.fsd-search');
+        searchInput.addEventListener('input', (e) => { search = e.target.value; filterFonts(); render(); });
+        setTimeout(() => searchInput.focus(), 50);
+
+        overlay.querySelector('.fsd-category').addEventListener('change', (e) => { cat = e.target.value; filterFonts(); render(); });
+
+        overlay.querySelectorAll('.fsd-item').forEach(el => {
+          el.addEventListener('click', () => {
+            const fam = el.dataset.family;
+            if (selected.has(fam)) selected.delete(fam); else selected.add(fam);
+            render();
+          });
+        });
+
+        const body = overlay.querySelector('.fsd-body');
+        body.addEventListener('scroll', () => {
+          if (body.scrollTop + body.clientHeight >= body.scrollHeight - 60 && visibleCount < filtered.length) {
+            visibleCount += 30;
+            const newFonts = filtered.slice(visibleCount - 30, visibleCount);
+            newFonts.forEach(f => _loadFontCSS(f.family));
+            render();
+          }
+        });
+
+        overlay.querySelector('[data-action="cancel"]').addEventListener('click', close);
+        overlay.querySelector('[data-action="add"]')?.addEventListener('click', () => {
+          const fontsToAdd = allFonts.filter(f => selected.has(f.family));
+          addFonts(fontsToAdd);
+          close();
+        });
+      }
+
+      function close() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }
+
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+      document.body.appendChild(overlay);
+      render();
+
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('auth_token') || '';
+        const res = await fetch('/api/google-fonts', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) {
+          allFonts = await res.json();
+          gfAllFonts.value = allFonts;
+          gfLoaded.value = true;
+        }
+      } catch {}
+      loading = false;
+      filterFonts();
+      render();
+    }
+
+    // ── Session restore ──
+    const restoreSession = ref(settingsStore.restoreSession || false);
+    function toggleRestoreSession(e) { restoreSession.value = e.target.checked; settingsStore.save({ restoreSession: e.target.checked }); }
+
+    const showKeyboardTray = ref(settingsStore.showKeyboardTray || false);
+    function toggleKeyboardTray(e) { showKeyboardTray.value = e.target.checked; settingsStore.save({ showKeyboardTray: e.target.checked }); }
+
+    const showMagnifierTray = ref(settingsStore.showMagnifierTray || false);
+    function toggleMagnifierTray(e) { showMagnifierTray.value = e.target.checked; settingsStore.save({ showMagnifierTray: e.target.checked }); }
+
+    const showScreenshotTray = ref(settingsStore.showScreenshotTray !== false);
+    function toggleScreenshotTray(e) { showScreenshotTray.value = e.target.checked; settingsStore.save({ showScreenshotTray: e.target.checked }); }
+
+    // ── 2FA Settings ──
+    const twoFAEnabled = ref(false);
+    const twoFASetup = ref(false);
+    const twoFASecret = ref('');
+    const twoFAQRUrl = ref('');
+    const twoFACode = ref('');
+    const twoFAError = ref('');
+    const twoFADisabling = ref(false);
+    const twoFADisableCode = ref('');
+
+    async function load2FAStatus() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/2fa/status', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) { const d = await res.json(); twoFAEnabled.value = d.enabled; }
+      } catch {}
+    }
+
+    async function toggle2FA(e) {
+      if (e.target.checked) {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch('/api/2fa/setup', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
+          const data = await res.json();
+          if (res.ok) {
+            twoFASecret.value = data.secret;
+            twoFAQRUrl.value = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(data.uri);
+            twoFASetup.value = true;
+            twoFACode.value = '';
+            twoFAError.value = '';
+          } else { ElMessage.error(data.error || 'Error'); e.target.checked = false; }
+        } catch { e.target.checked = false; }
+      } else {
+        e.target.checked = true;
+        twoFADisabling.value = true;
+        twoFADisableCode.value = '';
+        twoFAError.value = '';
+      }
+    }
+
+    async function verify2FASetup() {
+      twoFAError.value = '';
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/2fa/verify-setup', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ code: twoFACode.value }) });
+        const data = await res.json();
+        if (res.ok) { twoFAEnabled.value = true; twoFASetup.value = false; ElMessage.success(t('twoFAActivated')); }
+        else { twoFAError.value = data.error || 'Error'; }
+      } catch { twoFAError.value = 'Connection error'; }
+    }
+
+    async function confirm2FADisable() {
+      twoFAError.value = '';
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/2fa/disable', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ code: twoFADisableCode.value }) });
+        const data = await res.json();
+        if (res.ok) { twoFAEnabled.value = false; twoFADisabling.value = false; ElMessage.success(t('twoFADeactivated')); }
+        else { twoFAError.value = data.error || 'Error'; }
+      } catch { twoFAError.value = 'Connection error'; }
+    }
+
+    // ── AI Settings ──
+    const aiModelCache = reactive({});
+    const _aiModelsVersion = ref(0);
+    let _aiModelsPromise = null;
+    async function aiLoadAllModels() {
+      if (_aiModelsPromise) return _aiModelsPromise;
+      _aiModelsPromise = (async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch('/api/ai/models', { headers: { 'Authorization': 'Bearer ' + token } });
+          if (res.ok) { const data = await res.json(); for (const [pid, info] of Object.entries(data)) { aiModelCache[pid] = info.models || []; } _aiModelsVersion.value++; }
+        } catch { _aiModelsPromise = null; }
+      })();
+      return _aiModelsPromise;
+    }
+    async function aiLoadModels(providerId) { if (!providerId) return; await aiLoadAllModels(); }
+    function aiGetModels(providerId) {
+      void _aiModelsVersion.value;
+      if (!providerId) return [];
+      if (!aiModelCache[providerId]) { aiLoadAllModels(); return []; }
+      return aiModelCache[providerId];
+    }
+
+    const AI_BUILTIN_PROVIDERS = [
+      { id: 'openai', name: 'OpenAI', icon: '🟢', defaultModel: 'gpt-4o', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'anthropic', name: 'Anthropic', icon: '🟠', defaultModel: 'claude-sonnet-4-20250514', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'google', name: 'Google Gemini', icon: '🔵', defaultModel: 'gemini-2.5-flash', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'mistral', name: 'Mistral', icon: '🟣', defaultModel: 'mistral-large-latest', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'deepseek', name: 'DeepSeek', icon: '🔷', defaultModel: 'deepseek-chat', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'cohere', name: 'Cohere', icon: '🟡', defaultModel: 'command-r-plus', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'groq', name: 'Groq', icon: '⚡', defaultModel: 'llama-3.3-70b-versatile', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'xai', name: 'xAI (Grok)', icon: '✖️', defaultModel: 'grok-3', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'github', name: 'GitHub Copilot', icon: '🐙', defaultModel: 'gpt-4o', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'openrouter', name: 'OpenRouter', icon: '🌐', defaultModel: 'auto', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'perplexity', name: 'Perplexity', icon: '🔍', defaultModel: 'sonar-pro', enabled: false, apiKey: '', model: '', showKey: false, custom: false },
+      { id: 'huggingface', name: 'HuggingFace', icon: '🤗', defaultModel: 'Qwen/Qwen2.5-72B-Instruct', enabled: false, apiKey: '', model: '', showKey: false, custom: false }
+    ];
+
+    const aiProviders = ref(JSON.parse(JSON.stringify(AI_BUILTIN_PROVIDERS)));
+    const aiAgents = ref([]);
+
+    function addProvider() { const id = 'custom_' + Date.now(); aiProviders.value.push({ id, name: 'Custom Provider', icon: '🔧', defaultModel: '', enabled: true, apiKey: '', model: '', showKey: false, custom: true }); }
+    function removeProvider(idx) { aiProviders.value.splice(idx, 1); }
+    function addAgent() { aiAgents.value.push({ name: '', provider: aiProviders.value[0]?.id || 'openai', model: '', systemPrompt: '', enabled: true }); }
+    function removeAgent(idx) { aiAgents.value.splice(idx, 1); }
+
+    async function saveAISettings() {
+      const providers = aiProviders.value.map(p => ({ id: p.id, name: p.name, icon: p.icon, defaultModel: p.defaultModel, enabled: p.enabled, apiKey: p.apiKey, model: p.model, custom: p.custom || false }));
+      const agents = aiAgents.value.map(a => ({ name: a.name, provider: a.provider, model: a.model, systemPrompt: a.systemPrompt, enabled: a.enabled }));
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/ai-settings', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ providers, agents }) });
+        if (res.ok) ElMessage.success(t('aiSaved'));
+        else ElMessage.error(t('error') || 'Error');
+      } catch { ElMessage.error(t('error') || 'Error'); }
+    }
+
+    async function loadAISettings() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/ai-settings', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.providers && Array.isArray(data.providers)) {
+          const merged = JSON.parse(JSON.stringify(AI_BUILTIN_PROVIDERS));
+          for (const sp of data.providers) {
+            const existing = merged.find(m => m.id === sp.id);
+            if (existing) { existing.enabled = sp.enabled; existing.apiKey = sp.apiKey || ''; existing.model = sp.model || ''; }
+            else { merged.push({ ...sp, showKey: false, custom: sp.custom || false, system: !sp.apiKey && !sp.custom }); }
+          }
+          aiProviders.value = merged;
+        }
+        if (data.agents && Array.isArray(data.agents)) { aiAgents.value = data.agents.map(a => ({ ...a, enabled: a.enabled !== false })); }
+        aiLoadAllModels();
+      } catch {}
+    }
+
+    // ── User Management ──
+    const userList = ref([]);
+    const showCreateUser = ref(false);
+    const newUser = ref({ username: '', password: '', passwordConfirm: '', displayName: '' });
+    const editingUser = ref('');
+    const editForm = ref({ displayName: '', password: '', passwordConfirm: '', avatar: '' });
+    const currentUsername = ref('');
+    const avatarOptions = ['😀','😎','🤓','🧑‍💻','👨‍💼','👩‍💼','🧑‍🎨','🧑‍🔬','🧑‍🚀','🦊','🐱','🐶','🐼','🦁','🐸','🌟','🔥','💎','🎮','🎵','🏀','⚽','🌈','🍀','🎯','🚀','🛡️','👑','🎭','🌸'];
+
+    async function loadUsers() {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/users', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) userList.value = await res.json();
+        const me = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (me.ok) { const d = await me.json(); currentUsername.value = d.user?.username || ''; }
+      } catch {}
+    }
+
+    async function createUser() {
+      const u = newUser.value;
+      if (!u.username || !u.password) return ElMessage.warning(t('usersFieldsRequired') || 'Username and password required');
+      if (u.password !== u.passwordConfirm) return ElMessage.warning(t('usersPasswordMismatch') || 'Passwords do not match');
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/users/create', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u.username, password: u.password, displayName: u.displayName }) });
+        const data = await res.json();
+        if (res.ok) { ElMessage.success(t('usersCreated') || 'User created'); showCreateUser.value = false; newUser.value = { username: '', password: '', passwordConfirm: '', displayName: '' }; await loadUsers(); }
+        else { ElMessage.error(data.error || 'Error'); }
+      } catch { ElMessage.error('Connection error'); }
+    }
+
+    function startEditUser(u) { editingUser.value = u.username; editForm.value = { displayName: u.displayName || '', password: '', passwordConfirm: '', avatar: u.avatar || '' }; }
+    function pickAvatar(username) {}
+
+    async function saveUserEdit(username) {
+      const f = editForm.value;
+      if (f.password && f.password !== f.passwordConfirm) return ElMessage.warning(t('usersPasswordMismatch') || 'Passwords do not match');
+      try {
+        const token = localStorage.getItem('token');
+        const body = { displayName: f.displayName, avatar: f.avatar };
+        if (f.password) body.password = f.password;
+        const res = await fetch('/api/users/' + encodeURIComponent(username) + '/update', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const data = await res.json();
+        if (res.ok) { ElMessage.success(t('usersSaved') || 'Saved'); editingUser.value = ''; await loadUsers(); if (username === currentUsername.value) { window.dispatchEvent(new CustomEvent('user-updated', { detail: { displayName: f.displayName, avatar: f.avatar } })); } }
+        else { ElMessage.error(data.error || 'Error'); }
+      } catch { ElMessage.error('Connection error'); }
+    }
+
+    async function deleteUser(username) {
+      if (!confirm((t('usersDeleteConfirm') || 'Delete user') + ' "' + username + '"?')) return;
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/users/' + encodeURIComponent(username) + '/delete', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        if (res.ok) { ElMessage.success(t('usersDeleted') || 'User deleted'); await loadUsers(); }
+        else { ElMessage.error(data.error || 'Error'); }
+      } catch { ElMessage.error('Connection error'); }
+    }
+
+    onMounted(() => {
+      loadCountries();
+      loadSettings();
+      loadWpList();
+      loadAISettings();
+      load2FAStatus();
+    });
+
+    // ── Network tab ──
+    const netInfo = ref({ serverPort: null, dockerManager: null, network: '', containers: [] });
+    const netLoading = ref(false);
+    async function loadNetworkInfo() {
+      netLoading.value = true;
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/docker/network', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (res.ok) netInfo.value = await res.json();
+      } catch {}
+      netLoading.value = false;
+    }
+    watch(active, (v) => { if (v === 'network') loadNetworkInfo(); if (v === 'users') loadUsers(); });
+
+    return { active, tabs, currentRows, zoomLevel, zoomOptions, darkModeVal, onZoomChange, screenInfo, currentTheme, themeList, applyTheme, countries, cities, timezones, locCountry, locCity, locTimezone, locLat, locLng, onCountryChange, onCityChange, saveLocation, selectedLocale, changeLocale, langOptions: LANG_OPTIONS, t, wpMode, wpDesktop, wpList, wpUploading, currentWpUrl, wpAuthUrl, setWpMode, setWallpaper, uploadWallpaper, deleteWallpaper, restoreSession, toggleRestoreSession, showKeyboardTray, toggleKeyboardTray, showMagnifierTray, toggleMagnifierTray, showScreenshotTray, toggleScreenshotTray, twoFAEnabled, twoFASetup, twoFASecret, twoFAQRUrl, twoFACode, twoFAError, twoFADisabling, twoFADisableCode, toggle2FA, verify2FASetup, confirm2FADisable, aiProviders, aiAgents, addProvider, removeProvider, addAgent, removeAgent, saveAISettings, aiGetModels, aiLoadModels, aiModelCache, userFonts, isFontAdded, addFont, removeFont, showGoogleFontsDialog, netInfo, netLoading, userList, showCreateUser, newUser, editingUser, editForm, currentUsername, avatarOptions, loadUsers, createUser, startEditUser, pickAvatar, saveUserEdit, deleteUser };
   }
 };
 
@@ -2581,23 +3727,89 @@ const TerminalApp = {
     const lines = ref([]);
     const inp = ref('');
     const outRef = ref(null);
-    const fs = { 'Documents': ['cv.txt', 'notes.md'], 'Downloads': ['setup.zip'], 'Desktop': ['readme.txt'] };
-    function run() {
-      const c = inp.value.trim(); if (!c) return;
-      lines.value.push({ type: 'cmd', text: c });
-      const parts = c.split(' '); const cmd = parts[0];
-      if (cmd === 'help') lines.value.push({ type: 'res', text: t('termHelpText') });
-      else if (cmd === 'ls') lines.value.push({ type: 'res', text: Object.keys(fs).join('  ') });
-      else if (cmd === 'date') lines.value.push({ type: 'res', text: new Date().toLocaleString(getIntlLocale()) });
-      else if (cmd === 'echo') lines.value.push({ type: 'res', text: parts.slice(1).join(' ') });
-      else if (cmd === 'whoami') lines.value.push({ type: 'res', text: t('termUser') });
-      else if (cmd === 'pwd') lines.value.push({ type: 'res', text: t('termPwd') });
-      else if (cmd === 'clear') { lines.value = []; }
-      else lines.value.push({ type: 'err', text: t('termNotFound') + ': ' + cmd + '. ' + t('termHelpHint') });
-      inp.value = '';
-      nextTick(() => { if (outRef.value) outRef.value.scrollTop = 9999 });
+    const inputRef = ref(null);
+    const running = ref(false);
+    const history = ref([]);
+    const histIdx = ref(-1);
+    let ws = null;
+    let cmdId = 0;
+
+    function escText(s) {
+      if (!s) return '';
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
-    return { lines, inp, outRef, run, t };
+
+    function scrollBottom() {
+      nextTick(() => { if (outRef.value) outRef.value.scrollTop = outRef.value.scrollHeight; });
+    }
+
+    function connectWS() {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const token = localStorage.getItem('token') || '';
+      ws = new WebSocket(proto + '//' + location.host + '/ws?token=' + encodeURIComponent(token));
+      ws.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.type === 'terminal-stdout' && msg.data) {
+            lines.value.push({ type: 'res', text: msg.data.text });
+            scrollBottom();
+          } else if (msg.type === 'terminal-stderr' && msg.data) {
+            lines.value.push({ type: 'err', text: msg.data.text });
+            scrollBottom();
+          } else if (msg.type === 'terminal-exit' && msg.data) {
+            if (msg.data.code !== 0 && msg.data.code !== null) {
+              lines.value.push({ type: 'err', text: '[exit ' + msg.data.code + ']' });
+            }
+            running.value = false;
+            scrollBottom();
+            nextTick(() => { if (inputRef.value) inputRef.value.focus(); });
+          }
+        } catch {}
+      };
+      ws.onclose = () => { setTimeout(connectWS, 3000); };
+      ws.onerror = () => { ws.close(); };
+    }
+
+    function run() {
+      const c = inp.value.trim();
+      if (!c) return;
+      lines.value.push({ type: 'cmd', text: c });
+      history.value.push(c);
+      histIdx.value = history.value.length;
+      inp.value = '';
+
+      if (c === 'clear') {
+        lines.value = [];
+        return;
+      }
+
+      running.value = true;
+      cmdId++;
+      if (ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ type: 'terminal-exec', data: { id: cmdId, command: c } }));
+      } else {
+        lines.value.push({ type: 'err', text: 'WebSocket not connected' });
+        running.value = false;
+      }
+      scrollBottom();
+    }
+
+    function onKey(e) {
+      if (e.key === 'Enter') { run(); }
+      else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (histIdx.value > 0) { histIdx.value--; inp.value = history.value[histIdx.value]; }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (histIdx.value < history.value.length - 1) { histIdx.value++; inp.value = history.value[histIdx.value]; }
+        else { histIdx.value = history.value.length; inp.value = ''; }
+      }
+    }
+
+    onMounted(() => { connectWS(); });
+    onUnmounted(() => { if (ws) { ws.onclose = null; ws.close(); } });
+
+    return { lines, inp, outRef, inputRef, running, run, onKey, escText, t };
   }
 };
 
@@ -2606,10 +3818,17 @@ const ClockApp = {
   template: '#ClockApp',
   setup() {
     const settingsStore = useSettingsStore();
+    const rootRef = ref(null);
     const canvasRef = ref(null);
     const digitalTime = ref('00:00:00');
     const dateStr = ref('');
     const tzLabel = ref(settingsStore.timezone || '');
+    const scale = ref(1);
+    const digitalFontSize = computed(() => Math.max(16, Math.round(36 * scale.value)));
+    const dateFontSize = computed(() => Math.max(10, Math.round(14 * scale.value)));
+    const tzFontSize = computed(() => Math.max(9, Math.round(12 * scale.value)));
+
+    const clockMarkers = ref([]);
 
     function getNow() {
       if (settingsStore.timezone) {
@@ -2619,26 +3838,118 @@ const ClockApp = {
       return new Date();
     }
 
+    function todayStr() {
+      const n = getNow();
+      return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+    }
+
+    const TIME_RE = /^(\d{1,2}):(\d{2})(?:\s*[-\u2013]\s*(\d{1,2}):(\d{2}))?\s+/;
+
+    async function loadMarkers() {
+      const markers = [];
+      const today = todayStr();
+      try {
+        const r = await fetch('/api/calendar/events', { headers: authHeaders() });
+        if (r.ok) {
+          const all = await r.json();
+          const dayEvents = all[today] || [];
+          for (const ev of dayEvents) {
+            const m = TIME_RE.exec(ev.title);
+            if (!m) continue;
+            const c = ev.color || '#667eea';
+            if (m[3] !== undefined) {
+              markers.push({ type: 'arc', h1: +m[1], m1: +m[2], h2: +m[3], m2: +m[4], color: c });
+            } else {
+              markers.push({ type: 'dot', h: +m[1], m: +m[2], color: c });
+            }
+          }
+        }
+      } catch {}
+      try {
+        const r = await fetch('/api/reminders', { headers: authHeaders() });
+        if (r.ok) {
+          const rems = await r.json();
+          for (const rem of rems) {
+            if (!rem.enabled || !rem.datetime) continue;
+            const dt = new Date(rem.datetime);
+            const remDate = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+            if (remDate !== today) continue;
+            markers.push({ type: 'dot', h: dt.getHours(), m: dt.getMinutes(), color: '#f59e0b' });
+          }
+        }
+      } catch {}
+      clockMarkers.value = markers;
+    }
+
+    function timeToAngle(h, m) {
+      return ((h % 12) / 12 + m / 720) * 2 * Math.PI - Math.PI / 2;
+    }
+
+    function updateSize() {
+      const root = rootRef.value;
+      const canvas = canvasRef.value;
+      if (!root || !canvas) return;
+      const w = root.clientWidth, h = root.clientHeight;
+      const canvasSpace = Math.min(w * 0.85, h * 0.55);
+      const sz = Math.max(80, Math.floor(canvasSpace));
+      canvas.width = sz;
+      canvas.height = sz;
+      canvas.style.width = sz + 'px';
+      canvas.style.height = sz + 'px';
+      scale.value = sz / 200;
+    }
+
     function draw() {
       const canvas = canvasRef.value;
       if (!canvas) return;
-      const ctx = canvas.getContext('2d'), cx = 100, cy = 100, r = 90;
+      const sz = canvas.width;
+      const s = sz / 200;
+      const ctx = canvas.getContext('2d'), cx = sz / 2, cy = sz / 2, r = 90 * s;
       const now = getNow();
-      ctx.clearRect(0, 0, 200, 200);
-      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 2; ctx.stroke();
-      for (let i = 0; i < 12; i++) {
-        const a = i * Math.PI / 6, x = cx + Math.cos(a - Math.PI / 2) * 78, y = cy + Math.sin(a - Math.PI / 2) * 78;
-        ctx.beginPath(); ctx.arc(x, y, 3, 0, 2 * Math.PI); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fill();
+      ctx.clearRect(0, 0, sz, sz);
+
+      for (const mk of clockMarkers.value) {
+        if (mk.type !== 'arc') continue;
+        const a1 = timeToAngle(mk.h1, mk.m1);
+        const a2 = timeToAngle(mk.h2, mk.m2);
+        ctx.beginPath();
+        ctx.arc(cx, cy, r - 6 * s, a1, a2);
+        ctx.strokeStyle = mk.color;
+        ctx.lineWidth = 5 * s;
+        ctx.globalAlpha = 0.45;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
       }
+
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 2 * s; ctx.stroke();
+
+      for (let i = 0; i < 12; i++) {
+        const a = i * Math.PI / 6, x = cx + Math.cos(a - Math.PI / 2) * 78 * s, y = cy + Math.sin(a - Math.PI / 2) * 78 * s;
+        ctx.beginPath(); ctx.arc(x, y, 3 * s, 0, 2 * Math.PI); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fill();
+      }
+
+      for (const mk of clockMarkers.value) {
+        if (mk.type !== 'dot') continue;
+        const a = timeToAngle(mk.h, mk.m);
+        const dx = cx + Math.cos(a) * (r + 4 * s);
+        const dy = cy + Math.sin(a) * (r + 4 * s);
+        ctx.beginPath(); ctx.arc(dx, dy, 4 * s, 0, 2 * Math.PI);
+        ctx.fillStyle = mk.color; ctx.globalAlpha = 0.85; ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.beginPath(); ctx.arc(dx, dy, 7 * s, 0, 2 * Math.PI);
+        ctx.fillStyle = mk.color; ctx.globalAlpha = 0.2; ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
       const hr = now.getHours() % 12, mn = now.getMinutes(), sc = now.getSeconds();
       function hand(a, len, w, color) {
-        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
-        ctx.strokeStyle = color; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * len * s, cy + Math.sin(a) * len * s);
+        ctx.strokeStyle = color; ctx.lineWidth = w * s; ctx.lineCap = 'round'; ctx.stroke();
       }
       hand((hr / 12 + mn / 720) * 2 * Math.PI - Math.PI / 2, 58, 4, 'rgba(255,255,255,.9)');
       hand((mn / 60 + sc / 3600) * 2 * Math.PI - Math.PI / 2, 75, 3, 'rgba(255,255,255,.85)');
       hand(sc / 60 * 2 * Math.PI - Math.PI / 2, 82, 1.5, '#a78bfa');
-      ctx.beginPath(); ctx.arc(cx, cy, 5, 0, 2 * Math.PI); ctx.fillStyle = '#a78bfa'; ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, 5 * s, 0, 2 * Math.PI); ctx.fillStyle = '#a78bfa'; ctx.fill();
 
       digitalTime.value = [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
       dateStr.value = now.toLocaleDateString(getIntlLocale(), { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -2649,14 +3960,88 @@ const ClockApp = {
     });
 
     let timer = null;
+    let ro = null;
     onMounted(() => {
+      updateSize();
+      loadMarkers();
       draw();
       timer = setInterval(draw, 1000);
+      ro = new ResizeObserver(() => { updateSize(); draw(); });
+      if (rootRef.value) ro.observe(rootRef.value);
     });
-    onUnmounted(() => clearInterval(timer));
+    onUnmounted(() => { clearInterval(timer); if (ro) ro.disconnect(); });
 
-    return { canvasRef, digitalTime, dateStr, tzLabel };
+    return { rootRef, canvasRef, digitalTime, dateStr, tzLabel, digitalFontSize, dateFontSize, tzFontSize };
   }
+};
+
+/* ── Holiday Templates ── */
+const HOLIDAY_TEMPLATES = {
+  TR: { flag: '🇹🇷', name: 'Türkiye', holidays: {
+    '01-01': 'Yılbaşı', '04-23': 'Ulusal Egemenlik ve Çocuk Bayramı', '05-01': 'Emek ve Dayanışma Günü',
+    '05-19': 'Atatürk\'ü Anma Gençlik ve Spor Bayramı', '07-15': 'Demokrasi ve Millî Birlik Günü',
+    '08-30': 'Zafer Bayramı', '10-29': 'Cumhuriyet Bayramı'
+  }},
+  US: { flag: '🇺🇸', name: 'United States', holidays: {
+    '01-01': 'New Year\'s Day', '01-20': 'Martin Luther King Jr. Day', '02-17': 'Presidents\' Day',
+    '05-26': 'Memorial Day', '06-19': 'Juneteenth', '07-04': 'Independence Day',
+    '09-01': 'Labor Day', '10-13': 'Columbus Day', '11-11': 'Veterans Day',
+    '11-27': 'Thanksgiving Day', '12-25': 'Christmas Day'
+  }},
+  DE: { flag: '🇩🇪', name: 'Deutschland', holidays: {
+    '01-01': 'Neujahrstag', '05-01': 'Tag der Arbeit', '10-03': 'Tag der Deutschen Einheit',
+    '12-25': 'Erster Weihnachtstag', '12-26': 'Zweiter Weihnachtstag'
+  }},
+  FR: { flag: '🇫🇷', name: 'France', holidays: {
+    '01-01': 'Jour de l\'An', '05-01': 'Fête du Travail', '05-08': 'Victoire 1945',
+    '07-14': 'Fête Nationale', '08-15': 'Assomption', '11-01': 'Toussaint',
+    '11-11': 'Armistice 1918', '12-25': 'Noël'
+  }},
+  GB: { flag: '🇬🇧', name: 'United Kingdom', holidays: {
+    '01-01': 'New Year\'s Day', '03-17': 'St. Patrick\'s Day', '12-25': 'Christmas Day',
+    '12-26': 'Boxing Day'
+  }},
+  JP: { flag: '🇯🇵', name: '日本', holidays: {
+    '01-01': '元日', '01-13': '成人の日', '02-11': '建国記念の日', '02-23': '天皇誕生日',
+    '03-20': '春分の日', '04-29': '昭和の日', '05-03': '憲法記念日', '05-04': 'みどりの日',
+    '05-05': 'こどもの日', '07-21': '海の日', '08-11': '山の日', '09-15': '敬老の日',
+    '09-22': '秋分の日', '10-13': 'スポーツの日', '11-03': '文化の日', '11-23': '勤労感謝の日'
+  }},
+  CN: { flag: '🇨🇳', name: '中国', holidays: {
+    '01-01': '元旦', '02-10': '春节', '02-11': '春节', '02-12': '春节',
+    '04-04': '清明节', '05-01': '劳动节', '06-10': '端午节',
+    '09-17': '中秋节', '10-01': '国庆节', '10-02': '国庆节', '10-03': '国庆节'
+  }},
+  IT: { flag: '🇮🇹', name: 'Italia', holidays: {
+    '01-01': 'Capodanno', '01-06': 'Epifania', '04-25': 'Festa della Liberazione',
+    '05-01': 'Festa dei Lavoratori', '06-02': 'Festa della Repubblica',
+    '08-15': 'Ferragosto', '11-01': 'Ognissanti', '12-08': 'Immacolata Concezione',
+    '12-25': 'Natale', '12-26': 'Santo Stefano'
+  }},
+  ES: { flag: '🇪🇸', name: 'España', holidays: {
+    '01-01': 'Año Nuevo', '01-06': 'Epifanía del Señor', '05-01': 'Fiesta del Trabajo',
+    '08-15': 'Asunción de la Virgen', '10-12': 'Fiesta Nacional de España',
+    '11-01': 'Todos los Santos', '12-06': 'Día de la Constitución',
+    '12-08': 'Inmaculada Concepción', '12-25': 'Navidad'
+  }},
+  RU: { flag: '🇷🇺', name: 'Россия', holidays: {
+    '01-01': 'Новый год', '01-07': 'Рождество Христово', '02-23': 'День защитника Отечества',
+    '03-08': 'Международный женский день', '05-01': 'Праздник Весны и Труда',
+    '05-09': 'День Победы', '06-12': 'День России', '11-04': 'День народного единства'
+  }},
+  BR: { flag: '🇧🇷', name: 'Brasil', holidays: {
+    '01-01': 'Ano Novo', '04-21': 'Tiradentes', '05-01': 'Dia do Trabalhador',
+    '09-07': 'Independência do Brasil', '10-12': 'Nossa Senhora Aparecida',
+    '11-02': 'Finados', '11-15': 'Proclamação da República', '12-25': 'Natal'
+  }},
+  KR: { flag: '🇰🇷', name: '대한민국', holidays: {
+    '01-01': '신정', '03-01': '삼일절', '05-05': '어린이날', '06-06': '현충일',
+    '08-15': '광복절', '10-03': '개천절', '10-09': '한글날', '12-25': '성탄절'
+  }},
+  IN: { flag: '🇮🇳', name: 'India', holidays: {
+    '01-26': 'Republic Day', '08-15': 'Independence Day', '10-02': 'Gandhi Jayanti',
+    '01-14': 'Makar Sankranti', '03-29': 'Holi', '11-01': 'Diwali', '12-25': 'Christmas'
+  }}
 };
 
 /* ── CalendarApp ── */
@@ -2667,10 +4052,15 @@ const CalendarApp = {
     const month = ref(new Date().getMonth());
     const showDialog = ref(false);
     const selectedDate = ref('');
+    const selectedDateEnd = ref('');
     const newTitle = ref('');
     const newColor = ref('');
+    const newStartTime = ref('');
+    const newEndTime = ref('');
     const events = ref({});
-    const colorMap = { '': '#409eff', green: '#67c23a', orange: '#e6a23c', red: '#f56c6c', purple: '#6f5ef7' };
+    const showBirthdays = ref(true);
+    const birthdayContacts = ref([]);
+    const colorMap = { '': '#409eff', green: '#67c23a', orange: '#e6a23c', red: '#f56c6c', purple: '#6f5ef7', birthday: '#e91e63' };
     const dayNames = computed(() => {
       const loc = getIntlLocale();
       return Array.from({length:7}, (_,i) => new Intl.DateTimeFormat(loc, {weekday:'short'}).format(new Date(2024,0,1+i)));
@@ -2685,6 +4075,21 @@ const CalendarApp = {
         const res = await fetch('/api/calendar/events', { headers: authHeaders() });
         if (res.ok) events.value = await res.json();
       } catch {}
+    }
+
+    async function loadBirthdayContacts() {
+      try {
+        const res = await fetch('/api/contacts', { headers: authHeaders() });
+        if (res.ok) birthdayContacts.value = (await res.json()).filter(c => c.birthday);
+      } catch {}
+    }
+
+    function getBirthdayEvents(dateStr) {
+      if (!showBirthdays.value) return [];
+      const mmdd = dateStr.slice(5);
+      return birthdayContacts.value
+        .filter(c => c.birthday && c.birthday.slice(5) === mmdd)
+        .map(c => ({ title: '🎂 ' + c.first_name + ' ' + (c.last_name || ''), color: 'birthday', isBirthday: true }));
     }
 
     const monthLabel = computed(() => monthNames.value[month.value] + ' ' + year.value);
@@ -2721,18 +4126,45 @@ const CalendarApp = {
       return weeks;
     });
 
-    function getEvents(dateStr) { return events.value[dateStr] || []; }
+    function getEvents(dateStr) { return [...(events.value[dateStr] || []), ...getBirthdayEvents(dateStr)]; }
+
+    function isInRange(dateStr) {
+      if (!selectedDate.value || !selectedDateEnd.value) return false;
+      return dateStr >= selectedDate.value && dateStr <= selectedDateEnd.value;
+    }
+
+    const rangeDayCount = computed(() => {
+      if (!selectedDate.value || !selectedDateEnd.value || selectedDateEnd.value <= selectedDate.value) return 1;
+      const d1 = new Date(selectedDate.value), d2 = new Date(selectedDateEnd.value);
+      return Math.round((d2 - d1) / 86400000) + 1;
+    });
 
     const dialogDate = computed(() => {
       if (!selectedDate.value) return '';
       const [y, m, d] = selectedDate.value.split('-');
-      return parseInt(d) + ' ' + monthNames.value[parseInt(m)-1] + ' ' + y;
+      let label = parseInt(d) + ' ' + monthNames.value[parseInt(m)-1] + ' ' + y;
+      if (selectedDateEnd.value && selectedDateEnd.value > selectedDate.value) {
+        const [y2, m2, d2] = selectedDateEnd.value.split('-');
+        label += ' – ' + parseInt(d2) + ' ' + monthNames.value[parseInt(m2)-1] + ' ' + y2;
+      }
+      return label;
     });
 
-    const selectedEvents = computed(() => events.value[selectedDate.value] || []);
+    const selectedEvents = computed(() => [...(events.value[selectedDate.value] || []), ...getBirthdayEvents(selectedDate.value)]);
 
     function selectDate(dateStr) {
+      if (showDialog.value && selectedDate.value && !selectedDateEnd.value) {
+        if (dateStr > selectedDate.value) {
+          selectedDateEnd.value = dateStr;
+          return;
+        } else if (dateStr < selectedDate.value) {
+          selectedDateEnd.value = selectedDate.value;
+          selectedDate.value = dateStr;
+          return;
+        }
+      }
       selectedDate.value = dateStr;
+      selectedDateEnd.value = '';
       showDialog.value = true;
     }
 
@@ -2744,38 +4176,349 @@ const CalendarApp = {
 
     async function addEvent() {
       if (!newTitle.value.trim()) return;
+      let title = '';
+      if (newStartTime.value) {
+        title += newStartTime.value;
+        if (newEndTime.value) title += '-' + newEndTime.value;
+        title += ' ';
+      }
+      title += newTitle.value.trim();
+
+      const dates = [];
+      const start = new Date(selectedDate.value);
+      const end = (selectedDateEnd.value && selectedDateEnd.value > selectedDate.value) ? new Date(selectedDateEnd.value) : start;
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        dates.push([d.getFullYear(), String(d.getMonth()+1).padStart(2,'0'), String(d.getDate()).padStart(2,'0')].join('-'));
+      }
+
       try {
-        const res = await fetch('/api/calendar/events', {
-          method: 'POST',
-          headers: authHeaders(),
-          body: JSON.stringify({ date: selectedDate.value, title: newTitle.value.trim(), color: newColor.value })
-        });
-        if (res.ok) {
-          const { id } = await res.json();
-          if (!events.value[selectedDate.value]) events.value[selectedDate.value] = [];
-          events.value[selectedDate.value].push({ id, title: newTitle.value.trim(), color: newColor.value });
-          newTitle.value = '';
-          newColor.value = '';
+        for (const date of dates) {
+          const res = await fetch('/api/calendar/events', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ date, title, color: newColor.value }) });
+          if (res.ok) {
+            const { id } = await res.json();
+            if (!events.value[date]) events.value[date] = [];
+            events.value[date].push({ id, title, color: newColor.value, holiday: false });
+          }
         }
+        newTitle.value = '';
+        newColor.value = '';
+        newStartTime.value = '';
+        newEndTime.value = '';
+        selectedDateEnd.value = '';
       } catch {}
     }
 
     async function removeEvent(index) {
       const ev = events.value[selectedDate.value][index];
-      events.value[selectedDate.value].splice(index, 1);
-      if (events.value[selectedDate.value].length === 0) delete events.value[selectedDate.value];
-      if (ev && ev.id) {
-        try { await fetch('/api/calendar/events/' + ev.id, { method: 'DELETE', headers: authHeaders() }); } catch {}
-      }
+      if (!ev) return;
+      try {
+        await fetch('/api/calendar/events/' + ev.id, { method: 'DELETE', headers: authHeaders() });
+        events.value[selectedDate.value].splice(index, 1);
+        if (events.value[selectedDate.value].length === 0) delete events.value[selectedDate.value];
+      } catch {}
     }
 
     function prevMonth() { if (month.value === 0) { month.value = 11; year.value--; } else { month.value--; } }
     function nextMonth() { if (month.value === 11) { month.value = 0; year.value++; } else { month.value++; } }
     function goToday() { const n = new Date(); year.value = n.getFullYear(); month.value = n.getMonth(); }
 
-    onMounted(() => loadEvents());
+    /* ── Holiday Templates ── */
+    const showHolidayDialog = ref(false);
+    const holidayCountries = Object.entries(HOLIDAY_TEMPLATES).map(([code, v]) => ({ code, ...v }));
 
-    return { year, month, showDialog, selectedDate, newTitle, newColor, events, colorMap, dayNames, monthLabel, calendarGrid, getEvents, dialogDate, selectedEvents, selectDate, openAdd, addEvent, removeEvent, prevMonth, nextMonth, goToday, t };
+    async function addHolidays(countryCode) {
+      const tmpl = HOLIDAY_TEMPLATES[countryCode];
+      if (!tmpl) return;
+      const holidays = Object.entries(tmpl.holidays).map(([mmdd, title]) => ({ mmdd, title }));
+      try {
+        const res = await fetch('/api/calendar/holidays', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ holidays, year: year.value }) });
+        if (res.ok) {
+          const { added } = await res.json();
+          await loadEvents();
+          showHolidayDialog.value = false;
+          if (added > 0 && window.ElementPlus && window.ElementPlus.ElMessage) {
+            window.ElementPlus.ElMessage.success(tmpl.flag + ' ' + added + ' ' + t('calHolidaysAdded'));
+          }
+        }
+      } catch {}
+    }
+
+    async function clearHolidays() {
+      try {
+        await fetch('/api/calendar/holidays', { method: 'DELETE', headers: authHeaders() });
+        await loadEvents();
+        showHolidayDialog.value = false;
+      } catch {}
+    }
+
+    onMounted(() => { loadEvents(); loadBirthdayContacts(); });
+
+    return { year, month, showDialog, selectedDate, selectedDateEnd, newTitle, newColor, newStartTime, newEndTime, events, colorMap, dayNames, monthLabel, calendarGrid, getEvents, isInRange, rangeDayCount, dialogDate, selectedEvents, selectDate, openAdd, addEvent, removeEvent, prevMonth, nextMonth, goToday, showHolidayDialog, holidayCountries, addHolidays, clearHolidays, showBirthdays, t };
+  }
+};
+
+/* ── ContactsApp ── */
+const ContactsApp = {
+  template: '#ContactsApp',
+  props: [],
+  emits: [],
+  setup() {
+    const contacts = ref([]);
+    const searchQuery = ref('');
+    const view = ref('list');
+    const selected = ref(null);
+    const form = reactive({ id:null, first_name:'', last_name:'', email:'', phone:'', mobile:'', company:'', job_title:'', address:'', city:'', country:'', website:'', birthday:'', notes:'', favorite:false, avatar_color:'' });
+
+    const filteredContacts = computed(() => {
+      if (!searchQuery.value.trim()) return contacts.value;
+      const q = searchQuery.value.trim().toLowerCase();
+      return contacts.value.filter(c =>
+        (c.first_name+' '+c.last_name).toLowerCase().includes(q) ||
+        (c.email||'').toLowerCase().includes(q) ||
+        (c.phone||'').toLowerCase().includes(q) ||
+        (c.mobile||'').toLowerCase().includes(q) ||
+        (c.company||'').toLowerCase().includes(q)
+      );
+    });
+
+    function contactInitials(c) {
+      const f = (c.first_name||'').charAt(0);
+      const l = (c.last_name||'').charAt(0);
+      return (f + l) || '?';
+    }
+
+    async function loadContacts() {
+      try {
+        const res = await fetch('/api/contacts', { headers: authHeaders() });
+        if (res.ok) contacts.value = await res.json();
+      } catch {}
+    }
+
+    function doSearch() {}
+
+    function openAdd() {
+      Object.assign(form, { id:null, first_name:'', last_name:'', email:'', phone:'', mobile:'', company:'', job_title:'', address:'', city:'', country:'', website:'', birthday:'', notes:'', favorite:false, avatar_color:'' });
+      view.value = 'form';
+    }
+
+    function openDetail(c) { selected.value = { ...c }; view.value = 'detail'; }
+
+    function openEdit(c) {
+      Object.assign(form, { id:c.id, first_name:c.first_name, last_name:c.last_name||'', email:c.email||'', phone:c.phone||'', mobile:c.mobile||'', company:c.company||'', job_title:c.job_title||'', address:c.address||'', city:c.city||'', country:c.country||'', website:c.website||'', birthday:c.birthday||'', notes:c.notes||'', favorite:!!c.favorite, avatar_color:c.avatar_color||'' });
+      view.value = 'form';
+    }
+
+    function cancelForm() {
+      if (form.id && selected.value) view.value = 'detail';
+      else view.value = 'list';
+    }
+
+    async function saveContact() {
+      if (!form.first_name.trim()) return;
+      try {
+        if (form.id) {
+          await fetch('/api/contacts/' + form.id, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(form) });
+        } else {
+          await fetch('/api/contacts', { method: 'POST', headers: authHeaders(), body: JSON.stringify(form) });
+        }
+        await loadContacts();
+        if (form.id) {
+          const updated = contacts.value.find(c => c.id === form.id);
+          if (updated) selected.value = { ...updated };
+          view.value = 'detail';
+        } else {
+          view.value = 'list';
+        }
+      } catch {}
+    }
+
+    async function confirmDelete(c) {
+      if (!confirm(t('contactsDeleteConfirm'))) return;
+      try {
+        await fetch('/api/contacts/' + c.id, { method: 'DELETE', headers: authHeaders() });
+        await loadContacts();
+        view.value = 'list';
+      } catch {}
+    }
+
+    async function toggleFav(c) {
+      c.favorite = !c.favorite;
+      try {
+        await fetch('/api/contacts/' + c.id, { method: 'PUT', headers: authHeaders(), body: JSON.stringify({ favorite: c.favorite }) });
+        await loadContacts();
+        const updated = contacts.value.find(x => x.id === c.id);
+        if (updated) selected.value = { ...updated };
+      } catch {}
+    }
+
+    onMounted(() => loadContacts());
+
+    return { contacts, searchQuery, view, selected, form, filteredContacts, contactInitials, doSearch, openAdd, openDetail, openEdit, cancelForm, saveContact, confirmDelete, toggleFav, t };
+  }
+};
+
+/* ── ScreenKeyboardApp ── */
+const ScreenKeyboardApp = {
+  template: '#ScreenKeyboardApp',
+  setup() {
+    const settingsStore = useSettingsStore();
+    const KBD_LAYOUTS = {
+      tr: {
+        id:'tr', name:'Türkçe', flag:'🇹🇷',
+        rows: [
+          [{char:'q'},{char:'w'},{char:'e',sub:'é'},{char:'r'},{char:'t'},{char:'y'},{char:'u',sub:'ü'},{char:'ı',sub:'i'},{char:'o',sub:'ö'},{char:'p'},{char:'ğ'},{char:'ü'}],
+          [{char:'a',sub:'â'},{char:'s',sub:'ş'},{char:'d'},{char:'f'},{char:'g'},{char:'h'},{char:'j'},{char:'k'},{char:'l'},{char:'ş'},{char:'i',sub:'î'}],
+          [{char:'z'},{char:'x'},{char:'c',sub:'ç'},{char:'v'},{char:'b'},{char:'n'},{char:'m'},{char:'ö'},{char:'ç'}]
+        ],
+        shift: [
+          [{char:'Q'},{char:'W'},{char:'E'},{char:'R'},{char:'T'},{char:'Y'},{char:'U'},{char:'I'},{char:'O'},{char:'P'},{char:'Ğ'},{char:'Ü'}],
+          [{char:'A'},{char:'S'},{char:'D'},{char:'F'},{char:'G'},{char:'H'},{char:'J'},{char:'K'},{char:'L'},{char:'Ş'},{char:'İ'}],
+          [{char:'Z'},{char:'X'},{char:'C'},{char:'V'},{char:'B'},{char:'N'},{char:'M'},{char:'Ö'},{char:'Ç'}]
+        ]
+      },
+      en: {
+        id:'en', name:'English', flag:'🇬🇧',
+        rows: [
+          [{char:'q'},{char:'w'},{char:'e'},{char:'r'},{char:'t'},{char:'y'},{char:'u'},{char:'i'},{char:'o'},{char:'p'}],
+          [{char:'a'},{char:'s'},{char:'d'},{char:'f'},{char:'g'},{char:'h'},{char:'j'},{char:'k'},{char:'l'}],
+          [{char:'z'},{char:'x'},{char:'c'},{char:'v'},{char:'b'},{char:'n'},{char:'m'}]
+        ],
+        shift: [
+          [{char:'Q'},{char:'W'},{char:'E'},{char:'R'},{char:'T'},{char:'Y'},{char:'U'},{char:'I'},{char:'O'},{char:'P'}],
+          [{char:'A'},{char:'S'},{char:'D'},{char:'F'},{char:'G'},{char:'H'},{char:'J'},{char:'K'},{char:'L'}],
+          [{char:'Z'},{char:'X'},{char:'C'},{char:'V'},{char:'B'},{char:'N'},{char:'M'}]
+        ]
+      },
+      de: {
+        id:'de', name:'Deutsch', flag:'🇩🇪',
+        rows: [
+          [{char:'q'},{char:'w'},{char:'e'},{char:'r'},{char:'t'},{char:'z'},{char:'u'},{char:'i'},{char:'o'},{char:'p'},{char:'ü'}],
+          [{char:'a'},{char:'s'},{char:'d'},{char:'f'},{char:'g'},{char:'h'},{char:'j'},{char:'k'},{char:'l'},{char:'ö'},{char:'ä'}],
+          [{char:'y'},{char:'x'},{char:'c'},{char:'v'},{char:'b'},{char:'n'},{char:'m'},{char:'ß'}]
+        ],
+        shift: [
+          [{char:'Q'},{char:'W'},{char:'E'},{char:'R'},{char:'T'},{char:'Z'},{char:'U'},{char:'I'},{char:'O'},{char:'P'},{char:'Ü'}],
+          [{char:'A'},{char:'S'},{char:'D'},{char:'F'},{char:'G'},{char:'H'},{char:'J'},{char:'K'},{char:'L'},{char:'Ö'},{char:'Ä'}],
+          [{char:'Y'},{char:'X'},{char:'C'},{char:'V'},{char:'B'},{char:'N'},{char:'M'},{char:'ẞ'}]
+        ]
+      },
+      fr: {
+        id:'fr', name:'Français', flag:'🇫🇷',
+        rows: [
+          [{char:'a',sub:'à'},{char:'z'},{char:'e',sub:'é'},{char:'r'},{char:'t'},{char:'y'},{char:'u',sub:'ù'},{char:'i',sub:'î'},{char:'o',sub:'ô'},{char:'p'}],
+          [{char:'q'},{char:'s'},{char:'d'},{char:'f'},{char:'g'},{char:'h'},{char:'j'},{char:'k'},{char:'l'},{char:'m'}],
+          [{char:'w'},{char:'x'},{char:'c',sub:'ç'},{char:'v'},{char:'b'},{char:'n'},{char:'ê'},{char:'ë'}]
+        ],
+        shift: [
+          [{char:'A'},{char:'Z'},{char:'E'},{char:'R'},{char:'T'},{char:'Y'},{char:'U'},{char:'I'},{char:'O'},{char:'P'}],
+          [{char:'Q'},{char:'S'},{char:'D'},{char:'F'},{char:'G'},{char:'H'},{char:'J'},{char:'K'},{char:'L'},{char:'M'}],
+          [{char:'W'},{char:'X'},{char:'C'},{char:'V'},{char:'B'},{char:'N'},{char:'Ê'},{char:'Ë'}]
+        ]
+      },
+      es: {
+        id:'es', name:'Español', flag:'🇪🇸',
+        rows: [
+          [{char:'q'},{char:'w'},{char:'e',sub:'é'},{char:'r'},{char:'t'},{char:'y'},{char:'u',sub:'ú'},{char:'i',sub:'í'},{char:'o',sub:'ó'},{char:'p'}],
+          [{char:'a',sub:'á'},{char:'s'},{char:'d'},{char:'f'},{char:'g'},{char:'h'},{char:'j'},{char:'k'},{char:'l'},{char:'ñ'}],
+          [{char:'z'},{char:'x'},{char:'c'},{char:'v'},{char:'b'},{char:'n'},{char:'m'},{char:'¿'},{char:'¡'}]
+        ],
+        shift: [
+          [{char:'Q'},{char:'W'},{char:'E'},{char:'R'},{char:'T'},{char:'Y'},{char:'U'},{char:'I'},{char:'O'},{char:'P'}],
+          [{char:'A'},{char:'S'},{char:'D'},{char:'F'},{char:'G'},{char:'H'},{char:'J'},{char:'K'},{char:'L'},{char:'Ñ'}],
+          [{char:'Z'},{char:'X'},{char:'C'},{char:'V'},{char:'B'},{char:'N'},{char:'M'},{char:'?'},{char:'!'}]
+        ]
+      },
+      ru: {
+        id:'ru', name:'Русский', flag:'🇷🇺',
+        rows: [
+          [{char:'й'},{char:'ц'},{char:'у'},{char:'к'},{char:'е'},{char:'н'},{char:'г'},{char:'ш'},{char:'щ'},{char:'з'},{char:'х'},{char:'ъ'}],
+          [{char:'ф'},{char:'ы'},{char:'в'},{char:'а'},{char:'п'},{char:'р'},{char:'о'},{char:'л'},{char:'д'},{char:'ж'},{char:'э'}],
+          [{char:'я'},{char:'ч'},{char:'с'},{char:'м'},{char:'и'},{char:'т'},{char:'ь'},{char:'б'},{char:'ю'}]
+        ],
+        shift: [
+          [{char:'Й'},{char:'Ц'},{char:'У'},{char:'К'},{char:'Е'},{char:'Н'},{char:'Г'},{char:'Ш'},{char:'Щ'},{char:'З'},{char:'Х'},{char:'Ъ'}],
+          [{char:'Ф'},{char:'Ы'},{char:'В'},{char:'А'},{char:'П'},{char:'Р'},{char:'О'},{char:'Л'},{char:'Д'},{char:'Ж'},{char:'Э'}],
+          [{char:'Я'},{char:'Ч'},{char:'С'},{char:'М'},{char:'И'},{char:'Т'},{char:'Ь'},{char:'Б'},{char:'Ю'}]
+        ]
+      },
+      ar: {
+        id:'ar', name:'العربية', flag:'🇸🇦',
+        rows: [
+          [{char:'ض'},{char:'ص'},{char:'ث'},{char:'ق'},{char:'ف'},{char:'غ'},{char:'ع'},{char:'ه'},{char:'خ'},{char:'ح'},{char:'ج'}],
+          [{char:'ش'},{char:'س'},{char:'ي'},{char:'ب'},{char:'ل'},{char:'ا'},{char:'ت'},{char:'ن'},{char:'م'},{char:'ك'},{char:'ة'}],
+          [{char:'ئ'},{char:'ء'},{char:'ؤ'},{char:'ر'},{char:'لا'},{char:'ى'},{char:'ة'},{char:'و'},{char:'ز'},{char:'ظ'}]
+        ],
+        shift: [
+          [{char:'َ'},{char:'ً'},{char:'ُ'},{char:'ٌ'},{char:'لإ'},{char:'إ'},{char:'\''},{char:'÷'},{char:'×'},{char:'؛'},{char:'<'}],
+          [{char:'ِ'},{char:'ٍ'},{char:'\]'},{char:'\['},{char:'لأ'},{char:'أ'},{char:'ـ'},{char:'،'},{char:'/'},{char:':'},{char:'\"'}],
+          [{char:'~'},{char:'ْ'},{char:'}'},{char:'{'},{char:'لآ'},{char:'آ'},{char:'\''},{char:','},{char:'.'},{char:'؟'}]
+        ]
+      },
+      ja: {
+        id:'ja', name:'日本語', flag:'🇯🇵',
+        rows: [
+          [{char:'あ'},{char:'い'},{char:'う'},{char:'え'},{char:'お'},{char:'か'},{char:'き'},{char:'く'},{char:'け'},{char:'こ'}],
+          [{char:'さ'},{char:'し'},{char:'す'},{char:'せ'},{char:'そ'},{char:'た'},{char:'ち'},{char:'つ'},{char:'て'},{char:'と'}],
+          [{char:'な'},{char:'に'},{char:'ぬ'},{char:'ね'},{char:'の'},{char:'は'},{char:'ひ'},{char:'ふ'},{char:'へ'},{char:'ほ'}]
+        ],
+        shift: [
+          [{char:'ま'},{char:'み'},{char:'む'},{char:'め'},{char:'も'},{char:'や'},{char:'ゆ'},{char:'よ'},{char:'ら'},{char:'り'}],
+          [{char:'る'},{char:'れ'},{char:'ろ'},{char:'わ'},{char:'を'},{char:'ん'},{char:'が'},{char:'ぎ'},{char:'ぐ'},{char:'げ'}],
+          [{char:'ご'},{char:'ざ'},{char:'じ'},{char:'ず'},{char:'ぜ'},{char:'ぞ'},{char:'だ'},{char:'ぢ'},{char:'づ'},{char:'で'}]
+        ]
+      },
+      zh: {
+        id:'zh', name:'拼音', flag:'🇨🇳',
+        rows: [
+          [{char:'q'},{char:'w'},{char:'e'},{char:'r'},{char:'t'},{char:'y'},{char:'u'},{char:'i'},{char:'o'},{char:'p'}],
+          [{char:'a'},{char:'s'},{char:'d'},{char:'f'},{char:'g'},{char:'h'},{char:'j'},{char:'k'},{char:'l'}],
+          [{char:'z'},{char:'x'},{char:'c'},{char:'v'},{char:'b'},{char:'n'},{char:'m'}]
+        ],
+        shift: [
+          [{char:'Q'},{char:'W'},{char:'E'},{char:'R'},{char:'T'},{char:'Y'},{char:'U'},{char:'I'},{char:'O'},{char:'P'}],
+          [{char:'A'},{char:'S'},{char:'D'},{char:'F'},{char:'G'},{char:'H'},{char:'J'},{char:'K'},{char:'L'}],
+          [{char:'Z'},{char:'X'},{char:'C'},{char:'V'},{char:'B'},{char:'N'},{char:'M'}]
+        ]
+      }
+    };
+
+    const NUMPAD_KEYS = [
+      [{char:'1'},{char:'2'},{char:'3'},{char:'+'},{char:'-'}],
+      [{char:'4'},{char:'5'},{char:'6'},{char:'*'},{char:'/'}],
+      [{char:'7'},{char:'8'},{char:'9'},{char:'('},{char:')'}],
+      [{char:'0'},{char:'.'},{char:','},{char:'='},{char:'%'}],
+      [{char:'!'},{char:'@'},{char:'#'},{char:'$'},{char:'&'}],
+      [{char:'\''},{char:'\"'},{char:';'},{char:':'},{char:'?'}]
+    ];
+
+    const layout = ref(settingsStore.locale || 'en');
+    const shifted = ref(false);
+    const capsOn = ref(false);
+    const numpad = ref(false);
+    const typedText = ref('');
+
+    const layouts = computed(() => Object.values(KBD_LAYOUTS));
+    const currentKeys = computed(() => {
+      const l = KBD_LAYOUTS[layout.value] || KBD_LAYOUTS.en;
+      return (shifted.value || capsOn.value) ? l.shift : l.rows;
+    });
+    const numpadKeys = computed(() => NUMPAD_KEYS);
+
+    function displayKey(k) { return k.char; }
+    function typeKey(k) { typedText.value += k.char; if (shifted.value && !capsOn.value) shifted.value = false; }
+    function typeSpace() { typedText.value += ' '; }
+    function typeEnter() { typedText.value += '\n'; }
+    function typeTab() { typedText.value += '\t'; }
+    function backspace() { typedText.value = typedText.value.slice(0, -1); }
+    function toggleShift() { shifted.value = !shifted.value; }
+    function toggleCaps() { capsOn.value = !capsOn.value; shifted.value = false; }
+    function clearText() { typedText.value = ''; }
+    async function copyText() { if (!typedText.value) return; try { await navigator.clipboard.writeText(typedText.value); } catch {} }
+    function onLayoutChange() { shifted.value = false; capsOn.value = false; }
+
+    window.addEventListener('locale-changed', (e) => { if (KBD_LAYOUTS[e.detail]) layout.value = e.detail; });
+
+    return { layout, layouts, shifted, capsOn, numpad, typedText, currentKeys, numpadKeys, displayKey, typeKey, typeSpace, typeEnter, typeTab, backspace, toggleShift, toggleCaps, clearText, copyText, onLayoutChange, t };
   }
 };
 
@@ -2823,11 +4566,16 @@ const NotificationsApp = {
       newText.value = '';
     }
 
-    function openAction(n) {
+    async function markRead(n) {
+      if (n.read) return;
       n.read = true;
       if (n.id) {
-        fetch('/api/notifications/' + n.id + '/read', { method: 'PATCH', headers: authHeaders() }).catch(() => {});
+        try { await fetch('/api/notifications/' + n.id + '/read', { method: 'PATCH', headers: authHeaders() }); } catch {}
       }
+    }
+
+    function openAction(n) {
+      markRead(n);
       if (n.action && n.action.app) {
         window.dispatchEvent(new CustomEvent('open-app-action', { detail: n.action }));
       }
@@ -2860,7 +4608,7 @@ const NotificationsApp = {
 
     onMounted(() => loadNotifications());
 
-    return { notifications, newText, unreadCount, markAllRead, remove, addNotif, openAction, formatTime, t };
+    return { notifications, newText, unreadCount, markAllRead, remove, addNotif, markRead, openAction, formatTime, t };
   }
 };
 
@@ -3328,6 +5076,8 @@ const componentMap = {
   notifications: NotificationsApp,
   appstore: AppStoreApp,
   browser: BrowserApp,
+  screenkeyboard: ScreenKeyboardApp,
+  contacts: ContactsApp,
   aichat: AIChatApp
 };
 
