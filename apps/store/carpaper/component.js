@@ -158,6 +158,9 @@
   function getLocale() { try { return localStorage.getItem('sys_locale') || 'tr'; } catch { return 'tr'; } }
   function authHeaders() { return { 'Authorization': 'Bearer ' + (localStorage.getItem('auth_token') || ''), 'Content-Type': 'application/json' }; }
 
+  const ElMessage = (window.ElementPlus && window.ElementPlus.ElMessage) || { success(){}, error(){}, warning(){}, info(){} };
+  const ElMessageBox = (window.ElementPlus && window.ElementPlus.ElMessageBox) || { confirm: () => Promise.resolve() };
+
   return {
     setup() {
       const locale = ref(getLocale());
@@ -330,20 +333,20 @@
           } else {
             await api('POST', '/vehicles', vehicleForm);
           }
-          window.ElMessage.success(L('saved'));
+          ElMessage.success(L('saved'));
           showVehicleDialog.value = false;
           await loadVehicles();
-        } catch { window.ElMessage.error(L('error')); }
+        } catch { ElMessage.error(L('error')); }
       }
 
       async function deleteVehicle(id) {
-        try { await window.ElMessageBox.confirm(L('confirmDelete')); } catch { return; }
+        try { await ElMessageBox.confirm(L('confirmDelete')); } catch { return; }
         try {
           await api('DELETE', '/vehicles/' + id);
-          window.ElMessage.success(L('deleted'));
+          ElMessage.success(L('deleted'));
           if (selectedVehicleId.value === id) selectedVehicleId.value = null;
           await loadAll();
-        } catch { window.ElMessage.error(L('error')); }
+        } catch { ElMessage.error(L('error')); }
       }
 
       /* ── RECORD CRUD ── */
@@ -392,7 +395,7 @@
 
       async function saveRecord() {
         const body = buildRecordBody();
-        if (!body.vehicle_id) return window.ElMessage.error(L('error'));
+        if (!body.vehicle_id) return ElMessage.error(L('error'));
         try {
           const ep = getEndpoint(recordDialogType.value);
           if (editingRecord.value) {
@@ -400,19 +403,19 @@
           } else {
             await api('POST', ep, body);
           }
-          window.ElMessage.success(L('saved'));
+          ElMessage.success(L('saved'));
           showRecordDialog.value = false;
           await loadAll();
-        } catch { window.ElMessage.error(L('error')); }
+        } catch { ElMessage.error(L('error')); }
       }
 
       async function deleteRecord(type, id) {
-        try { await window.ElMessageBox.confirm(L('confirmDelete')); } catch { return; }
+        try { await ElMessageBox.confirm(L('confirmDelete')); } catch { return; }
         try {
           await api('DELETE', getEndpoint(type) + '/' + id);
-          window.ElMessage.success(L('deleted'));
+          ElMessage.success(L('deleted'));
           await loadAll();
-        } catch { window.ElMessage.error(L('error')); }
+        } catch { ElMessage.error(L('error')); }
       }
 
       /* ── INTEGRATIONS ── */
@@ -424,8 +427,8 @@
             method: 'POST', headers: authHeaders(),
             body: JSON.stringify({ type:'expense', amount: record.amount, category_id: null, description: desc.trim(), date: record.date, paid: true, recurring:'', notify: false, show_calendar: false })
           });
-          window.ElMessage.success(L('exportedBudget'));
-        } catch { window.ElMessage.error(L('error')); }
+          ElMessage.success(L('exportedBudget'));
+        } catch { ElMessage.error(L('error')); }
       }
 
       async function setReminder(title, date, repeat) {
@@ -434,8 +437,8 @@
             method: 'POST', headers: authHeaders(),
             body: JSON.stringify({ title, note: '', datetime: date + 'T09:00', repeat: repeat || 'yearly', sound: true })
           });
-          window.ElMessage.success(L('reminderSet'));
-        } catch { window.ElMessage.error(L('error')); }
+          ElMessage.success(L('reminderSet'));
+        } catch { ElMessage.error(L('error')); }
       }
 
       async function addToCalendar(title, date, color) {
@@ -444,8 +447,8 @@
             method: 'POST', headers: authHeaders(),
             body: JSON.stringify({ date, title, color: color || '#3498db' })
           });
-          window.ElMessage.success(L('calendarAdded'));
-        } catch { window.ElMessage.error(L('error')); }
+          ElMessage.success(L('calendarAdded'));
+        } catch { ElMessage.error(L('error')); }
       }
 
       function setupInspectionReminder(record) {
