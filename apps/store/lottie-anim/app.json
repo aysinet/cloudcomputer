@@ -1,0 +1,26 @@
+{
+  "id": "lottie-anim",
+  "name": "Lottie Animasyon",
+  "icon": "🎬",
+  "color": "linear-gradient(135deg, #00b4d8, #6c63ff)",
+  "type": "internal",
+  "size": { "w": 900, "h": 640 },
+  "global": false,
+  "description": "CanvasKit WASM ile Lottie animasyon oynatıcı — JSON dosyası yükle, oynat, durdur, hız ayarla ve GIF/PNG dışa aktar",
+  "category": "creative",
+  "lang": {
+    "tr": { "name": "Lottie Animasyon", "description": "CanvasKit WASM ile Lottie animasyon oynatıcı — JSON dosyası yükle, oynat, durdur, hız ayarla ve GIF/PNG dışa aktar" },
+    "en": { "name": "Lottie Animation", "description": "Lottie animation player with CanvasKit WASM — load JSON files, play, pause, adjust speed and export PNG" },
+    "de": { "name": "Lottie-Animation", "description": "Lottie-Animationsplayer mit CanvasKit WASM — JSON-Dateien laden, abspielen, pausieren, Geschwindigkeit anpassen und PNG exportieren" },
+    "fr": { "name": "Animation Lottie", "description": "Lecteur d'animation Lottie avec CanvasKit WASM — charger JSON, lire, pause, vitesse et export PNG" },
+    "es": { "name": "Animación Lottie", "description": "Reproductor de animación Lottie con CanvasKit WASM — cargar JSON, reproducir, pausar, ajustar velocidad y exportar PNG" },
+    "ru": { "name": "Lottie Анимация", "description": "Lottie анимационный плеер на CanvasKit WASM — загрузка JSON, воспроизведение, пауза, скорость и экспорт PNG" },
+    "zh": { "name": "Lottie 动画", "description": "使用 CanvasKit WASM 的 Lottie 动画播放器 — 加载 JSON、播放、暂停、调速和导出 PNG" },
+    "ja": { "name": "Lottieアニメーション", "description": "CanvasKit WASMによるLottieアニメーションプレーヤー — JSON読み込み、再生、一時停止、速度調整、PNG出力" },
+    "it": { "name": "Animazione Lottie", "description": "Lettore di animazioni Lottie con CanvasKit WASM — carica JSON, riproduci, pausa, regola velocità ed esporta PNG" },
+    "ar": { "name": "رسوم Lottie", "description": "مشغّل رسوم Lottie بـ CanvasKit WASM — تحميل JSON وتشغيل وإيقاف وضبط السرعة وتصدير PNG" },
+    "ko": { "name": "Lottie 애니메이션", "description": "CanvasKit WASM Lottie 애니메이션 플레이어 — JSON 로드, 재생, 일시정지, 속도 조절 및 PNG 내보내기" },
+    "hi": { "name": "Lottie एनिमेशन", "description": "CanvasKit WASM के साथ Lottie एनिमेशन प्लेयर — JSON लोड करें, चलाएं, रोकें, गति समायोजित करें और PNG निर्यात करें" },
+    "pt": { "name": "Animação Lottie", "description": "Player de animação Lottie com CanvasKit WASM — carregar JSON, reproduzir, pausar, ajustar velocidade e exportar PNG" }
+  }
+}

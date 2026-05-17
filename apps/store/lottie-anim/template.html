@@ -1,0 +1,84 @@
+<div class="la-root">
+  <!-- Toolbar -->
+  <div class="la-toolbar">
+    <div class="la-toolbar-left">
+      <div class="la-dropdown">
+        <button class="la-btn" @click.stop="showOpenMenu = !showOpenMenu; showSaveMenu = false">📂 {{L('openFile')}} ▾</button>
+        <div class="la-dropdown-menu" v-if="showOpenMenu" @click.stop>
+          <div class="la-dropdown-item" @click="openLocalFile(); showOpenMenu=false">💻 {{L('openLocal')}}</div>
+          <div class="la-dropdown-item" @click="openServerFile(); showOpenMenu=false">☁️ {{L('openServer')}}</div>
+          <div class="la-dropdown-item" @click="loadFromUrl(); showOpenMenu=false">🔗 {{L('fromUrl')}}</div>
+        </div>
+      </div>
+      <div class="la-dropdown">
+        <button class="la-btn" @click.stop="showSaveMenu = !showSaveMenu; showOpenMenu = false" :disabled="!animLoaded">💾 {{L('save')}} ▾</button>
+        <div class="la-dropdown-menu" v-if="showSaveMenu" @click.stop>
+          <div class="la-dropdown-item" @click="saveJsonLocal(); showSaveMenu=false">💻 {{L('saveJsonLocal')}}</div>
+          <div class="la-dropdown-item" @click="saveJsonServer(); showSaveMenu=false">☁️ {{L('saveJsonServer')}}</div>
+          <div class="la-dropdown-item" @click="savePngLocal(); showSaveMenu=false">🖼️ {{L('savePngLocal')}}</div>
+          <div class="la-dropdown-item" @click="savePngServer(); showSaveMenu=false">☁️ {{L('savePngServer')}}</div>
+        </div>
+      </div>
+      <button class="la-btn" @click="loadSample" :title="L('sample')">🎁 {{L('sample')}}</button>
+    </div>
+    <div class="la-toolbar-center">
+      <span class="la-file-name" v-if="fileName">{{ fileName }}</span>
+      <span class="la-file-name la-muted" v-else>{{L('noFile')}}</span>
+    </div>
+    <div class="la-toolbar-right">
+      <button class="la-btn la-btn-sm" @click="quickSave" :disabled="!animLoaded" :title="L('quickSave')" v-if="currentFilePath">💾</button>
+    </div>
+  </div>
+
+  <!-- Loading / Error -->
+  <div class="la-status" v-if="loading">
+    <div class="la-spinner"></div>
+    <span>{{L('loading')}}</span>
+  </div>
+  <div class="la-status la-error" v-else-if="errorMsg">
+    <span>⚠️ {{ errorMsg }}</span>
+  </div>
+
+  <!-- Canvas -->
+  <div class="la-canvas-wrap" ref="canvasWrap" :style="{ background: bgColor }">
+    <div class="la-anim-container" ref="animContainer"></div>
+    <!-- Drop overlay -->
+    <div class="la-drop-overlay" v-if="dragging"
+         @dragover.prevent @dragenter.prevent
+         @dragleave="dragging=false" @drop.prevent="onDrop">
+      <div class="la-drop-text">📥 {{L('dropHere')}}</div>
+    </div>
+    <!-- Empty state -->
+    <div class="la-empty" v-if="!animLoaded && !loading && !errorMsg"
+         @dragover.prevent="dragging=true" @dragenter.prevent="dragging=true">
+      <div class="la-empty-icon">🎬</div>
+      <div class="la-empty-title">{{L('emptyTitle')}}</div>
+      <div class="la-empty-sub">{{L('emptySub')}}</div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="la-controls" v-if="animLoaded">
+    <div class="la-controls-row">
+      <button class="la-btn la-btn-icon" @click="togglePlay">{{ playing ? '⏸️' : '▶️' }}</button>
+      <button class="la-btn la-btn-icon" @click="stop">⏹️</button>
+      <input type="range" class="la-seek" min="0" max="1" step="0.001"
+             :value="seekValue" @input="onSeek($event)">
+      <span class="la-time">{{ currentTimeStr }} / {{ durationStr }}</span>
+    </div>
+    <div class="la-controls-row la-controls-secondary">
+      <label class="la-label">{{L('speed')}}:</label>
+      <button v-for="s in speeds" :key="s"
+              class="la-btn la-btn-sm" :class="{ 'la-btn-active': speed === s }"
+              @click="speed = s">{{ s }}x</button>
+      <label class="la-label la-ml">{{L('bgColor')}}:</label>
+      <input type="color" class="la-color-pick" v-model="bgColor">
+      <label class="la-check-label la-ml">
+        <input type="checkbox" v-model="loop"> {{L('loop')}}
+      </label>
+    </div>
+  </div>
+
+  <!-- Hidden file input -->
+  <input type="file" ref="fileInput" accept=".json,.lottie" style="display:none" @change="onFileSelected">
+</div>
