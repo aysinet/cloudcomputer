@@ -680,26 +680,67 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',sans-ser
 </script>
 
 <script type="text/template" id="FilemanApp">
-  <div class="fm-root">
+  <div class="fm-root" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
     <div class="fm-toolbar">
-      <button class="fm-tb-btn">←</button>
-      <button class="fm-tb-btn">→</button>
-      <button class="fm-tb-btn">↑</button>
-      <input class="fm-path" :value="currentPath" readonly>
-      <button class="fm-tb-btn">🔍</button>
+      <button class="fm-tb-btn" @click="goBack" :disabled="!canGoBack" :title="t('fmBack')">←</button>
+      <button class="fm-tb-btn" @click="goForward" :disabled="!canGoForward" :title="t('fmForward')">→</button>
+      <button class="fm-tb-btn" @click="goUp" :disabled="!currentDir" :title="t('fmUp')">↑</button>
+      <button class="fm-tb-btn" @click="refresh" :title="t('fmRefresh')">🔄</button>
+      <div class="fm-breadcrumb">
+        <span v-for="(seg, i) in breadcrumbs" :key="i" class="fm-bc-item" @click="navigateTo(seg.path)">
+          <span v-if="i > 0" class="fm-bc-sep">/</span>{{seg.name}}
+        </span>
+      </div>
+      <div class="fm-tb-right">
+        <button class="fm-tb-btn" @click="triggerUpload" :title="t('fmUpload')">📤</button>
+        <button class="fm-tb-btn" @click="createFolder" :title="t('fmNewFolder')">📁+</button>
+        <button class="fm-tb-btn" :class="{active: viewMode==='list'}" @click="viewMode='list'">☰</button>
+        <button class="fm-tb-btn" :class="{active: viewMode==='grid'}" @click="viewMode='grid'">⊞</button>
+      </div>
     </div>
     <div class="fm-main">
       <div class="fm-sidebar">
-        <div v-for="loc in locations" class="fm-side-item" :class="{active:loc.id===currentLoc}" @click="navigate(loc)">{{loc.icon}} {{loc.name}}</div>
+        <div v-for="loc in locations" :key="loc.id" class="fm-side-item" :class="{active: loc.path===currentDir}" @click="navigateTo(loc.path)">{{loc.icon}} {{loc.name}}</div>
       </div>
-      <div class="fm-files">
-        <div v-for="f in files" class="fm-file" :class="{sel:selected===f.name}" @click="selected=f.name" @dblclick="open(f)">
-          <span class="ico">{{f.icon}}</span>
-          <span class="name">{{f.name}}</span>
+      <div class="fm-content" :class="{'fm-dragover': dragOver}">
+        <div v-if="loading" class="fm-loading">{{t('loading')}}</div>
+        <div v-else-if="!files.length" class="fm-empty">📂 {{t('fmEmpty')}}</div>
+        <div v-else-if="viewMode==='grid'" class="fm-files fm-grid">
+          <div v-for="f in files" :key="f.path" class="fm-file" :class="{sel: isSelected(f)}"
+            @click.exact="selectFile(f)" @click.ctrl="toggleSelect(f)" @dblclick="openItem(f)" @contextmenu.prevent="showCtx($event, f)">
+            <span class="ico">{{fileIcon(f)}}</span>
+            <span class="name" v-if="renaming===f.path"><input class="fm-rename-input" :value="f.name" @blur="doRename($event, f)" @keydown.enter="doRename($event, f)" @keydown.esc="renaming=null" ref="renameInput" @vue:mounted="focusRename"></span>
+            <span class="name" v-else>{{f.name}}</span>
+          </div>
+        </div>
+        <div v-else class="fm-files fm-list">
+          <div class="fm-list-header">
+            <span class="fm-lh-name" @click="sortBy('name')">{{t('fmName')}} {{sortCol==='name'?(sortAsc?'▲':'▼'):''}}</span>
+            <span class="fm-lh-size" @click="sortBy('size')">{{t('fmSize')}} {{sortCol==='size'?(sortAsc?'▲':'▼'):''}}</span>
+            <span class="fm-lh-date" @click="sortBy('modified')">{{t('fmModified')}} {{sortCol==='modified'?(sortAsc?'▲':'▼'):''}}</span>
+          </div>
+          <div v-for="f in files" :key="f.path" class="fm-list-row" :class="{sel: isSelected(f)}"
+            @click.exact="selectFile(f)" @click.ctrl="toggleSelect(f)" @dblclick="openItem(f)" @contextmenu.prevent="showCtx($event, f)">
+            <span class="fm-lr-name">
+              <span class="ico">{{fileIcon(f)}}</span>
+              <span v-if="renaming===f.path"><input class="fm-rename-input" :value="f.name" @blur="doRename($event, f)" @keydown.enter="doRename($event, f)" @keydown.esc="renaming=null" ref="renameInput" @vue:mounted="focusRename"></span>
+              <span v-else>{{f.name}}</span>
+            </span>
+            <span class="fm-lr-size">{{f.isDir ? '--' : formatSize(f.size)}}</span>
+            <span class="fm-lr-date">{{formatDate(f.modified)}}</span>
+          </div>
         </div>
       </div>
     </div>
-    <div class="fm-status">{{files.length}} {{t('fmItems')}}{{selected?' · '+selected+' '+t('fmSelected'):''}}</div>
+    <div class="fm-status">{{files.length}} {{t('fmItems')}}{{selectedFiles.length?' · '+selectedFiles.length+' '+t('fmSelected'):''}}</div>
+    <input type="file" ref="uploadInput" multiple style="display:none" @change="uploadFiles">
+    <div v-if="ctxMenu" class="fm-ctx-menu" :style="{left: ctxMenu.x+'px', top: ctxMenu.y+'px'}">
+      <div class="fm-ctx-item" @click="ctxOpen">📂 {{t('fmOpen')}}</div>
+      <div class="fm-ctx-item" @click="ctxDownload" v-if="ctxMenu.file && !ctxMenu.file.isDir">⬇️ {{t('fmDownload')}}</div>
+      <div class="fm-ctx-sep"></div>
+      <div class="fm-ctx-item" @click="ctxRename">✏️ {{t('fmRename')}}</div>
+      <div class="fm-ctx-item fm-ctx-danger" @click="ctxDelete">🗑️ {{t('fmDelete')}}</div>
+    </div>
   </div>
 </script>
 
@@ -2827,9 +2868,13 @@ Object.assign(I18N.zh, { reminderDismiss:'关闭' });
 Object.assign(I18N.ja, { reminderDismiss:'閉じる' });
 Object.assign(I18N.it, { reminderDismiss:'Chiudi' });
 Object.assign(I18N.ar, { reminderDismiss:'إغلاق' });
+Object.assign(I18N.ar, { fmDesktop:'سطح المكتب', fmDocuments:'المستندات', fmDownloads:'التنزيلات', fmPictures:'الصور', fmMusic:'الموسيقى', fmHome:'الرئيسية', fmItems:'عنصر', fmSelected:'محدد', fmEmpty:'هذا المجلد فارغ', fmName:'الاسم', fmSize:'الحجم', fmModified:'تاريخ التعديل', fmBack:'رجوع', fmForward:'تقدم', fmUp:'أعلى', fmRefresh:'تحديث', fmUpload:'رفع', fmNewFolder:'مجلد جديد', fmDownload:'تحميل', fmDelete:'حذف', fmRename:'إعادة تسمية', fmOpen:'فتح', fmConfirmDelete:'هل أنت متأكد من الحذف؟', fmNewFolderName:'اسم المجلد', fmUploadSuccess:'ملف(ات) تم رفعها' });
 Object.assign(I18N.ko, { reminderDismiss:'닫기' });
+Object.assign(I18N.ko, { fmDesktop:'바탕 화면', fmDocuments:'문서', fmDownloads:'다운로드', fmPictures:'사진', fmMusic:'음악', fmHome:'홈', fmItems:'항목', fmSelected:'선택됨', fmEmpty:'이 폴더는 비어 있습니다', fmName:'이름', fmSize:'크기', fmModified:'수정됨', fmBack:'뒤로', fmForward:'앞으로', fmUp:'위로', fmRefresh:'새로고침', fmUpload:'업로드', fmNewFolder:'새 폴더', fmDownload:'다운로드', fmDelete:'삭제', fmRename:'이름 변경', fmOpen:'열기', fmConfirmDelete:'삭제하시겠습니까?', fmNewFolderName:'폴더 이름', fmUploadSuccess:'파일이 업로드됨' });
 Object.assign(I18N.hi, { reminderDismiss:'बंद करें' });
+Object.assign(I18N.hi, { fmDesktop:'डेस्कटॉप', fmDocuments:'दस्तावेज़', fmDownloads:'डाउनलोड', fmPictures:'चित्र', fmMusic:'संगीत', fmHome:'होम', fmItems:'आइटम', fmSelected:'चयनित', fmEmpty:'यह फ़ोल्डर खाली है', fmName:'नाम', fmSize:'आकार', fmModified:'संशोधित', fmBack:'पीछे', fmForward:'आगे', fmUp:'ऊपर', fmRefresh:'रिफ्रेश', fmUpload:'अपलोड', fmNewFolder:'नया फ़ोल्डर', fmDownload:'डाउनलोड', fmDelete:'हटाएं', fmRename:'नाम बदलें', fmOpen:'खोलें', fmConfirmDelete:'क्या आप हटाना चाहते हैं?', fmNewFolderName:'फ़ोल्डर का नाम', fmUploadSuccess:'फ़ाइल अपलोड हुई' });
 Object.assign(I18N.pt, { reminderDismiss:'Dispensar' });
+Object.assign(I18N.pt, { fmDesktop:'Área de Trabalho', fmDocuments:'Documentos', fmDownloads:'Downloads', fmPictures:'Imagens', fmMusic:'Música', fmHome:'Início', fmItems:'itens', fmSelected:'selecionado(s)', fmEmpty:'Esta pasta está vazia', fmName:'Nome', fmSize:'Tamanho', fmModified:'Modificado', fmBack:'Voltar', fmForward:'Avançar', fmUp:'Acima', fmRefresh:'Atualizar', fmUpload:'Enviar', fmNewFolder:'Nova pasta', fmDownload:'Baixar', fmDelete:'Excluir', fmRename:'Renomear', fmOpen:'Abrir', fmConfirmDelete:'Tem certeza que deseja excluir?', fmNewFolderName:'Nome da pasta', fmUploadSuccess:'arquivo(s) enviado(s)' });
 
 // ── Screenshot i18n keys ──
 Object.assign(I18N.tr, { screenshot:'Ekran Görüntüsü', ssSelectRegion:'Bölge seçin', ssCopied:'Panoya kopyalandı', ssOpenPaint:'Paint\'te açıldı', ssCancelled:'İptal edildi' });
@@ -2875,8 +2920,10 @@ Object.assign(I18N.tr, {
   todoTitle:'Görev Listesi', todoCompleted:'tamamlandı', todoPlaceholder:'Yeni görev ekle...', todoAdd:'Ekle', todoEmpty:'Henüz görev yok 🎉',
   todoGroups:'Gruplar', todoAddGroup:'Grup Ekle', todoGroupName:'Grup adı...', todoAll:'Tümü', todoDeleteGroup:'Grubu Sil',
   todoPriorityLow:'Düşük', todoPriorityMed:'Orta', todoPriorityHigh:'Yüksek',
-  fmDesktop:'Masaüstü', fmDocuments:'Belgeler', fmDownloads:'İndirmeler', fmPictures:'Resimler', fmMusic:'Müzik', fmTrash:'Çöp Kutusu',
-  fmItems:'öğe', fmSelected:'seçili', fmOpening:'açılıyor...', fmPathPrefix:'C:\\Kullanıcılar\\Kullanıcı\\',
+  fmDesktop:'Masaüstü', fmDocuments:'Belgeler', fmDownloads:'İndirmeler', fmPictures:'Resimler', fmMusic:'Müzik', fmHome:'Ana Dizin',
+  fmItems:'öğe', fmSelected:'seçili', fmEmpty:'Bu klasör boş', fmName:'Ad', fmSize:'Boyut', fmModified:'Değiştirilme',
+  fmBack:'Geri', fmForward:'İleri', fmUp:'Yukarı', fmRefresh:'Yenile', fmUpload:'Yükle', fmNewFolder:'Yeni Klasör',
+  fmDownload:'İndir', fmDelete:'Sil', fmRename:'Yeniden Adlandır', fmOpen:'Aç', fmConfirmDelete:'Silmek istediğinize emin misiniz?', fmNewFolderName:'Klasör adı', fmUploadSuccess:'dosya yüklendi',
   weatherNow:'Şu an', weatherHumidity:'Nem', weatherWind:'Rüzgar', weatherFeelsLike:'Hissedilen', weatherHourly:'Saatlik Tahmin', weatherUnknown:'Bilinmiyor',
   calToday:'Bugün', calAddEvent:'+ Etkinlik', calEventPlaceholder:'Etkinlik adı...', calAdd:'Ekle', calNoEvents:'Bu tarihte etkinlik yok', calMore:'daha',
   calBlue:'Mavi', calGreen:'Yeşil', calOrange:'Turuncu', calRed:'Kırmızı', calPurple:'Mor',
@@ -2904,8 +2951,10 @@ Object.assign(I18N.en, {
   todoTitle:'To-Do List', todoCompleted:'completed', todoPlaceholder:'Add new task...', todoAdd:'Add', todoEmpty:'No tasks yet 🎉',
   todoGroups:'Groups', todoAddGroup:'Add Group', todoGroupName:'Group name...', todoAll:'All', todoDeleteGroup:'Delete Group',
   todoPriorityLow:'Low', todoPriorityMed:'Medium', todoPriorityHigh:'High',
-  fmDesktop:'Desktop', fmDocuments:'Documents', fmDownloads:'Downloads', fmPictures:'Pictures', fmMusic:'Music', fmTrash:'Trash',
-  fmItems:'items', fmSelected:'selected', fmOpening:'opening...', fmPathPrefix:'C:\\Users\\User\\',
+  fmDesktop:'Desktop', fmDocuments:'Documents', fmDownloads:'Downloads', fmPictures:'Pictures', fmMusic:'Music', fmHome:'Home',
+  fmItems:'items', fmSelected:'selected', fmEmpty:'This folder is empty', fmName:'Name', fmSize:'Size', fmModified:'Modified',
+  fmBack:'Back', fmForward:'Forward', fmUp:'Up', fmRefresh:'Refresh', fmUpload:'Upload', fmNewFolder:'New Folder',
+  fmDownload:'Download', fmDelete:'Delete', fmRename:'Rename', fmOpen:'Open', fmConfirmDelete:'Are you sure you want to delete?', fmNewFolderName:'Folder name', fmUploadSuccess:'file(s) uploaded',
   weatherNow:'Now', weatherHumidity:'Humidity', weatherWind:'Wind', weatherFeelsLike:'Feels Like', weatherHourly:'Hourly Forecast', weatherUnknown:'Unknown',
   calToday:'Today', calAddEvent:'+ Event', calEventPlaceholder:'Event name...', calAdd:'Add', calNoEvents:'No events on this date', calMore:'more',
   calBlue:'Blue', calGreen:'Green', calOrange:'Orange', calRed:'Red', calPurple:'Purple',
@@ -2931,8 +2980,10 @@ Object.assign(I18N.de, {
   todoTitle:'Aufgabenliste', todoCompleted:'erledigt', todoPlaceholder:'Neue Aufgabe...', todoAdd:'Hinzufügen', todoEmpty:'Noch keine Aufgaben 🎉',
   todoGroups:'Gruppen', todoAddGroup:'Gruppe hinzufügen', todoGroupName:'Gruppenname...', todoAll:'Alle', todoDeleteGroup:'Gruppe löschen',
   todoPriorityLow:'Niedrig', todoPriorityMed:'Mittel', todoPriorityHigh:'Hoch',
-  fmDesktop:'Desktop', fmDocuments:'Dokumente', fmDownloads:'Downloads', fmPictures:'Bilder', fmMusic:'Musik', fmTrash:'Papierkorb',
-  fmItems:'Elemente', fmSelected:'ausgewählt', fmOpening:'wird geöffnet...', fmPathPrefix:'C:\\Benutzer\\Benutzer\\',
+  fmDesktop:'Desktop', fmDocuments:'Dokumente', fmDownloads:'Downloads', fmPictures:'Bilder', fmMusic:'Musik', fmHome:'Startseite',
+  fmItems:'Elemente', fmSelected:'ausgewählt', fmEmpty:'Dieser Ordner ist leer', fmName:'Name', fmSize:'Größe', fmModified:'Geändert',
+  fmBack:'Zurück', fmForward:'Vor', fmUp:'Hoch', fmRefresh:'Aktualisieren', fmUpload:'Hochladen', fmNewFolder:'Neuer Ordner',
+  fmDownload:'Herunterladen', fmDelete:'Löschen', fmRename:'Umbenennen', fmOpen:'Öffnen', fmConfirmDelete:'Möchten Sie wirklich löschen?', fmNewFolderName:'Ordnername', fmUploadSuccess:'Datei(en) hochgeladen',
   weatherNow:'Jetzt', weatherHumidity:'Feuchtigkeit', weatherWind:'Wind', weatherFeelsLike:'Gefühlt', weatherHourly:'Stündliche Vorhersage', weatherUnknown:'Unbekannt',
   calToday:'Heute', calAddEvent:'+ Ereignis', calEventPlaceholder:'Ereignisname...', calAdd:'Hinzufügen', calNoEvents:'Keine Ereignisse', calMore:'mehr',
   calBlue:'Blau', calGreen:'Grün', calOrange:'Orange', calRed:'Rot', calPurple:'Lila',
@@ -2958,8 +3009,10 @@ Object.assign(I18N.fr, {
   todoTitle:'Liste de tâches', todoCompleted:'terminées', todoPlaceholder:'Ajouter une tâche...', todoAdd:'Ajouter', todoEmpty:'Aucune tâche 🎉',
   todoGroups:'Groupes', todoAddGroup:'Ajouter un groupe', todoGroupName:'Nom du groupe...', todoAll:'Tous', todoDeleteGroup:'Supprimer le groupe',
   todoPriorityLow:'Faible', todoPriorityMed:'Moyen', todoPriorityHigh:'Élevé',
-  fmDesktop:'Bureau', fmDocuments:'Documents', fmDownloads:'Téléchargements', fmPictures:'Images', fmMusic:'Musique', fmTrash:'Corbeille',
-  fmItems:'éléments', fmSelected:'sélectionné', fmOpening:'ouverture...', fmPathPrefix:'C:\\Utilisateurs\\Utilisateur\\',
+  fmDesktop:'Bureau', fmDocuments:'Documents', fmDownloads:'Téléchargements', fmPictures:'Images', fmMusic:'Musique', fmHome:'Accueil',
+  fmItems:'éléments', fmSelected:'sélectionné', fmEmpty:'Ce dossier est vide', fmName:'Nom', fmSize:'Taille', fmModified:'Modifié',
+  fmBack:'Retour', fmForward:'Avancer', fmUp:'Haut', fmRefresh:'Actualiser', fmUpload:'Téléverser', fmNewFolder:'Nouveau dossier',
+  fmDownload:'Télécharger', fmDelete:'Supprimer', fmRename:'Renommer', fmOpen:'Ouvrir', fmConfirmDelete:'Voulez-vous vraiment supprimer ?', fmNewFolderName:'Nom du dossier', fmUploadSuccess:'fichier(s) téléversé(s)',
   weatherNow:'Maintenant', weatherHumidity:'Humidité', weatherWind:'Vent', weatherFeelsLike:'Ressenti', weatherHourly:'Prévisions horaires', weatherUnknown:'Inconnu',
   calToday:'Aujourd\'hui', calAddEvent:'+ Événement', calEventPlaceholder:'Nom de l\'événement...', calAdd:'Ajouter', calNoEvents:'Aucun événement', calMore:'de plus',
   calBlue:'Bleu', calGreen:'Vert', calOrange:'Orange', calRed:'Rouge', calPurple:'Violet',
@@ -2985,8 +3038,10 @@ Object.assign(I18N.es, {
   todoTitle:'Lista de tareas', todoCompleted:'completadas', todoPlaceholder:'Añadir tarea...', todoAdd:'Añadir', todoEmpty:'Sin tareas aún 🎉',
   todoGroups:'Grupos', todoAddGroup:'Añadir grupo', todoGroupName:'Nombre del grupo...', todoAll:'Todos', todoDeleteGroup:'Eliminar grupo',
   todoPriorityLow:'Baja', todoPriorityMed:'Media', todoPriorityHigh:'Alta',
-  fmDesktop:'Escritorio', fmDocuments:'Documentos', fmDownloads:'Descargas', fmPictures:'Imágenes', fmMusic:'Música', fmTrash:'Papelera',
-  fmItems:'elementos', fmSelected:'seleccionado', fmOpening:'abriendo...', fmPathPrefix:'C:\\Usuarios\\Usuario\\',
+  fmDesktop:'Escritorio', fmDocuments:'Documentos', fmDownloads:'Descargas', fmPictures:'Imágenes', fmMusic:'Música', fmHome:'Inicio',
+  fmItems:'elementos', fmSelected:'seleccionado', fmEmpty:'Esta carpeta está vacía', fmName:'Nombre', fmSize:'Tamaño', fmModified:'Modificado',
+  fmBack:'Atrás', fmForward:'Adelante', fmUp:'Arriba', fmRefresh:'Actualizar', fmUpload:'Subir', fmNewFolder:'Nueva carpeta',
+  fmDownload:'Descargar', fmDelete:'Eliminar', fmRename:'Renombrar', fmOpen:'Abrir', fmConfirmDelete:'¿Está seguro de que desea eliminar?', fmNewFolderName:'Nombre de carpeta', fmUploadSuccess:'archivo(s) subido(s)',
   weatherNow:'Ahora', weatherHumidity:'Humedad', weatherWind:'Viento', weatherFeelsLike:'Sensación', weatherHourly:'Pronóstico por hora', weatherUnknown:'Desconocido',
   calToday:'Hoy', calAddEvent:'+ Evento', calEventPlaceholder:'Nombre del evento...', calAdd:'Añadir', calNoEvents:'Sin eventos en esta fecha', calMore:'más',
   calBlue:'Azul', calGreen:'Verde', calOrange:'Naranja', calRed:'Rojo', calPurple:'Morado',
@@ -3012,8 +3067,10 @@ Object.assign(I18N.ru, {
   todoTitle:'Список задач', todoCompleted:'выполнено', todoPlaceholder:'Добавить задачу...', todoAdd:'Добавить', todoEmpty:'Задач пока нет 🎉',
   todoGroups:'Группы', todoAddGroup:'Добавить группу', todoGroupName:'Название группы...', todoAll:'Все', todoDeleteGroup:'Удалить группу',
   todoPriorityLow:'Низкий', todoPriorityMed:'Средний', todoPriorityHigh:'Высокий',
-  fmDesktop:'Рабочий стол', fmDocuments:'Документы', fmDownloads:'Загрузки', fmPictures:'Изображения', fmMusic:'Музыка', fmTrash:'Корзина',
-  fmItems:'элементов', fmSelected:'выбрано', fmOpening:'открывается...', fmPathPrefix:'C:\\Пользователи\\Пользователь\\',
+  fmDesktop:'Рабочий стол', fmDocuments:'Документы', fmDownloads:'Загрузки', fmPictures:'Изображения', fmMusic:'Музыка', fmHome:'Домой',
+  fmItems:'элементов', fmSelected:'выбрано', fmEmpty:'Эта папка пуста', fmName:'Имя', fmSize:'Размер', fmModified:'Изменён',
+  fmBack:'Назад', fmForward:'Вперёд', fmUp:'Вверх', fmRefresh:'Обновить', fmUpload:'Загрузить', fmNewFolder:'Новая папка',
+  fmDownload:'Скачать', fmDelete:'Удалить', fmRename:'Переименовать', fmOpen:'Открыть', fmConfirmDelete:'Вы уверены, что хотите удалить?', fmNewFolderName:'Имя папки', fmUploadSuccess:'файл(ов) загружено',
   weatherNow:'Сейчас', weatherHumidity:'Влажность', weatherWind:'Ветер', weatherFeelsLike:'Ощущается', weatherHourly:'Почасовой прогноз', weatherUnknown:'Неизвестно',
   calToday:'Сегодня', calAddEvent:'+ Событие', calEventPlaceholder:'Название события...', calAdd:'Добавить', calNoEvents:'Нет событий на дату', calMore:'ещё',
   calBlue:'Синий', calGreen:'Зелёный', calOrange:'Оранжевый', calRed:'Красный', calPurple:'Фиолетовый',
@@ -3039,8 +3096,10 @@ Object.assign(I18N.zh, {
   todoTitle:'待办事项', todoCompleted:'已完成', todoPlaceholder:'添加新任务...', todoAdd:'添加', todoEmpty:'暂无任务 🎉',
   todoGroups:'分组', todoAddGroup:'添加分组', todoGroupName:'分组名称...', todoAll:'全部', todoDeleteGroup:'删除分组',
   todoPriorityLow:'低', todoPriorityMed:'中', todoPriorityHigh:'高',
-  fmDesktop:'桌面', fmDocuments:'文档', fmDownloads:'下载', fmPictures:'图片', fmMusic:'音乐', fmTrash:'回收站',
-  fmItems:'项', fmSelected:'已选', fmOpening:'正在打开...', fmPathPrefix:'C:\\用户\\用户\\',
+  fmDesktop:'桌面', fmDocuments:'文档', fmDownloads:'下载', fmPictures:'图片', fmMusic:'音乐', fmHome:'主页',
+  fmItems:'项', fmSelected:'已选', fmEmpty:'此文件夹为空', fmName:'名称', fmSize:'大小', fmModified:'修改时间',
+  fmBack:'后退', fmForward:'前进', fmUp:'上级', fmRefresh:'刷新', fmUpload:'上传', fmNewFolder:'新建文件夹',
+  fmDownload:'下载', fmDelete:'删除', fmRename:'重命名', fmOpen:'打开', fmConfirmDelete:'确定要删除吗？', fmNewFolderName:'文件夹名称', fmUploadSuccess:'个文件已上传',
   weatherNow:'现在', weatherHumidity:'湿度', weatherWind:'风', weatherFeelsLike:'体感', weatherHourly:'逐时预报', weatherUnknown:'未知',
   calToday:'今天', calAddEvent:'+ 事件', calEventPlaceholder:'事件名称...', calAdd:'添加', calNoEvents:'此日期无事件', calMore:'更多',
   calBlue:'蓝色', calGreen:'绿色', calOrange:'橙色', calRed:'红色', calPurple:'紫色',
@@ -3066,8 +3125,10 @@ Object.assign(I18N.ja, {
   todoTitle:'ToDoリスト', todoCompleted:'完了', todoPlaceholder:'新しいタスクを追加...', todoAdd:'追加', todoEmpty:'タスクはまだありません 🎉',
   todoGroups:'グループ', todoAddGroup:'グループ追加', todoGroupName:'グループ名...', todoAll:'すべて', todoDeleteGroup:'グループ削除',
   todoPriorityLow:'低', todoPriorityMed:'中', todoPriorityHigh:'高',
-  fmDesktop:'デスクトップ', fmDocuments:'ドキュメント', fmDownloads:'ダウンロード', fmPictures:'画像', fmMusic:'ミュージック', fmTrash:'ゴミ箱',
-  fmItems:'項目', fmSelected:'選択中', fmOpening:'開いています...', fmPathPrefix:'C:\\ユーザー\\ユーザー\\',
+  fmDesktop:'デスクトップ', fmDocuments:'ドキュメント', fmDownloads:'ダウンロード', fmPictures:'画像', fmMusic:'ミュージック', fmHome:'ホーム',
+  fmItems:'項目', fmSelected:'選択中', fmEmpty:'このフォルダーは空です', fmName:'名前', fmSize:'サイズ', fmModified:'更新日時',
+  fmBack:'戻る', fmForward:'進む', fmUp:'上へ', fmRefresh:'更新', fmUpload:'アップロード', fmNewFolder:'新しいフォルダー',
+  fmDownload:'ダウンロード', fmDelete:'削除', fmRename:'名前の変更', fmOpen:'開く', fmConfirmDelete:'削除してもよろしいですか？', fmNewFolderName:'フォルダー名', fmUploadSuccess:'ファイルがアップロードされました',
   weatherNow:'現在', weatherHumidity:'湿度', weatherWind:'風', weatherFeelsLike:'体感', weatherHourly:'時間ごとの予報', weatherUnknown:'不明',
   calToday:'今日', calAddEvent:'+ イベント', calEventPlaceholder:'イベント名...', calAdd:'追加', calNoEvents:'この日にイベントはありません', calMore:'他',
   calBlue:'青', calGreen:'緑', calOrange:'オレンジ', calRed:'赤', calPurple:'紫',
@@ -3093,8 +3154,10 @@ Object.assign(I18N.it, {
   todoTitle:'Lista attività', todoCompleted:'completate', todoPlaceholder:'Aggiungi attività...', todoAdd:'Aggiungi', todoEmpty:'Nessuna attività 🎉',
   todoGroups:'Gruppi', todoAddGroup:'Aggiungi gruppo', todoGroupName:'Nome gruppo...', todoAll:'Tutti', todoDeleteGroup:'Elimina gruppo',
   todoPriorityLow:'Bassa', todoPriorityMed:'Media', todoPriorityHigh:'Alta',
-  fmDesktop:'Scrivania', fmDocuments:'Documenti', fmDownloads:'Download', fmPictures:'Immagini', fmMusic:'Musica', fmTrash:'Cestino',
-  fmItems:'elementi', fmSelected:'selezionati', fmOpening:'apertura...', fmPathPrefix:'C:\\Utenti\\Utente\\',
+  fmDesktop:'Scrivania', fmDocuments:'Documenti', fmDownloads:'Download', fmPictures:'Immagini', fmMusic:'Musica', fmHome:'Home',
+  fmItems:'elementi', fmSelected:'selezionati', fmEmpty:'Questa cartella è vuota', fmName:'Nome', fmSize:'Dimensione', fmModified:'Modificato',
+  fmBack:'Indietro', fmForward:'Avanti', fmUp:'Su', fmRefresh:'Aggiorna', fmUpload:'Carica', fmNewFolder:'Nuova cartella',
+  fmDownload:'Scarica', fmDelete:'Elimina', fmRename:'Rinomina', fmOpen:'Apri', fmConfirmDelete:'Sei sicuro di voler eliminare?', fmNewFolderName:'Nome cartella', fmUploadSuccess:'file caricato/i',
   weatherNow:'Ora', weatherHumidity:'Umidità', weatherWind:'Vento', weatherFeelsLike:'Percepita', weatherHourly:'Previsioni orarie', weatherUnknown:'Sconosciuto',
   calToday:'Oggi', calAddEvent:'+ Evento', calEventPlaceholder:'Nome evento...', calAdd:'Aggiungi', calNoEvents:'Nessun evento in questa data', calMore:'altri',
   calBlue:'Blu', calGreen:'Verde', calOrange:'Arancione', calRed:'Rosso', calPurple:'Viola',
@@ -3339,6 +3402,28 @@ const NotepadApp = {
       e.target.value = '';
     }
 
+    async function handleFileAction(payload) {
+      if (!payload || !payload.data || !payload.data.filePath) return;
+      try {
+        const r = await fetch('/api/fs/read?path=' + encodeURIComponent(payload.data.filePath), { headers: authHeaders() });
+        if (!r.ok) return;
+        const data = await r.json();
+        currentTab.value.text = data.content || '';
+        currentTab.value.name = payload.data.fileName || data.name || 'file.txt';
+        currentTab.value.modified = false;
+        showStatus(t('notepadLoaded'));
+      } catch {}
+    }
+
+    function onNotepadAction(e) { handleFileAction(e.detail); }
+
+    onMounted(() => {
+      window.addEventListener('app-action:notepad', onNotepadAction);
+      const pending = window.__pendingAppAction && window.__pendingAppAction['notepad'];
+      if (pending) { delete window.__pendingAppAction['notepad']; setTimeout(() => handleFileAction(pending), 200); }
+    });
+    onUnmounted(() => { window.removeEventListener('app-action:notepad', onNotepadAction); });
+
     return { tabs, activeTab, currentTab, currentText, font, size, bold, italic, wordCount, addTab, closeTab, clearCurrent, copy, statusMsg, statusType, saveToServer, openFromServer, saveToClient, openFromClient, t };
   }
 };
@@ -3434,27 +3519,339 @@ const FilemanApp = {
   props: [],
   emits: [],
   setup(props, { emit }) {
-    const LOC_KEYS = [
-      { id:'desktop', icon:'🖥️', key:'fmDesktop' }, { id:'documents', icon:'📄', key:'fmDocuments' },
-      { id:'downloads', icon:'⬇️', key:'fmDownloads' }, { id:'pictures', icon:'🖼️', key:'fmPictures' },
-      { id:'music', icon:'🎵', key:'fmMusic' }, { id:'trash', icon:'🗑️', key:'fmTrash' }
-    ];
-    const currentLoc = ref('desktop'), selected = ref(null);
-    const locations = computed(() => LOC_KEYS.map(l => ({ id: l.id, name: t(l.key), icon: l.icon })));
-    const allFiles = {
-      desktop: [],
-      documents: [],
-      downloads: [],
-      pictures: [],
-      music: [],
-      trash: []
+    function getToken() { try { return localStorage.getItem('auth_token') || ''; } catch { return ''; } }
+    function authHeaders() { return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' }; }
+
+    const FILE_ICONS = {
+      '.js':'📜','.ts':'📘','.py':'🐍','.go':'🔵','.php':'🐘','.c':'©️','.cpp':'🔷','.cs':'🟪',
+      '.java':'☕','.rs':'🦀','.rb':'💎','.sh':'🐚','.ps1':'⚡',
+      '.html':'🌐','.css':'🎨','.json':'📋','.xml':'📄','.md':'📝','.txt':'📄',
+      '.sql':'🗃️','.yaml':'⚙️','.yml':'⚙️','.toml':'⚙️','.ini':'⚙️',
+      '.png':'🖼️','.jpg':'🖼️','.jpeg':'🖼️','.gif':'🖼️','.svg':'🖼️','.webp':'🖼️',
+      '.mp3':'🎵','.wav':'🎵','.ogg':'🎵','.flac':'🎵',
+      '.mp4':'🎬','.mkv':'🎬','.avi':'🎬','.webm':'🎬',
+      '.zip':'📦','.7z':'📦','.tar':'📦','.gz':'📦','.rar':'📦',
+      '.pdf':'📕','.doc':'📘','.docx':'📘','.xls':'📊','.xlsx':'📊','.csv':'📊'
     };
-    const files = computed(() => allFiles[currentLoc.value] || []);
-    const currentLocName = computed(() => { const l = LOC_KEYS.find(x => x.id === currentLoc.value); return l ? t(l.key) : currentLoc.value; });
-    const currentPath = computed(() => t('fmPathPrefix') + currentLocName.value);
-    function navigate(loc) { currentLoc.value = loc.id; selected.value = null }
-    function open(f) { if (window.ElementPlus) window.ElementPlus.ElMessage.info(f.name + ' ' + t('fmOpening')); }
-    return { currentLoc, locations, files, selected, currentPath, navigate, open, t };
+
+    const ElMessage = window.ElementPlus?.ElMessage || { success(){}, error(){}, warning(){}, info(){} };
+
+    const currentDir = ref('');
+    const fileList = ref([]);
+    const loading = ref(false);
+    const selectedFiles = ref([]);
+    const viewMode = ref('grid');
+    const sortCol = ref('name');
+    const sortAsc = ref(true);
+    const renaming = ref(null);
+    const ctxMenu = ref(null);
+    const dragOver = ref(false);
+    const history = ref([]);
+    const historyIdx = ref(-1);
+    const uploadInput = ref(null);
+
+    const locations = computed(() => [
+      { id:'home', icon:'🏠', name: t('fmHome'), path:'' },
+      { id:'documents', icon:'📄', name: t('fmDocuments'), path:'Documents' },
+      { id:'downloads', icon:'⬇️', name: t('fmDownloads'), path:'Downloads' },
+      { id:'pictures', icon:'🖼️', name: t('fmPictures'), path:'Pictures' },
+      { id:'music', icon:'🎵', name: t('fmMusic'), path:'Music' },
+      { id:'desktop', icon:'🖥️', name: t('fmDesktop'), path:'Desktop' }
+    ]);
+
+    const breadcrumbs = computed(() => {
+      const parts = [{ name: '🏠', path: '' }];
+      if (!currentDir.value) return parts;
+      const segs = currentDir.value.split('/').filter(Boolean);
+      let acc = '';
+      segs.forEach(s => { acc += (acc ? '/' : '') + s; parts.push({ name: s, path: acc }); });
+      return parts;
+    });
+
+    const files = computed(() => {
+      const list = [...fileList.value];
+      const col = sortCol.value;
+      const asc = sortAsc.value;
+      list.sort((a, b) => {
+        if (a.isDir !== b.isDir) return a.isDir ? -1 : 1;
+        let cmp = 0;
+        if (col === 'name') cmp = a.name.localeCompare(b.name);
+        else if (col === 'size') cmp = (a.size || 0) - (b.size || 0);
+        else if (col === 'modified') cmp = new Date(a.modified || 0) - new Date(b.modified || 0);
+        return asc ? cmp : -cmp;
+      });
+      return list;
+    });
+
+    const canGoBack = computed(() => historyIdx.value > 0);
+    const canGoForward = computed(() => historyIdx.value < history.value.length - 1);
+
+    function fileIcon(f) {
+      if (f.isDir) return '📁';
+      const ext = (f.name.match(/\.[^.]+$/) || [''])[0].toLowerCase();
+      return FILE_ICONS[ext] || '📄';
+    }
+
+    function formatSize(bytes) {
+      if (!bytes) return '0 B';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + ' MB';
+      return (bytes / 1073741824).toFixed(1) + ' GB';
+    }
+
+    function formatDate(d) {
+      if (!d) return '';
+      try { return new Date(d).toLocaleDateString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }); }
+      catch { return d; }
+    }
+
+    async function loadDir(dirPath) {
+      loading.value = true;
+      try {
+        const r = await fetch('/api/fs/list?path=' + encodeURIComponent(dirPath || ''), { headers: authHeaders() });
+        if (r.ok) fileList.value = await r.json();
+        else fileList.value = [];
+      } catch { fileList.value = []; }
+      loading.value = false;
+      selectedFiles.value = [];
+      renaming.value = null;
+      ctxMenu.value = null;
+    }
+
+    function navigateTo(dir, skipHistory) {
+      if (currentDir.value === dir && fileList.value.length > 0) return;
+      currentDir.value = dir;
+      if (!skipHistory) {
+        if (historyIdx.value < history.value.length - 1) history.value = history.value.slice(0, historyIdx.value + 1);
+        history.value.push(dir);
+        historyIdx.value = history.value.length - 1;
+      }
+      loadDir(dir);
+    }
+
+    function goBack() {
+      if (!canGoBack.value) return;
+      historyIdx.value--;
+      currentDir.value = history.value[historyIdx.value];
+      loadDir(currentDir.value);
+    }
+
+    function goForward() {
+      if (!canGoForward.value) return;
+      historyIdx.value++;
+      currentDir.value = history.value[historyIdx.value];
+      loadDir(currentDir.value);
+    }
+
+    function goUp() {
+      if (!currentDir.value) return;
+      const parts = currentDir.value.split('/').filter(Boolean);
+      parts.pop();
+      navigateTo(parts.join('/'));
+    }
+
+    function refresh() { loadDir(currentDir.value); }
+
+    function selectFile(f) { selectedFiles.value = [f]; }
+    function toggleSelect(f) {
+      const idx = selectedFiles.value.findIndex(s => s.path === f.path);
+      if (idx >= 0) selectedFiles.value.splice(idx, 1);
+      else selectedFiles.value.push(f);
+    }
+    function isSelected(f) { return selectedFiles.value.some(s => s.path === f.path); }
+
+    // Map file extensions to app IDs
+    const EXT_APP_MAP = {
+      // Code editor
+      '.js':'codeeditor', '.ts':'codeeditor', '.py':'codeeditor', '.go':'codeeditor',
+      '.php':'codeeditor', '.c':'codeeditor', '.cpp':'codeeditor', '.cs':'codeeditor',
+      '.java':'codeeditor', '.rs':'codeeditor', '.rb':'codeeditor', '.pl':'codeeditor',
+      '.sh':'codeeditor', '.ps1':'codeeditor', '.css':'codeeditor', '.xml':'codeeditor',
+      '.yaml':'codeeditor', '.yml':'codeeditor', '.toml':'codeeditor', '.ini':'codeeditor',
+      '.sql':'codeeditor', '.r':'codeeditor', '.lua':'codeeditor', '.swift':'codeeditor',
+      '.kt':'codeeditor', '.dart':'codeeditor', '.vue':'codeeditor', '.jsx':'codeeditor',
+      '.tsx':'codeeditor', '.scss':'codeeditor', '.sass':'codeeditor', '.less':'codeeditor',
+      // Text / Markdown
+      '.txt':'notepad', '.log':'notepad',
+      '.md':'markdown-viewer',
+      // HTML
+      '.html':'html-editor', '.htm':'html-editor',
+      // JSON
+      '.json':'json-viewer',
+      // Images
+      '.png':'photos', '.jpg':'photos', '.jpeg':'photos', '.gif':'photos',
+      '.svg':'photos', '.webp':'photos', '.bmp':'photos', '.ico':'photos',
+      // Audio
+      '.mp3':'music-player', '.wav':'music-player', '.ogg':'music-player',
+      '.flac':'music-player', '.aac':'music-player', '.m4a':'music-player',
+      // Video
+      '.mp4':'video-player', '.mkv':'video-player', '.avi':'video-player',
+      '.webm':'video-player', '.mov':'video-player',
+      // PDF
+      '.pdf':'pdf-viewer',
+      // CSV / Spreadsheet
+      '.csv':'spreadsheet', '.xls':'spreadsheet', '.xlsx':'spreadsheet',
+    };
+
+    function openItem(f) {
+      if (f.isDir) { navigateTo(f.path); return; }
+      const ext = (f.name.match(/\.[^.]+$/) || [''])[0].toLowerCase();
+      const appId = EXT_APP_MAP[ext];
+      if (appId) {
+        window.dispatchEvent(new CustomEvent('open-app-action', {
+          detail: { app: appId, action: 'open-file', data: { filePath: f.path, fileName: f.name } }
+        }));
+      } else {
+        downloadFile(f);
+      }
+    }
+
+    function sortBy(col) {
+      if (sortCol.value === col) sortAsc.value = !sortAsc.value;
+      else { sortCol.value = col; sortAsc.value = true; }
+    }
+
+    function showCtx(e, f) {
+      if (!isSelected(f)) selectedFiles.value = [f];
+      const rect = e.currentTarget.closest('.fm-content').getBoundingClientRect();
+      ctxMenu.value = { x: e.clientX - rect.left, y: e.clientY - rect.top, file: f };
+    }
+
+    function hideCtx() { ctxMenu.value = null; }
+
+    function ctxOpen() {
+      if (ctxMenu.value?.file) openItem(ctxMenu.value.file);
+      hideCtx();
+    }
+
+    function ctxRename() {
+      if (ctxMenu.value?.file) renaming.value = ctxMenu.value.file.path;
+      hideCtx();
+    }
+
+    async function ctxDelete() {
+      const targets = selectedFiles.value.length ? selectedFiles.value : (ctxMenu.value?.file ? [ctxMenu.value.file] : []);
+      hideCtx();
+      if (!targets.length) return;
+      const names = targets.map(f => f.name).join(', ');
+      if (!confirm(t('fmConfirmDelete') + '\n' + names)) return;
+      for (const f of targets) {
+        try {
+          await fetch('/api/fs/delete?path=' + encodeURIComponent(f.path), { method: 'DELETE', headers: authHeaders() });
+        } catch {}
+      }
+      refresh();
+    }
+
+    function ctxDownload() {
+      if (ctxMenu.value?.file) downloadFile(ctxMenu.value.file);
+      hideCtx();
+    }
+
+    function downloadFile(f) {
+      const token = getToken();
+      const a = document.createElement('a');
+      a.href = '/api/fs/download?path=' + encodeURIComponent(f.path) + '&token=' + encodeURIComponent(token);
+      a.download = f.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    async function doRename(e, f) {
+      const newName = e.target.value.trim();
+      renaming.value = null;
+      if (!newName || newName === f.name) return;
+      const parentDir = f.path.includes('/') ? f.path.substring(0, f.path.lastIndexOf('/')) : '';
+      const newPath = parentDir ? parentDir + '/' + newName : newName;
+      try {
+        await fetch('/api/fs/rename', {
+          method: 'POST', headers: authHeaders(),
+          body: JSON.stringify({ oldPath: f.path, newPath })
+        });
+        refresh();
+      } catch { ElMessage.error('Rename failed'); }
+    }
+
+    function focusRename(e) {
+      nextTick(() => {
+        const inp = e.el;
+        if (inp) { inp.focus(); const dot = inp.value.lastIndexOf('.'); inp.setSelectionRange(0, dot > 0 ? dot : inp.value.length); }
+      });
+    }
+
+    async function createFolder() {
+      const name = prompt(t('fmNewFolderName'));
+      if (!name || !name.trim()) return;
+      const safeName = name.trim().replace(/[<>:"|?*\\\/]/g, '_');
+      const dirPath = currentDir.value ? currentDir.value + '/' + safeName : safeName;
+      try {
+        await fetch('/api/fs/mkdir', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ dirPath }) });
+        refresh();
+      } catch { ElMessage.error('Create folder failed'); }
+    }
+
+    function triggerUpload() { uploadInput.value?.click(); }
+
+    async function uploadFiles(e) {
+      const inputFiles = e.target.files;
+      if (!inputFiles || !inputFiles.length) return;
+      const fd = new FormData();
+      fd.append('path', currentDir.value);
+      for (const f of inputFiles) fd.append('files', f);
+      try {
+        const token = getToken();
+        const r = await fetch('/api/fs/upload', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
+          body: fd
+        });
+        if (r.ok) { const data = await r.json(); ElMessage.success(data.files.length + ' ' + t('fmUploadSuccess')); refresh(); }
+        else ElMessage.error('Upload failed');
+      } catch { ElMessage.error('Upload failed'); }
+      e.target.value = '';
+    }
+
+    function onDragOver() { dragOver.value = true; }
+    function onDragLeave() { dragOver.value = false; }
+    async function onDrop(e) {
+      dragOver.value = false;
+      const droppedFiles = e.dataTransfer?.files;
+      if (!droppedFiles || !droppedFiles.length) return;
+      const fd = new FormData();
+      fd.append('path', currentDir.value);
+      for (const f of droppedFiles) fd.append('files', f);
+      try {
+        const token = getToken();
+        const r = await fetch('/api/fs/upload', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
+          body: fd
+        });
+        if (r.ok) { const data = await r.json(); ElMessage.success(data.files.length + ' ' + t('fmUploadSuccess')); refresh(); }
+        else ElMessage.error('Upload failed');
+      } catch { ElMessage.error('Upload failed'); }
+    }
+
+    onMounted(() => {
+      navigateTo('');
+      document.addEventListener('click', hideCtx);
+    });
+    onUnmounted(() => { document.removeEventListener('click', hideCtx); });
+
+    return {
+      currentDir, files, loading, selectedFiles, viewMode, sortCol, sortAsc,
+      renaming, ctxMenu, dragOver, locations, breadcrumbs, uploadInput,
+      canGoBack, canGoForward,
+      fileIcon, formatSize, formatDate,
+      navigateTo, goBack, goForward, goUp, refresh,
+      selectFile, toggleSelect, isSelected, openItem, sortBy,
+      showCtx, ctxOpen, ctxRename, ctxDelete, ctxDownload,
+      doRename, focusRename, createFolder,
+      triggerUpload, uploadFiles, onDragOver, onDragLeave, onDrop,
+      t
+    };
   }
 };
 
@@ -6778,24 +7175,15 @@ createApp({
       if (!appId) return;
       const target = apps.value.find(a => a.id === appId);
       if (!target) return;
-      // Set navigation data for the app to pick up
-      if (appId === 'rss-reader') {
-        window.__rssNavigate = action.data || {};
-      }
-      if (appId === 'social-share') {
-        window.__socialShareData = action.data || {};
-      }
-      openApp(target);
-      // Also dispatch specific navigate event if app is already open
-      if (appId === 'rss-reader') {
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('rss-navigate', { detail: action.data || {} }));
-        }, 300);
-      }
-      if (appId === 'social-share') {
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('social-share-content', { detail: action.data || {} }));
-        }, 300);
+      const actionPayload = { action: action.action || 'open', data: action.data || {} };
+      const existing = openWindows.value.find(w => w.id === appId);
+      if (existing) {
+        focusWindow(existing);
+        window.dispatchEvent(new CustomEvent('app-action:' + appId, { detail: actionPayload }));
+      } else {
+        window.__pendingAppAction = window.__pendingAppAction || {};
+        window.__pendingAppAction[appId] = actionPayload;
+        openApp(target);
       }
     }
 

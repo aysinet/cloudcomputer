@@ -532,24 +532,32 @@ input[type=checkbox],input[type=radio]{-webkit-appearance:auto;appearance:auto}
 <script type="text/template" id="FilemanApp">
   <div class="fm-root">
     <div class="fm-toolbar">
-      <button class="fm-tb-btn">←</button>
-      <button class="fm-tb-btn">→</button>
-      <button class="fm-tb-btn">↑</button>
-      <input class="fm-path" :value="currentPath" readonly>
-      <button class="fm-tb-btn">🔍</button>
+      <button class="fm-tb-btn" @click="goUp" :disabled="!currentDir">↑</button>
+      <div class="fm-breadcrumb">
+        <span v-for="(seg, i) in breadcrumbs" :key="i" class="fm-bc-item" @click="navigateTo(seg.path)">
+          <span v-if="i > 0" class="fm-bc-sep">/</span>{{seg.name}}
+        </span>
+      </div>
+      <button class="fm-tb-btn" @click="triggerUpload">📤</button>
+      <button class="fm-tb-btn" @click="createFolder">📁+</button>
     </div>
     <div class="fm-main">
-      <div class="fm-sidebar">
-        <div v-for="loc in locations" class="fm-side-item" :class="{active:loc.id===currentLoc}" @click="navigate(loc)">{{loc.icon}} {{loc.name}}</div>
-      </div>
-      <div class="fm-files">
-        <div v-for="f in files" class="fm-file" :class="{sel:selected===f.name}" @click="selected=f.name" @dblclick="open(f)">
-          <span class="ico">{{f.icon}}</span>
-          <span class="name">{{f.name}}</span>
+      <div class="fm-files fm-list">
+        <div v-if="loading" class="fm-empty">{{t('loading')}}</div>
+        <div v-else-if="!files.length" class="fm-empty">📂 {{t('fmEmpty')}}</div>
+        <div v-for="f in files" :key="f.path" class="fm-list-row" @click="openItem(f)" @contextmenu.prevent="showCtx($event, f)">
+          <span class="fm-lr-name"><span class="ico">{{fileIcon(f)}}</span> {{f.name}}</span>
+          <span class="fm-lr-size">{{f.isDir ? '' : formatSize(f.size)}}</span>
         </div>
       </div>
     </div>
-    <div class="fm-status">{{files.length}} {{t('fmItems')}}{{selected?' · '+selected+' '+t('fmSelected'):''}}</div>
+    <div class="fm-status">{{files.length}} {{t('fmItems')}}</div>
+    <input type="file" ref="uploadInput" multiple style="display:none" @change="uploadFiles">
+    <div v-if="ctxMenu" class="fm-ctx-menu" :style="{left: ctxMenu.x+'px', top: ctxMenu.y+'px'}" @click.stop>
+      <div class="fm-ctx-item" @click="ctxOpen">📂 {{t('fmOpen')}}</div>
+      <div class="fm-ctx-item" @click="ctxDownload" v-if="ctxMenu.file && !ctxMenu.file.isDir">⬇️ {{t('fmDownload')}}</div>
+      <div class="fm-ctx-item fm-ctx-danger" @click="ctxDelete">🗑️ {{t('fmDelete')}}</div>
+    </div>
   </div>
 </script>
 
@@ -2372,8 +2380,8 @@ Object.assign(I18N.tr, {
   notepadClear:'Temizle', notepadCopy:'Kopyala', notepadPlaceholder:'Yazmaya başlayın...', notepadChars:'karakter', notepadWords:'kelime',
   todoTitle:'Görev Listesi', todoCompleted:'tamamlandı', todoPlaceholder:'Yeni görev ekle...', todoAdd:'Ekle', todoEmpty:'Henüz görev yok 🎉',
   todoDefault1:'Aysi Cloud Computer denemesi', todoDefault2:'Yeni uygulamalar ekle',
-  fmDesktop:'Masaüstü', fmDocuments:'Belgeler', fmDownloads:'İndirmeler', fmPictures:'Resimler', fmMusic:'Müzik', fmTrash:'Çöp Kutusu',
-  fmItems:'öğe', fmSelected:'seçili', fmOpening:'açılıyor...', fmPathPrefix:'C:\\Kullanıcılar\\Kullanıcı\\',
+  fmDesktop:'Masaüstü', fmDocuments:'Belgeler', fmDownloads:'İndirmeler', fmPictures:'Resimler', fmMusic:'Müzik', fmHome:'Ana Dizin',
+  fmItems:'öğe', fmSelected:'seçili', fmEmpty:'Bu klasör boş', fmOpen:'Aç', fmDownload:'İndir', fmDelete:'Sil', fmConfirmDelete:'Silmek istediğinize emin misiniz?', fmNewFolderName:'Klasör adı',
   weatherNow:'Şu an', weatherHumidity:'Nem', weatherWind:'Rüzgar', weatherFeelsLike:'Hissedilen', weatherHourly:'Saatlik Tahmin', weatherUnknown:'Bilinmiyor',
   calToday:'Bugün', calAddEvent:'+ Etkinlik', calEventPlaceholder:'Etkinlik adı...', calAdd:'Ekle', calNoEvents:'Bu tarihte etkinlik yok', calMore:'daha',
   calBlue:'Mavi', calGreen:'Yeşil', calOrange:'Turuncu', calRed:'Kırmızı', calPurple:'Mor',
@@ -2393,8 +2401,8 @@ Object.assign(I18N.en, {
   notepadClear:'Clear', notepadCopy:'Copy', notepadPlaceholder:'Start typing...', notepadChars:'characters', notepadWords:'words',
   todoTitle:'To-Do List', todoCompleted:'completed', todoPlaceholder:'Add new task...', todoAdd:'Add', todoEmpty:'No tasks yet 🎉',
   todoDefault1:'Try Aysi Cloud Computer', todoDefault2:'Add new apps',
-  fmDesktop:'Desktop', fmDocuments:'Documents', fmDownloads:'Downloads', fmPictures:'Pictures', fmMusic:'Music', fmTrash:'Trash',
-  fmItems:'items', fmSelected:'selected', fmOpening:'opening...', fmPathPrefix:'C:\\Users\\User\\',
+  fmDesktop:'Desktop', fmDocuments:'Documents', fmDownloads:'Downloads', fmPictures:'Pictures', fmMusic:'Music', fmHome:'Home',
+  fmItems:'items', fmSelected:'selected', fmEmpty:'This folder is empty', fmOpen:'Open', fmDownload:'Download', fmDelete:'Delete', fmConfirmDelete:'Are you sure you want to delete?', fmNewFolderName:'Folder name',
   weatherNow:'Now', weatherHumidity:'Humidity', weatherWind:'Wind', weatherFeelsLike:'Feels Like', weatherHourly:'Hourly Forecast', weatherUnknown:'Unknown',
   calToday:'Today', calAddEvent:'+ Event', calEventPlaceholder:'Event name...', calAdd:'Add', calNoEvents:'No events on this date', calMore:'more',
   calBlue:'Blue', calGreen:'Green', calOrange:'Orange', calRed:'Red', calPurple:'Purple',
@@ -2414,8 +2422,8 @@ Object.assign(I18N.de, {
   notepadClear:'Löschen', notepadCopy:'Kopieren', notepadPlaceholder:'Schreiben Sie...', notepadChars:'Zeichen', notepadWords:'Wörter',
   todoTitle:'Aufgabenliste', todoCompleted:'erledigt', todoPlaceholder:'Neue Aufgabe...', todoAdd:'Hinzufügen', todoEmpty:'Noch keine Aufgaben 🎉',
   todoDefault1:'Aysi Cloud Computer ausprobieren', todoDefault2:'Neue Apps hinzufügen',
-  fmDesktop:'Desktop', fmDocuments:'Dokumente', fmDownloads:'Downloads', fmPictures:'Bilder', fmMusic:'Musik', fmTrash:'Papierkorb',
-  fmItems:'Elemente', fmSelected:'ausgewählt', fmOpening:'wird geöffnet...', fmPathPrefix:'C:\\Benutzer\\Benutzer\\',
+  fmDesktop:'Desktop', fmDocuments:'Dokumente', fmDownloads:'Downloads', fmPictures:'Bilder', fmMusic:'Musik', fmHome:'Startseite',
+  fmItems:'Elemente', fmSelected:'ausgewählt', fmEmpty:'Dieser Ordner ist leer', fmOpen:'Öffnen', fmDownload:'Herunterladen', fmDelete:'Löschen', fmConfirmDelete:'Möchten Sie wirklich löschen?', fmNewFolderName:'Ordnername',
   weatherNow:'Jetzt', weatherHumidity:'Feuchtigkeit', weatherWind:'Wind', weatherFeelsLike:'Gefühlt', weatherHourly:'Stündliche Vorhersage', weatherUnknown:'Unbekannt',
   calToday:'Heute', calAddEvent:'+ Ereignis', calEventPlaceholder:'Ereignisname...', calAdd:'Hinzufügen', calNoEvents:'Keine Ereignisse', calMore:'mehr',
   calBlue:'Blau', calGreen:'Grün', calOrange:'Orange', calRed:'Rot', calPurple:'Lila',
@@ -2435,8 +2443,8 @@ Object.assign(I18N.fr, {
   notepadClear:'Effacer', notepadCopy:'Copier', notepadPlaceholder:'Commencez à écrire...', notepadChars:'caractères', notepadWords:'mots',
   todoTitle:'Liste de tâches', todoCompleted:'terminées', todoPlaceholder:'Ajouter une tâche...', todoAdd:'Ajouter', todoEmpty:'Aucune tâche 🎉',
   todoDefault1:'Essayer Aysi Cloud Computer', todoDefault2:'Ajouter de nouvelles apps',
-  fmDesktop:'Bureau', fmDocuments:'Documents', fmDownloads:'Téléchargements', fmPictures:'Images', fmMusic:'Musique', fmTrash:'Corbeille',
-  fmItems:'éléments', fmSelected:'sélectionné', fmOpening:'ouverture...', fmPathPrefix:'C:\\Utilisateurs\\Utilisateur\\',
+  fmDesktop:'Bureau', fmDocuments:'Documents', fmDownloads:'Téléchargements', fmPictures:'Images', fmMusic:'Musique', fmHome:'Accueil',
+  fmItems:'éléments', fmSelected:'sélectionné', fmEmpty:'Ce dossier est vide', fmOpen:'Ouvrir', fmDownload:'Télécharger', fmDelete:'Supprimer', fmConfirmDelete:'Voulez-vous vraiment supprimer ?', fmNewFolderName:'Nom du dossier',
   weatherNow:'Maintenant', weatherHumidity:'Humidité', weatherWind:'Vent', weatherFeelsLike:'Ressenti', weatherHourly:'Prévisions horaires', weatherUnknown:'Inconnu',
   calToday:'Aujourd\'hui', calAddEvent:'+ Événement', calEventPlaceholder:'Nom de l\'événement...', calAdd:'Ajouter', calNoEvents:'Aucun événement', calMore:'de plus',
   calBlue:'Bleu', calGreen:'Vert', calOrange:'Orange', calRed:'Rouge', calPurple:'Violet',
@@ -2456,8 +2464,8 @@ Object.assign(I18N.es, {
   notepadClear:'Limpiar', notepadCopy:'Copiar', notepadPlaceholder:'Empiece a escribir...', notepadChars:'caracteres', notepadWords:'palabras',
   todoTitle:'Lista de tareas', todoCompleted:'completadas', todoPlaceholder:'Añadir tarea...', todoAdd:'Añadir', todoEmpty:'Sin tareas aún 🎉',
   todoDefault1:'Probar Aysi Cloud Computer', todoDefault2:'Añadir nuevas apps',
-  fmDesktop:'Escritorio', fmDocuments:'Documentos', fmDownloads:'Descargas', fmPictures:'Imágenes', fmMusic:'Música', fmTrash:'Papelera',
-  fmItems:'elementos', fmSelected:'seleccionado', fmOpening:'abriendo...', fmPathPrefix:'C:\\Usuarios\\Usuario\\',
+  fmDesktop:'Escritorio', fmDocuments:'Documentos', fmDownloads:'Descargas', fmPictures:'Imágenes', fmMusic:'Música', fmHome:'Inicio',
+  fmItems:'elementos', fmSelected:'seleccionado', fmEmpty:'Esta carpeta está vacía', fmOpen:'Abrir', fmDownload:'Descargar', fmDelete:'Eliminar', fmConfirmDelete:'¿Está seguro de que desea eliminar?', fmNewFolderName:'Nombre de carpeta',
   weatherNow:'Ahora', weatherHumidity:'Humedad', weatherWind:'Viento', weatherFeelsLike:'Sensación', weatherHourly:'Pronóstico por hora', weatherUnknown:'Desconocido',
   calToday:'Hoy', calAddEvent:'+ Evento', calEventPlaceholder:'Nombre del evento...', calAdd:'Añadir', calNoEvents:'Sin eventos en esta fecha', calMore:'más',
   calBlue:'Azul', calGreen:'Verde', calOrange:'Naranja', calRed:'Rojo', calPurple:'Morado',
@@ -2477,8 +2485,8 @@ Object.assign(I18N.ru, {
   notepadClear:'Очистить', notepadCopy:'Копировать', notepadPlaceholder:'Начните вводить...', notepadChars:'символов', notepadWords:'слов',
   todoTitle:'Список задач', todoCompleted:'выполнено', todoPlaceholder:'Добавить задачу...', todoAdd:'Добавить', todoEmpty:'Задач пока нет 🎉',
   todoDefault1:'Попробовать Aysi Cloud Computer', todoDefault2:'Добавить приложения',
-  fmDesktop:'Рабочий стол', fmDocuments:'Документы', fmDownloads:'Загрузки', fmPictures:'Изображения', fmMusic:'Музыка', fmTrash:'Корзина',
-  fmItems:'элементов', fmSelected:'выбрано', fmOpening:'открывается...', fmPathPrefix:'C:\\Пользователи\\Пользователь\\',
+  fmDesktop:'Рабочий стол', fmDocuments:'Документы', fmDownloads:'Загрузки', fmPictures:'Изображения', fmMusic:'Музыка', fmHome:'Домой',
+  fmItems:'элементов', fmSelected:'выбрано', fmEmpty:'Эта папка пуста', fmOpen:'Открыть', fmDownload:'Скачать', fmDelete:'Удалить', fmConfirmDelete:'Вы уверены, что хотите удалить?', fmNewFolderName:'Имя папки',
   weatherNow:'Сейчас', weatherHumidity:'Влажность', weatherWind:'Ветер', weatherFeelsLike:'Ощущается', weatherHourly:'Почасовой прогноз', weatherUnknown:'Неизвестно',
   calToday:'Сегодня', calAddEvent:'+ Событие', calEventPlaceholder:'Название события...', calAdd:'Добавить', calNoEvents:'Нет событий на дату', calMore:'ещё',
   calBlue:'Синий', calGreen:'Зелёный', calOrange:'Оранжевый', calRed:'Красный', calPurple:'Фиолетовый',
@@ -2498,8 +2506,8 @@ Object.assign(I18N.zh, {
   notepadClear:'清除', notepadCopy:'复制', notepadPlaceholder:'开始输入...', notepadChars:'字符', notepadWords:'字',
   todoTitle:'待办事项', todoCompleted:'已完成', todoPlaceholder:'添加新任务...', todoAdd:'添加', todoEmpty:'暂无任务 🎉',
   todoDefault1:'试用 Aysi Cloud Computer', todoDefault2:'添加新应用',
-  fmDesktop:'桌面', fmDocuments:'文档', fmDownloads:'下载', fmPictures:'图片', fmMusic:'音乐', fmTrash:'回收站',
-  fmItems:'项', fmSelected:'已选', fmOpening:'正在打开...', fmPathPrefix:'C:\\用户\\用户\\',
+  fmDesktop:'桌面', fmDocuments:'文档', fmDownloads:'下载', fmPictures:'图片', fmMusic:'音乐', fmHome:'主页',
+  fmItems:'项', fmSelected:'已选', fmEmpty:'此文件夹为空', fmOpen:'打开', fmDownload:'下载', fmDelete:'删除', fmConfirmDelete:'确定要删除吗？', fmNewFolderName:'文件夹名称',
   weatherNow:'现在', weatherHumidity:'湿度', weatherWind:'风', weatherFeelsLike:'体感', weatherHourly:'逐时预报', weatherUnknown:'未知',
   calToday:'今天', calAddEvent:'+ 事件', calEventPlaceholder:'事件名称...', calAdd:'添加', calNoEvents:'此日期无事件', calMore:'更多',
   calBlue:'蓝色', calGreen:'绿色', calOrange:'橙色', calRed:'红色', calPurple:'紫色',
@@ -2519,8 +2527,8 @@ Object.assign(I18N.ja, {
   notepadClear:'クリア', notepadCopy:'コピー', notepadPlaceholder:'入力を開始...', notepadChars:'文字', notepadWords:'語',
   todoTitle:'ToDoリスト', todoCompleted:'完了', todoPlaceholder:'新しいタスクを追加...', todoAdd:'追加', todoEmpty:'タスクはまだありません 🎉',
   todoDefault1:'Aysi Cloud Computerを試す', todoDefault2:'新しいアプリを追加',
-  fmDesktop:'デスクトップ', fmDocuments:'ドキュメント', fmDownloads:'ダウンロード', fmPictures:'画像', fmMusic:'ミュージック', fmTrash:'ゴミ箱',
-  fmItems:'項目', fmSelected:'選択中', fmOpening:'開いています...', fmPathPrefix:'C:\\ユーザー\\ユーザー\\',
+  fmDesktop:'デスクトップ', fmDocuments:'ドキュメント', fmDownloads:'ダウンロード', fmPictures:'画像', fmMusic:'ミュージック', fmHome:'ホーム',
+  fmItems:'項目', fmSelected:'選択中', fmEmpty:'このフォルダーは空です', fmOpen:'開く', fmDownload:'ダウンロード', fmDelete:'削除', fmConfirmDelete:'削除してもよろしいですか？', fmNewFolderName:'フォルダー名',
   weatherNow:'現在', weatherHumidity:'湿度', weatherWind:'風', weatherFeelsLike:'体感', weatherHourly:'時間ごとの予報', weatherUnknown:'不明',
   calToday:'今日', calAddEvent:'+ イベント', calEventPlaceholder:'イベント名...', calAdd:'追加', calNoEvents:'この日にイベントはありません', calMore:'他',
   calBlue:'青', calGreen:'緑', calOrange:'オレンジ', calRed:'赤', calPurple:'紫',
@@ -2540,8 +2548,8 @@ Object.assign(I18N.it, {
   notepadClear:'Cancella', notepadCopy:'Copia', notepadPlaceholder:'Inizia a scrivere...', notepadChars:'caratteri', notepadWords:'parole',
   todoTitle:'Lista attività', todoCompleted:'completate', todoPlaceholder:'Aggiungi attività...', todoAdd:'Aggiungi', todoEmpty:'Nessuna attività 🎉',
   todoDefault1:'Prova Aysi Cloud Computer', todoDefault2:'Aggiungi nuove app',
-  fmDesktop:'Scrivania', fmDocuments:'Documenti', fmDownloads:'Download', fmPictures:'Immagini', fmMusic:'Musica', fmTrash:'Cestino',
-  fmItems:'elementi', fmSelected:'selezionati', fmOpening:'apertura...', fmPathPrefix:'C:\\Utenti\\Utente\\',
+  fmDesktop:'Scrivania', fmDocuments:'Documenti', fmDownloads:'Download', fmPictures:'Immagini', fmMusic:'Musica', fmHome:'Home',
+  fmItems:'elementi', fmSelected:'selezionati', fmEmpty:'Questa cartella è vuota', fmOpen:'Apri', fmDownload:'Scarica', fmDelete:'Elimina', fmConfirmDelete:'Sei sicuro di voler eliminare?', fmNewFolderName:'Nome cartella',
   weatherNow:'Ora', weatherHumidity:'Umidità', weatherWind:'Vento', weatherFeelsLike:'Percepita', weatherHourly:'Previsioni orarie', weatherUnknown:'Sconosciuto',
   calToday:'Oggi', calAddEvent:'+ Evento', calEventPlaceholder:'Nome evento...', calAdd:'Aggiungi', calNoEvents:'Nessun evento in questa data', calMore:'altri',
   calBlue:'Blu', calGreen:'Verde', calOrange:'Arancione', calRed:'Rosso', calPurple:'Viola',
@@ -2561,8 +2569,8 @@ Object.assign(I18N.ar, {
   notepadClear:'مسح', notepadCopy:'نسخ', notepadPlaceholder:'ابدأ الكتابة...', notepadChars:'حرف', notepadWords:'كلمة',
   todoTitle:'قائمة المهام', todoCompleted:'مكتمل', todoPlaceholder:'إضافة مهمة جديدة...', todoAdd:'إضافة', todoEmpty:'لا توجد مهام بعد 🎉',
   todoDefault1:'جرب Aysi Cloud Computer', todoDefault2:'أضف تطبيقات جديدة',
-  fmDesktop:'سطح المكتب', fmDocuments:'المستندات', fmDownloads:'التنزيلات', fmPictures:'الصور', fmMusic:'الموسيقى', fmTrash:'سلة المهملات',
-  fmItems:'عنصر', fmSelected:'محدد', fmOpening:'جاري الفتح...', fmPathPrefix:'C:\\المستخدمون\\المستخدم\\',
+  fmDesktop:'سطح المكتب', fmDocuments:'المستندات', fmDownloads:'التنزيلات', fmPictures:'الصور', fmMusic:'الموسيقى', fmHome:'الرئيسية',
+  fmItems:'عنصر', fmSelected:'محدد', fmEmpty:'هذا المجلد فارغ', fmOpen:'فتح', fmDownload:'تحميل', fmDelete:'حذف', fmConfirmDelete:'هل أنت متأكد من الحذف؟', fmNewFolderName:'اسم المجلد',
   weatherNow:'الآن', weatherHumidity:'الرطوبة', weatherWind:'الرياح', weatherFeelsLike:'يشعر كأنه', weatherHourly:'التوقعات بالساعة', weatherUnknown:'غير معروف',
   calToday:'اليوم', calAddEvent:'+ حدث', calEventPlaceholder:'اسم الحدث...', calAdd:'إضافة', calNoEvents:'لا أحداث في هذا التاريخ', calMore:'المزيد',
   calBlue:'أزرق', calGreen:'أخضر', calOrange:'برتقالي', calRed:'أحمر', calPurple:'بنفسجي',
@@ -2582,8 +2590,8 @@ Object.assign(I18N.ko, {
   notepadClear:'지우기', notepadCopy:'복사', notepadPlaceholder:'입력을 시작하세요...', notepadChars:'자', notepadWords:'단어',
   todoTitle:'할 일 목록', todoCompleted:'완료', todoPlaceholder:'새 작업 추가...', todoAdd:'추가', todoEmpty:'아직 작업이 없습니다 🎉',
   todoDefault1:'Aysi Cloud Computer 체험', todoDefault2:'새 앱 추가',
-  fmDesktop:'데스크톱', fmDocuments:'문서', fmDownloads:'다운로드', fmPictures:'사진', fmMusic:'음악', fmTrash:'휴지통',
-  fmItems:'항목', fmSelected:'선택됨', fmOpening:'여는 중...', fmPathPrefix:'C:\\Users\\User\\',
+  fmDesktop:'데스크톱', fmDocuments:'문서', fmDownloads:'다운로드', fmPictures:'사진', fmMusic:'음악', fmHome:'홈',
+  fmItems:'항목', fmSelected:'선택됨', fmEmpty:'이 폴더는 비어 있습니다', fmOpen:'열기', fmDownload:'다운로드', fmDelete:'삭제', fmConfirmDelete:'삭제하시겠습니까?', fmNewFolderName:'폴더 이름',
   weatherNow:'현재', weatherHumidity:'습도', weatherWind:'바람', weatherFeelsLike:'체감', weatherHourly:'시간별 예보', weatherUnknown:'알 수 없음',
   calToday:'오늘', calAddEvent:'+ 이벤트', calEventPlaceholder:'이벤트 이름...', calAdd:'추가', calNoEvents:'이 날짜에 이벤트 없음', calMore:'더보기',
   calBlue:'파란색', calGreen:'초록색', calOrange:'주황색', calRed:'빨간색', calPurple:'보라색',
@@ -2603,8 +2611,8 @@ Object.assign(I18N.hi, {
   notepadClear:'साफ़ करें', notepadCopy:'कॉपी', notepadPlaceholder:'टाइप करना शुरू करें...', notepadChars:'अक्षर', notepadWords:'शब्द',
   todoTitle:'कार्य सूची', todoCompleted:'पूर्ण', todoPlaceholder:'नया कार्य जोड़ें...', todoAdd:'जोड़ें', todoEmpty:'अभी तक कोई कार्य नहीं 🎉',
   todoDefault1:'Aysi Cloud Computer आज़माएं', todoDefault2:'नए ऐप्स जोड़ें',
-  fmDesktop:'डेस्कटॉप', fmDocuments:'दस्तावेज़', fmDownloads:'डाउनलोड', fmPictures:'चित्र', fmMusic:'संगीत', fmTrash:'कचरा',
-  fmItems:'आइटम', fmSelected:'चयनित', fmOpening:'खोल रहा है...', fmPathPrefix:'C:\\Users\\User\\',
+  fmDesktop:'डेस्कटॉप', fmDocuments:'दस्तावेज़', fmDownloads:'डाउनलोड', fmPictures:'चित्र', fmMusic:'संगीत', fmHome:'होम',
+  fmItems:'आइटम', fmSelected:'चयनित', fmEmpty:'यह फ़ोल्डर खाली है', fmOpen:'खोलें', fmDownload:'डाउनलोड', fmDelete:'हटाएं', fmConfirmDelete:'क्या आप हटाना चाहते हैं?', fmNewFolderName:'फ़ोल्डर का नाम',
   weatherNow:'अभी', weatherHumidity:'नमी', weatherWind:'हवा', weatherFeelsLike:'महसूस होता है', weatherHourly:'प्रति घंटा पूर्वानुमान', weatherUnknown:'अज्ञात',
   calToday:'आज', calAddEvent:'+ कार्यक्रम', calEventPlaceholder:'कार्यक्रम का नाम...', calAdd:'जोड़ें', calNoEvents:'इस तिथि पर कोई कार्यक्रम नहीं', calMore:'और',
   calBlue:'नीला', calGreen:'हरा', calOrange:'नारंगी', calRed:'लाल', calPurple:'बैंगनी',
@@ -2624,8 +2632,8 @@ Object.assign(I18N.pt, {
   notepadClear:'Limpar', notepadCopy:'Copiar', notepadPlaceholder:'Comece a digitar...', notepadChars:'caracteres', notepadWords:'palavras',
   todoTitle:'Lista de Tarefas', todoCompleted:'concluídas', todoPlaceholder:'Adicionar nova tarefa...', todoAdd:'Adicionar', todoEmpty:'Nenhuma tarefa ainda 🎉',
   todoDefault1:'Experimentar Aysi Cloud Computer', todoDefault2:'Adicionar novos apps',
-  fmDesktop:'Área de Trabalho', fmDocuments:'Documentos', fmDownloads:'Downloads', fmPictures:'Imagens', fmMusic:'Música', fmTrash:'Lixeira',
-  fmItems:'itens', fmSelected:'selecionado', fmOpening:'abrindo...', fmPathPrefix:'C:\\Usuários\\Usuário\\',
+  fmDesktop:'Área de Trabalho', fmDocuments:'Documentos', fmDownloads:'Downloads', fmPictures:'Imagens', fmMusic:'Música', fmHome:'Início',
+  fmItems:'itens', fmSelected:'selecionado', fmEmpty:'Esta pasta está vazia', fmOpen:'Abrir', fmDownload:'Baixar', fmDelete:'Excluir', fmConfirmDelete:'Tem certeza que deseja excluir?', fmNewFolderName:'Nome da pasta',
   weatherNow:'Agora', weatherHumidity:'Umidade', weatherWind:'Vento', weatherFeelsLike:'Sensação', weatherHourly:'Previsão por Hora', weatherUnknown:'Desconhecido',
   calToday:'Hoje', calAddEvent:'+ Evento', calEventPlaceholder:'Nome do evento...', calAdd:'Adicionar', calNoEvents:'Nenhum evento nesta data', calMore:'mais',
   calBlue:'Azul', calGreen:'Verde', calOrange:'Laranja', calRed:'Vermelho', calPurple:'Roxo',
@@ -2952,27 +2960,164 @@ const FilemanApp = {
   props: [],
   emits: [],
   setup(props, { emit }) {
-    const LOC_KEYS = [
-      { id:'desktop', icon:'🖥️', key:'fmDesktop' }, { id:'documents', icon:'📄', key:'fmDocuments' },
-      { id:'downloads', icon:'⬇️', key:'fmDownloads' }, { id:'pictures', icon:'🖼️', key:'fmPictures' },
-      { id:'music', icon:'🎵', key:'fmMusic' }, { id:'trash', icon:'🗑️', key:'fmTrash' }
-    ];
-    const currentLoc = ref('desktop'), selected = ref(null);
-    const locations = computed(() => LOC_KEYS.map(l => ({ id: l.id, name: t(l.key), icon: l.icon })));
-    const allFiles = {
-      desktop: [],
-      documents: [],
-      downloads: [],
-      pictures: [],
-      music: [],
-      trash: []
+    function getToken() { try { return localStorage.getItem('auth_token') || ''; } catch { return ''; } }
+    function authHeaders() { return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' }; }
+
+    const FILE_ICONS = {
+      '.js':'📜','.ts':'📘','.py':'🐍','.html':'🌐','.css':'🎨','.json':'📋','.md':'📝','.txt':'📄',
+      '.png':'🖼️','.jpg':'🖼️','.jpeg':'🖼️','.gif':'🖼️','.svg':'🖼️','.webp':'🖼️',
+      '.mp3':'🎵','.wav':'🎵','.mp4':'🎬','.zip':'📦','.pdf':'📕','.doc':'📘','.xls':'📊','.csv':'📊'
     };
-    const files = computed(() => allFiles[currentLoc.value] || []);
-    const currentLocName = computed(() => { const l = LOC_KEYS.find(x => x.id === currentLoc.value); return l ? t(l.key) : currentLoc.value; });
-    const currentPath = computed(() => t('fmPathPrefix') + currentLocName.value);
-    function navigate(loc) { currentLoc.value = loc.id; selected.value = null }
-    function open(f) { if (window.ElementPlus) window.ElementPlus.ElMessage.info(f.name + ' ' + t('fmOpening')); }
-    return { currentLoc, locations, files, selected, currentPath, navigate, open, t };
+
+    const currentDir = ref('');
+    const fileList = ref([]);
+    const loading = ref(false);
+    const ctxMenu = ref(null);
+    const uploadInput = ref(null);
+
+    const breadcrumbs = computed(() => {
+      const parts = [{ name: '🏠', path: '' }];
+      if (!currentDir.value) return parts;
+      const segs = currentDir.value.split('/').filter(Boolean);
+      let acc = '';
+      segs.forEach(s => { acc += (acc ? '/' : '') + s; parts.push({ name: s, path: acc }); });
+      return parts;
+    });
+
+    const files = computed(() => {
+      const list = [...fileList.value];
+      list.sort((a, b) => { if (a.isDir !== b.isDir) return a.isDir ? -1 : 1; return a.name.localeCompare(b.name); });
+      return list;
+    });
+
+    function fileIcon(f) {
+      if (f.isDir) return '📁';
+      const ext = (f.name.match(/\.[^.]+$/) || [''])[0].toLowerCase();
+      return FILE_ICONS[ext] || '📄';
+    }
+
+    function formatSize(bytes) {
+      if (!bytes) return '';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    async function loadDir(dirPath) {
+      loading.value = true;
+      try {
+        const r = await fetch('/api/fs/list?path=' + encodeURIComponent(dirPath || ''), { headers: authHeaders() });
+        if (r.ok) fileList.value = await r.json();
+        else fileList.value = [];
+      } catch { fileList.value = []; }
+      loading.value = false;
+      ctxMenu.value = null;
+    }
+
+    function navigateTo(dir) {
+      currentDir.value = dir;
+      loadDir(dir);
+    }
+
+    function goUp() {
+      if (!currentDir.value) return;
+      const parts = currentDir.value.split('/').filter(Boolean);
+      parts.pop();
+      navigateTo(parts.join('/'));
+    }
+
+    const EXT_APP_MAP = {
+      '.js':'codeeditor','.ts':'codeeditor','.py':'codeeditor','.go':'codeeditor',
+      '.php':'codeeditor','.c':'codeeditor','.cpp':'codeeditor','.cs':'codeeditor',
+      '.java':'codeeditor','.rs':'codeeditor','.rb':'codeeditor','.sh':'codeeditor',
+      '.css':'codeeditor','.xml':'codeeditor','.yaml':'codeeditor','.yml':'codeeditor',
+      '.sql':'codeeditor','.jsx':'codeeditor','.tsx':'codeeditor',
+      '.txt':'notepad','.log':'notepad','.md':'markdown-viewer',
+      '.html':'html-editor','.htm':'html-editor','.json':'json-viewer',
+      '.png':'photos','.jpg':'photos','.jpeg':'photos','.gif':'photos',
+      '.svg':'photos','.webp':'photos',
+      '.mp3':'music-player','.wav':'music-player','.ogg':'music-player','.flac':'music-player',
+      '.mp4':'video-player','.mkv':'video-player','.avi':'video-player','.webm':'video-player',
+      '.pdf':'pdf-viewer','.csv':'spreadsheet','.xls':'spreadsheet','.xlsx':'spreadsheet'
+    };
+
+    function openItem(f) {
+      if (f.isDir) { navigateTo(f.path); return; }
+      const ext = (f.name.match(/\.[^.]+$/) || [''])[0].toLowerCase();
+      const appId = EXT_APP_MAP[ext];
+      if (appId) {
+        window.dispatchEvent(new CustomEvent('open-app-action', {
+          detail: { app: appId, action: 'open-file', data: { filePath: f.path, fileName: f.name } }
+        }));
+      } else {
+        downloadFile(f);
+      }
+    }
+
+    function downloadFile(f) {
+      const token = getToken();
+      const a = document.createElement('a');
+      a.href = '/api/fs/download?path=' + encodeURIComponent(f.path) + '&token=' + encodeURIComponent(token);
+      a.download = f.name;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+
+    function showCtx(e, f) {
+      ctxMenu.value = { x: e.clientX, y: e.clientY, file: f };
+    }
+
+    function hideCtx() { ctxMenu.value = null; }
+    function ctxOpen() { if (ctxMenu.value?.file) openItem(ctxMenu.value.file); hideCtx(); }
+    function ctxDownload() { if (ctxMenu.value?.file) downloadFile(ctxMenu.value.file); hideCtx(); }
+
+    async function ctxDelete() {
+      const f = ctxMenu.value?.file;
+      hideCtx();
+      if (!f) return;
+      if (!confirm(t('fmConfirmDelete') + '\n' + f.name)) return;
+      try {
+        await fetch('/api/fs/delete?path=' + encodeURIComponent(f.path), { method: 'DELETE', headers: authHeaders() });
+        loadDir(currentDir.value);
+      } catch {}
+    }
+
+    async function createFolder() {
+      const name = prompt(t('fmNewFolderName'));
+      if (!name || !name.trim()) return;
+      const safeName = name.trim().replace(/[<>:"|?*\\\/]/g, '_');
+      const dirPath = currentDir.value ? currentDir.value + '/' + safeName : safeName;
+      try {
+        await fetch('/api/fs/mkdir', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ dirPath }) });
+        loadDir(currentDir.value);
+      } catch {}
+    }
+
+    function triggerUpload() { uploadInput.value?.click(); }
+
+    async function uploadFiles(e) {
+      const inputFiles = e.target.files;
+      if (!inputFiles || !inputFiles.length) return;
+      const fd = new FormData();
+      fd.append('path', currentDir.value);
+      for (const f of inputFiles) fd.append('files', f);
+      try {
+        const token = getToken();
+        const r = await fetch('/api/fs/upload', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: fd });
+        if (r.ok) loadDir(currentDir.value);
+      } catch {}
+      e.target.value = '';
+    }
+
+    onMounted(() => { navigateTo(''); document.addEventListener('click', hideCtx); });
+    onUnmounted(() => { document.removeEventListener('click', hideCtx); });
+
+    return {
+      currentDir, files, loading, breadcrumbs, ctxMenu, uploadInput,
+      fileIcon, formatSize,
+      navigateTo, goUp, openItem, showCtx, ctxOpen, ctxDownload, ctxDelete,
+      createFolder, triggerUpload, uploadFiles,
+      t
+    };
   }
 };
 
@@ -5605,16 +5750,15 @@ createApp({
       if (!appId) return;
       const target = apps.value.find(a => a.id === appId);
       if (!target) return;
-      // Set navigation data for the app to pick up
-      if (appId === 'rss-reader') {
-        window.__rssNavigate = action.data || {};
-      }
-      openApp(target);
-      // Also dispatch specific navigate event if app is already open
-      if (appId === 'rss-reader') {
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('rss-navigate', { detail: action.data || {} }));
-        }, 300);
+      const actionPayload = { action: action.action || 'open', data: action.data || {} };
+      const existing = openWindows.value.find(w => w.id === appId);
+      if (existing) {
+        focusWindow(existing);
+        window.dispatchEvent(new CustomEvent('app-action:' + appId, { detail: actionPayload }));
+      } else {
+        window.__pendingAppAction = window.__pendingAppAction || {};
+        window.__pendingAppAction[appId] = actionPayload;
+        openApp(target);
       }
     }
 

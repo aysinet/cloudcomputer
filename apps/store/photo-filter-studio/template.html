@@ -1,0 +1,198 @@
+<div class="pfs-root">
+  <!-- Toolbar -->
+  <div class="pfs-toolbar">
+    <div class="pfs-toolbar-left">
+      <button class="pfs-btn pfs-btn-primary" @click="openFile">📂 {{L('open')}}</button>
+      <button class="pfs-btn" @click="saveFile" :disabled="!hasImage">💾 {{L('save')}}</button>
+      <button class="pfs-btn" @click="exportFile" :disabled="!hasImage">📤 {{L('export')}}</button>
+      <span class="pfs-separator"></span>
+      <button class="pfs-btn" @click="undo" :disabled="!canUndo">↩️</button>
+      <button class="pfs-btn" @click="redo" :disabled="!canRedo">↪️</button>
+      <button class="pfs-btn" @click="resetAll" :disabled="!hasImage">🔄 {{L('reset')}}</button>
+    </div>
+    <div class="pfs-toolbar-right">
+      <button class="pfs-btn" @click="toggleOriginal" :disabled="!hasImage" :class="{active: showOriginal}">👁️ {{L('original')}}</button>
+      <button class="pfs-btn" @click="toggleSplit" :disabled="!hasImage" :class="{active: splitView}">⚡ {{L('split')}}</button>
+    </div>
+  </div>
+
+  <!-- Main Body -->
+  <div class="pfs-body">
+    <!-- Left Panel: Filter Categories -->
+    <div class="pfs-left-panel">
+      <div class="pfs-panel-title">{{L('filters')}}</div>
+      <div class="pfs-category-list">
+        <button v-for="cat in categories" :key="cat.id"
+          class="pfs-cat-btn" :class="{active: activeCategory === cat.id}"
+          @click="activeCategory = cat.id">
+          <span class="pfs-cat-icon">{{cat.icon}}</span>
+          <span class="pfs-cat-label">{{L(cat.id)}}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Center: Canvas -->
+    <div class="pfs-center" ref="centerRef"
+      @dragover.prevent="onDragOver" @dragleave="onDragLeave" @drop.prevent="onDrop">
+      <div v-if="!hasImage" class="pfs-empty" :class="{dragover: isDragOver}">
+        <div class="pfs-empty-icon">🖼️</div>
+        <div class="pfs-empty-text">{{L('dropHere')}}</div>
+        <button class="pfs-btn pfs-btn-primary" @click="openFile">{{L('browseFile')}}</button>
+      </div>
+      <div v-else class="pfs-canvas-area">
+        <canvas ref="mainCanvas" :width="canvasWidth" :height="canvasHeight"
+          :style="{transform: 'scale(' + zoom + ')', transformOrigin: 'center center'}"></canvas>
+      </div>
+      <div v-if="processing" class="pfs-processing">
+        <div class="pfs-spinner"></div>
+        <span>{{L('processing')}}</span>
+      </div>
+    </div>
+
+    <!-- Right Panel: Effect Controls -->
+    <div class="pfs-right-panel">
+      <div class="pfs-panel-title">{{L('effects')}}</div>
+      <div class="pfs-effects-scroll">
+        <!-- SKSL Shader Effects -->
+        <template v-if="activeCategory === 'shaders'">
+          <div class="pfs-fx-grid">
+            <button v-for="fx in shaderEffects" :key="fx.id" class="pfs-fx-btn"
+              :class="{active: activeEffect === fx.id}" @click="applyShaderEffect(fx.id)">
+              <span class="pfs-fx-icon">{{fx.icon}}</span>
+              <span class="pfs-fx-label">{{L(fx.id)}}</span>
+            </button>
+          </div>
+          <div v-if="activeEffect && getShaderParams(activeEffect).length" class="pfs-params">
+            <div v-for="p in getShaderParams(activeEffect)" :key="p.id" class="pfs-param-row">
+              <label>{{L(p.id)}}</label>
+              <input type="range" :min="p.min" :max="p.max" :step="p.step"
+                v-model.number="shaderParams[p.id]" @input="applyCurrentEffect()">
+              <span class="pfs-param-val">{{shaderParams[p.id]}}</span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Color Adjustments -->
+        <template v-if="activeCategory === 'color'">
+          <div class="pfs-fx-grid">
+            <button v-for="fx in colorEffects" :key="fx.id" class="pfs-fx-btn"
+              :class="{active: activeEffect === fx.id}" @click="applyColorEffect(fx.id)">
+              <span class="pfs-fx-icon">{{fx.icon}}</span>
+              <span class="pfs-fx-label">{{L(fx.id)}}</span>
+            </button>
+          </div>
+          <div v-if="activeEffect && getColorParams(activeEffect).length" class="pfs-params">
+            <div v-for="p in getColorParams(activeEffect)" :key="p.id" class="pfs-param-row">
+              <label>{{L(p.id)}}</label>
+              <input type="range" :min="p.min" :max="p.max" :step="p.step"
+                v-model.number="colorParams[p.id]" @input="applyCurrentEffect()">
+              <span class="pfs-param-val">{{colorParams[p.id]}}</span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Blur & Distortion -->
+        <template v-if="activeCategory === 'blur'">
+          <div class="pfs-fx-grid">
+            <button v-for="fx in blurEffects" :key="fx.id" class="pfs-fx-btn"
+              :class="{active: activeEffect === fx.id}" @click="applyBlurEffect(fx.id)">
+              <span class="pfs-fx-icon">{{fx.icon}}</span>
+              <span class="pfs-fx-label">{{L(fx.id)}}</span>
+            </button>
+          </div>
+          <div v-if="activeEffect && getBlurParams(activeEffect).length" class="pfs-params">
+            <div v-for="p in getBlurParams(activeEffect)" :key="p.id" class="pfs-param-row">
+              <label>{{L(p.id)}}</label>
+              <input type="range" :min="p.min" :max="p.max" :step="p.step"
+                v-model.number="blurParams[p.id]" @input="applyCurrentEffect()">
+              <span class="pfs-param-val">{{blurParams[p.id]}}</span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Image Filters (CanvasKit built-in) -->
+        <template v-if="activeCategory === 'imagefilters'">
+          <div class="pfs-fx-grid">
+            <button v-for="fx in imageFilterEffects" :key="fx.id" class="pfs-fx-btn"
+              :class="{active: activeEffect === fx.id}" @click="applyImageFilter(fx.id)">
+              <span class="pfs-fx-icon">{{fx.icon}}</span>
+              <span class="pfs-fx-label">{{L(fx.id)}}</span>
+            </button>
+          </div>
+          <div v-if="activeEffect && getImageFilterParams(activeEffect).length" class="pfs-params">
+            <div v-for="p in getImageFilterParams(activeEffect)" :key="p.id" class="pfs-param-row">
+              <label>{{L(p.id)}}</label>
+              <input type="range" :min="p.min" :max="p.max" :step="p.step"
+                v-model.number="imageFilterParams[p.id]" @input="applyCurrentEffect()">
+              <span class="pfs-param-val">{{imageFilterParams[p.id]}}</span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Presets -->
+        <template v-if="activeCategory === 'presets'">
+          <div class="pfs-fx-grid pfs-presets-grid">
+            <button v-for="pr in presets" :key="pr.id" class="pfs-fx-btn pfs-preset-btn"
+              :class="{active: activePreset === pr.id}" @click="applyPreset(pr.id)">
+              <span class="pfs-fx-icon">{{pr.icon}}</span>
+              <span class="pfs-fx-label">{{L(pr.id)}}</span>
+            </button>
+          </div>
+        </template>
+
+        <!-- Blend Modes -->
+        <template v-if="activeCategory === 'blend'">
+          <div class="pfs-fx-grid">
+            <button v-for="bm in blendModes" :key="bm.id" class="pfs-fx-btn"
+              :class="{active: activeEffect === bm.id}" @click="applyBlendMode(bm.id)">
+              <span class="pfs-fx-icon">{{bm.icon}}</span>
+              <span class="pfs-fx-label">{{L(bm.id)}}</span>
+            </button>
+          </div>
+          <div v-if="activeEffect" class="pfs-params">
+            <div class="pfs-param-row">
+              <label>{{L('blendColor')}}</label>
+              <input type="color" v-model="blendColor" @input="applyCurrentEffect()">
+            </div>
+            <div class="pfs-param-row">
+              <label>{{L('opacity')}}</label>
+              <input type="range" min="0" max="100" step="1"
+                v-model.number="blendOpacity" @input="applyCurrentEffect()">
+              <span class="pfs-param-val">{{blendOpacity}}%</span>
+            </div>
+          </div>
+        </template>
+
+        <!-- Transform -->
+        <template v-if="activeCategory === 'transform'">
+          <div class="pfs-fx-grid">
+            <button v-for="fx in transformEffects" :key="fx.id" class="pfs-fx-btn"
+              :class="{active: activeEffect === fx.id}" @click="applyTransformEffect(fx.id)">
+              <span class="pfs-fx-icon">{{fx.icon}}</span>
+              <span class="pfs-fx-label">{{L(fx.id)}}</span>
+            </button>
+          </div>
+          <div v-if="activeEffect && getTransformParams(activeEffect).length" class="pfs-params">
+            <div v-for="p in getTransformParams(activeEffect)" :key="p.id" class="pfs-param-row">
+              <label>{{L(p.id)}}</label>
+              <input type="range" :min="p.min" :max="p.max" :step="p.step"
+                v-model.number="transformParams[p.id]" @input="applyCurrentEffect()">
+              <span class="pfs-param-val">{{transformParams[p.id]}}</span>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="pfs-statusbar">
+    <span v-if="hasImage">{{imgW}} × {{imgH}}px</span>
+    <span v-if="hasImage">| {{L('zoom')}}: {{Math.round(zoom * 100)}}%</span>
+    <span v-if="activeEffect">| {{L('effect')}}: {{L(activeEffect)}}</span>
+    <span class="pfs-statusbar-right" v-if="loading">⏳ {{L('loadingCK')}}</span>
+  </div>
+
+  <!-- Hidden file input -->
+  <input type="file" ref="fileInput" accept="image/*" @change="onFileSelected" style="display:none">
+</div>

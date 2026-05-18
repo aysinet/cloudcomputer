@@ -158,8 +158,36 @@
         document.removeEventListener('mouseup', stopResize);
       }
 
-      onMounted(function() { nextTick(function() { initMonaco(); }); });
-      onUnmounted(function() { if (editor) { editor.dispose(); editor = null; } });
+      async function handleFileAction(payload) {
+        if (!payload || !payload.data || !payload.data.filePath) return;
+        var fp = payload.data.filePath;
+        try {
+          var token = getToken();
+          var r = await fetch('/api/fs/read?path=' + encodeURIComponent(fp), { headers: { 'Authorization': 'Bearer ' + token } });
+          if (!r.ok) return;
+          var data = await r.json();
+          if (editor) editor.setValue(data.content || '');
+          currentFilePath.value = fp;
+          var lang = detectLang(payload.data.fileName || fp);
+          if (lang) setLanguage(lang);
+        } catch(e) { console.error('codeeditor: open file error', e); }
+      }
+
+      function onAppAction(e) { handleFileAction(e.detail); }
+
+      onMounted(function() {
+        nextTick(function() { initMonaco(); });
+        window.addEventListener('app-action:codeeditor', onAppAction);
+        var pending = window.__pendingAppAction && window.__pendingAppAction['codeeditor'];
+        if (pending) {
+          delete window.__pendingAppAction['codeeditor'];
+          setTimeout(function() { handleFileAction(pending); }, 500);
+        }
+      });
+      onUnmounted(function() {
+        if (editor) { editor.dispose(); editor = null; }
+        window.removeEventListener('app-action:codeeditor', onAppAction);
+      });
 
       function detectLang(filename) {
         var ext = (filename.match(/\.[^.]+$/) || [''])[0].toLowerCase();

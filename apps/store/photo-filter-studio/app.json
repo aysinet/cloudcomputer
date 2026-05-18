@@ -1,0 +1,26 @@
+{
+  "id": "photo-filter-studio",
+  "name": "Photo Filter Studio",
+  "icon": "🎞️",
+  "color": "linear-gradient(135deg, #6366f1, #ec4899)",
+  "type": "internal",
+  "size": { "w": 1100, "h": 720 },
+  "global": false,
+  "description": "CanvasKit powered photo filter studio with SKSL shader effects",
+  "category": "creative",
+  "lang": {
+    "tr": { "name": "Fotoğraf Filtre Stüdyosu", "description": "CanvasKit ile SKSL shader efektleri ve gelişmiş fotoğraf filtreleri" },
+    "en": { "name": "Photo Filter Studio", "description": "CanvasKit powered photo filter studio with SKSL shader effects" },
+    "de": { "name": "Foto-Filter-Studio", "description": "CanvasKit-basiertes Fotofilter-Studio mit SKSL-Shader-Effekten" },
+    "fr": { "name": "Studio Filtre Photo", "description": "Studio de filtres photo avec effets shader SKSL via CanvasKit" },
+    "es": { "name": "Estudio de Filtros Fotográficos", "description": "Estudio de filtros fotográficos con efectos shader SKSL" },
+    "ru": { "name": "Фото Фильтр Студия", "description": "Студия фотофильтров с шейдерными эффектами SKSL" },
+    "zh": { "name": "照片滤镜工作室", "description": "基于CanvasKit的SKSL着色器照片滤镜工作室" },
+    "ja": { "name": "フォトフィルタースタジオ", "description": "CanvasKitによるSKSLシェーダー効果付きフォトフィルタースタジオ" },
+    "it": { "name": "Studio Filtri Foto", "description": "Studio filtri fotografici con effetti shader SKSL" },
+    "ar": { "name": "استوديو فلاتر الصور", "description": "استوديو فلاتر الصور مع تأثيرات SKSL" },
+    "ko": { "name": "포토 필터 스튜디오", "description": "SKSL 셰이더 효과가 있는 CanvasKit 포토 필터 스튜디오" },
+    "hi": { "name": "फोटो फ़िल्टर स्टूडियो", "description": "SKSL शेडर प्रभावों के साथ CanvasKit फोटो फ़िल्टर स्टूडियो" },
+    "pt": { "name": "Estúdio de Filtros de Foto", "description": "Estúdio de filtros com efeitos shader SKSL via CanvasKit" }
+  }
+}

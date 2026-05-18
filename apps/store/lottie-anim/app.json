@@ -7,7 +7,7 @@
   "size": { "w": 900, "h": 640 },
   "global": false,
   "description": "CanvasKit WASM ile Lottie animasyon oynatıcı — JSON dosyası yükle, oynat, durdur, hız ayarla ve GIF/PNG dışa aktar",
-  "category": "creative",
+  "category": "media",
   "lang": {
     "tr": { "name": "Lottie Animasyon", "description": "CanvasKit WASM ile Lottie animasyon oynatıcı — JSON dosyası yükle, oynat, durdur, hız ayarla ve GIF/PNG dışa aktar" },
     "en": { "name": "Lottie Animation", "description": "Lottie animation player with CanvasKit WASM — load JSON files, play, pause, adjust speed and export PNG" },

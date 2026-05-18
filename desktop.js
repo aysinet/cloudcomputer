@@ -1368,6 +1368,35 @@ app.post('/api/fs/rename', authMiddleware, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Upload files (multipart)
+const fsUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 100 * 1024 * 1024 } });
+app.post('/api/fs/upload', authMiddleware, fsUpload.array('files', 20), (req, res) => {
+  const root = getUserFilesRoot(req.user.username);
+  const targetDir = req.body.path || '';
+  const dir = safePath(root, targetDir);
+  if (!dir) return res.status(403).json({ error: 'Invalid path' });
+  ensureDir(dir);
+  const uploaded = [];
+  for (const f of (req.files || [])) {
+    const safeName = f.originalname.replace(/[<>:"|?*]/g, '_');
+    const fp = path.join(dir, safeName);
+    if (!fp.startsWith(root)) continue;
+    fs.writeFileSync(fp, f.buffer);
+    const stat = fs.statSync(fp);
+    uploaded.push({ name: safeName, path: path.relative(root, fp).replace(/\\/g, '/'), size: stat.size });
+  }
+  res.json({ ok: true, files: uploaded });
+});
+
+// Download file (binary stream)
+app.get('/api/fs/download', authMiddleware, (req, res) => {
+  const root = getUserFilesRoot(req.user.username);
+  const fp = safePath(root, req.query.path);
+  if (!fp) return res.status(403).json({ error: 'Invalid path' });
+  if (!fs.existsSync(fp) || fs.statSync(fp).isDirectory()) return res.status(404).json({ error: 'File not found' });
+  res.download(fp, path.basename(fp));
+});
+
 // Save Wikipedia page as PDF
 app.post('/api/wikipedia/save-pdf', authMiddleware, async (req, res) => {
   const { url, title, savePath } = req.body;

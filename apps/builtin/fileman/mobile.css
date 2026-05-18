@@ -1,8 +1,22 @@
-/* File Manager: hide sidebar, show top-bar nav */
-.fm-toolbar{padding:8px 12px;gap:6px}
-.fm-tb-btn{height:36px;min-width:36px;font-size:14px}
-.fm-path{height:36px;font-size:13px}
-.fm-sidebar{display:none !important}
-.fm-files{padding:12px;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px}
-.fm-file .ico{font-size:36px}
-.fm-file .name{font-size:12px}
+/* File Manager Mobile */
+.fm-root{width:100%;height:100%;background:#1e1e2e;display:flex;flex-direction:column;font-family:'Segoe UI',sans-serif;color:#cdd6f4;position:relative}
+.fm-toolbar{background:#181825;border-bottom:1px solid rgba(255,255,255,.08);padding:8px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.fm-breadcrumb{flex:1;display:flex;align-items:center;gap:2px;overflow-x:auto;white-space:nowrap;font-size:13px;min-width:0}
+.fm-bc-item{cursor:pointer;padding:2px 4px;border-radius:3px;color:#a6adc8}
+.fm-bc-item:hover{color:#cdd6f4}
+.fm-bc-sep{color:#585b70;margin:0 1px}
+.fm-tb-btn{height:36px;min-width:36px;padding:0 8px;border:1px solid rgba(255,255,255,.08);border-radius:6px;background:rgba(255,255,255,.04);cursor:pointer;font-size:15px;color:#a6adc8;display:flex;align-items:center;justify-content:center}
+.fm-tb-btn:disabled{opacity:.3}
+.fm-main{flex:1;overflow-y:auto}
+.fm-files.fm-list{display:flex;flex-direction:column}
+.fm-list-row{display:flex;align-items:center;padding:10px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)}
+.fm-list-row:active{background:rgba(255,255,255,.06)}
+.fm-lr-name{flex:1;display:flex;align-items:center;gap:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-lr-name .ico{font-size:20px;flex-shrink:0}
+.fm-lr-size{color:#585b70;font-size:11px;margin-left:8px;flex-shrink:0}
+.fm-empty{display:flex;align-items:center;justify-content:center;height:200px;color:#585b70;font-size:14px}
+.fm-status{background:#181825;border-top:1px solid rgba(255,255,255,.06);padding:6px 12px;font-size:11px;color:#585b70;flex-shrink:0}
+.fm-ctx-menu{position:fixed;background:#181825;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:4px 0;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:100}
+.fm-ctx-item{padding:10px 16px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;color:#cdd6f4}
+.fm-ctx-item:active{background:rgba(255,255,255,.06)}
+.fm-ctx-danger{color:#f38ba8}
