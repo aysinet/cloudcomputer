@@ -1,0 +1,374 @@
+.apify-app {
+  display: flex;
+  height: 100%;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  overflow: hidden;
+}
+
+/* ── No Key Screen ── */
+.apify-nokey {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.apify-nokey-icon { font-size: 56px; }
+.apify-nokey-text { color: #8899aa; font-size: 14px; text-align: center; max-width: 320px; }
+
+/* ── Sidebar ── */
+.apify-sidebar {
+  width: 180px;
+  min-width: 180px;
+  background: #16213e;
+  border-right: 1px solid #0f3460;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.apify-logo {
+  padding: 14px 16px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #00c896;
+  border-bottom: 1px solid #0f3460;
+  letter-spacing: 0.5px;
+}
+.apify-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 0;
+  overflow-y: auto;
+}
+.apify-nav button {
+  background: none;
+  border: none;
+  color: #aab;
+  text-align: left;
+  padding: 9px 16px;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: 0.15s;
+  white-space: nowrap;
+}
+.apify-nav button:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.apify-nav button.active {
+  background: rgba(0,200,150,0.15);
+  color: #00c896;
+  font-weight: 600;
+  border-right: 3px solid #00c896;
+}
+.apify-nav-spacer { flex: 1; }
+
+/* ── Content ── */
+.apify-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+}
+.apify-panel {
+  padding: 16px;
+  min-height: 100%;
+}
+
+/* ── Toolbar ── */
+.apify-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.apify-toolbar-title {
+  font-size: 15px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* ── Empty ── */
+.apify-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #666;
+  font-size: 13px;
+}
+
+/* ── Store Grid ── */
+.apify-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+.apify-store-card {
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 10px;
+  padding: 14px;
+  transition: 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.apify-store-card:hover { border-color: rgba(0,200,150,0.4); box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+.apify-store-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.apify-store-card-name {
+  font-weight: 600;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.apify-store-card-author { font-size: 11px; color: #00c896; }
+.apify-store-card-desc {
+  font-size: 11.5px;
+  color: #8899aa;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.4;
+}
+.apify-store-card-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 10px;
+  color: #667;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.apify-tag {
+  background: rgba(0,200,150,0.15);
+  color: #00c896;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+/* ── Table ── */
+.apify-table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #0f3460;
+}
+.apify-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.apify-table thead { background: #16213e; }
+.apify-table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: 11.5px;
+  color: #8899aa;
+  border-bottom: 1px solid #0f3460;
+  white-space: nowrap;
+}
+.apify-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  vertical-align: middle;
+}
+.apify-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+.apify-sub { font-size: 10px; color: #667; }
+.apify-run-id { cursor: pointer; font-family: monospace; font-size: 11px; color: #8899aa; }
+.apify-run-id:hover { color: #00c896; }
+.apify-actions { white-space: nowrap; }
+
+/* ── Status Badge ── */
+.apify-status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* ── Pagination ── */
+.apify-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 0 4px;
+}
+.apify-page-info { font-size: 12px; color: #8899aa; }
+
+/* ── Settings ── */
+.apify-settings-card {
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 600px;
+}
+.apify-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.apify-settings-row label {
+  font-weight: 600;
+  font-size: 13px;
+  min-width: 80px;
+}
+.apify-key-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.apify-key-display code {
+  background: rgba(0,200,150,0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #00c896;
+}
+
+/* ── Account ── */
+.apify-account-info {
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 500px;
+}
+.apify-account-row {
+  padding: 8px 0;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.apify-account-row:last-child { border-bottom: none; }
+.apify-account-row span { color: #8899aa; display: inline-block; min-width: 120px; }
+
+/* ── Run Form ── */
+.apify-run-form { display: flex; flex-direction: column; gap: 14px; }
+.apify-form-row { display: flex; flex-direction: column; gap: 6px; }
+.apify-form-row label { font-size: 12px; font-weight: 600; color: #8899aa; }
+.apify-form-row-inline { display: flex; gap: 12px; }
+.apify-form-col { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.apify-form-col label { font-size: 12px; font-weight: 600; color: #8899aa; }
+
+/* ── Log ── */
+.apify-log-pre {
+  background: #0d1117;
+  color: #c9d1d9;
+  padding: 14px;
+  border-radius: 8px;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 11.5px;
+  line-height: 1.5;
+  max-height: 60vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ── Detail Dialog ── */
+.apify-detail-grid { display: flex; flex-direction: column; gap: 4px; }
+.apify-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 13px;
+}
+.apify-detail-row span { color: #8899aa; min-width: 130px; font-weight: 500; }
+.apify-detail-row code { background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+
+/* ── Data Table ── */
+.apify-data-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #8899aa;
+}
+.apify-data-table-wrap {
+  max-height: 60vh;
+  overflow: auto;
+  border-radius: 8px;
+  border: 1px solid #0f3460;
+}
+.apify-data-table td {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.5px;
+}
+
+/* ── KV List ── */
+.apify-kv-list { display: flex; flex-direction: column; gap: 2px; }
+.apify-kv-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.15s;
+}
+.apify-kv-item:hover { background: rgba(0,200,150,0.1); }
+.apify-kv-key { font-size: 13px; font-family: monospace; }
+.apify-kv-size { font-size: 11px; color: #667; }
+
+/* ── Scrollbar ── */
+.apify-content::-webkit-scrollbar,
+.apify-data-table-wrap::-webkit-scrollbar,
+.apify-log-pre::-webkit-scrollbar { width: 6px; height: 6px; }
+.apify-content::-webkit-scrollbar-track,
+.apify-data-table-wrap::-webkit-scrollbar-track,
+.apify-log-pre::-webkit-scrollbar-track { background: transparent; }
+.apify-content::-webkit-scrollbar-thumb,
+.apify-data-table-wrap::-webkit-scrollbar-thumb,
+.apify-log-pre::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+
+/* ── Element Plus Overrides ── */
+.apify-app .el-dialog {
+  background: #1e1e2e !important;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+}
+.apify-app .el-dialog__header { border-bottom: 1px solid rgba(255,255,255,0.06); }
+.apify-app .el-dialog__title { color: #e0e0e0 !important; }
+.apify-app .el-dialog__body { color: #d0d0d0 !important; }
+.apify-app .el-input__wrapper {
+  background: rgba(255,255,255,0.06) !important;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.1) inset !important;
+}
+.apify-app .el-input__inner { color: #e0e0e0 !important; }
+.apify-app .el-textarea__inner {
+  background: rgba(255,255,255,0.06) !important;
+  color: #e0e0e0 !important;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+.apify-app .el-select .el-input__wrapper { background: rgba(255,255,255,0.06) !important; }
+.apify-app .el-button--primary {
+  background: #00c896 !important;
+  border-color: #00c896 !important;
+}
+.apify-app .el-button--primary:hover {
+  background: #00b086 !important;
+  border-color: #00b086 !important;
+}

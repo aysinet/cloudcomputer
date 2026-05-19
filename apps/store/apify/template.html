@@ -1,0 +1,442 @@
+<div class="apify-app">
+  <!-- No API Key Screen -->
+  <div v-if="!hasKey && tab !== 'settings'" class="apify-nokey">
+    <div class="apify-nokey-icon">🕷️</div>
+    <div class="apify-nokey-text">{{ t('noKey') }}</div>
+    <el-button type="primary" @click="switchTab('settings')">{{ t('settings') }}</el-button>
+  </div>
+
+  <!-- Main Layout -->
+  <template v-else>
+    <!-- Sidebar -->
+    <div class="apify-sidebar">
+      <div class="apify-logo">🕷️ Apify</div>
+      <div class="apify-nav">
+        <button :class="{active: tab==='store'}" @click="switchTab('store')">🏪 {{ t('store') }}</button>
+        <button :class="{active: tab==='myActors'}" @click="switchTab('myActors')">🤖 {{ t('myActors') }}</button>
+        <button :class="{active: tab==='runs'}" @click="switchTab('runs')">▶️ {{ t('runs') }}</button>
+        <button :class="{active: tab==='datasets'}" @click="switchTab('datasets')">📊 {{ t('datasets') }}</button>
+        <button :class="{active: tab==='kvStores'}" @click="switchTab('kvStores')">🗄️ {{ t('kvStores') }}</button>
+        <button :class="{active: tab==='schedules'}" @click="switchTab('schedules')">⏰ {{ t('schedules') }}</button>
+        <button :class="{active: tab==='tasks'}" @click="switchTab('tasks')">📋 {{ t('tasks') }}</button>
+        <div class="apify-nav-spacer"></div>
+        <button :class="{active: tab==='account'}" @click="switchTab('account')">👤 {{ t('account') }}</button>
+        <button :class="{active: tab==='settings'}" @click="tab='settings'">⚙️ {{ t('settings') }}</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="apify-content" v-loading="loading">
+
+      <!-- ═══ STORE ═══ -->
+      <div v-if="tab==='store'" class="apify-panel">
+        <div class="apify-toolbar">
+          <span class="apify-toolbar-title">🏪 {{ t('store') }}</span>
+          <el-input v-model="storeSearch" :placeholder="t('search')" size="small" style="width:220px"
+            @keyup.enter="searchStore" clearable @clear="searchStore">
+            <template #prefix><span>🔍</span></template>
+          </el-input>
+          <el-button size="small" @click="searchStore">{{ t('search') }}</el-button>
+          <el-button size="small" text @click="loadStore(storePage)">🔄 {{ t('refresh') }}</el-button>
+        </div>
+        <div class="apify-grid" v-if="storeItems.length">
+          <div v-for="item in storeItems" :key="item.id" class="apify-store-card">
+            <div class="apify-store-card-header">
+              <span class="apify-store-card-name">{{ item.name || item.title }}</span>
+              <el-button size="small" type="primary" @click="openRunDialog(item.id || item.actorId, item.name || item.title)">▶ {{ t('run') }}</el-button>
+            </div>
+            <div class="apify-store-card-author" v-if="item.username">{{ item.username }}</div>
+            <div class="apify-store-card-desc">{{ item.description || '-' }}</div>
+            <div class="apify-store-card-meta">
+              <span v-if="item.stats && item.stats.totalRuns">▶ {{ item.stats.totalRuns }}</span>
+              <span v-if="item.stats && item.stats.totalUsers">👤 {{ item.stats.totalUsers }}</span>
+              <span v-if="item.categories" class="apify-tag">{{ (item.categories || []).join(', ') }}</span>
+            </div>
+          </div>
+        </div>
+        <div v-else class="apify-empty">{{ t('noResults') }}</div>
+        <div class="apify-pagination" v-if="storeTotal > PAGE_SIZE">
+          <el-button size="small" :disabled="storePage===0" @click="loadStore(storePage-1)">{{ t('prev') }}</el-button>
+          <span class="apify-page-info">{{ t('page') }} {{ storePage + 1 }} / {{ totalPages(storeTotal) }}</span>
+          <el-button size="small" :disabled="(storePage+1)*PAGE_SIZE>=storeTotal" @click="loadStore(storePage+1)">{{ t('next') }}</el-button>
+        </div>
+      </div>
+
+      <!-- ═══ MY ACTORS ═══ -->
+      <div v-if="tab==='myActors'" class="apify-panel">
+        <div class="apify-toolbar">
+          <span class="apify-toolbar-title">🤖 {{ t('myActors') }}</span>
+          <el-button size="small" text @click="loadActors(actorsPage)">🔄 {{ t('refresh') }}</el-button>
+        </div>
+        <div class="apify-table-wrap" v-if="actors.length">
+          <table class="apify-table">
+            <thead>
+              <tr>
+                <th>{{ t('name') }}</th>
+                <th>{{ t('createdAt') }}</th>
+                <th>{{ t('modifiedAt') }}</th>
+                <th>{{ t('actions') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="a in actors" :key="a.id">
+                <td><strong>{{ a.name }}</strong><br><span class="apify-sub">{{ a.id }}</span></td>
+                <td>{{ fmtDate(a.createdAt) }}</td>
+                <td>{{ fmtDate(a.modifiedAt) }}</td>
+                <td>
+                  <el-button size="small" type="primary" @click="openRunDialog(a.id, a.name)">▶ {{ t('run') }}</el-button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="apify-empty">{{ t('noData') }}</div>
+        <div class="apify-pagination" v-if="actorsTotal > PAGE_SIZE">
+          <el-button size="small" :disabled="actorsPage===0" @click="loadActors(actorsPage-1)">{{ t('prev') }}</el-button>
+          <span class="apify-page-info">{{ t('page') }} {{ actorsPage + 1 }} / {{ totalPages(actorsTotal) }}</span>
+          <el-button size="small" :disabled="(actorsPage+1)*PAGE_SIZE>=actorsTotal" @click="loadActors(actorsPage+1)">{{ t('next') }}</el-button>
+        </div>
+      </div>
+
+      <!-- ═══ RUNS ═══ -->
+      <div v-if="tab==='runs'" class="apify-panel">
+        <div class="apify-toolbar">
+          <span class="apify-toolbar-title">▶️ {{ t('runs') }}</span>
+          <el-select v-model="runsFilter" size="small" style="width:140px" clearable :placeholder="t('status')" @change="loadRuns(0)">
+            <el-option value="" :label="'— ' + t('status') + ' —'" />
+            <el-option value="RUNNING" :label="t('running')" />
+            <el-option value="SUCCEEDED" :label="t('succeeded')" />
+            <el-option value="FAILED" :label="t('failed')" />
+            <el-option value="ABORTED" :label="t('aborted')" />
+          </el-select>
+          <el-button size="small" text @click="loadRuns(runsPage)">🔄 {{ t('refresh') }}</el-button>
+        </div>
+        <div class="apify-table-wrap" v-if="runs.length">
+          <table class="apify-table">
+            <thead>
+              <tr>
+                <th>{{ t('actorId') }}</th>
+                <th>{{ t('status') }}</th>
+                <th>{{ t('started') }}</th>
+                <th>{{ t('duration') }}</th>
+                <th>{{ t('actions') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="r in runs" :key="r.id">
+                <td>
+                  <span class="apify-run-id" :title="r.id" @click="copyToClipboard(r.id)">{{ (r.actId || r.actorId || r.id || '').substring(0, 16) }}...</span>
+                </td>
+                <td>
+                  <span class="apify-status-badge" :style="{background: statusColor(r.status)}">{{ statusLabel(r.status) }}</span>
+                </td>
+                <td>{{ fmtDate(r.startedAt) }}</td>
+                <td>{{ fmtDuration(r.startedAt, r.finishedAt) }}</td>
+                <td class="apify-actions">
+                  <el-button size="small" text @click="showRunDetail(r.id)" title="Detail">📋</el-button>
+                  <el-button size="small" text @click="showLog(r.id)" :title="t('viewLog')">📄</el-button>
+                  <el-button size="small" text @click="showDatasetItems(r.defaultDatasetId, t('defaultDataset'), 0)" v-if="r.defaultDatasetId" :title="t('viewData')">📊</el-button>
+                  <el-button size="small" text type="danger" @click="abortRun(r.id)" v-if="r.status==='RUNNING'" :title="t('abort')">⏹</el-button>
+                  <el-button size="small" text @click="resurrectRun(r.id)" v-if="r.status==='FAILED'||r.status==='ABORTED'||r.status==='TIMED-OUT'" :title="t('resurrect')">🔄</el-button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="apify-empty">{{ t('noData') }}</div>
+        <div class="apify-pagination" v-if="runsTotal > PAGE_SIZE">
+          <el-button size="small" :disabled="runsPage===0" @click="loadRuns(runsPage-1)">{{ t('prev') }}</el-button>
+          <span class="apify-page-info">{{ t('page') }} {{ runsPage + 1 }} / {{ totalPages(runsTotal) }}</span>
+          <el-button size="small" :disabled="(runsPage+1)*PAGE_SIZE>=runsTotal" @click="loadRuns(runsPage+1)">{{ t('next') }}</el-button>
+        </div>
+      </div>
+
+      <!-- ═══ DATASETS ═══ -->
+      <div v-if="tab==='datasets'" class="apify-panel">
+        <div class="apify-toolbar">
+          <span class="apify-toolbar-title">📊 {{ t('datasets') }}</span>
+          <el-button size="small" text @click="loadDatasets(datasetsPage)">🔄 {{ t('refresh') }}</el-button>
+        </div>
+        <div class="apify-table-wrap" v-if="datasets.length">
+          <table class="apify-table">
+            <thead>
+              <tr>
+                <th>{{ t('name') }}</th>
+                <th>{{ t('items') }}</th>
+                <th>{{ t('createdAt') }}</th>
+                <th>{{ t('actions') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="d in datasets" :key="d.id">
+                <td><strong>{{ d.name || d.id }}</strong></td>
+                <td>{{ d.itemCount || 0 }}</td>
+                <td>{{ fmtDate(d.createdAt) }}</td>
+                <td>
+                  <el-button size="small" type="primary" text @click="showDatasetItems(d.id, d.name || d.id, 0)">📊 {{ t('viewData') }}</el-button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="apify-empty">{{ t('noData') }}</div>
+        <div class="apify-pagination" v-if="datasetsTotal > PAGE_SIZE">
+          <el-button size="small" :disabled="datasetsPage===0" @click="loadDatasets(datasetsPage-1)">{{ t('prev') }}</el-button>
+          <span class="apify-page-info">{{ t('page') }} {{ datasetsPage + 1 }} / {{ totalPages(datasetsTotal) }}</span>
+          <el-button size="small" :disabled="(datasetsPage+1)*PAGE_SIZE>=datasetsTotal" @click="loadDatasets(datasetsPage+1)">{{ t('next') }}</el-button>
+        </div>
+      </div>
+
+      <!-- ═══ KV STORES ═══ -->
+      <div v-if="tab==='kvStores'" class="apify-panel">
+        <div class="apify-toolbar">
+          <span class="apify-toolbar-title">🗄️ {{ t('kvStores') }}</span>
+          <el-button size="small" text @click="loadKvStores(kvStoresPage)">🔄 {{ t('refresh') }}</el-button>
+        </div>
+        <div class="apify-table-wrap" v-if="kvStores.length">
+          <table class="apify-table">
+            <thead>
+              <tr>
+                <th>{{ t('name') }}</th>
+                <th>{{ t('createdAt') }}</th>
+                <th>{{ t('modifiedAt') }}</th>
+                <th>{{ t('actions') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="kv in kvStores" :key="kv.id">
+                <td><strong>{{ kv.name || kv.id }}</strong></td>
+                <td>{{ fmtDate(kv.createdAt) }}</td>
+                <td>{{ fmtDate(kv.modifiedAt) }}</td>
+                <td>
+                  <el-button size="small" type="primary" text @click="showKvKeys(kv.id, kv.name || kv.id)">🔑 {{ t('kvKeys') }}</el-button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="apify-empty">{{ t('noData') }}</div>
+        <div class="apify-pagination" v-if="kvStoresTotal > PAGE_SIZE">
+          <el-button size="small" :disabled="kvStoresPage===0" @click="loadKvStores(kvStoresPage-1)">{{ t('prev') }}</el-button>
+          <span class="apify-page-info">{{ t('page') }} {{ kvStoresPage + 1 }} / {{ totalPages(kvStoresTotal) }}</span>
+          <el-button size="small" :disabled="(kvStoresPage+1)*PAGE_SIZE>=kvStoresTotal" @click="loadKvStores(kvStoresPage+1)">{{ t('next') }}</el-button>
+        </div>
+      </div>
+
+      <!-- ═══ SCHEDULES ═══ -->
+      <div v-if="tab==='schedules'" class="apify-panel">
+        <div class="apify-toolbar">
+          <span class="apify-toolbar-title">⏰ {{ t('schedules') }}</span>
+          <el-button size="small" text @click="loadSchedules()">🔄 {{ t('refresh') }}</el-button>
+        </div>
+        <div class="apify-table-wrap" v-if="schedules.length">
+          <table class="apify-table">
+            <thead>
+              <tr>
+                <th>{{ t('name') }}</th>
+                <th>{{ t('cronExpression') }}</th>
+                <th>{{ t('isEnabled') }}</th>
+                <th>{{ t('actions') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="s in schedules" :key="s.id">
+                <td><strong>{{ s.name || s.id }}</strong></td>
+                <td><code>{{ s.cronExpression }}</code></td>
+                <td>
+                  <span :style="{color: s.isEnabled ? '#67c23a' : '#f56c6c'}">{{ s.isEnabled ? '✅' : '❌' }}</span>
+                </td>
+                <td>
+                  <el-button size="small" text type="danger" @click="deleteSchedule(s.id)">🗑️</el-button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="apify-empty">{{ t('noData') }}</div>
+      </div>
+
+      <!-- ═══ TASKS ═══ -->
+      <div v-if="tab==='tasks'" class="apify-panel">
+        <div class="apify-toolbar">
+          <span class="apify-toolbar-title">📋 {{ t('tasks') }}</span>
+          <el-button size="small" text @click="loadTasks()">🔄 {{ t('refresh') }}</el-button>
+        </div>
+        <div class="apify-table-wrap" v-if="tasks.length">
+          <table class="apify-table">
+            <thead>
+              <tr>
+                <th>{{ t('name') }}</th>
+                <th>{{ t('actorId') }}</th>
+                <th>{{ t('createdAt') }}</th>
+                <th>{{ t('actions') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="tk in tasks" :key="tk.id">
+                <td><strong>{{ tk.name || tk.id }}</strong></td>
+                <td>{{ tk.actId || '-' }}</td>
+                <td>{{ fmtDate(tk.createdAt) }}</td>
+                <td class="apify-actions">
+                  <el-button size="small" type="primary" @click="runTask(tk.id)">▶ {{ t('run') }}</el-button>
+                  <el-button size="small" text type="danger" @click="deleteTask(tk.id)">🗑️</el-button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-else class="apify-empty">{{ t('noData') }}</div>
+      </div>
+
+      <!-- ═══ ACCOUNT ═══ -->
+      <div v-if="tab==='account'" class="apify-panel">
+        <div class="apify-toolbar">
+          <span class="apify-toolbar-title">👤 {{ t('account') }}</span>
+          <el-button size="small" text @click="loadAccount()">🔄 {{ t('refresh') }}</el-button>
+        </div>
+        <div v-if="accountInfo" class="apify-account-info">
+          <div class="apify-account-row"><span>{{ t('username') }}:</span> <strong>{{ accountInfo.username }}</strong></div>
+          <div class="apify-account-row"><span>{{ t('email') }}:</span> {{ accountInfo.email || '-' }}</div>
+          <div class="apify-account-row"><span>{{ t('plan') }}:</span> {{ accountInfo.plan && accountInfo.plan.id || '-' }}</div>
+          <div class="apify-account-row" v-if="accountInfo.proxy"><span>{{ t('proxy') }}:</span> {{ JSON.stringify(accountInfo.proxy) }}</div>
+        </div>
+        <div v-else class="apify-empty">{{ t('noData') }}</div>
+      </div>
+
+      <!-- ═══ SETTINGS ═══ -->
+      <div v-if="tab==='settings'" class="apify-panel">
+        <div class="apify-toolbar">
+          <span class="apify-toolbar-title">⚙️ {{ t('settings') }}</span>
+        </div>
+        <div class="apify-settings-card">
+          <div class="apify-settings-row">
+            <label>{{ t('apiKey') }}</label>
+            <div v-if="hasKey" class="apify-key-display">
+              <code>{{ maskedKey }}</code>
+              <el-button size="small" type="danger" text @click="deleteApiKey">🗑️ {{ t('deleteKey') }}</el-button>
+            </div>
+          </div>
+          <div class="apify-settings-row">
+            <el-input v-model="apiKeyInput" :placeholder="t('enterApiKey')" size="default" show-password style="max-width:500px" />
+            <el-button type="primary" @click="saveApiKey" :disabled="!apiKeyInput.trim()">{{ t('saveKey') }}</el-button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </template>
+
+  <!-- ═══ RUN ACTOR DIALOG ═══ -->
+  <el-dialog v-model="runDialog" :title="t('runActor') + ' — ' + runActorName" width="560px" :close-on-click-modal="false" append-to-body>
+    <div class="apify-run-form">
+      <div class="apify-form-row">
+        <label>{{ t('actorId') }}</label>
+        <el-input :model-value="runActorId" disabled size="small" />
+      </div>
+      <div class="apify-form-row">
+        <label>{{ t('inputJson') }}</label>
+        <el-input v-model="runInput" type="textarea" :rows="8" placeholder="{}" />
+      </div>
+      <div class="apify-form-row-inline">
+        <div class="apify-form-col">
+          <label>{{ t('memoryMb') }}</label>
+          <el-input v-model="runMemory" size="small" placeholder="256" />
+        </div>
+        <div class="apify-form-col">
+          <label>{{ t('timeoutSecs') }}</label>
+          <el-input v-model="runTimeout" size="small" placeholder="300" />
+        </div>
+        <div class="apify-form-col">
+          <label>{{ t('build') }}</label>
+          <el-input v-model="runBuild" size="small" placeholder="latest" />
+        </div>
+      </div>
+    </div>
+    <template #footer>
+      <el-button @click="runDialog = false">{{ t('cancel') }}</el-button>
+      <el-button type="primary" @click="startRun">▶ {{ t('run') }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ═══ LOG DIALOG ═══ -->
+  <el-dialog v-model="logDialog" :title="t('log') + ' — ' + logRunId" width="80%" top="5vh" append-to-body>
+    <pre class="apify-log-pre">{{ logContent }}</pre>
+  </el-dialog>
+
+  <!-- ═══ RUN DETAIL DIALOG ═══ -->
+  <el-dialog v-model="detailDialog" :title="t('runId')" width="600px" append-to-body>
+    <div v-if="detailRun" class="apify-detail-grid">
+      <div class="apify-detail-row"><span>ID:</span> <code>{{ detailRun.id }}</code></div>
+      <div class="apify-detail-row"><span>{{ t('actorId') }}:</span> {{ detailRun.actId }}</div>
+      <div class="apify-detail-row"><span>{{ t('status') }}:</span>
+        <span class="apify-status-badge" :style="{background: statusColor(detailRun.status)}">{{ statusLabel(detailRun.status) }}</span>
+      </div>
+      <div class="apify-detail-row"><span>{{ t('started') }}:</span> {{ fmtDate(detailRun.startedAt) }}</div>
+      <div class="apify-detail-row"><span>{{ t('finished') }}:</span> {{ fmtDate(detailRun.finishedAt) }}</div>
+      <div class="apify-detail-row"><span>{{ t('duration') }}:</span> {{ fmtDuration(detailRun.startedAt, detailRun.finishedAt) }}</div>
+      <div class="apify-detail-row" v-if="detailRun.stats"><span>{{ t('items') }}:</span> {{ detailRun.stats.durationMillis ? Math.round(detailRun.stats.durationMillis/1000) + 's' : '-' }}</div>
+      <div class="apify-detail-row"><span>{{ t('defaultDataset') }}:</span> {{ detailRun.defaultDatasetId || '-' }}</div>
+      <div class="apify-detail-row"><span>{{ t('defaultKvStore') }}:</span> {{ detailRun.defaultKeyValueStoreId || '-' }}</div>
+    </div>
+    <template #footer>
+      <el-button v-if="detailRun && detailRun.defaultDatasetId" size="small" @click="showDatasetItems(detailRun.defaultDatasetId, t('defaultDataset'), 0)">📊 {{ t('viewData') }}</el-button>
+      <el-button v-if="detailRun" size="small" @click="showLog(detailRun.id)">📄 {{ t('viewLog') }}</el-button>
+      <el-button @click="detailDialog = false">{{ t('close') }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ═══ DATASET ITEMS DIALOG ═══ -->
+  <el-dialog v-model="dataDialog" :title="t('datasetItems') + ' — ' + dataTitle" width="90%" top="3vh" append-to-body>
+    <div class="apify-data-toolbar">
+      <span>{{ t('totalItems') }}: {{ dataTotal }}</span>
+      <div>
+        <el-button size="small" @click="exportJSON(dataItems, 'dataset.json')">📥 {{ t('exportJson') }}</el-button>
+        <el-button size="small" @click="exportCSV(dataItems, 'dataset.csv')">📥 {{ t('exportCsv') }}</el-button>
+      </div>
+    </div>
+    <div class="apify-data-table-wrap">
+      <table class="apify-table apify-data-table" v-if="dataItems.length">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th v-for="key in Object.keys(dataItems[0] || {})" :key="key">{{ key }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(item, idx) in dataItems" :key="idx">
+            <td>{{ (dataPage * 50) + idx + 1 }}</td>
+            <td v-for="key in Object.keys(dataItems[0] || {})" :key="key" :title="String(item[key])">
+              {{ typeof item[key] === 'object' ? JSON.stringify(item[key]).substring(0,80) : String(item[key] ?? '').substring(0,80) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div v-else class="apify-empty">{{ t('noData') }}</div>
+    </div>
+    <div class="apify-pagination" v-if="dataTotal > 50">
+      <el-button size="small" :disabled="dataPage===0" @click="showDatasetItems(dataDatasetId, dataTitle, dataPage-1)">{{ t('prev') }}</el-button>
+      <span class="apify-page-info">{{ t('page') }} {{ dataPage + 1 }}</span>
+      <el-button size="small" @click="showDatasetItems(dataDatasetId, dataTitle, dataPage+1)">{{ t('next') }}</el-button>
+    </div>
+  </el-dialog>
+
+  <!-- ═══ KV KEYS DIALOG ═══ -->
+  <el-dialog v-model="kvDialog" :title="t('kvKeys') + ' — ' + kvStoreTitle" width="600px" append-to-body>
+    <div class="apify-kv-list" v-if="kvKeys.length">
+      <div v-for="k in kvKeys" :key="k.key" class="apify-kv-item" @click="showKvValue(k.key)">
+        <span class="apify-kv-key">🔑 {{ k.key }}</span>
+        <span class="apify-kv-size">{{ k.size ? Math.round(k.size/1024) + ' KB' : '' }}</span>
+      </div>
+    </div>
+    <div v-else class="apify-empty">{{ t('noData') }}</div>
+  </el-dialog>
+
+  <!-- ═══ KV VALUE DIALOG ═══ -->
+  <el-dialog v-model="kvValueDialog" :title="t('kvValue') + ' — ' + kvValueKey" width="70%" top="5vh" append-to-body>
+    <div class="apify-data-toolbar">
+      <span></span>
+      <el-button size="small" @click="copyToClipboard(kvValueContent)">📋 {{ t('copied').split(' ')[0] }}</el-button>
+    </div>
+    <pre class="apify-log-pre">{{ kvValueContent }}</pre>
+  </el-dialog>
+</div>

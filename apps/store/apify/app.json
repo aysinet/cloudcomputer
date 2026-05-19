@@ -1,0 +1,27 @@
+{
+  "id": "apify",
+  "icon": "🕷️",
+  "name": "Apify",
+  "lang": {
+    "tr": { "name": "Apify", "description": "Web kazıma ve otomasyon platformu. Apify aktörlerini çalıştırın, veri setlerini görüntüleyin ve görevleri yönetin." },
+    "en": { "name": "Apify", "description": "Web scraping and automation platform. Run Apify actors, view datasets, and manage tasks." },
+    "de": { "name": "Apify", "description": "Web-Scraping- und Automatisierungsplattform. Apify-Akteure ausführen, Datensätze anzeigen und Aufgaben verwalten." },
+    "fr": { "name": "Apify", "description": "Plateforme de scraping web et d'automatisation. Exécutez des acteurs Apify, consultez les jeux de données et gérez les tâches." },
+    "es": { "name": "Apify", "description": "Plataforma de scraping web y automatización. Ejecuta actores de Apify, consulta datasets y gestiona tareas." },
+    "ru": { "name": "Apify", "description": "Платформа веб-скрейпинга и автоматизации. Запускайте актёров Apify, просматривайте наборы данных и управляйте задачами." },
+    "zh": { "name": "Apify", "description": "网页抓取和自动化平台。运行Apify Actor，查看数据集并管理任务。" },
+    "ja": { "name": "Apify", "description": "Webスクレイピングと自動化プラットフォーム。Apifyアクターの実行、データセットの表示、タスクの管理。" },
+    "it": { "name": "Apify", "description": "Piattaforma di web scraping e automazione. Esegui attori Apify, visualizza dataset e gestisci attività." },
+    "ar": { "name": "Apify", "description": "منصة استخراج بيانات الويب والأتمتة. تشغيل ممثلي Apify وعرض مجموعات البيانات وإدارة المهام." },
+    "ko": { "name": "Apify", "description": "웹 스크래핑 및 자동화 플랫폼. Apify 액터 실행, 데이터셋 조회, 작업 관리." },
+    "hi": { "name": "Apify", "description": "वेब स्क्रैपिंग और ऑटोमेशन प्लेटफ़ॉर्म। Apify एक्टर चलाएँ, डेटासेट देखें और कार्य प्रबंधित करें।" },
+    "pt": { "name": "Apify", "description": "Plataforma de web scraping e automação. Execute atores Apify, visualize datasets e gerencie tarefas." }
+  },
+  "category": "developer",
+  "version": "1.0.0",
+  "author": "CloudComputer",
+  "color": "linear-gradient(135deg,#00c896,#0a7d5a)",
+  "width": 1100,
+  "height": 700,
+  "singleInstance": true
+}
