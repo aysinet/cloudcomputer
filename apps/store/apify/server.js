@@ -1,3 +1,57 @@
+function positiveInteger(value, name) {
+  if (!['number', 'string'].includes(typeof value) || String(value).trim() === '') {
+    throw new TypeError(`${name} must be a positive integer`);
+  }
+  const number = Number(value);
+  if (!Number.isInteger(number) || number <= 0) {
+    throw new TypeError(`${name} must be a positive integer`);
+  }
+  return number;
+}
+
+function positiveNumber(value, name) {
+  if (!['number', 'string'].includes(typeof value) || String(value).trim() === '') {
+    throw new TypeError(`${name} must be a positive number`);
+  }
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= 0) {
+    throw new TypeError(`${name} must be a positive number`);
+  }
+  return number;
+}
+
+function buildRunQuery(options = {}) {
+  if (!options || typeof options !== 'object' || Array.isArray(options)) {
+    throw new TypeError('options must be an object');
+  }
+
+  const params = new URLSearchParams();
+  if (options.memory !== undefined) {
+    params.set('memory', positiveInteger(options.memory, 'memory'));
+  }
+  if (options.timeout !== undefined) {
+    params.set('timeout', positiveInteger(options.timeout, 'timeout'));
+  }
+  if (options.build !== undefined) {
+    if (typeof options.build !== 'string' || !options.build.trim()) {
+      throw new TypeError('build must be a non-empty string');
+    }
+    params.set('build', options.build.trim());
+  }
+  if (options.maxItems !== undefined) {
+    params.set('maxItems', positiveInteger(options.maxItems, 'maxItems'));
+  }
+  if (options.maxTotalChargeUsd !== undefined) {
+    params.set(
+      'maxTotalChargeUsd',
+      positiveNumber(options.maxTotalChargeUsd, 'maxTotalChargeUsd')
+    );
+  }
+
+  const query = params.toString();
+  return query ? `?${query}` : '';
+}
+
 module.exports = function(ctx) {
   const { app, authMiddleware, getUserSettings, saveUserSettings, fs, path } = ctx;
   const https = require('https');
@@ -140,13 +194,21 @@ module.exports = function(ctx) {
           try {
             const key = requireKey(req, res); if (!key) return;
             const actorId = req.params.actorId;
-            const input = req.body.input || {};
-            const opts = req.body.options || {};
-            let qp = '';
-            if (opts.memory) qp += '&memory=' + parseInt(opts.memory);
-            if (opts.timeout) qp += '&timeout=' + parseInt(opts.timeout);
-            if (opts.build) qp += '&build=' + encodeURIComponent(opts.build);
-            if (qp) qp = '?' + qp.slice(1);
+            const requestBody = req.body ?? {};
+            if (typeof requestBody !== 'object' || Array.isArray(requestBody)) {
+              return res.status(400).json({ error: 'request body must be an object' });
+            }
+            const input = requestBody.input ?? {};
+            if (!input || typeof input !== 'object' || Array.isArray(input)) {
+              return res.status(400).json({ error: 'input must be an object' });
+            }
+            const opts = requestBody.options ?? {};
+            let qp;
+            try {
+              qp = buildRunQuery(opts);
+            } catch (error) {
+              return res.status(400).json({ error: error.message });
+            }
             const r = await apifyReq('POST', `/acts/${encodeURIComponent(actorId)}/runs${qp}`, key, input);
             res.status(r.status).json(r.data);
           } catch (e) { res.status(500).json({ error: e.message }); }
@@ -411,3 +473,5 @@ module.exports = function(ctx) {
     ]
   };
 };
+
+module.exports.buildRunQuery = buildRunQuery;

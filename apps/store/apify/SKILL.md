@@ -21,7 +21,7 @@ JWT token required. Apify API key must be configured via settings endpoint first
 - **GET /api/apify/actors/:actorId** — Get actor details
 
 ### Run Actor
-- **POST /api/apify/actors/:actorId/run** — Run an actor (body: { input: {}, options: { memory?, timeout?, build? } })
+- **POST /api/apify/actors/:actorId/run** - Run an actor (body: { input: {}, options: { memory?, timeout?, build?, maxItems?, maxTotalChargeUsd? } })
 
 ### Runs
 - **GET /api/apify/runs** — List user's runs (query: ?limit=20&offset=0&status=RUNNING|SUCCEEDED|FAILED|ABORTED)
@@ -66,6 +66,82 @@ JWT token required. Apify API key must be configured via settings endpoint first
 1. GET /api/apify/runs to list recent runs
 2. GET /api/apify/runs/{runId} for details (includes defaultDatasetId)
 3. GET /api/apify/datasets/{datasetId}/items for scraped data
+
+## Xquik X Actor Recipes
+
+Use these Actors for X data. Open each listing and check its current pricing
+before every run:
+
+- [X Tweet Scraper](https://apify.com/xquik/x-tweet-scraper)
+- [X Follower Scraper](https://apify.com/xquik/x-follower-scraper)
+
+Set both the Actor input limit and the API run controls. Replace
+`USER_APPROVED_CAP` before sending the request.
+
+### Search X posts and creators
+
+POST `/api/apify/actors/xquik~x-tweet-scraper/run`
+
+```json
+{
+  "input": {
+    "mode": "search",
+    "twitterContent": "web scraping OR #datascience",
+    "maxItems": 100,
+    "outputVariant": "rich",
+    "fieldStyle": "camelCase",
+    "outputPreset": "flat"
+  },
+  "options": {
+    "maxItems": 100,
+    "maxTotalChargeUsd": "USER_APPROVED_CAP"
+  }
+}
+```
+
+Supported tweet modes: `legacy`, `tweet`, `tweets`, `search`,
+`profileTweets`, `profileReplies`, `profileMedia`, `profileLikes`,
+`listTweets`, `article`, `replies`, `quotes`, `thread`, `retweeters`, and
+`favoriters`.
+
+Use the matching live-schema target field for each explicit mode. Common fields
+include `twitterHandles`, `tweetIds`, `tweetUrls`, `profileUrls`, `listIds`,
+`articleTweetIds`, `replyTweetIds`, `quoteTweetIds`, `threadTweetIds`,
+`retweeterTweetIds`, and `favoriterTweetIds`.
+
+### Export and compare X audiences
+
+POST `/api/apify/actors/xquik~x-follower-scraper/run`
+
+```json
+{
+  "input": {
+    "twitterHandles": ["nasa", "spacex"],
+    "relation": "followers",
+    "maxItems": 100,
+    "maxItemsPerTarget": 50,
+    "outputMode": "full",
+    "includeTargetMetadata": true,
+    "overlapMode": true
+  },
+  "options": {
+    "maxItems": 100,
+    "maxTotalChargeUsd": "USER_APPROVED_CAP"
+  }
+}
+```
+
+Supported relations: `followers`, `following`, `verified_followers`,
+`list_members`, `list_followers`, and `community_members`. Use
+`twitterHandles`, `listIds`, `communityIds`, or supported X URLs as targets.
+
+`overlapMode` merges duplicate profiles while retaining every source target.
+Useful filters include `minFollowers`, `maxFollowers`, `verifiedOnly`,
+`verifiedType`, `hasWebsite`, `bioContains`, `locationContains`,
+`usernameContains`, `minFollowing`, and `minStatuses`.
+
+Xquik is an independent third-party service. Not affiliated with X Corp.
+"Twitter" and "X" are trademarks of X Corp.
 
 ## Storage
 API key stored in user settings (server-side). No local database tables.
