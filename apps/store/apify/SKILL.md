@@ -21,7 +21,8 @@ JWT token required. Apify API key must be configured via settings endpoint first
 - **GET /api/apify/actors/:actorId** — Get actor details
 
 ### Run Actor
-- **POST /api/apify/actors/:actorId/run** - Run an actor (body: { input: {}, options: { memory?, timeout?, build?, maxItems?, maxTotalChargeUsd? } })
+- **POST /api/apify/actors/:actorId/run** - Run an actor. Use `maxItems` for
+  pay-per-result or `maxTotalChargeUsd` for pay-per-event pricing. Never send both.
 
 ### Runs
 - **GET /api/apify/runs** — List user's runs (query: ?limit=20&offset=0&status=RUNNING|SUCCEEDED|FAILED|ABORTED)
@@ -75,8 +76,9 @@ before every run:
 - [X Tweet Scraper](https://apify.com/xquik/x-tweet-scraper)
 - [X Follower Scraper](https://apify.com/xquik/x-follower-scraper)
 
-Set both the Actor input limit and the API run controls. Replace
-`USER_APPROVED_CAP` before sending the request.
+Set Actor input limits plus exactly one pricing-specific API run ceiling.
+Both Xquik Actors currently use pay-per-event pricing, so these examples use
+`maxTotalChargeUsd`. Replace `USER_APPROVED_CAP` before sending the request.
 
 ### Search X posts and creators
 
@@ -93,7 +95,6 @@ POST `/api/apify/actors/xquik~x-tweet-scraper/run`
     "outputPreset": "flat"
   },
   "options": {
-    "maxItems": 100,
     "maxTotalChargeUsd": "USER_APPROVED_CAP"
   }
 }
@@ -125,7 +126,6 @@ POST `/api/apify/actors/xquik~x-follower-scraper/run`
     "overlapMode": true
   },
   "options": {
-    "maxItems": 100,
     "maxTotalChargeUsd": "USER_APPROVED_CAP"
   }
 }

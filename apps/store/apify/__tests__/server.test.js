@@ -4,18 +4,19 @@ const test = require('node:test');
 const createServer = require('../server');
 const { buildRunQuery } = createServer;
 
-test('buildRunQuery preserves supported run controls', () => {
-  const query = buildRunQuery({
-    memory: '512',
-    timeout: 300,
-    build: ' latest ',
-    maxItems: '100',
-    maxTotalChargeUsd: '1.25'
-  });
-
+test('buildRunQuery preserves one pricing-specific run ceiling', () => {
   assert.equal(
-    query,
-    '?memory=512&timeout=300&build=latest&maxItems=100&maxTotalChargeUsd=1.25'
+    buildRunQuery({
+      memory: '512',
+      timeout: 300,
+      build: ' latest ',
+      maxItems: '100'
+    }),
+    '?memory=512&timeout=300&build=latest&maxItems=100'
+  );
+  assert.equal(
+    buildRunQuery({ maxTotalChargeUsd: '1.25' }),
+    '?maxTotalChargeUsd=1.25'
   );
 });
 
@@ -34,7 +35,9 @@ test('buildRunQuery rejects unsafe option values', () => {
     { timeout: 1.5 },
     { build: '   ' },
     { maxItems: -1 },
-    { maxTotalChargeUsd: 'not-a-number' }
+    { maxItems: Number.MAX_SAFE_INTEGER + 1 },
+    { maxTotalChargeUsd: 'not-a-number' },
+    { maxItems: 100, maxTotalChargeUsd: 1.25 }
   ];
 
   for (const options of invalidOptions) {
@@ -79,9 +82,24 @@ test('run route rejects invalid bodies before contacting Apify', async () => {
     },
     response
   );
+  await handler(
+    {
+      body: {
+        input: {},
+        options: { maxItems: 100, maxTotalChargeUsd: 1.25 }
+      },
+      params: { actorId: 'xquik~x-tweet-scraper' },
+      user: { username: 'tester' }
+    },
+    response
+  );
 
   assert.deepEqual(responses, [
     { status: 400, body: { error: 'input must be an object' } },
-    { status: 400, body: { error: 'options must be an object' } }
+    { status: 400, body: { error: 'options must be an object' } },
+    {
+      status: 400,
+      body: { error: 'select one pricing-specific run ceiling' }
+    }
   ]);
 });

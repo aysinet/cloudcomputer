@@ -3,7 +3,7 @@ function positiveInteger(value, name) {
     throw new TypeError(`${name} must be a positive integer`);
   }
   const number = Number(value);
-  if (!Number.isInteger(number) || number <= 0) {
+  if (!Number.isSafeInteger(number) || number <= 0) {
     throw new TypeError(`${name} must be a positive integer`);
   }
   return number;
@@ -26,6 +26,12 @@ function buildRunQuery(options = {}) {
   }
 
   const params = new URLSearchParams();
+  if (
+    options.maxItems !== undefined &&
+    options.maxTotalChargeUsd !== undefined
+  ) {
+    throw new TypeError('select one pricing-specific run ceiling');
+  }
   if (options.memory !== undefined) {
     params.set('memory', positiveInteger(options.memory, 'memory'));
   }
