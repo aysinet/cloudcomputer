@@ -4,7 +4,8 @@
   "description": "Aysi Cloud Computer OS",
   "main": "desktop.js",
   "scripts": {
-    "start": "node desktop.js"
+    "start": "node desktop.js",
+    "test:apify": "node --test apps/store/apify/__tests__/server.test.js"
   },
   "dependencies": {
     "adm-zip": "^0.5.17",
